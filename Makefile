@@ -2,14 +2,14 @@
 JAVAC			= javac
 
 
-all: sysnet
+all: jsysnet
 
-install: sysnet
+install: jsysnet
 
-Sysnet.class: 
-	$(JAVAC) Sysnet.java
+JSysNet.class: 
+	$(JAVAC) JSysNet.java
 
-sysnet: Sysnet.class
+jsysnet: JSysNet.class
 
 clean:
 	find . -name \*.class -exec rm {} \;

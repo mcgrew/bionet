@@ -4,7 +4,7 @@
 import javax.swing.*;
 import java.awt.*;
 
-public class SysnetWindow extends JFrame {
+public class JSysNetWindow extends JFrame {
 
 	private JMenuBar menu = new JMenuBar( );
 	private JTabbedPane tabPane = new JTabbedPane( );
@@ -12,13 +12,13 @@ public class SysnetWindow extends JFrame {
 	private static int DEFAULTWIDTH = 800;
 	private static int DEFAULTHEIGHT = 600;
 	
-	public SysnetWindow ( String title ) {
+	public JSysNetWindow ( String title ) {
 
 		super( title );
 		this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		this.setLayout( new BorderLayout( ));
-		int x = ( Sysnet.desktopSize.width - DEFAULTWIDTH ) / 2;
-		int y = ( Sysnet.desktopSize.height - DEFAULTHEIGHT ) / 2;
+		int x = ( JSysNet.desktopSize.width - DEFAULTWIDTH ) / 2;
+		int y = ( JSysNet.desktopSize.height - DEFAULTHEIGHT ) / 2;
 		this.setBounds( x, y, DEFAULTWIDTH, DEFAULTHEIGHT );
 		this.getContentPane( ).add( tabPane, BorderLayout.CENTER );
 		tabPane.setVisible( true );

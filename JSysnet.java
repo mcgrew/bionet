@@ -1,9 +1,9 @@
 import java.awt.Toolkit;
 import java.awt.Dimension;
 
-public class Sysnet {
+public class JSysNet {
 
-	public static DEBUG = true;
+	public static boolean DEBUG = true;
 	public static Dimension desktopSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 	public static void main ( String [ ] args ) {
@@ -11,7 +11,7 @@ public class Sysnet {
 	}
 
 	public static void newWindow( ){
-		SysnetWindow s = new SysnetWindow( "Sysnet" );
+		JSysNetWindow s = new JSysNetWindow( "JSysNet" );
 	}
 
 }
