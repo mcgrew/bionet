@@ -1,0 +1,11 @@
+Mannifest-Version: 1.0
+Created-By: Thomas McGrew
+Name: JSysnet
+Specification-Title: JSysNet
+Specification-Version: pre-release
+Specification-Vendor: Purdue University
+Implementation-Title: JSysNet
+Implementation-Version: rev.
+Implementation-Vendor: Purdue University
+Main-Class: JSysNet
+
