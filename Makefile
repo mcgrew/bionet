@@ -1,7 +1,6 @@
 
 JAVAC			= javac
 
-
 all: jsysnet
 
 install: jsysnet
