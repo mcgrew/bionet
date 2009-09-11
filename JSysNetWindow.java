@@ -19,16 +19,8 @@ public class JSysNetWindow extends JFrame {
 	private JMenuItem addSetupDatabaseMenuItem = new JMenuItem( "Add...", KeyEvent.VK_A );
 	private JMenuItem removeSetupDatabaseMenuItem = new JMenuItem( "Remove...", KeyEvent.VK_R );
 	private JMenuItem connectDatabaseMenuItem = new JMenuItem( "Connect...", KeyEvent.VK_C );
-	private JMenu calculationMenu = new JMenu( "Calculation" );
-	private JMenuItem pearsonCalculationMenuItem = new JMenuItem( "Pearson", KeyEvent.VK_P );
-	private JMenuItem spearmanCalculationMenuItem = new JMenuItem( "Spearman", KeyEvent.VK_S );
-	private JMenuItem kendallCalculationMenuItem = new JMenuItem( "Kendall", KeyEvent.VK_K );
-	private JMenu clusteringMenu = new JMenu( "Clustering" );
-	private JMenuItem ldaClusteringMenuItem = new JMenuItem( "LDA", KeyEvent.VK_L );
-	private JMenu viewMenu = new JMenu( "View" );
-	private JMenuItem zoomInViewMenuItem = new JMenuItem( "Zoom In", KeyEvent.VK_I );
-	private JMenuItem zoomOutViewMenuItem = new JMenuItem( "Zoom Out", KeyEvent.VK_O );
-	private JMenuItem fitToWindowViewMenuItem = new JMenuItem( "Fit to Window", KeyEvent.VK_F );
+//	private JMenu clusteringMenu = new JMenu( "Clustering" );
+//	private JMenuItem ldaClusteringMenuItem = new JMenuItem( "LDA", KeyEvent.VK_L );
 	private JMenu helpMenu = new JMenu( "Help" );
 	private JMenuItem contentsHelpMenuItem = new JMenuItem( "Contents", KeyEvent.VK_C );
 	private JMenuItem aboutHelpMenuItem = new JMenuItem( "About", KeyEvent.VK_A );
@@ -79,25 +71,11 @@ public class JSysNetWindow extends JFrame {
 		this.setupDatabaseMenu.add( this.removeSetupDatabaseMenuItem );
 		this.databaseMenu.add( this.connectDatabaseMenuItem );
 
-		//CALCULATION MENU
-		this.calculationMenu.setMnemonic( KeyEvent.VK_C );
-		this.calculationMenu.getAccessibleContext( ).setAccessibleDescription(
-			"Perform Data Calculations" );
-		this.calculationMenu.add( this.pearsonCalculationMenuItem );
-		this.calculationMenu.add( this.spearmanCalculationMenuItem );
-		this.calculationMenu.add( this.kendallCalculationMenuItem );
 
 		//CLUSTERING MENU
-		this.clusteringMenu.setMnemonic( KeyEvent.VK_L );
-		this.clusteringMenu.add( this.ldaClusteringMenuItem );
+//		this.clusteringMenu.setMnemonic( KeyEvent.VK_L );
+//		this.clusteringMenu.add( this.ldaClusteringMenuItem );
 
-		//VIEW MENU
-		this.viewMenu.setMnemonic( KeyEvent.VK_V );
-		this.viewMenu.getAccessibleContext( ).setAccessibleDescription(
-			"Change the data view settings" );
-		this.viewMenu.add( this.zoomInViewMenuItem );
-		this.viewMenu.add( this.zoomOutViewMenuItem );
-		this.viewMenu.add( this.fitToWindowViewMenuItem );
 		
 		//HELP MENU
 		this.helpMenu.setMnemonic( KeyEvent.VK_H );
@@ -108,9 +86,7 @@ public class JSysNetWindow extends JFrame {
 
 		this.menuBar.add( this.fileMenu );
 		this.menuBar.add( this.databaseMenu );
-		this.menuBar.add( this.calculationMenu );
-		this.menuBar.add( this.clusteringMenu );
-		this.menuBar.add( this.viewMenu );
+//		this.menuBar.add( this.clusteringMenu );
 		this.menuBar.add( this.helpMenu );
 
 		this.setJMenuBar( this.menuBar );

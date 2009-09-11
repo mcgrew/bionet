@@ -10,6 +10,10 @@ JSysNet.class:
 
 jsysnet: JSysNet.class
 
+jar: jsysnet
+	jar -cmf manifest.txt JSysNet.jar `find . -name \*.class` `find gnu -name \*.properties`;
+
 clean:
 	find . -name \*.class -exec rm {} \;
+	find . -name JSysNet.jar -exec rm {} \;
 

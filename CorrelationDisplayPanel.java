@@ -1,18 +1,27 @@
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
+import javax.swing.*;
 import java.awt.Canvas;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.KeyEvent;
 
 public class CorrelationDisplayPanel extends JPanel {
 
-	// here are declarations for the controls you created
-	private JLabel sortLabel = new JLabel( "Sort list by" );
+	private JMenuBar menuBar = new JMenuBar( );
+
+	// calculation menu items
+	private JMenu calculationMenu = new JMenu( "Calculation" );
+	private ButtonGroup calculationMenuButtonGroup = new ButtonGroup( );
+	private JRadioButtonMenuItem pearsonCalculationMenuItem = new JRadioButtonMenuItem( "Pearson", true );
+	private JRadioButtonMenuItem spearmanCalculationMenuItem = new JRadioButtonMenuItem( "Spearman" );
+	private JRadioButtonMenuItem kendallCalculationMenuItem = new JRadioButtonMenuItem( "Kendall" );
+
+	// view menu items
+	private JMenu viewMenu = new JMenu( "View" );
+	private JMenuItem zoomInViewMenuItem = new JMenuItem( "Zoom In", KeyEvent.VK_I );
+	private JMenuItem zoomOutViewMenuItem = new JMenuItem( "Zoom Out", KeyEvent.VK_O );
+	private JMenuItem fitToWindowViewMenuItem = new JMenuItem( "Fit to Window", KeyEvent.VK_F );
+	
+	private JLabel sortLabel = new JLabel( "Sort list by " );
 	private JComboBox sortComboBox = new JComboBox( );
 	private JScrollPane correlationDisplayPane = new JScrollPane( );
 	private JButton resetButton = new JButton( "Reset" );
@@ -22,8 +31,10 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JComboBox colorComboBox = new JComboBox( );
 	private JComboBox mapComboBox = new JComboBox( );
 	
-	private JLabel minCorrelationLabel = new JLabel( "Correlation Coefficient Higher Than:" );
-	private JLabel maxCorrelationLabel = new JLabel( "Correlation Coefficient Lower Than:" );
+	private JLabel minCorrelationLabel = new JLabel( 
+		"Correlation Coefficient Higher Than: ", SwingConstants.RIGHT );
+	private JLabel maxCorrelationLabel = new JLabel( 
+		"Correlation Coefficient Lower Than: ",  SwingConstants.RIGHT );
 	private JSpinner minCorrelationSpinner = 
 		new JSpinner( new SpinnerNumberModel( 0.5, 0.0, 1.0, 0.01 ));
 	private JSpinner maxCorrelationSpinner = 
@@ -40,19 +51,25 @@ public class CorrelationDisplayPanel extends JPanel {
 		leftPanel.add( sortSelectionPanel, BorderLayout.NORTH );
 		leftPanel.add( this.moleculeList, BorderLayout.CENTER );
 
+		// ALL & RESET BUTTONS
 		JPanel moleculeButtonPanel = new JPanel( new BorderLayout( ) );
+		this.allButton.setPreferredSize( new Dimension( 65, 40 ));
+		this.resetButton.setPreferredSize( new Dimension( 65, 40 ));
 		moleculeButtonPanel.add( this.allButton, BorderLayout.WEST );
 		moleculeButtonPanel.add( this.resetButton, BorderLayout.EAST );	
 
+		// CORRELATION CUTOFF VALUE ELEMENTS
 		JPanel correlationValuePanel = new JPanel( new BorderLayout( ));
 		correlationValuePanel.add( this.minCorrelationSpinner, BorderLayout.NORTH );
 		correlationValuePanel.add( this.maxCorrelationSpinner, BorderLayout.SOUTH );
 		this.minCorrelationSpinner.setPreferredSize( new Dimension( 70, 25 ));
 		this.maxCorrelationSpinner.setPreferredSize( new Dimension( 70, 25 ));
 
+		// CORRELATION LABELS
 		JPanel correlationLabelPanel = new JPanel( new BorderLayout( ));
+		correlationLabelPanel.add( this.minCorrelationLabel, BorderLayout.NORTH );
+		correlationLabelPanel.add( this.maxCorrelationLabel, BorderLayout.SOUTH );
 		
-
 		JPanel bottomLeftPanel = new JPanel( new BorderLayout( ));
 		bottomLeftPanel.add( moleculeButtonPanel, BorderLayout.WEST );
 		bottomLeftPanel.add( correlationValuePanel, BorderLayout.EAST );
@@ -63,8 +80,35 @@ public class CorrelationDisplayPanel extends JPanel {
 
 		JPanel bottomPanel = new JPanel( new BorderLayout( ));
 		bottomPanel.add( bottomLeftPanel, BorderLayout.CENTER );
+		bottomLeftPanel.add( correlationLabelPanel, BorderLayout.CENTER );
 		bottomPanel.add( bottomRightPanel, BorderLayout.EAST ); 
+	
+		//CALCULATION MENU
+		this.calculationMenu.setMnemonic( KeyEvent.VK_C );
+		this.calculationMenu.getAccessibleContext( ).setAccessibleDescription(
+			"Perform Data Calculations" );
+		this.calculationMenuButtonGroup.add( this.pearsonCalculationMenuItem );
+		this.calculationMenuButtonGroup.add( this.spearmanCalculationMenuItem );
+		this.calculationMenuButtonGroup.add( this.kendallCalculationMenuItem );
+		this.pearsonCalculationMenuItem.setMnemonic( KeyEvent.VK_P );
+		this.spearmanCalculationMenuItem.setMnemonic( KeyEvent.VK_S );
+		this.kendallCalculationMenuItem.setMnemonic( KeyEvent.VK_K );
+		this.calculationMenu.add( this.pearsonCalculationMenuItem );
+		this.calculationMenu.add( this.spearmanCalculationMenuItem );
+		this.calculationMenu.add( this.kendallCalculationMenuItem );
 
+		//VIEW MENU
+		this.viewMenu.setMnemonic( KeyEvent.VK_V );
+		this.viewMenu.getAccessibleContext( ).setAccessibleDescription(
+			"Change the data view settings" );
+		this.viewMenu.add( this.zoomInViewMenuItem );
+		this.viewMenu.add( this.zoomOutViewMenuItem );
+		this.viewMenu.add( this.fitToWindowViewMenuItem );
+
+		this.menuBar.add( this.calculationMenu );
+		this.menuBar.add( this.viewMenu );
+
+		this.add( menuBar, BorderLayout.NORTH );
 		this.add( this.correlationDisplayPane, BorderLayout.CENTER );
 		this.add( leftPanel, BorderLayout.WEST );
 		this.add( bottomPanel, BorderLayout.SOUTH );
