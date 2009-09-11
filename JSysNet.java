@@ -63,6 +63,10 @@ public class JSysNet {
 		JSysNetWindow s = new JSysNetWindow( "JSysNet" );
 	}
 
+	public static void message( String text ){
+		System.err.println( text );
+	}
+
 }
 	
 	

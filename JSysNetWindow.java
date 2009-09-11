@@ -5,7 +5,6 @@ import java.awt.event.KeyEvent;
 public class JSysNetWindow extends JFrame {
 
 	private JTabbedPane tabPane = new JTabbedPane( );
-	private GridBagConstraints constraints = new GridBagConstraints( );
 	
 	// Menu elements
 	private JMenuBar menuBar = new JMenuBar( );
