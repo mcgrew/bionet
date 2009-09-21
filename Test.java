@@ -11,14 +11,38 @@ public class Test {
 		ArrayList <Experiment> al = c.getExperiments( );
 		String [] keys;
 		HashMap <String,String> attributes;
+		// Print out the read in data in a readable format
 		for( int i=0,l=al.size( ); i < l; i++ ) {
-			attributes = al.get( i ).getAttributes( );
-			keys = attributes.keySet( ).toArray( new String[0] );
+			// Each Experiment
+			Experiment exp = al.get( i );
+			keys = exp.getAttributeNames( );
 			System.out.println( String.format( "Experiement %d:", i ));
 			for( int j=0,m=keys.length; j < m; j++ ) {
-				System.out.println( String.format( "\t%s: %s", keys[ j ], attributes.get( keys[ j ] )));
+				// The Experiment attributes
+				System.out.println( String.format( "\t%s: %s", keys[ j ], exp.getAttribute( keys[ j ])));
 			}
+			String [ ] groupNames = exp.getMoleculeGroupNames( );
+			for ( int j=0,m=groupNames.length; j < m; j++ ) {
+				// The MoleculeGroups contained in the Experiment
+				MoleculeGroup group = exp.getMoleculeGroup( groupNames[ j ] );
+				System.out.println( String.format( "\t\tGroup %s:", group.getName( )));
+				ListIterator <Molecule> moleculeIterator = group.getMolecules( ).listIterator( );
+				Molecule molecule;
+				while( moleculeIterator.hasNext( )) {
+					// The Molecule Data for each MoleculeGroup
+					molecule = moleculeIterator.next( );
+					String [ ] moleculeAttrs = molecule.getAttributeNames( );
+					for ( int k=0,n=moleculeAttrs.length; k < n; k++ ) {
+						System.out.println( String.format( "\t\t\t%s: %s", 
+							moleculeAttrs[ k ], molecule.getAttribute( moleculeAttrs[ k ] )));
+					}
+					System.out.println( );
+				}
+			}
+			
+			// Print molecules data
 		}
+
 
 	}
 }

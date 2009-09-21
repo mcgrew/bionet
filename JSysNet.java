@@ -49,6 +49,7 @@ public class JSysNet {
 					System.exit( 0 );
 				case 'v':
 					Settings.VERBOSE = true;
+					break;
 				case '?':
 					break;
 				default:

@@ -1,5 +1,5 @@
 
-JAVAC			= javac
+JAVAC			= javac -Xlint -g
 
 all: jsysnet
 
