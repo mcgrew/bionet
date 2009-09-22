@@ -44,7 +44,7 @@ public class CSVDataHandler extends DataHandler {
 			int columnLength = columns.length;
 			columnsHashMap = new HashMap <String,String>( );
 			for ( int i=headings.length-1; i >= 0;  i-- ) {
-				columnsHashMap.put( headings[ i ].trim( ), 
+				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
 			this.experiments.add( new Experiment( columnsHashMap ));
@@ -67,7 +67,7 @@ public class CSVDataHandler extends DataHandler {
 			int columnLength = columns.length;
 			columnsHashMap = new HashMap <String,String>( );
 			for ( int i=headings.length-1; i >= 0; i-- ) {
-				columnsHashMap.put( headings[ i ].trim( ), 
+				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
 			moleculeArrayList.add( columnsHashMap );
@@ -91,7 +91,7 @@ public class CSVDataHandler extends DataHandler {
 			int columnLength = columns.length;
 			columnsHashMap = new HashMap <String,String>( );
 			for ( int i=headings.length-1; i >= 0; i-- ) {
-				columnsHashMap.put( headings[ i ].trim( ), 
+				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
 			sampleArrayList.add( columnsHashMap );
@@ -115,7 +115,7 @@ public class CSVDataHandler extends DataHandler {
 			int columnLength = columns.length;
 			columnsHashMap = new HashMap <String,String>( );
 			for ( int i=headings.length-1; i >= 0; i-- ) {
-				columnsHashMap.put( headings[ i ].trim( ), 
+				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
 			dataArrayList.add( columnsHashMap );
@@ -138,7 +138,9 @@ public class CSVDataHandler extends DataHandler {
 			// See if threre is more informationfor this molecule in molecule.txt
 			while ( moleculeArrayListIterator.hasNext( ) ) {
 				extraMoleculeData = moleculeArrayListIterator.next( );
-				if ( mol.getAttribute( "ID" ).equals( extraMoleculeData.get( "ID" )))
+				if ( mol.getAttribute( "id" ).equals( extraMoleculeData.get( "id" )) &&
+					mol.getAttribute( "group_name" ).equals( extraMoleculeData.get( "group_name" )) &&
+					mol.getAttribute( "exp_id" ).equals( extraMoleculeData.get( "exp_id" )))
 					break;
 				extraMoleculeData = null;
 			}

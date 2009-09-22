@@ -16,7 +16,7 @@ public class Test {
 			// Each Experiment
 			Experiment exp = al.get( i );
 			keys = exp.getAttributeNames( );
-			System.out.println( String.format( "Experiement %d:", i ));
+			System.out.println( String.format( "Experiment %d:", i ));
 			for( int j=0,m=keys.length; j < m; j++ ) {
 				// The Experiment attributes
 				System.out.println( String.format( "\t%s: %s", keys[ j ], exp.getAttribute( keys[ j ])));
