@@ -29,7 +29,7 @@ public class Test {
 				// The Experiment attributes
 				System.out.println( String.format( "\t%s: %s", keys[ j ], exp.getAttribute( keys[ j ])));
 			}
-			String [ ] groupNames = exp.getMoleculeGroupNames( );
+/*			String [ ] groupNames = exp.getMoleculeGroupNames( );
 			for ( int j=0,m=groupNames.length; j < m; j++ ) {
 				// The MoleculeGroups contained in the Experiment
 				MoleculeGroup group = exp.getMoleculeGroup( groupNames[ j ] );
@@ -47,7 +47,17 @@ public class Test {
 					System.out.println( );
 				}
 			}
-			
+		*/	
+				
+			System.out.println( "\t\tCorrelation Info:" );
+			ListIterator <Correlation> iter = exp.getCorrelations( ).listIterator( );
+			Molecule [ ] molecules;
+			while( iter.hasNext( )) {
+				Correlation cor = iter.next( );
+				molecules = cor.getMolecules( );
+				System.out.println( String.format( "\t\t\t%s, %s: %f",
+					molecules[ 0 ].getAttribute( "id" ), molecules[ 1 ].getAttribute( "id" ), cor.getValue( Correlation.PEARSON )));
+			}
 			// Print molecules data
 		}
 

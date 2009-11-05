@@ -72,12 +72,8 @@ public class Molecule {
 	}
 
 	public boolean addCorrelation( Correlation correlation ){
-//		boolean success = correlation.addMolecule( this );
-		boolean success = true;
-		if ( success ){
-			this.correlations.add( correlation );
-		}
-		return success;
+		this.correlations.add( correlation );
+		return true;
 	}
 	public boolean removeCorrelation( int index ){
 		return false;

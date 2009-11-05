@@ -1,28 +1,36 @@
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ListIterator;
 
 public class Experiment {
-	
+
 	private HashMap <String,String> attributes;
 	private HashMap <String,MoleculeGroup> moleculeGroups;
+	private ArrayList <Molecule> molecules;
+	private ArrayList <Correlation> correlations;
 
 	public Experiment( HashMap <String,String> attributes ) {
 		this.attributes = attributes;
 		this.moleculeGroups = new HashMap <String,MoleculeGroup>( );
+		this.molecules = new ArrayList <Molecule>( );
+		this.correlations = new ArrayList <Correlation>( );
 	}
 	
 	public ArrayList <Molecule> getMolecules( ) {
-		ArrayList <Molecule> returnvalue = new ArrayList <Molecule>( );
-		
-		return returnvalue;
+		return this.molecules;
 	}
 
 	public void addMolecule( String group, Molecule molecule ){
 		if ( !moleculeGroups.containsKey( group )) {
-			moleculeGroups.put( group, new MoleculeGroup( group ));
+			this.addMoleculeGroup( group );
 		}
-		moleculeGroups.get( group ).addMolecule( molecule );
+		this.moleculeGroups.get( group ).addMolecule( molecule );
+		ListIterator <Molecule> iter = this.molecules.listIterator( );
+		while ( iter.hasNext( )) {
+			this.correlations.add( new Correlation( iter.next( ), molecule ));
+		}
+		this.molecules.add( molecule );
 	}
 
 	public void addMolecule( Molecule molecule ) {
@@ -30,11 +38,11 @@ public class Experiment {
 	}
 
 	public HashMap <String,MoleculeGroup> getMoleculeGroups( ) {
-		return moleculeGroups;
+		return this.moleculeGroups;
 	}
 
 	public MoleculeGroup getMoleculeGroup( String group ) {
-		return moleculeGroups.get( group );
+		return this.moleculeGroups.get( group );
 	}
 
 	public String [ ] getMoleculeGroupNames( ) {
@@ -44,7 +52,7 @@ public class Experiment {
 	}
 
 	public void addMoleculeGroup( String group ) {
-		moleculeGroups.put( group, new MoleculeGroup( group ));
+		this.moleculeGroups.put( group, new MoleculeGroup( group ));
 	}
 
 	public HashMap <String,String> getAttributes( ) {
@@ -60,6 +68,11 @@ public class Experiment {
 		Arrays.sort( returnValue );
 		return returnValue;
 	}
+
+	public ArrayList <Correlation> getCorrelations( ) {
+		return this.correlations;
+	}
+
 }
 
 
