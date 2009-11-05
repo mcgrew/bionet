@@ -4,13 +4,14 @@ public abstract class DataHandler {
 
 	protected ArrayList <Experiment> experiments;
 
+	public abstract void load( String resource );
+
 	public abstract boolean write( );
 
 	public abstract boolean write( String resource );
 
-	public ArrayList <Experiment>getData( ){
-//		return data;
-		return null;
+	public ArrayList <Experiment> getExperiments( ) {
+		return this.experiments;
 	}
 
 	public ArrayList <Molecule>getMolecules( ){

@@ -1,8 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 
-public class JSysNetWindow extends JFrame {
+public class JSysNetWindow extends JFrame implements ActionListener {
 
 	private JTabbedPane tabPane = new JTabbedPane( );
 	
@@ -75,7 +75,6 @@ public class JSysNetWindow extends JFrame {
 //		this.clusteringMenu.setMnemonic( KeyEvent.VK_L );
 //		this.clusteringMenu.add( this.ldaClusteringMenuItem );
 
-		
 		//HELP MENU
 		this.helpMenu.setMnemonic( KeyEvent.VK_H );
 		this.helpMenu.getAccessibleContext( ).setAccessibleDescription(
@@ -90,5 +89,42 @@ public class JSysNetWindow extends JFrame {
 
 		this.setJMenuBar( this.menuBar );
 
+		this.addMenuListeners( );
+
+	}
+
+	private void addMenuListeners( ) {
+		this.openFileMenuItem.addActionListener( this );
+		this.saveFileMenuItem.addActionListener( this );
+		this.printFileMenuItem.addActionListener( this );
+		this.exitFileMenuItem.addActionListener( this );
+		this.addSetupDatabaseMenuItem.addActionListener( this );
+		this.removeSetupDatabaseMenuItem.addActionListener( this );
+		this.connectDatabaseMenuItem.addActionListener( this );
+		this.contentsHelpMenuItem.addActionListener( this );
+		this.aboutHelpMenuItem.addActionListener( this );
+	}
+
+	private void open( ) {
+		
+	}
+
+	public void actionPerformed( ActionEvent e ) {
+		if ( Settings.DEBUG ) {
+			System.err.println( String.format( "ActionEvent fired:" ));
+			System.err.println( "\tactionCommand: "+e.getActionCommand( ));
+			System.err.println( "\t  paramString: "+e.paramString( ));
+		}
+
+		if ( e.getSource( ) == this.openFileMenuItem ) {
+			System.out.println( "Open" );
+			JFileChooser fc = new JFileChooser( );
+			fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );	
+			int options = fc.showOpenDialog( this );
+			if ( options == JFileChooser.APPROVE_OPTION ) {
+				DataHandler data = new CSVDataHandler( fc.getSelectedFile( ).getAbsolutePath( ));
+				Test.showData( data );
+			}
+		}
 	}
 }

@@ -7,7 +7,15 @@ public class Test {
 		// Test CSVDataHandler
 		String resource = ( args.length > 0 ) ? args[ 0 ] : 
 			"../data/time_missing/text".replace( "/", File.separator );
+		readCSV( resource );
+	}
+
+	public static void readCSV( String resource ) {
 		CSVDataHandler c = new CSVDataHandler( resource );
+		showData( c );
+	}
+
+	public static void showData( DataHandler c ) {
 		ArrayList <Experiment> al = c.getExperiments( );
 		String [] keys;
 		HashMap <String,String> attributes;

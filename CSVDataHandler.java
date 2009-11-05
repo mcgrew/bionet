@@ -165,10 +165,6 @@ public class CSVDataHandler extends DataHandler {
 
 	}
 
-	public ArrayList <Experiment> getExperiments( ) {
-		return this.experiments;
-	}
-
 	public boolean write( ){
 		return false;
 	}
