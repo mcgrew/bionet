@@ -39,12 +39,12 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.getContentPane( ).add( tabPane, BorderLayout.CENTER );
 		this.tabPane.setVisible( true );
 
-		if ( Settings.DEBUG ) {
-			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( ) );
-			this.tabPane.addTab( "Tab1", new JLabel( "This is Tab One" ));
-			this.tabPane.addTab( "Tab2", new JLabel( "This is Tab Two" ));
-			this.tabPane.addTab( "Tab3", new JLabel( "This is Tab Three" ));
-		}
+//		if ( Settings.DEBUG ) {
+//			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( ) );
+//			this.tabPane.addTab( "Tab1", new JLabel( "This is Tab One" ));
+//			this.tabPane.addTab( "Tab2", new JLabel( "This is Tab Two" ));
+//			this.tabPane.addTab( "Tab3", new JLabel( "This is Tab Three" ));
+//		}
 
 		this.setVisible( true );
 		this.repaint( );
@@ -91,6 +91,11 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 
 		this.addMenuListeners( );
 
+		if ( Settings.DEBUG ) {
+			this.setVisible( true );
+			DataHandler data = new CSVDataHandler( "/home/mcgrew/projects/jsysnet/data/test_data/mini" );
+			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( data ));
+		}
 	}
 
 	private void addMenuListeners( ) {
@@ -105,8 +110,15 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.aboutHelpMenuItem.addActionListener( this );
 	}
 
-	private void open( ) {
-		
+	private void openCSV( ) {
+		JFileChooser fc = new JFileChooser( );
+		fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );	
+		int options = fc.showOpenDialog( this );
+		if ( options == JFileChooser.APPROVE_OPTION ) {
+			DataHandler data = new CSVDataHandler( fc.getSelectedFile( ).getAbsolutePath( ));
+			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( data ) );
+		}
+	
 	}
 
 	public void actionPerformed( ActionEvent e ) {
@@ -117,14 +129,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		}
 
 		if ( e.getSource( ) == this.openFileMenuItem ) {
-			System.out.println( "Open" );
-			JFileChooser fc = new JFileChooser( );
-			fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );	
-			int options = fc.showOpenDialog( this );
-			if ( options == JFileChooser.APPROVE_OPTION ) {
-				DataHandler data = new CSVDataHandler( fc.getSelectedFile( ).getAbsolutePath( ));
-				Test.showData( data );
-			}
+			this.openCSV( );
 		}
 	}
 }

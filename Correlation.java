@@ -47,117 +47,164 @@ public class Correlation {
 				return -1;
 		}
 	}
+
+	/**
+	 * Returns the Pearson correlation coefficient of the 2 molecueles.
+	 * 
+	 *    x = sample values in molecule 0
+	 *    y = sample values in molecule 1
+	 *    n = number of samples in each molecule
+	 *    Sx = standard deviation of x
+	 *    Sy = standard deviation of y
+	 *
+	 *                     sum( i=0 to n-1, ( x[i] - x ) * ( y[i] - y ))
+	 * correlationValue = -----------------------------------------------
+	 *                                ( n - 1 ) Sx * Sy
+	 *
+	 * Adapted from	http://en.wikipedia.org/wiki/Correlation#Pearson.27s_product-moment_coefficient
+	 *
+	 * @return    The Pearson correlation value. 
+	 */
 	private double getPearsonCorrelation( ) {
 	 return this.getPearsonCorrelation( false );
 	}
-	private double getPearsonCorrelation( boolean recalc ) {
-		/*
-				mol0 = sample values in molecule 0
-				mol1 = sample values in molecule 1
-				count = number of samples in each molecule
-				sx2 = sum ( x*x for x in mol0 )
-				sy2 = sum ( x*x for x in mol1 )
-				sx = sum ( mol0 )
-				sy = sum ( mol1 )
-				sxy = sum (mol0[x] * mol1[x] for x in range( count ))
 
-				if ( count <= 3 ):
-					correlationValue = 0
-				else:
-																							sxy - (sx*sy / count)
-					correlationValue = ----------------------------------------------------
-														 sqrt(( sx2 - (sx*sx/count)) * ( sy2 - (sy*sy/count)))
-				
-		*/
-		if ( recalc || Double.isNaN( pearsonCorrelation )) { //See if this value has already been calculated
-			int S = 1, count = 0;
-			String currentValueString0, currentValueString1;
-			double currentValue0, currentValue1=0, sx=0, sy=0, sxy=0, sx2=0, sy2=0;
+	/**
+	 * Returns the Pearson correlation coefficient of the 2 molecueles.
+	 * 
+	 *    x = sample values in molecule 0
+	 *    y = sample values in molecule 1
+	 *    n = number of samples in each molecule
+	 *    Sx = standard deviation of x
+	 *    Sy = standard deviation of y
+	 *
+	 *                     sum( i=0 to n-1, ( x[i] - x ) * ( y[i] - y ))
+	 * correlationValue = -----------------------------------------------
+	 *                                ( n - 1 ) Sx * Sy
+	 * 
+	 * Adapted from	http://en.wikipedia.org/wiki/Correlation#Pearson.27s_product-moment_coefficient
+	 *
+	 * @param recalc True if you want the value recalculated, otherwise a cached value will be returned if present.
+	 * @return       The Pearson correlation value.
+	 */
+	private double getPearsonCorrelation( boolean recalc ) {
+		//See if this value has already been calculated
+		if ( recalc || Double.isNaN( pearsonCorrelation )) { 
+			int S = 1, n = 0;
+			String currentXString, currentYString;
+			Double currentX, currentY;
+			double Sx=0, Sy=0, meanX=0, meanY=0, numerator=0, denominator=0;
+			ArrayList <Double> x = new ArrayList <Double>( );
+			ArrayList <Double> y = new ArrayList <Double>( );
 
 			// Get the sample data from the molecules.
-			while ((( currentValueString0 = this.molecules[0].getAttribute( "S" + S )) != null )
-							&& (( currentValueString1 = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
-				currentValue0 = Double.parseDouble( currentValueString0 );
-				currentValue1 = Double.parseDouble( currentValueString1 );
-				sx += currentValue0;
-				sy += currentValue1;
-				sxy += currentValue0 * currentValue1;
-				sx2 += currentValue0 * currentValue0;
-				sy2 += currentValue1 * currentValue1;
-				}
-			count = S - 2;
+			while ((( currentXString = this.molecules[0].getAttribute( "S" + S )) != null )
+							&& (( currentYString = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
+				currentX = new Double( currentXString );
+				currentY = new Double( currentYString );
+				x.add( currentX );
+				y.add( currentY );
+				meanX += currentX.doubleValue( );
+				meanY += currentY.doubleValue( );
+			}
+			n = x.size( );
+			meanX /= n;
+			meanY /= n;
+			double thisX, thisY;
+			for( int i=0; i < n; i++ ) {
+					thisX = x.get( i ).doubleValue( ) - meanX;
+					thisY = y.get( i ).doubleValue( ) - meanY;
+					numerator += ( thisX ) * ( thisY );
+					Sx += thisX * thisX;
+					Sy += thisY * thisY;
+			}
+			Sx = Math.sqrt( Sx / n );
+			Sy = Math.sqrt( Sy / n );
 
-			// If there are 3 samples or less, the correlation is 0, else, use the equation.
-			this.pearsonCorrelation = ( count <= 3 ) ? 0 :
-				                        ( sxy - ( sx*sy / count )) / 
-						                    ( Math.sqrt( sx2 - ( sx * sx / count )) * 
-							                    ( sy2 - ( sy * sy / count )));
+			this.pearsonCorrelation = ( numerator / (( n-1 ) * Sx * Sy ));
+			if ( this.pearsonCorrelation > 1 || this.pearsonCorrelation < -1 )
+				meanY = 0;
 		}
+
 		return this.pearsonCorrelation;
 
 	}
 
+	/**
+	 * Returns the Spearman rank correlation coefficient of the 2 molecules.
+	 *
+	 * x = sample values in molecule 0
+	 * y = sample values in molecule 1
+	 * n = number of samples in each molecule
+	 * Rx = rank array of x, ie. the new locations of each element of x if x were sorted (starting at 1).
+	 * Ry = rank array of y, ie. the new locations of each element of y if y were sorted ( starting at 1)
+	 * 
+	 *                         6 * sum( i=0 to n-1, ( Rx[i] - Ry[i] )^2 )
+	 * correlationValue = 1 - --------------------------------------------
+	 *                                       n * ( n^2 - 1 )
+	 * 
+	 * Adapted from http://en.wikipedia.org/wiki/Spearman_correlation
+	 * 
+	 * @return       The Spearman correlation value.
+	 */
 	private double getSpearmanCorrelation( ) {
 		return this.getSpearmanCorrelation( false );
 	}
+
+	/**
+	 * Returns the Spearman rank correlation coefficient of the 2 molecules.
+	 *
+	 * x = sample values in molecule 0
+	 * y = sample values in molecule 1
+	 * n = number of samples in each molecule
+	 * Rx = rank array of x, ie. the new locations of each element of x if x were sorted (starting at 1).
+	 * Ry = rank array of y, ie. the new locations of each element of y if y were sorted ( starting at 1)
+	 * 
+	 *                         6 * sum( i=0 to n-1, ( Rx[i] - Ry[i] )^2 )
+	 * correlationValue = 1 - --------------------------------------------
+	 *                                       n * ( n^2 - 1 )
+	 * 
+	 * Adapted from http://en.wikipedia.org/wiki/Spearman_correlation
+	 * 
+	 * @param recalc True if you want the value recalculated, otherwise a cached value will be returned if present.
+	 * @return       The Spearman correlation value.
+	 */
 	private double getSpearmanCorrelation( boolean recalc ) {
-		/*
-			mol0 = sample values in molecule 0
-			mol1 = sample values in molecule 1
-			count = number of samples in each molecule
-			sdata0 = sorted version of mol0
-			sdata1 = sorted version of mol1
-
-			                   
-			correlationValue = ?
-						             
+		//See if this value has already been calculated
+		if ( recalc || Double.isNaN( this.spearmanCorrelation ) ) { 
 			
-		*/
-
-		if ( recalc || Double.isNaN( this.spearmanCorrelation ) ) { //See if this value has already been calculated
-			
-			int S = 1, count = 0;
-			String currentValueString0, currentValueString1;
-			ArrayList <String> ValueList0 = new ArrayList <String>( ),
-			                   ValueList1 = new ArrayList <String>( );
-			double [ ] mol0, mol1, sdata0, sdata1;
-//			int[ ] order0, order1;
+			int S = 1, n = 0;
+			String currentXString, currentYString;
+			ArrayList <Double> ValueListX = new ArrayList <Double>( ),
+			                   ValueListY = new ArrayList <Double>( );
+			double [ ] x,y;
+			int[ ] Rx, Ry;
+			double mean, numerator=0;
 
 			// Get the sample data from the molecules.
-			while ((( currentValueString0 = this.molecules[0].getAttribute( "S" + S )) != null )
-							&& (( currentValueString1 = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
-					ValueList0.add( currentValueString0 );
-					ValueList1.add( currentValueString1 );
+			while ((( currentXString = this.molecules[0].getAttribute( "S" + S )) != null )
+							&& (( currentYString = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
+					ValueListX.add( new Double( currentXString ));
+					ValueListY.add( new Double( currentYString ));
 			}
-			count = ValueList0.size( );
-			mol0 = new double[ count ];
-			mol1 = new double[ count ];
-			sdata0 = new double[ count ];
-			sdata1 = new double[ count ];
-//			order0 = new int[ count ];
-//			order1 = new int[ count ];
+			n = ValueListY.size( );
+			x = new double[ n ];
+			y = new double[ n ];
 
 			// Convert and make 2 copies of the sample data.
-			for ( int i=0; i < count; i++ ) {
-				mol0[ i ] = sdata0[ i ] = Double.parseDouble( ValueList0.get( i ));
-				mol1[ i ] = sdata1[ i ] = Double.parseDouble( ValueList1.get( i ));
+			for ( int i=0; i < n; i++ ) {
+				x[ i ] = ValueListX.get( i ).doubleValue( );
+				y[ i ] = ValueListY.get( i ).doubleValue( );
 			}
-			// Sort one copy of each.
-			Arrays.sort( sdata0 );
-			Arrays.sort( sdata1 );
+			Rx = getRank( x );
+			Ry = getRank( y );
 
-			double sd = 0;
-			int tmp, tmp1;
-			for ( int i=0; i < count; i++ ) {
-//				order0[ i ] = arrayIndexOf( sdata0, mol0[ i ] );
-//				order1[ i ] = arrayIndexOf( sdata1, mol1[ i ]);
-				tmp = arrayIndexOf( sdata0, mol0[ i ]);
-				tmp1 = arrayIndexOf( sdata1, mol1[ i ]);
-				sdata0[ tmp ] = sdata1[ tmp1 ] = Double.NaN;
-				tmp -= tmp1;
-				sd += tmp*tmp;
+			for ( int i=0; i < n; i++ ) {
+				numerator += Math.pow( Rx[ i ] - Ry[ i ], 2 );
 			}
-			this.spearmanCorrelation = 1 - ( 6*sd ) / ( count * ( count*count - 1 ));
+			numerator *= 6;
+
+			this.spearmanCorrelation = 1 - ( numerator ) / ( n * ( n*n - 1 ));
 		}
 		return this.spearmanCorrelation;
 	}
@@ -165,131 +212,127 @@ public class Correlation {
 	private double getKendallCorrelation( ) {
 		return this.getKendallCorrelation( false );
 	}
+
+	/**
+	 * Returns the Kendall tau rank correlation coefficient of the 2 molecules.
+	 * 
+	 * x = sample values of molecule 0
+	 * y = sample values of molecule 1
+	 * n = number of samples in each molecule
+	 * Rx = the rank of the samples in molecule 0
+	 * Ry = the rank of the samples in molecule 1
+	 * concordant = The number of concordant pairs
+	 * discordant = The number of discordant pairs
+	 *
+	 *                       concordant - discordant
+	 * correlationValue = -----------------------------
+	 *                     (1/2) * pairs * ( pairs-1 )
+	 * @param 
+	 * @return The Kendall tau correlation value.
+	 */
 	private double getKendallCorrelation( boolean recalc ) {
-	/*
-					mol0 = sample values in molecule 0
-					mol1 = sample values in molecule 1
-					count = number of samples in each molecule
-					sdata0 = sorted version of mol0
-					sdata1 = sorted version of mol1
-					order0[n] = location of sdata0[n] in mol0
-					order1[n] = location of sdata1[order0[n]] in mol1
-
-					correlationValue = ?
-
-	*/
-		if ( recalc ||  Double.isNaN( this.kendallCorrelation )) { 
-
-			int count, S = 1, tmp;
-			String currentValueString0, currentValueString1;
-			ArrayList <String> ValueList0 = new ArrayList <String>( ),
-			                   ValueList1 = new ArrayList <String>( );
-			double [ ] mol0, mol1, sdata0, sdata1;
-			int[ ] order;
-			int sc=0;
+		if ( recalc || Double.isNaN( this.kendallCorrelation )) { 			
+			int S = 1, n = 0;
+			String currentXString, currentYString;
+			ArrayList <Double> ValueListX = new ArrayList <Double>( ),
+			                   ValueListY = new ArrayList <Double>( );
+			double [ ] x,y;
+			int[ ] Rx, Ry;
+			double mean, numerator=0;
 
 			// Get the sample data from the molecules.
-			while ((( currentValueString0 = this.molecules[0].getAttribute( "S" + S )) != null )
-							&& (( currentValueString1 = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
-					ValueList0.add( currentValueString0 );
-					ValueList1.add( currentValueString1 );
+			while ((( currentXString = this.molecules[0].getAttribute( "S" + S )) != null )
+							&& (( currentYString = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
+					ValueListX.add( new Double( currentXString ));
+					ValueListY.add( new Double( currentYString ));
 			}
-			count = ValueList0.size( );
-			mol0 = new double[ count ];
-			mol1 = new double[ count ];
-			sdata0 = new double[ count ];
-			sdata1 = new double[ count ];
-			order = new int[ count ];
+			n = ValueListX.size( );
+			x = new double[ n ];
+			y = new double[ n ];
 
 			// Convert and make 2 copies of the sample data.
-			for ( int i=0; i < count; i++ ) {
-				mol0[ i ] = sdata0[ i ] = Double.parseDouble( ValueList0.get( i ));
-				mol1[ i ] = sdata1[ i ] = Double.parseDouble( ValueList1.get( i ));
+			for ( int i=0; i < n; i++ ) {
+				x[ i ] = ValueListX.get( i ).doubleValue( );
+				y[ i ] = ValueListY.get( i ).doubleValue( );
 			}
-			// Sort one copy of each.
-			Arrays.sort( sdata0 );
-			Arrays.sort( sdata1 );
-			/* Tough to explain this next part. Original C code:
-				for(k = 0; k < sample_volume; k++)  
-						{
-					for(l = 0; l < sample_volume; l++)
-							{
-								if(dat1[k] == sdat1[l])
-								{
-									ord1[l] = k;			//sample k is ranked l in x
-									sdat1[l] = 0;
-									break;
-								}
-							}
-						}
+			Rx = getRank( x );
+			Ry = getRank( y );
 
-						for(k = 0; k < sample_volume; k++)	
-						{
-							for(l = 0; l < sample_volume; l++)
-							{
-								if(dat2[ord1[k]] == sdat2[l])
-								{
-									ord2[k] = l;			//sample that has a rank ord1[k] is ranked l in y
-									sdat2[l] = 0;
-									break;
-								}
-							}
-						}
-						double sd, sc;
-						sd = 0;
-						sc = 0;
-						for(k = 1; k < sample_volume; k++)		//current
-						{
-							for(l = 0; l < k; l++)				//recorded
-							{
-								if(ord2[k] > ord2[l])
-									sc++;
-								else
-									sd++;
-							}
-						}
-			*/
-			for ( int i=0; i < count; i++ ) {
-				tmp = arrayIndexOf( mol0, sdata0[ i ] );
-				order[ i ] = arrayIndexOf( sdata1, mol1[ tmp ]);
-				sdata0[ i ] = sdata1[ order[ i ]] = Double.NaN;
-				for ( int j=0; j < i; j++ )
-				{
-					// count the number of previous values which were less than the current.
-					if  ( order[ j ] < order[ i ] ) {
-						sc++;
+			// Count the number of concordant and discordant pairs.
+			int concordant = 0, discordant = 0;
+			for ( int i=0; i < n-1; i++ ) {
+				for ( int j=i+1; j < n; j++ ) {
+					if ( Math.signum( x[ i ] - x[ j ] ) == 
+							 Math.signum( y[ i ] - y[ j ] )) {
+						concordant++;
+					}
+				
+					else if ( Math.signum( x[ i ] - x[ j ] ) == 
+									 -Math.signum( y[ i ] - y[ j ] )) {
+						discordant++;
 					}
 				}
 			}
-			/* The original formula: 
-				cor_relation = (sc-sd)/(sample_volume*(sample_volume - 1)/2)	
 
-				simplifying, using v for sample_volume
-				if n = v - 1, then we can say
-				sc + sd = 1 + 2 + 3 + ... + n = ( n*(n+1)/2 ) using 
-				Gauss' formula for summing seqential integers from 1 to n.
-				Therefore, sc + sd = v*(v-1)/2 and sd = v*(v-1)/2 - sc
-				Substituting, we get
-				(sc - ( v*(v-1)/2 - sc)) / ( v*(v-1)/2 )
-				which in turn simplifies to:
-				( 2*sc - ( v*(v-1)/2 )) / ( v*v-1)/2 )
-				( 4*sc -  v*(v-1)) / ( v*(v-1) )
-				( 4*sc ) / ( v*(v-1) ) - 1
-			*/
-			this.kendallCorrelation = ( 4.0*sc ) / ( count * ( count-1 )) - 1;
+			this.kendallCorrelation = 1 - 2 * ( concordant - discordant ) / ( n * ( n-1 ));
 			
 		}
 
 		return this.kendallCorrelation;
 	}
 
-	private static int arrayIndexOf( double[ ] array, double value ) {
+	/** 
+	 * Returns the index of the specified value of the array. Returns -1 if
+	 * the value is not found in the array.
+	 * 
+	 * @param array The array to be searched
+	 * @param value The value to be located in the array.
+	 * @return      The index of the value in the array.
+	 */
+	private static int indexOf( int[ ] array, int value ) {
 		for( int i=0,l=array.length; i < l; i++ ) {
 				if ( array[ i ] == value ) {
 					return i;
 				}
 		}
 		return -1;
+	}
+
+	/** 
+	 * Returns the index of the specified value of the array. Returns -1 if
+	 * the value is not found in the array.
+	 * 
+	 * @param array The array to be searched
+	 * @param value The value to be located in the array.
+	 * @return      The index of the value in the array.
+	 */
+	private static int indexOf( double[ ] array, double value ) {
+		for( int i=0,l=array.length; i < l; i++ ) {
+				if ( Double.compare( array[ i ], value ) == 0  ) {
+					return i;
+				}
+		}
+		return -1;
+	}
+
+	/** 
+	 * Returns the rank of each element, ie the new location of each element
+	 * in the array if the array were sorted. Based on selection sort.
+	 *	
+	 * @param array The array to get the rank of.
+	 * @return	    An array containing the rank order of each element.
+	 */
+	private static int [] getRank( double[ ] array ) {
+		int arrayLen=array.length;
+		int [] returnValue = new int[ arrayLen ];
+		double [] copy = Arrays.copyOf( array, arrayLen );
+		Arrays.sort( copy );
+
+		for ( int i=0; i < arrayLen; i++ ) {
+			returnValue[ i ] = indexOf( copy, array[ i] );
+		}
+		
+		return returnValue;
 	}
 }
 

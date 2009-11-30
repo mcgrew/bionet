@@ -15,8 +15,8 @@ public class Settings extends Properties {
 	public static int DESKTOP_HEIGHT = DESKTOP_SIZE.height;
 	public static boolean DEBUG = false;
 	public static boolean VERBOSE = false;
-	public static int DEFAULT_WIDTH = 800;
-	public static int DEFAULT_HEIGHT = 600;
+	public static int DEFAULT_WIDTH = 1024;
+	public static int DEFAULT_HEIGHT = 768;
 	private static String HOME_DIR = System.getenv( "HOME" );
 	private static String SETTINGS_FILE = HOME_DIR + "/.jsysnet";
 

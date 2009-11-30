@@ -24,10 +24,10 @@ public class Test {
 			// Each Experiment
 			Experiment exp = al.get( i );
 			keys = exp.getAttributeNames( );
-			System.out.println( String.format( "Experiment %d:", i ));
+//			System.out.println( String.format( "Experiment %d:", i ));
 			for( int j=0,m=keys.length; j < m; j++ ) {
 				// The Experiment attributes
-				System.out.println( String.format( "\t%s: %s", keys[ j ], exp.getAttribute( keys[ j ])));
+//				System.out.println( String.format( "\t%s: %s", keys[ j ], exp.getAttribute( keys[ j ])));
 			}
 /*			String [ ] groupNames = exp.getMoleculeGroupNames( );
 			for ( int j=0,m=groupNames.length; j < m; j++ ) {
@@ -49,18 +49,52 @@ public class Test {
 			}
 		*/	
 				
-			System.out.println( "\t\tCorrelation Info:" );
-			ListIterator <Correlation> iter = exp.getCorrelations( ).listIterator( );
+			System.out.println( "Correlation Info:" );
 			Molecule [ ] molecules;
-			while( iter.hasNext( )) {
-				Correlation cor = iter.next( );
+			boolean firstLine = true;
+			for ( Correlation cor : exp.getCorrelations( )) {
 				molecules = cor.getMolecules( );
-				System.out.println( String.format( "\t\t\t%s, %s: %f",
-					molecules[ 0 ].getAttribute( "id" ), molecules[ 1 ].getAttribute( "id" ), cor.getValue( Correlation.PEARSON )));
+				{
+					System.out.println( String.format( "%s,%s,%f,Pearson",
+						molecules[ 0 ].getAttribute( "id" ), molecules[ 1 ].getAttribute( "id" ), cor.getValue( Correlation.PEARSON )));
+					System.out.println( String.format( "%s,%s,%f,Spearman",
+						molecules[ 0 ].getAttribute( "id" ), molecules[ 1 ].getAttribute( "id" ), cor.getValue( Correlation.SPEARMAN )));
+					System.out.println( String.format( "%s,%s,%f,Kendall",
+						molecules[ 0 ].getAttribute( "id" ), molecules[ 1 ].getAttribute( "id" ), cor.getValue( Correlation.KENDALL )));
+					String [ ] moleculeAttrs = molecules[0].getAttributeNames( );
+					if ( firstLine ) {
+						firstLine = !firstLine;
+						System.err.print( "id," );
+						for ( int k=0,n=moleculeAttrs.length; k < n; k++ ) {
+							if ( "id".equals( moleculeAttrs[ k ] )) 
+								continue;
+							System.err.print( moleculeAttrs[k] );
+							if ( k < n-1 ) System.err.print( "," );
+						}
+						System.err.println( );
+					}
+					System.err.print( molecules[ 0 ].getAttribute( "id" ) + "," );
+					for ( int k=0,n=moleculeAttrs.length; k < n; k++ ) {
+						if ( "id".equals( moleculeAttrs[ k ] )) 
+							continue;
+						System.err.print( molecules[0].getAttribute( moleculeAttrs[ k ] ).trim( ));
+						if ( k < n-1 ) System.err.print( "," );
+					}
+					System.err.println( );
+					System.err.print( molecules[ 1 ].getAttribute( "id" ) + "," );
+					for ( int k=0,n=moleculeAttrs.length; k < n; k++ ) {
+						if ( "id".equals( moleculeAttrs[ k ] )) 
+							continue;
+						System.err.print( molecules[1].getAttribute( moleculeAttrs[ k ] ).trim( ));
+						if ( k < n-1 ) System.err.print( "," );
+					}
+					System.err.println( );
+
+				}
 			}
 			// Print molecules data
+			break;
 		}
-
 
 	}
 }

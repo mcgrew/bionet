@@ -3,6 +3,12 @@ import java.awt.Canvas;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.util.ListIterator;
+import edu.uci.ics.jung.graph.*;
+import edu.uci.ics.jung.graph.util.*;
+import edu.uci.ics.jung.visualization.*;
+import edu.uci.ics.jung.visualization.control.*;
+import edu.uci.ics.jung.algorithms.layout.*;
 
 public class CorrelationDisplayPanel extends JPanel {
 
@@ -23,7 +29,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	
 	private JLabel sortLabel = new JLabel( "Sort list by " );
 	private JComboBox sortComboBox = new JComboBox( );
-	private JScrollPane correlationDisplayPane = new JScrollPane( );
+	private JPanel correlationDisplayPanel = new JPanel( );
 	private JButton resetButton = new JButton( "Reset" );
 	private JButton allButton = new JButton( "All" );
 	private JScrollPane moleculeList = new JScrollPane( );
@@ -39,9 +45,19 @@ public class CorrelationDisplayPanel extends JPanel {
 		new JSpinner( new SpinnerNumberModel( 0.5, 0.0, 1.0, 0.01 ));
 	private JSpinner maxCorrelationSpinner = 
 		new JSpinner( new SpinnerNumberModel( 1.0, 0.0, 1.0, 0.01 ));
+	private DataHandler data = null;
 	
 	public CorrelationDisplayPanel ( ) {
 		super( new BorderLayout( ) );
+		this.buildPanel( );
+	}
+	public CorrelationDisplayPanel ( DataHandler data ) {
+		super( new BorderLayout( ) );
+		this.buildPanel( );
+		this.createGraph( data );
+	}
+
+	private void buildPanel ( ) {
 
 		JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
 		sortSelectionPanel.add( this.sortLabel, BorderLayout.CENTER );
@@ -53,8 +69,8 @@ public class CorrelationDisplayPanel extends JPanel {
 
 		// ALL & RESET BUTTONS
 		JPanel moleculeButtonPanel = new JPanel( new BorderLayout( ) );
-		this.allButton.setPreferredSize( new Dimension( 65, 40 ));
-		this.resetButton.setPreferredSize( new Dimension( 65, 40 ));
+		this.allButton.setPreferredSize( new Dimension( 75, 40 ));
+		this.resetButton.setPreferredSize( new Dimension( 75, 40 ));
 		moleculeButtonPanel.add( this.allButton, BorderLayout.WEST );
 		moleculeButtonPanel.add( this.resetButton, BorderLayout.EAST );	
 
@@ -108,8 +124,9 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.menuBar.add( this.calculationMenu );
 		this.menuBar.add( this.viewMenu );
 
+		// Add the panels to the main panel
 		this.add( menuBar, BorderLayout.NORTH );
-		this.add( this.correlationDisplayPane, BorderLayout.CENTER );
+		this.add( this.correlationDisplayPanel, BorderLayout.CENTER );
 		this.add( leftPanel, BorderLayout.WEST );
 		this.add( bottomPanel, BorderLayout.SOUTH );
 			
@@ -122,6 +139,35 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.mapComboBox.addItem( "Multiple Circles" );
 		this.mapComboBox.addItem( "Single Circle" );
 		this.mapComboBox.addItem( "Heat Map" );
+	}
+
+	public void createGraph( ) {
+			if ( this.data != null )
+				this.createGraph( this.data );
+	}
+	public void createGraph( DataHandler data ) {
+			this.data = data;
+			this.setVisible( true );
+			UndirectedSparseGraph graph = new UndirectedSparseGraph <Molecule,Correlation>( );
+
+			Experiment exp = data.getExperiments( ).get( 0 );
+			for( String groupName : exp.getMoleculeGroupNames( )) {
+				for( Molecule molecule : exp.getMoleculeGroup( groupName ).getMolecules( )) {
+					graph.addVertex( molecule );
+				}
+			}
+			for( Correlation correlation : exp.getCorrelations( )) {
+				graph.addEdge( correlation, 
+					new Pair( correlation.getMolecules( )),
+					EdgeType.UNDIRECTED );
+			}
+			Layout layout = new CircleLayout<Molecule,Correlation>( graph );
+			VisualizationViewer <Molecule,Correlation> viewer = 
+				new VisualizationViewer <Molecule,Correlation>( layout );
+			DefaultModalGraphMouse mouse = new DefaultModalGraphMouse();
+			mouse.setMode( ModalGraphMouse.Mode.PICKING );
+			viewer.setGraphMouse( mouse );
+			this.correlationDisplayPanel.add( viewer, BorderLayout.CENTER );
 	}
 }
 

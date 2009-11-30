@@ -14,11 +14,11 @@ public class Molecule {
 	}
 
 	public void setAttribute( String attribute, String value ) {
-		this.attributes.put( attribute.toLowerCase( ), value );
+		this.attributes.put( attribute.toLowerCase( ).trim( ), value );
 	}
 
 	public String getAttribute( String attribute ) {
-		return this.attributes.get( attribute.toLowerCase( ));
+		return this.attributes.get( attribute.toLowerCase( ).trim( ));
 	}
 
 	public String [] getAttributeNames( ){
