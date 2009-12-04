@@ -6,16 +6,29 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Pair;
 
 
+/**
+ * A JUNG Graph Layout which clusters molecules that are closely
+ * correlated together and separates those which are not.
+ * 
+ * @author Thomas McGrew
+ * @version 1.0
+ */
 public class ClusterLayout<V,E> extends AbstractLayout<V,E> {
 
+	/**
+	 * Constructor.
+	 * @param graph A JUNG Graph
+	 */
 	public ClusterLayout( Graph<V,E> graph ) {
 		super( graph );
 	}
 
+	/**
+	 * Initializes the location of the Graph vertices.
+	 */
 	public void initialize( ) {
 		int iterations = Math.max( this.size.height, this.size.width ) * 2;
 		int multiplier = Math.min( this.size.height, this.size.width ) / 2;
-		V lastV = null;
 		Point2D vPos, wPos;
 		double x, y, r, theta, newR;
 		int compare;
@@ -43,19 +56,22 @@ public class ClusterLayout<V,E> extends AbstractLayout<V,E> {
 				theta = Math.atan2( y, x );	
 				// move w to it's new location, slightly closer to where it should be.
 				compare = Double.compare( newR, r );
-				if (  compare != 0) {
+				if ( compare != 0 ) {
 					moved = true;
 					x = v.getX( ) + ( r+compare ) * Math.cos( theta );
 					y = v.getY( ) + ( r+compare ) * Math.sin( theta );
-					if ( x < 0  || x > this.size.width ) x = this.size.width / 2;
+					// if the vertex goes off the screen, move it to the middle.
+					if ( x < 0 || x > this.size.width ) x = this.size.width / 2;
 					if ( y < 0 || y > this.size.height ) y = this.size.height / 2;
-//					System.out.println( String.format( "x=%f, y=%f", x, y ));
 					w.setLocation( x, y );
 				}
 			}
 		}
 	}
 	
+	/**
+	 * Calls this.initialize( )
+	 */
 	public void reset( ) {
 		this.initialize( );
 	}

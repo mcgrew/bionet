@@ -5,6 +5,12 @@ import java.util.ListIterator;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+/**
+ * A class for reading CSV Data for SysNet.
+ * 
+ * @author Thomas McGrew
+ * version 1.0
+ */
 public class CSVDataHandler extends DataHandler {
 
 	private Scanner file;

@@ -3,17 +3,30 @@ import java.lang.Double;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * A class for connecting two Molecules and determining their correlation
+ * coefficient.
+ *
+ * @author Thomas McGrew
+ * @version 1.0
+ */
 public class Correlation {
 
 	public static final int PEARSON = 0;
 	public static final int SPEARMAN = 1;
 	public static final int KENDALL = 2;
-	private static int lastMethod = PEARSON;
-	private double pearsonCorrelation = Double.NaN;
-	private double spearmanCorrelation = Double.NaN;
-	private double kendallCorrelation = Double.NaN;
-	private Molecule [ ] molecules = new Molecule[ 2 ];
+	protected static int lastMethod = PEARSON;
+	protected double pearsonCorrelation = Double.NaN;
+	protected double spearmanCorrelation = Double.NaN;
+	protected double kendallCorrelation = Double.NaN;
+	protected Molecule [ ] molecules = new Molecule[ 2 ];
 	
+	/**
+	 * Constructor.
+	 * 
+	 * @param molecule1 The first Molecule of this Correlation.
+	 * @param molecule2 The second Molecule of this Correlation.
+	 */
 	public Correlation( Molecule molecule1, Molecule molecule2 ) {
 		this.molecules[ 0 ] = molecule1;
 		this.molecules[ 1 ] = molecule2;
@@ -21,6 +34,12 @@ public class Correlation {
 		this.molecules[ 1 ].addCorrelation( this );
 	}
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param molecules A Molecule array of length 2. Any extra values are
+	 *	ignored.
+	 */
 	public Correlation( Molecule [] molecules ){
 		this.molecules[ 0 ] = molecules[ 0 ];
 		this.molecules[ 1 ] = molecules[ 1 ];
@@ -28,18 +47,44 @@ public class Correlation {
 		this.molecules[ 1 ].addCorrelation( this );
 	}
 
+	/**
+	 * Gets the Molecules associated with this Correlation.
+	 * 
+	 * @return A Molecule array of length 2, containing the 2 Molecules
+	 *	associated with this correlation.
+	 */
 	public Molecule [ ] getMolecules( ) {
 		return this.molecules;
 	}
 
+	/**
+	 * Whether or not this Correlation is associated with the specified Molecule.
+	 * 
+	 * @param molecule The molecule to test association with.
+	 * @return True if this Correlation is associated with the specified Molecule,
+	 *	false otherwise.
+	 */
 	public boolean hasMolecule( Molecule molecule ) {
 		return ( molecule == this.molecules[ 0 ] ||
 		         molecule == this.molecules[ 1 ] );
 	}
 
+	/**
+	 * Gets the correlation coefficient of this Correlation.
+	 * 
+	 * @return A double containing the last calculated correlation coeficcient.
+	 *	Defaults to PEARSON.
+	 */
 	public double getValue( ) {
 		return this.getValue( lastMethod );
 	}
+	/**
+	 * Gets the correlation coefficient of this Correlation.
+	 * 
+	 * @param method The coefficient calculation method to use. Should be one of
+	 *	Correlation.PEARSON, Correlation.SPEARMAN, or Correlation.KENDALL.
+	 * @return A double containing the requested correlation value.
+	 */
 	public double getValue( int method ) {
 		
 		switch ( method ) {
@@ -301,7 +346,7 @@ public class Correlation {
 	 * @param value The value to be located in the array.
 	 * @return      The index of the value in the array.
 	 */
-	private static int indexOf( int[ ] array, int value ) {
+	protected static int indexOf( int[ ] array, int value ) {
 		for( int i=0,l=array.length; i < l; i++ ) {
 				if ( array[ i ] == value ) {
 					return i;
@@ -318,7 +363,7 @@ public class Correlation {
 	 * @param value The value to be located in the array.
 	 * @return      The index of the value in the array.
 	 */
-	private static int indexOf( double[ ] array, double value ) {
+	protected static int indexOf( double[ ] array, double value ) {
 		for( int i=0,l=array.length; i < l; i++ ) {
 				if ( Double.compare( array[ i ], value ) == 0  ) {
 					return i;
@@ -334,7 +379,7 @@ public class Correlation {
 	 * @param array The array to get the rank of.
 	 * @return	    An array containing the rank order of each element.
 	 */
-	private static int [] getRank( double[ ] array ) {
+	protected static int [] getRank( double[ ] array ) {
 		int arrayLen=array.length;
 		int [] returnValue = new int[ arrayLen ];
 		double [] copy = Arrays.copyOf( array, arrayLen );
