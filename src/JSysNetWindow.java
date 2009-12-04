@@ -84,7 +84,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 
 		this.menuBar.add( this.fileMenu );
 		this.menuBar.add( this.databaseMenu );
-//		this.menuBar.add( this.clusteringMenu );
+//		this.menuBar.add( this.clusteringMenu );:wq
 		this.menuBar.add( this.helpMenu );
 
 		this.setJMenuBar( this.menuBar );

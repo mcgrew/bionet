@@ -30,8 +30,9 @@ public class JSysNet {
 					break;
 				case 'g':
 					try {
-						Settings.DEFAULT_WIDTH  = Integer.parseInt( g.getOptarg( ).split( "x" )[ 0 ] );
-						Settings.DEFAULT_HEIGHT = Integer.parseInt( g.getOptarg( ).split( "x" )[ 1 ] );
+						String[] size = g.getOptarg( ).split( "x" );
+						Settings.DEFAULT_WIDTH  = Integer.parseInt( size[ 0 ] );
+						Settings.DEFAULT_HEIGHT = Integer.parseInt( size[ 1 ] );
 					} catch( NumberFormatException e ) {
 						System.out.println( "You specified an invalid value for -g.\n"+
 							"Values should be in the format WxH in pixels, such as 1024x768." );

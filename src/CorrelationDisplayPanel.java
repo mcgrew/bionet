@@ -126,7 +126,7 @@ public class CorrelationDisplayPanel extends JPanel {
 
 		// Add the panels to the main panel
 		this.add( menuBar, BorderLayout.NORTH );
-		this.add( this.correlationDisplayPanel, BorderLayout.CENTER );
+//		this.add( this.correlationDisplayPanel, BorderLayout.CENTER );
 		this.add( leftPanel, BorderLayout.WEST );
 		this.add( bottomPanel, BorderLayout.SOUTH );
 			
@@ -148,7 +148,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	public void createGraph( DataHandler data ) {
 			this.data = data;
 			this.setVisible( true );
-			UndirectedSparseGraph graph = new UndirectedSparseGraph <Molecule,Correlation>( );
+			UndirectedSparseGraph <Molecule,Correlation> graph = new UndirectedSparseGraph <Molecule,Correlation>( );
 
 			Experiment exp = data.getExperiments( ).get( 0 );
 			for( String groupName : exp.getMoleculeGroupNames( )) {
@@ -158,16 +158,16 @@ public class CorrelationDisplayPanel extends JPanel {
 			}
 			for( Correlation correlation : exp.getCorrelations( )) {
 				graph.addEdge( correlation, 
-					new Pair( correlation.getMolecules( )),
+					new Pair <Molecule> ( correlation.getMolecules( )),
 					EdgeType.UNDIRECTED );
 			}
-			Layout layout = new CircleLayout<Molecule,Correlation>( graph );
+			Layout <Molecule,Correlation> layout = new ClusterLayout<Molecule,Correlation>( graph );
 			VisualizationViewer <Molecule,Correlation> viewer = 
 				new VisualizationViewer <Molecule,Correlation>( layout );
 			DefaultModalGraphMouse mouse = new DefaultModalGraphMouse();
 			mouse.setMode( ModalGraphMouse.Mode.PICKING );
 			viewer.setGraphMouse( mouse );
-			this.correlationDisplayPanel.add( viewer, BorderLayout.CENTER );
+			this.add( viewer, BorderLayout.CENTER );
 	}
 }
 

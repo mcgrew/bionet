@@ -8,6 +8,7 @@ public class Correlation {
 	public static final int PEARSON = 0;
 	public static final int SPEARMAN = 1;
 	public static final int KENDALL = 2;
+	private static int lastMethod = PEARSON;
 	private double pearsonCorrelation = Double.NaN;
 	private double spearmanCorrelation = Double.NaN;
 	private double kendallCorrelation = Double.NaN;
@@ -31,6 +32,14 @@ public class Correlation {
 		return this.molecules;
 	}
 
+	public boolean hasMolecule( Molecule molecule ) {
+		return ( molecule == this.molecules[ 0 ] ||
+		         molecule == this.molecules[ 1 ] );
+	}
+
+	public double getValue( ) {
+		return this.getValue( lastMethod );
+	}
 	public double getValue( int method ) {
 		
 		switch ( method ) {
@@ -88,6 +97,7 @@ public class Correlation {
 	 * @return       The Pearson correlation value.
 	 */
 	private double getPearsonCorrelation( boolean recalc ) {
+		this.lastMethod = PEARSON;
 		//See if this value has already been calculated
 		if ( recalc || Double.isNaN( pearsonCorrelation )) { 
 			int S = 1, n = 0;
@@ -170,6 +180,7 @@ public class Correlation {
 	 * @return       The Spearman correlation value.
 	 */
 	private double getSpearmanCorrelation( boolean recalc ) {
+		this.lastMethod = SPEARMAN;
 		//See if this value has already been calculated
 		if ( recalc || Double.isNaN( this.spearmanCorrelation ) ) { 
 			
@@ -231,6 +242,7 @@ public class Correlation {
 	 * @return The Kendall tau correlation value.
 	 */
 	private double getKendallCorrelation( boolean recalc ) {
+		this.lastMethod = KENDALL;
 		if ( recalc || Double.isNaN( this.kendallCorrelation )) { 			
 			int S = 1, n = 0;
 			String currentXString, currentYString;

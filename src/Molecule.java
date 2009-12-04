@@ -81,6 +81,24 @@ public class Molecule {
 	public boolean removeCorrelation( Correlation correlation ){
 		return false;
 	}
+
+	public Correlation getCorrelation( Molecule molecule ) {
+		for( Correlation correlation : this.correlations ) {
+			if ( correlation.hasMolecule( molecule ))
+				return correlation;
+		}
+		return null;
+	}
+
+	public ArrayList <Molecule> getCorrelated( ) {
+		ArrayList <Molecule> returnValue = new ArrayList<Molecule>( );
+		for ( Correlation correlation : this.correlations ) {
+			Molecule[] molecules = correlation.getMolecules( );
+			returnValue.add(( molecules[ 1 ] == this ) ? 
+			                  molecules[ 0 ] : molecules[ 1 ]);
+		}
+		return returnValue;
+	}
 		
 
 }
