@@ -1,0 +1,68 @@
+
+<project name="JSysNet" basedir="." default="default">
+	<property name="src_dir"    value="src"                                />
+	<property name="build_dir"  value="build"                              />
+	<property name="class_dir"  value="${build_dir}/class"                 />
+	<property name="jar_dir"    value="."                                  />
+	<property name="jar_file"   value="${jar_dir}/${ant.project.name}.jar" />
+	<property name="lib_dir"    value="lib"                                />
+	<property name="main_class" value="${ant.project.name}"                />
+
+	<path id="build_classpath">
+		<fileset dir="${lib_dir}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+<!--
+	<pathconvert property="manifest_classpath" pathsep=" ">
+		<path refid="build_classpath"/>
+		<mapper>
+			<chainedmapper>
+				<flattenmapper/>
+				<globmapper from="*.jar" to="lib/*.jar"/>
+			</chainedmapper>
+		</mapper>
+	</pathconvert>
+-->
+	<manifestclasspath property="manifest_classpath" jarfile="${jar_file}">
+		<classpath refid="build_classpath" />
+	</manifestclasspath>
+
+	<target name="clean">
+		<delete dir="${build_dir}"/>
+		<delete file="${jar_file}"/>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="${class_dir}"/>
+		<javac srcdir="${src_dir}" destdir="${class_dir}">
+			<classpath>
+				<path refid="build_classpath"/>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<mkdir dir="${jar_dir}"/>
+		<jar destfile="${jar_file}" basedir="${class_dir}">
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0"                  />
+				<attribute name="Created-By"       value="Thomas McGrew"        />
+				<attribute name="Main-Class"       value="${main_class}"        />
+				<attribute name="Version"          value="pre"                  />
+				<attribute name="Vendor"           value="Purdue University"    />
+				<attribute name="Class-Path"       value="${manifest_classpath}"/> 
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="run" depends="jar">
+		<java jar="${jar_file}" fork="true">
+			<arg line="-d"/>
+		</java>
+	</target>
+
+	<target name="clean-build" depends="clean,jar"/>
+	<target name="default" depends="clean,run"/>
+</project>
+
