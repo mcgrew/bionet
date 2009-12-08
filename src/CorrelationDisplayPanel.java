@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 import java.awt.Canvas;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -53,6 +55,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		new JSpinner( new SpinnerNumberModel( 1.0, 0.0, 1.0, 0.01 ));
 
 	protected UndirectedSparseGraph <Molecule,Correlation> graph = new UndirectedSparseGraph <Molecule,Correlation>( );
+	protected Layout <Molecule,Correlation> layout; //Graph Layout
 
 	protected DataHandler data = null;
 	protected Experiment experiment = null;
@@ -177,9 +180,8 @@ public class CorrelationDisplayPanel extends JPanel {
 
 			this.addVertices( );
 			this.addEdges( );
-			Layout <Molecule,Correlation> layout = new ClusterLayout<Molecule,Correlation>( this.graph );
-			this.filterEdges( ((Double) minCorrelationSpinner.getValue( )).doubleValue( ),
-			               ((Double) maxCorrelationSpinner.getValue( )).doubleValue( ));
+			this.layout = new CircleLayout<Molecule,Correlation>( this.graph );
+			this.filterEdges( );
 
 			VisualizationViewer <Molecule,Correlation> viewer = 
 				new VisualizationViewer <Molecule,Correlation>( layout );
@@ -192,6 +194,11 @@ public class CorrelationDisplayPanel extends JPanel {
 			mouse.setMode( ModalGraphMouse.Mode.PICKING );
 			viewer.setGraphMouse( mouse );
 			this.add( viewer, BorderLayout.CENTER );
+
+			// add event listeners to the spinners to watch for changes.
+			EdgeFilterChangeListener efcl = new EdgeFilterChangeListener( this );
+			minCorrelationSpinner.addChangeListener( efcl ); 
+			maxCorrelationSpinner.addChangeListener( efcl );
 	}
 
 	protected int addVertices( ) {
@@ -216,6 +223,10 @@ public class CorrelationDisplayPanel extends JPanel {
 		return returnValue;
 	}
 
+	protected int filterEdges( ) {
+		return this.filterEdges(((Double) minCorrelationSpinner.getValue( )).doubleValue( ),
+			                      ((Double) maxCorrelationSpinner.getValue( )).doubleValue( ));
+	}
 	protected int filterEdges( double minValue, double maxValue ) {
 		int returnValue = 0;
 		for( Correlation correlation : this.experiment.getCorrelations( )) {
@@ -237,7 +248,9 @@ public class CorrelationDisplayPanel extends JPanel {
 			}
 		}
 			return returnValue;
-
+	}
+	public void resetGraphLayout( ) {
+		this.layout.reset( );
 	}
 	
 	protected Experiment experimentSelectionDialog( ArrayList <Experiment> experiments ) {
@@ -261,6 +274,30 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 		return experiments.get( 0 );
 
+	}
+
+	protected class EdgeFilterChangeListener implements ChangeListener {
+		private CorrelationDisplayPanel cdp;
+
+		public EdgeFilterChangeListener( CorrelationDisplayPanel c ) {
+			this.cdp = c;
+		}
+
+		public void stateChanged( ChangeEvent e ) {
+			this.cdp.filterEdges( );
+		}
+	}
+
+	protected class VertexFilterChangeListener implements ChangeListener {
+		private CorrelationDisplayPanel cdp;
+
+		public VertexFilterChangeListener( CorrelationDisplayPanel c ) {
+			this.cdp = c;
+		}
+
+		public void stateChanged( ChangeEvent e ) {
+			// do something here.
+		}
 	}
 }
 
