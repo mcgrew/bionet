@@ -355,6 +355,10 @@ public class Correlation {
 		return -1;
 	}
 
+	public String toString( ) {
+		return String.format( "%.2f", this.getValue( ) );
+	}
+
 	/** 
 	 * Returns the index of the specified value of the array. Returns -1 if
 	 * the value is not found in the array.

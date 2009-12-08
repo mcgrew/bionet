@@ -220,6 +220,10 @@ public class Molecule {
 		}
 		return returnValue;
 	}
+
+	public String toString( ) {
+		return this.getAttribute( "id" );
+	}
 		
 
 }

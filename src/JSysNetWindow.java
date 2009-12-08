@@ -93,7 +93,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 
 		if ( Settings.DEBUG ) {
 			this.setVisible( true );
-			DataHandler data = new CSVDataHandler( "/home/mcgrew/projects/jsysnet/data/test_data/mini" );
+			DataHandler data = new CSVDataHandler( "/home/mcgrew/projects/jsysnet/data/test_data/text" );
 			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( data ));
 		}
 	}
@@ -116,7 +116,9 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		int options = fc.showOpenDialog( this );
 		if ( options == JFileChooser.APPROVE_OPTION ) {
 			DataHandler data = new CSVDataHandler( fc.getSelectedFile( ).getAbsolutePath( ));
-			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( data ) );
+			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
+			this.tabPane.addTab( "Correlation View", cdp );
+			cdp.createGraph( data );
 		}
 	
 	}

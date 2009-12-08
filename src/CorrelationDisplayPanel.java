@@ -2,13 +2,19 @@ import javax.swing.*;
 import java.awt.Canvas;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Dialog;
 import java.awt.event.KeyEvent;
 import java.util.ListIterator;
-import edu.uci.ics.jung.graph.*;
+import java.util.ArrayList;
+import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.*;
 import edu.uci.ics.jung.visualization.*;
 import edu.uci.ics.jung.visualization.control.*;
 import edu.uci.ics.jung.algorithms.layout.*;
+import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
+import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
+
+
 
 public class CorrelationDisplayPanel extends JPanel {
 
@@ -40,12 +46,16 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JLabel minCorrelationLabel = new JLabel( 
 		"Correlation Coefficient Higher Than: ", SwingConstants.RIGHT );
 	private JLabel maxCorrelationLabel = new JLabel( 
-		"Correlation Coefficient Lower Than: ",  SwingConstants.RIGHT );
+		"Correlation Coefficient Lower Than: ", SwingConstants.RIGHT );
 	private JSpinner minCorrelationSpinner = 
 		new JSpinner( new SpinnerNumberModel( 0.5, 0.0, 1.0, 0.01 ));
 	private JSpinner maxCorrelationSpinner = 
 		new JSpinner( new SpinnerNumberModel( 1.0, 0.0, 1.0, 0.01 ));
-	private DataHandler data = null;
+
+	protected UndirectedSparseGraph <Molecule,Correlation> graph = new UndirectedSparseGraph <Molecule,Correlation>( );
+
+	protected DataHandler data = null;
+	protected Experiment experiment = null;
 	
 	public CorrelationDisplayPanel ( ) {
 		super( new BorderLayout( ) );
@@ -57,6 +67,9 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.createGraph( data );
 	}
 
+	/**
+	 * Adds all of the necessary Components to this Component.
+	 */
 	private void buildPanel ( ) {
 
 		JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
@@ -148,26 +161,106 @@ public class CorrelationDisplayPanel extends JPanel {
 	public void createGraph( DataHandler data ) {
 			this.data = data;
 			this.setVisible( true );
-			UndirectedSparseGraph <Molecule,Correlation> graph = new UndirectedSparseGraph <Molecule,Correlation>( );
+			
+			ArrayList <Experiment> experiments = data.getExperiments( );
+			if ( experiments.size( ) < 1 ) {
+				System.err.println( "This file doesn't appear to contain any data!" );
+				return;
+			}
+			if ( experiments.size( ) == 1 ) {
+				this.experiment = experiments.get( 0 );
+			}
+			else {
+				// bring up a dialog to choose the experiment
+				this.experiment = this.experimentSelectionDialog( experiments );
+			}
 
-			Experiment exp = data.getExperiments( ).get( 0 );
-			for( String groupName : exp.getMoleculeGroupNames( )) {
-				for( Molecule molecule : exp.getMoleculeGroup( groupName ).getMolecules( )) {
-					graph.addVertex( molecule );
-				}
-			}
-			for( Correlation correlation : exp.getCorrelations( )) {
-				graph.addEdge( correlation, 
-					new Pair <Molecule> ( correlation.getMolecules( )),
-					EdgeType.UNDIRECTED );
-			}
-			Layout <Molecule,Correlation> layout = new ClusterLayout<Molecule,Correlation>( graph );
+			this.addVertices( );
+			this.addEdges( );
+			Layout <Molecule,Correlation> layout = new ClusterLayout<Molecule,Correlation>( this.graph );
+			this.filterEdges( ((Double) minCorrelationSpinner.getValue( )).doubleValue( ),
+			               ((Double) maxCorrelationSpinner.getValue( )).doubleValue( ));
+
 			VisualizationViewer <Molecule,Correlation> viewer = 
 				new VisualizationViewer <Molecule,Correlation>( layout );
+			// add labels to the graph
+			viewer.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<Molecule>( ));
+//			viewer.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<Correlation>( ));
+			viewer.getRenderer( ).getVertexLabelRenderer( ).setPosition( Position.CNTR );
+
 			DefaultModalGraphMouse mouse = new DefaultModalGraphMouse();
 			mouse.setMode( ModalGraphMouse.Mode.PICKING );
 			viewer.setGraphMouse( mouse );
 			this.add( viewer, BorderLayout.CENTER );
+	}
+
+	protected int addVertices( ) {
+		int returnValue = 0;
+		for( String groupName : this.experiment.getMoleculeGroupNames( )) {
+			for( Molecule molecule : this.experiment.getMoleculeGroup( groupName ).getMolecules( )) {
+				this.graph.addVertex( molecule );
+				returnValue++;
+			}
+		}
+		return returnValue;
+	}
+
+	protected int addEdges( ) {
+		int returnValue = 0;
+		for( Correlation correlation : this.experiment.getCorrelations( )) {
+			this.graph.addEdge( correlation, 
+				             new Pair <Molecule> ( correlation.getMolecules( )),
+				             EdgeType.UNDIRECTED );
+			returnValue++;
+		}
+		return returnValue;
+	}
+
+	protected int filterEdges( double minValue, double maxValue ) {
+		int returnValue = 0;
+		for( Correlation correlation : this.experiment.getCorrelations( )) {
+			if ( correlation.getValue( Correlation.PEARSON ) > minValue &&  
+				   correlation.getValue( Correlation.PEARSON ) < maxValue ) {	
+				returnValue++;
+				// this Correlation belongs on the graph, make sure it is there.
+				if ( !this.graph.containsEdge( correlation )) {
+					this.graph.addEdge( correlation, 
+						             new Pair <Molecule> ( correlation.getMolecules( )),
+						             EdgeType.UNDIRECTED );
+				}
+			}
+			else {
+				// this Correlation does not belong on the graph, make sure it is not there.
+				if ( this.graph.containsEdge( correlation )) {
+					this.graph.removeEdge( correlation );
+				}
+			}
+		}
+			return returnValue;
+
+	}
+	
+	protected Experiment experimentSelectionDialog( ArrayList <Experiment> experiments ) {
+		String [] options = new String[ experiments.size( )];
+		for ( int i=0; i < experiments.size( ); i++ ) {
+			options[ i ] = String.format( "%s - %s",
+			                 experiments.get( i ).getAttribute( "exp_id" ) ,
+			                 experiments.get( i ).getAttribute( "description" )
+											);
+		}
+		Object selectedValue = JOptionPane.showInputDialog(
+		                          null,
+		                          "Choose An Experiment", "Experiment Selection",
+															JOptionPane.INFORMATION_MESSAGE, 
+															null,
+															options, options[ 0 ]);
+		for( int counter = 0, maxCounter = options.length;
+			 counter < maxCounter; counter++ ) {
+			 if(options[ counter ].equals( selectedValue ))
+				return experiments.get( counter );
+		}
+		return experiments.get( 0 );
+
 	}
 }
 
