@@ -190,6 +190,10 @@ public class Molecule {
 		return false;
 	}
 
+	public ArrayList <Correlation> getCorrelations( ) {
+		return this.correlations;
+	}
+
 	/**
 	 * Gets a Correlation which is has the passed in Molecule as it's other
 	 * Molecule.

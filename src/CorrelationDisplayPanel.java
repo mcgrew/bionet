@@ -1,10 +1,14 @@
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 import java.awt.Canvas;
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.Dialog;
+import java.awt.Checkbox;
 import java.awt.event.KeyEvent;
 import java.util.ListIterator;
 import java.util.ArrayList;
@@ -40,7 +44,9 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JPanel correlationDisplayPanel = new JPanel( );
 	private JButton resetButton = new JButton( "Reset" );
 	private JButton allButton = new JButton( "All" );
-	private JScrollPane moleculeList = new JScrollPane( );
+	private JPanel moleculeList = new JPanel( );
+	private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
+	private ArrayList <MoleculeCheckbox> moleculeCheckboxArrayList = new ArrayList<MoleculeCheckbox>( );
 
 	private JComboBox colorComboBox = new JComboBox( );
 	private JComboBox mapComboBox = new JComboBox( );
@@ -54,6 +60,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JSpinner maxCorrelationSpinner = 
 		new JSpinner( new SpinnerNumberModel( 1.0, 0.0, 1.0, 0.01 ));
 
+	protected VisualizationViewer <Molecule,Correlation> viewer;
 	protected UndirectedSparseGraph <Molecule,Correlation> graph = new UndirectedSparseGraph <Molecule,Correlation>( );
 	protected Layout <Molecule,Correlation> layout; //Graph Layout
 
@@ -81,7 +88,7 @@ public class CorrelationDisplayPanel extends JPanel {
 
 		JPanel leftPanel = new JPanel( new BorderLayout( ));
 		leftPanel.add( sortSelectionPanel, BorderLayout.NORTH );
-		leftPanel.add( this.moleculeList, BorderLayout.CENTER );
+		leftPanel.add( this.moleculeScrollPane, BorderLayout.CENTER );
 
 		// ALL & RESET BUTTONS
 		JPanel moleculeButtonPanel = new JPanel( new BorderLayout( ) );
@@ -183,8 +190,7 @@ public class CorrelationDisplayPanel extends JPanel {
 			this.layout = new CircleLayout<Molecule,Correlation>( this.graph );
 			this.filterEdges( );
 
-			VisualizationViewer <Molecule,Correlation> viewer = 
-				new VisualizationViewer <Molecule,Correlation>( layout );
+			viewer = new VisualizationViewer <Molecule,Correlation>( layout );
 			// add labels to the graph
 			viewer.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<Molecule>( ));
 //			viewer.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<Correlation>( ));
@@ -203,10 +209,34 @@ public class CorrelationDisplayPanel extends JPanel {
 
 	protected int addVertices( ) {
 		int returnValue = 0;
+		MoleculeCheckbox cb;
+		VertexFilterChangeListener vfcl = new VertexFilterChangeListener( this );
+		this.moleculeList.setLayout( new GridLayout( this.experiment.getMolecules( ).size( ), 1 ));
 		for( String groupName : this.experiment.getMoleculeGroupNames( )) {
 			for( Molecule molecule : this.experiment.getMoleculeGroup( groupName ).getMolecules( )) {
 				this.graph.addVertex( molecule );
+				cb = new MoleculeCheckbox( molecule, true );
+				cb.addItemListener( vfcl );
+				this.moleculeList.add( cb );
+				this.moleculeCheckboxArrayList.add( cb );
 				returnValue++;
+			}
+		}
+		return returnValue;
+	}
+
+	protected int filterVertices( ) {
+		int returnValue = 0;
+		for( MoleculeCheckbox mcb : this.moleculeCheckboxArrayList ) {
+			if ( mcb.getState( )) {
+				if ( !this.graph.containsVertex( mcb.getMolecule( ))) {
+					this.graph.removeVertex( mcb.getMolecule( ));
+				}
+			}
+			else {
+				if ( this.graph.containsVertex( mcb.getMolecule( ))) {
+					this.graph.addVertex( mcb.getMolecule( ));
+				}
 			}
 		}
 		return returnValue;
@@ -223,15 +253,18 @@ public class CorrelationDisplayPanel extends JPanel {
 		return returnValue;
 	}
 
-	protected int filterEdges( ) {
-		return this.filterEdges(((Double) minCorrelationSpinner.getValue( )).doubleValue( ),
-			                      ((Double) maxCorrelationSpinner.getValue( )).doubleValue( ));
+	protected boolean isValidEdge( Correlation correlation ) {
+		Molecule [] molecules = correlation.getMolecules( );
+		return ( this.graph.containsVertex( molecules[ 0 ] ) &&
+		         this.graph.containsVertex( molecules[ 1 ] ) &&
+						 correlation.getValue( ) > ((Double) minCorrelationSpinner.getValue( )).doubleValue( ) &&
+             correlation.getValue( ) < ((Double) maxCorrelationSpinner.getValue( )).doubleValue( ));
 	}
-	protected int filterEdges( double minValue, double maxValue ) {
+
+	protected int filterEdges( ) {
 		int returnValue = 0;
 		for( Correlation correlation : this.experiment.getCorrelations( )) {
-			if ( correlation.getValue( Correlation.PEARSON ) > minValue &&  
-				   correlation.getValue( Correlation.PEARSON ) < maxValue ) {	
+			if ( this.isValidEdge( correlation )) {
 				returnValue++;
 				// this Correlation belongs on the graph, make sure it is there.
 				if ( !this.graph.containsEdge( correlation )) {
@@ -276,6 +309,7 @@ public class CorrelationDisplayPanel extends JPanel {
 
 	}
 
+	// ******************* PROTECTED CLASSES **************************
 	protected class EdgeFilterChangeListener implements ChangeListener {
 		private CorrelationDisplayPanel cdp;
 
@@ -288,15 +322,46 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 	}
 
-	protected class VertexFilterChangeListener implements ChangeListener {
-		private CorrelationDisplayPanel cdp;
+	protected class VertexFilterChangeListener implements ItemListener {
+		private CorrelationDisplayPanel displayPanel;
 
 		public VertexFilterChangeListener( CorrelationDisplayPanel c ) {
-			this.cdp = c;
+			this.displayPanel = c;
 		}
 
-		public void stateChanged( ChangeEvent e ) {
-			// do something here.
+		public void itemStateChanged( ItemEvent event ) {
+				Molecule molecule = (( MoleculeCheckbox )event.getSource( )).getMolecule( );
+			if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+				displayPanel.graph.addVertex( molecule );
+				for( Correlation correlation : molecule.getCorrelations( )) {
+					if ( displayPanel.isValidEdge( correlation ))
+						displayPanel.graph.addEdge( correlation,
+						                            new Pair( correlation.getMolecules( )),
+																				EdgeType.UNDIRECTED );
+				}
+			}
+			else {
+				displayPanel.graph.removeVertex( molecule );
+			}
+			displayPanel.viewer.repaint( );
+		}
+	}
+
+	protected class MoleculeCheckbox extends Checkbox {
+		private Molecule molecule;
+
+		public MoleculeCheckbox( Molecule molecule, boolean state ) {
+			super( molecule.getAttribute( "id" ), state );
+			this.molecule = molecule;
+		}
+
+		public void setMolecule( Molecule molecule ) {
+			this.setLabel( molecule.getAttribute( "id" ));
+			this.molecule = molecule;
+		}
+
+		public Molecule getMolecule( ) {
+			return this.molecule;
 		}
 	}
 }
