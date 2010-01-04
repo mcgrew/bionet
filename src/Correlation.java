@@ -76,16 +76,39 @@ public class Correlation {
 	 *	Defaults to PEARSON.
 	 */
 	public double getValue( ) {
-		return this.getValue( lastMethod );
+		return this.getValue( lastMethod, false );
 	}
+
 	/**
-	 * Gets the correlation coefficient of this Correlation.
+	 * Gets the correlation coeffiecient of this Correlation
+	 * 
+	 * @param recalce Whether or not to recalculate this value if it has already been calculated.
+	 * @return A double containing the last calculated correlation coeficcient.
+	 */
+	public double getValue( boolean recalc ) {
+		return this.getValue( lastMethod, recalc );
+	}
+
+	/**
+	 * Gets the correlation coeffiecient of this Correlation
 	 * 
 	 * @param method The coefficient calculation method to use. Should be one of
 	 *	Correlation.PEARSON, Correlation.SPEARMAN, or Correlation.KENDALL.
 	 * @return A double containing the requested correlation value.
 	 */
 	public double getValue( int method ) {
+		return this.getValue( method, false );
+	}
+
+	/**
+	 * Gets the correlation coefficient of this Correlation.
+	 * 
+	 * @param method The coefficient calculation method to use. Should be one of
+	 *	Correlation.PEARSON, Correlation.SPEARMAN, or Correlation.KENDALL.
+	 * @param recalce Whether or not to recalculate this value if it has already been calculated.
+	 * @return A double containing the requested correlation value.
+	 */
+	public double getValue( int method, boolean recalc ) {
 		
 		switch ( method ) {
 			case PEARSON:
@@ -110,11 +133,14 @@ public class Correlation {
 	 *    n = number of samples in each molecule
 	 *    Sx = standard deviation of x
 	 *    Sy = standard deviation of y
-	 *
+	 * 
+	 * <pre>
+	 *                                               _              _
 	 *                     sum( i=0 to n-1, ( x[i] - x ) * ( y[i] - y ))
 	 * correlationValue = -----------------------------------------------
 	 *                                ( n - 1 ) Sx * Sy
-	 *
+	 * </pre>
+	 * 
 	 * Adapted from	http://en.wikipedia.org/wiki/Correlation#Pearson.27s_product-moment_coefficient
 	 *
 	 * @return    The Pearson correlation value. 
@@ -132,9 +158,12 @@ public class Correlation {
 	 *    Sx = standard deviation of x
 	 *    Sy = standard deviation of y
 	 *
+	 * <pre>
+	 *                                               _              _
 	 *                     sum( i=0 to n-1, ( x[i] - x ) * ( y[i] - y ))
 	 * correlationValue = -----------------------------------------------
 	 *                                ( n - 1 ) Sx * Sy
+	 * </pre>
 	 * 
 	 * Adapted from	http://en.wikipedia.org/wiki/Correlation#Pearson.27s_product-moment_coefficient
 	 *
@@ -194,9 +223,11 @@ public class Correlation {
 	 * Rx = rank array of x, ie. the new locations of each element of x if x were sorted (starting at 1).
 	 * Ry = rank array of y, ie. the new locations of each element of y if y were sorted ( starting at 1)
 	 * 
+	 * <pre>
 	 *                         6 * sum( i=0 to n-1, ( Rx[i] - Ry[i] )^2 )
 	 * correlationValue = 1 - --------------------------------------------
 	 *                                       n * ( n^2 - 1 )
+	 * </pre>
 	 * 
 	 * Adapted from http://en.wikipedia.org/wiki/Spearman_correlation
 	 * 
@@ -215,9 +246,11 @@ public class Correlation {
 	 * Rx = rank array of x, ie. the new locations of each element of x if x were sorted (starting at 1).
 	 * Ry = rank array of y, ie. the new locations of each element of y if y were sorted ( starting at 1)
 	 * 
+	 * <pre>
 	 *                         6 * sum( i=0 to n-1, ( Rx[i] - Ry[i] )^2 )
 	 * correlationValue = 1 - --------------------------------------------
 	 *                                       n * ( n^2 - 1 )
+	 * </pre>
 	 * 
 	 * Adapted from http://en.wikipedia.org/wiki/Spearman_correlation
 	 * 
@@ -265,6 +298,24 @@ public class Correlation {
 		return this.spearmanCorrelation;
 	}
 
+	/**
+	 * Returns the Kendall tau rank correlation coefficient of the 2 molecules.
+	 * 
+	 * x = sample values of molecule 0
+	 * y = sample values of molecule 1
+	 * n = number of samples in each molecule
+	 * Rx = the rank of the samples in molecule 0
+	 * Ry = the rank of the samples in molecule 1
+	 * concordant = The number of concordant pairs
+	 * discordant = The number of discordant pairs
+	 *
+	 * </pre>
+	 *                       concordant - discordant
+	 * correlationValue = -----------------------------
+	 *                     (1/2) * pairs * ( pairs-1 )
+	 * </pre>
+	 * @return The Kendall tau correlation value.
+	 */
 	private double getKendallCorrelation( ) {
 		return this.getKendallCorrelation( false );
 	}
@@ -280,10 +331,12 @@ public class Correlation {
 	 * concordant = The number of concordant pairs
 	 * discordant = The number of discordant pairs
 	 *
+	 * </pre>
 	 *                       concordant - discordant
 	 * correlationValue = -----------------------------
 	 *                     (1/2) * pairs * ( pairs-1 )
-	 * @param 
+	 * </pre>
+	 * @param recalc Whether or not to recalculate this value if it has already been calculated. 
 	 * @return The Kendall tau correlation value.
 	 */
 	private double getKendallCorrelation( boolean recalc ) {
