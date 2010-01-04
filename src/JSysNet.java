@@ -1,5 +1,6 @@
 import gnu.getopt.Getopt;
 import javax.swing.UIManager;
+import javax.swing.JOptionPane;
 
 public class JSysNet {
 
@@ -65,8 +66,13 @@ public class JSysNet {
 		JSysNetWindow s = new JSysNetWindow( "JSysNet" );
 	}
 
+	public static void newDetailWindow( ){
+		DetailWindow d = new DetailWindow( "Details" );
+	}
+
 	public static void message( String text ){
 		System.err.println( text );
+		JOptionPane.showMessageDialog( null, text );
 	}
 
 }

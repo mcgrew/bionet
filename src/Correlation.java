@@ -48,6 +48,18 @@ public class Correlation {
 	}
 
 	/**
+	 * Sets the default calculation method for all Correlations.
+	 * 
+	 * @param method The method to be used.
+	 * @return true on success, false on failure.
+	 */
+	public static boolean setDefaultMethod( int method ) {
+		if ( method < 0 || method > 2 )
+			return false;
+		lastMethod = method;
+		return true;
+	}
+	/**
 	 * Gets the Molecules associated with this Correlation.
 	 * 
 	 * @return A Molecule array of length 2, containing the 2 Molecules

@@ -1,6 +1,8 @@
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.border.TitledBorder;
+import java.awt.Color;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.Canvas;
@@ -33,28 +35,40 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JRadioButtonMenuItem spearmanCalculationMenuItem = new JRadioButtonMenuItem( "Spearman" );
 	private JRadioButtonMenuItem kendallCalculationMenuItem = new JRadioButtonMenuItem( "Kendall" );
 
+	// layout menu itmes
+	private JMenu layoutMenu = new JMenu( "Layout" );
+	private ButtonGroup layoutMenuButtonGroup = new ButtonGroup( );
+	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem = new JRadioButtonMenuItem( "Multiple Circles" );
+	private JRadioButtonMenuItem singleCircleLayoutMenuItem = new JRadioButtonMenuItem( "Single Circle", true );
+	private JRadioButtonMenuItem clusteredLayoutMenuItem = new JRadioButtonMenuItem( "Clustered" );
+	private JRadioButtonMenuItem springLayoutMenuItem = new JRadioButtonMenuItem( "Spring Embedded" );
+	private JRadioButtonMenuItem heatMapLayoutMenuItem = new JRadioButtonMenuItem( "Heat Map" );
+
 	// view menu items
 	private JMenu viewMenu = new JMenu( "View" );
 	private JMenuItem zoomInViewMenuItem = new JMenuItem( "Zoom In", KeyEvent.VK_I );
 	private JMenuItem zoomOutViewMenuItem = new JMenuItem( "Zoom Out", KeyEvent.VK_O );
 	private JMenuItem fitToWindowViewMenuItem = new JMenuItem( "Fit to Window", KeyEvent.VK_F );
 	
-	private JLabel sortLabel = new JLabel( "Sort list by " );
+	// color menu items
+	private JMenu colorMenu = new JMenu( "Color" );
+	private ButtonGroup colorMenuButtonGroup = new ButtonGroup( );
+	private JRadioButtonMenuItem normalColorMenuItem = new JRadioButtonMenuItem( "Normal Color", true );
+	private JRadioButtonMenuItem highContrastColorMenuItem = new JRadioButtonMenuItem( "High Contrast Color" );
+
+	private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
 	private JComboBox sortComboBox = new JComboBox( );
-	private JPanel correlationDisplayPanel = new JPanel( );
-	private JButton resetButton = new JButton( "Reset" );
+//	private JPanel correlationViewPanel = new JPanel( );
+	private JButton noneButton = new JButton( "None" );
 	private JButton allButton = new JButton( "All" );
 	private JPanel moleculeList = new JPanel( );
 	private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
 	private ArrayList <MoleculeCheckbox> moleculeCheckboxArrayList = new ArrayList<MoleculeCheckbox>( );
-
-	private JComboBox colorComboBox = new JComboBox( );
-	private JComboBox mapComboBox = new JComboBox( );
 	
 	private JLabel minCorrelationLabel = new JLabel( 
-		"Correlation Coefficient Higher Than: ", SwingConstants.RIGHT );
+		"Higher Than: ", SwingConstants.RIGHT );
 	private JLabel maxCorrelationLabel = new JLabel( 
-		"Correlation Coefficient Lower Than: ", SwingConstants.RIGHT );
+		"Lower Than: ", SwingConstants.RIGHT );
 	private JSpinner minCorrelationSpinner = 
 		new JSpinner( new SpinnerNumberModel( 0.5, 0.0, 1.0, 0.01 ));
 	private JSpinner maxCorrelationSpinner = 
@@ -86,42 +100,56 @@ public class CorrelationDisplayPanel extends JPanel {
 		sortSelectionPanel.add( this.sortLabel, BorderLayout.CENTER );
 		sortSelectionPanel.add( this.sortComboBox, BorderLayout.EAST );
 
-		JPanel leftPanel = new JPanel( new BorderLayout( ));
-		leftPanel.add( sortSelectionPanel, BorderLayout.NORTH );
-		leftPanel.add( this.moleculeScrollPane, BorderLayout.CENTER );
-
 		// ALL & RESET BUTTONS
 		JPanel moleculeButtonPanel = new JPanel( new BorderLayout( ) );
-		this.allButton.setPreferredSize( new Dimension( 75, 40 ));
-		this.resetButton.setPreferredSize( new Dimension( 75, 40 ));
+		this.allButton.setPreferredSize( new Dimension( 75, 20 ));
+		this.noneButton.setPreferredSize( new Dimension( 75, 20 ));
 		moleculeButtonPanel.add( this.allButton, BorderLayout.WEST );
-		moleculeButtonPanel.add( this.resetButton, BorderLayout.EAST );	
+		moleculeButtonPanel.add( this.noneButton, BorderLayout.EAST );	
 
-		// CORRELATION CUTOFF VALUE ELEMENTS
-		JPanel correlationValuePanel = new JPanel( new BorderLayout( ));
-		correlationValuePanel.add( this.minCorrelationSpinner, BorderLayout.NORTH );
-		correlationValuePanel.add( this.maxCorrelationSpinner, BorderLayout.SOUTH );
-		this.minCorrelationSpinner.setPreferredSize( new Dimension( 70, 25 ));
-		this.maxCorrelationSpinner.setPreferredSize( new Dimension( 70, 25 ));
+		// MOLECULE LIST
+		JPanel moleculeFilterPanel = new JPanel( new BorderLayout( ));
+		moleculeFilterPanel.add( sortSelectionPanel, BorderLayout.NORTH );
+		moleculeFilterPanel.add( this.moleculeScrollPane, BorderLayout.CENTER );
+		moleculeFilterPanel.add( moleculeButtonPanel, BorderLayout.SOUTH );
+		moleculeFilterPanel.setBorder( 
+			BorderFactory.createTitledBorder( 
+				BorderFactory.createLineBorder( Color.BLACK, 1 ),
+				"Molecule Filter",
+				TitledBorder.CENTER,
+				TitledBorder.TOP
+			)
+		);
 
-		// CORRELATION LABELS
-		JPanel correlationLabelPanel = new JPanel( new BorderLayout( ));
-		correlationLabelPanel.add( this.minCorrelationLabel, BorderLayout.NORTH );
-		correlationLabelPanel.add( this.maxCorrelationLabel, BorderLayout.SOUTH );
-		
-		JPanel bottomLeftPanel = new JPanel( new BorderLayout( ));
-		bottomLeftPanel.add( moleculeButtonPanel, BorderLayout.WEST );
-		bottomLeftPanel.add( correlationValuePanel, BorderLayout.EAST );
 
-		JPanel bottomRightPanel = new JPanel( new BorderLayout( ));
-		bottomRightPanel.add( this.colorComboBox, BorderLayout.NORTH );
-		bottomRightPanel.add( this.mapComboBox, BorderLayout.SOUTH );
+		// CORRELATION FILTER ELEMENTS
+		this.minCorrelationSpinner.setPreferredSize( new Dimension( 80, 25 ));
+		this.maxCorrelationSpinner.setPreferredSize( new Dimension( 80, 25 ));
 
-		JPanel bottomPanel = new JPanel( new BorderLayout( ));
-		bottomPanel.add( bottomLeftPanel, BorderLayout.CENTER );
-		bottomLeftPanel.add( correlationLabelPanel, BorderLayout.CENTER );
-		bottomPanel.add( bottomRightPanel, BorderLayout.EAST ); 
-	
+		JPanel minCorrelationFilterPanel = new JPanel( new BorderLayout( ));
+		minCorrelationFilterPanel.add( this.minCorrelationSpinner, BorderLayout.EAST );
+		minCorrelationFilterPanel.add( this.minCorrelationLabel, BorderLayout.CENTER );
+
+		JPanel maxCorrelationFilterPanel = new JPanel( new BorderLayout( ));
+		maxCorrelationFilterPanel.add( this.maxCorrelationSpinner, BorderLayout.EAST );
+		maxCorrelationFilterPanel.add( this.maxCorrelationLabel, BorderLayout.CENTER );
+
+		JPanel correlationFilterPanel = new JPanel( new BorderLayout( ));
+		correlationFilterPanel.add( minCorrelationFilterPanel, BorderLayout.NORTH );
+		correlationFilterPanel.add( maxCorrelationFilterPanel, BorderLayout.SOUTH );
+		correlationFilterPanel.setBorder( 
+			BorderFactory.createTitledBorder( 
+				BorderFactory.createLineBorder( Color.BLACK, 1 ),
+				"Correlation Filter",
+				TitledBorder.CENTER,
+				TitledBorder.TOP
+			)
+		);
+
+		JPanel leftPanel = new JPanel( new BorderLayout( ));
+		leftPanel.add( moleculeFilterPanel, BorderLayout.CENTER );
+		leftPanel.add( correlationFilterPanel, BorderLayout.SOUTH );
+
 		//CALCULATION MENU
 		this.calculationMenu.setMnemonic( KeyEvent.VK_C );
 		this.calculationMenu.getAccessibleContext( ).setAccessibleDescription(
@@ -135,6 +163,30 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.calculationMenu.add( this.pearsonCalculationMenuItem );
 		this.calculationMenu.add( this.spearmanCalculationMenuItem );
 		this.calculationMenu.add( this.kendallCalculationMenuItem );
+		this.pearsonCalculationMenuItem.addItemListener( new CalculationChangeListener( this ));
+		this.spearmanCalculationMenuItem.addItemListener( new CalculationChangeListener( this ));
+		this.kendallCalculationMenuItem.addItemListener( new CalculationChangeListener( this ));
+
+		//LAYOUT MENU
+		LayoutChangeListener lcl = new LayoutChangeListener( this );
+		this.layoutMenu.setMnemonic( KeyEvent.VK_L );
+		this.layoutMenu.getAccessibleContext( ).setAccessibleDescription(
+			"Change the layout of the graph" );
+		this.layoutMenuButtonGroup.add( this.multipleCirclesLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.clusteredLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.springLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
+		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
+		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
+		this.layoutMenu.add( this.clusteredLayoutMenuItem );
+		this.layoutMenu.add( this.springLayoutMenuItem );
+		this.layoutMenu.add( this.heatMapLayoutMenuItem );
+		this.multipleCirclesLayoutMenuItem.addItemListener( lcl );
+		this.singleCircleLayoutMenuItem.addItemListener( lcl );
+		this.clusteredLayoutMenuItem.addItemListener( lcl );
+		this.springLayoutMenuItem.addItemListener( lcl );
+		this.heatMapLayoutMenuItem.addItemListener( lcl );
 
 		//VIEW MENU
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
@@ -144,24 +196,30 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.viewMenu.add( this.zoomOutViewMenuItem );
 		this.viewMenu.add( this.fitToWindowViewMenuItem );
 
-		this.menuBar.add( this.calculationMenu );
-		this.menuBar.add( this.viewMenu );
+		//COLOR MENU
+		this.colorMenu.setMnemonic( KeyEvent.VK_R );
+		this.colorMenu.getAccessibleContext( ).setAccessibleDescription(
+			"Change the color of the graph" );
+		this.colorMenuButtonGroup.add( this.normalColorMenuItem );
+		this.colorMenuButtonGroup.add( this.highContrastColorMenuItem );
+		this.colorMenu.add( this.normalColorMenuItem );
+		this.colorMenu.add( this.highContrastColorMenuItem );
 
-		// Add the panels to the main panel
-		this.add( menuBar, BorderLayout.NORTH );
-//		this.add( this.correlationDisplayPanel, BorderLayout.CENTER );
-		this.add( leftPanel, BorderLayout.WEST );
-		this.add( bottomPanel, BorderLayout.SOUTH );
-			
+		this.menuBar.add( this.calculationMenu );
+		this.menuBar.add( this.layoutMenu );
+		this.menuBar.add( this.viewMenu );
+		this.menuBar.add( this.colorMenu );
+
 		// control configuration
 		this.sortComboBox.addItem( "Index" );
 		this.sortComboBox.addItem( "Group" );
 		this.sortComboBox.addItem( "Name" );
-		this.colorComboBox.addItem( "Normal Color" );
-		this.colorComboBox.addItem( "High Contrast Color" );
-		this.mapComboBox.addItem( "Multiple Circles" );
-		this.mapComboBox.addItem( "Single Circle" );
-		this.mapComboBox.addItem( "Heat Map" );
+
+		// Add the panels to the main panel
+		this.add( menuBar, BorderLayout.NORTH );
+//		this.add( this.correlationViewPanel, BorderLayout.CENTER );
+		this.add( leftPanel, BorderLayout.WEST );
+			
 	}
 
 	public void createGraph( ) {
@@ -172,34 +230,19 @@ public class CorrelationDisplayPanel extends JPanel {
 			this.data = data;
 			this.setVisible( true );
 			
-			ArrayList <Experiment> experiments = data.getExperiments( );
-			if ( experiments.size( ) < 1 ) {
-				System.err.println( "This file doesn't appear to contain any data!" );
+			this.experiment = experimentSelection( data.getExperiments( ) );
+			if ( this.experiment == null ) {
 				return;
-			}
-			if ( experiments.size( ) == 1 ) {
-				this.experiment = experiments.get( 0 );
-			}
-			else {
-				// bring up a dialog to choose the experiment
-				this.experiment = this.experimentSelectionDialog( experiments );
 			}
 
 			this.addVertices( );
 			this.addEdges( );
-			this.layout = new CircleLayout<Molecule,Correlation>( this.graph );
 			this.filterEdges( );
 
-			viewer = new VisualizationViewer <Molecule,Correlation>( layout );
-			// add labels to the graph
-			viewer.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<Molecule>( ));
-//			viewer.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<Correlation>( ));
-			viewer.getRenderer( ).getVertexLabelRenderer( ).setPosition( Position.CNTR );
-
+			this.setGraphLayout( new CircleLayout<Molecule,Correlation>( this.graph ));
 			DefaultModalGraphMouse mouse = new DefaultModalGraphMouse();
 			mouse.setMode( ModalGraphMouse.Mode.PICKING );
-			viewer.setGraphMouse( mouse );
-			this.add( viewer, BorderLayout.CENTER );
+			this.viewer.setGraphMouse( mouse );
 
 			// add event listeners to the spinners to watch for changes.
 			EdgeFilterChangeListener efcl = new EdgeFilterChangeListener( this );
@@ -285,8 +328,29 @@ public class CorrelationDisplayPanel extends JPanel {
 	public void resetGraphLayout( ) {
 		this.layout.reset( );
 	}
+
+	public void setGraphLayout( Layout<Molecule,Correlation> layout ) {
+		this.layout = layout;
+		if ( this.viewer != null )
+			this.remove( this.viewer );
+		this.viewer = new VisualizationViewer <Molecule,Correlation>( layout );
+		// add labels to the graph
+		this.viewer.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<Molecule>( ));
+//		this.viewer.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<Correlation>( ));
+		this.viewer.getRenderer( ).getVertexLabelRenderer( ).setPosition( Position.CNTR );
+		this.add( this.viewer, BorderLayout.CENTER );
+		this.viewer.repaint( );
+	}
 	
-	protected Experiment experimentSelectionDialog( ArrayList <Experiment> experiments ) {
+	public Experiment experimentSelection( ArrayList <Experiment> experiments ) {
+		if ( experiments.size( ) < 1 ) {
+			System.err.println( "These files do not appear to contain any data!" );
+			return null;
+		}
+		if ( experiments.size( ) == 1 ) {
+			return experiments.get( 0 );
+		}
+		// bring up a dialog to choose the experiment
 		String [] options = new String[ experiments.size( )];
 		for ( int i=0; i < experiments.size( ); i++ ) {
 			options[ i ] = String.format( "%s - %s",
@@ -305,7 +369,7 @@ public class CorrelationDisplayPanel extends JPanel {
 			 if(options[ counter ].equals( selectedValue ))
 				return experiments.get( counter );
 		}
-		return experiments.get( 0 );
+		return null;
 
 	}
 
@@ -319,6 +383,7 @@ public class CorrelationDisplayPanel extends JPanel {
 
 		public void stateChanged( ChangeEvent e ) {
 			this.cdp.filterEdges( );
+			this.cdp.viewer.repaint( );
 		}
 	}
 
@@ -363,6 +428,46 @@ public class CorrelationDisplayPanel extends JPanel {
 		public Molecule getMolecule( ) {
 			return this.molecule;
 		}
+	}
+
+	protected class CalculationChangeListener implements ItemListener {
+		private CorrelationDisplayPanel displayPanel;
+
+		public CalculationChangeListener( CorrelationDisplayPanel c ) {
+			this.displayPanel = c;
+		}
+
+		public void itemStateChanged( ItemEvent event ) {
+			JRadioButtonMenuItem item = (( JRadioButtonMenuItem )event.getSource( ));
+			if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+				if ( item == this.displayPanel.pearsonCalculationMenuItem )
+					Correlation.setDefaultMethod( Correlation.PEARSON );
+				else if ( item == this.displayPanel.spearmanCalculationMenuItem )
+					Correlation.setDefaultMethod( Correlation.SPEARMAN );
+				else if ( item == this.displayPanel.kendallCalculationMenuItem )
+					Correlation.setDefaultMethod( Correlation.KENDALL );
+				this.displayPanel.resetGraphLayout( );
+				this.displayPanel.viewer.repaint( );
+			}
+		}
+	}
+
+	protected class LayoutChangeListener implements ItemListener {
+			private CorrelationDisplayPanel cdp;
+
+			public LayoutChangeListener( CorrelationDisplayPanel c ) {
+				this.cdp = c;
+			}
+
+			public void itemStateChanged( ItemEvent event ) {
+				JRadioButtonMenuItem item = ( JRadioButtonMenuItem )event.getSource( );
+				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+					if ( item == this.cdp.singleCircleLayoutMenuItem )
+						this.cdp.setGraphLayout( new CircleLayout<Molecule,Correlation>( this.cdp.graph ));
+					else if ( item == this.cdp.clusteredLayoutMenuItem )
+						this.cdp.setGraphLayout( new ClusteredLayout<Molecule,Correlation>( this.cdp.graph ));
+				}
+			}
 	}
 }
 

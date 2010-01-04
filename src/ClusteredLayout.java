@@ -13,13 +13,13 @@ import edu.uci.ics.jung.graph.util.Pair;
  * @author Thomas McGrew
  * @version 1.0
  */
-public class ClusterLayout<V,E> extends AbstractLayout<V,E> {
+public class ClusteredLayout<V,E> extends AbstractLayout<V,E> {
 
 	/**
 	 * Constructor.
 	 * @param graph A JUNG Graph
 	 */
-	public ClusterLayout( Graph<V,E> graph ) {
+	public ClusteredLayout( Graph<V,E> graph ) {
 		super( graph );
 	}
 
@@ -27,8 +27,8 @@ public class ClusterLayout<V,E> extends AbstractLayout<V,E> {
 	 * Initializes the location of the Graph vertices.
 	 */
 	public void initialize( ) {
-		int iterations = Math.max( this.size.height, this.size.width ) * 2;
-		int multiplier = Math.min( this.size.height, this.size.width ) / 2;
+		int multiplier = Math.max( this.getSize( ).height, this.getSize( ).width ) / 2;
+		int iterations = multiplier * 16;
 		Point2D vPos, wPos;
 		double x, y, r, theta, newR;
 		int compare;

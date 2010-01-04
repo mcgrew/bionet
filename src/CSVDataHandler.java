@@ -55,6 +55,7 @@ public class CSVDataHandler extends DataHandler {
 			}
 			this.experiments.add( new Experiment( columnsHashMap ));
 		}
+		this.file.close( );
 
 		// *********************** load Molecule.txt ***************************
 		try {
@@ -79,6 +80,7 @@ public class CSVDataHandler extends DataHandler {
 			moleculeArrayList.add( columnsHashMap );
 
 		}
+		this.file.close( );
 
 		// *********************** load Sample.txt ***************************
 		try {
@@ -103,6 +105,8 @@ public class CSVDataHandler extends DataHandler {
 			sampleArrayList.add( columnsHashMap );
 
 		}
+		this.file.close( );
+
 		// *********************** load Data.txt ***************************
 		try {
 			this.file = new Scanner( new File( resource+File.separator+"Data.txt" ));
@@ -168,6 +172,7 @@ public class CSVDataHandler extends DataHandler {
 			}
 				
 		}
+		this.file.close( );
 
 	}
 

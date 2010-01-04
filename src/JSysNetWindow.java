@@ -110,16 +110,15 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.aboutHelpMenuItem.addActionListener( this );
 	}
 
-	private void openCSV( ) {
+	public DataHandler openCSV( ) {
 		JFileChooser fc = new JFileChooser( );
 		fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );	
 		int options = fc.showOpenDialog( this );
 		if ( options == JFileChooser.APPROVE_OPTION ) {
 			DataHandler data = new CSVDataHandler( fc.getSelectedFile( ).getAbsolutePath( ));
-			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
-			this.tabPane.addTab( "Correlation View", cdp );
-			cdp.createGraph( data );
+			return data;
 		}
+		return null;
 	
 	}
 
@@ -131,7 +130,13 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		}
 
 		if ( e.getSource( ) == this.openFileMenuItem ) {
-			this.openCSV( );
+			DataHandler data = openCSV( );
+			if ( data == null ) {
+				return;
+			}
+			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
+			this.tabPane.addTab( "Correlation View", cdp );
+			cdp.createGraph( data );
 		}
 	}
 }
