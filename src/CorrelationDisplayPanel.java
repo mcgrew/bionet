@@ -5,6 +5,8 @@ import javax.swing.border.TitledBorder;
 import java.awt.Color;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.Canvas;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -104,6 +106,8 @@ public class CorrelationDisplayPanel extends JPanel {
 		JPanel moleculeButtonPanel = new JPanel( new BorderLayout( ) );
 		this.allButton.setPreferredSize( new Dimension( 75, 20 ));
 		this.noneButton.setPreferredSize( new Dimension( 75, 20 ));
+		this.allButton.addActionListener( new SelectButtonListener( this ));
+		this.noneButton.addActionListener( new SelectButtonListener( this ));
 		moleculeButtonPanel.add( this.allButton, BorderLayout.WEST );
 		moleculeButtonPanel.add( this.noneButton, BorderLayout.EAST );	
 
@@ -115,9 +119,9 @@ public class CorrelationDisplayPanel extends JPanel {
 		moleculeFilterPanel.setBorder( 
 			BorderFactory.createTitledBorder( 
 				BorderFactory.createLineBorder( Color.BLACK, 1 ),
-				"Molecule Filter",
-				TitledBorder.CENTER,
-				TitledBorder.TOP
+					"Molecule Filter",
+					TitledBorder.CENTER,
+					TitledBorder.TOP
 			)
 		);
 
@@ -240,9 +244,6 @@ public class CorrelationDisplayPanel extends JPanel {
 			this.filterEdges( );
 
 			this.setGraphLayout( new CircleLayout<Molecule,Correlation>( this.graph ));
-			DefaultModalGraphMouse mouse = new DefaultModalGraphMouse();
-			mouse.setMode( ModalGraphMouse.Mode.PICKING );
-			this.viewer.setGraphMouse( mouse );
 
 			// add event listeners to the spinners to watch for changes.
 			EdgeFilterChangeListener efcl = new EdgeFilterChangeListener( this );
@@ -272,6 +273,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		int returnValue = 0;
 		for( MoleculeCheckbox mcb : this.moleculeCheckboxArrayList ) {
 			if ( mcb.getState( )) {
+				returnValue++;
 				if ( !this.graph.containsVertex( mcb.getMolecule( ))) {
 					this.graph.removeVertex( mcb.getMolecule( ));
 				}
@@ -282,6 +284,7 @@ public class CorrelationDisplayPanel extends JPanel {
 				}
 			}
 		}
+		this.viewer.repaint( );
 		return returnValue;
 	}
 
@@ -339,6 +342,9 @@ public class CorrelationDisplayPanel extends JPanel {
 //		this.viewer.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<Correlation>( ));
 		this.viewer.getRenderer( ).getVertexLabelRenderer( ).setPosition( Position.CNTR );
 		this.add( this.viewer, BorderLayout.CENTER );
+		DefaultModalGraphMouse mouse = new DefaultModalGraphMouse();
+		mouse.setMode( ModalGraphMouse.Mode.PICKING );
+		this.viewer.setGraphMouse( mouse );
 		this.viewer.repaint( );
 	}
 	
@@ -428,6 +434,36 @@ public class CorrelationDisplayPanel extends JPanel {
 		public Molecule getMolecule( ) {
 			return this.molecule;
 		}
+	}
+
+	protected class SelectButtonListener implements ActionListener {
+		private CorrelationDisplayPanel displayPanel;
+
+		public SelectButtonListener( CorrelationDisplayPanel c ) {
+			this.displayPanel = c;
+		}
+
+		public void actionPerformed( ActionEvent e ) {
+			JButton source = ( JButton )e.getSource( );
+			if ( source == this.displayPanel.allButton )
+				this.setAll( true );
+			else if ( source == this.displayPanel.noneButton )
+				this.setAll( false );
+		}
+
+		private void setAll( boolean state ) {
+			for ( MoleculeCheckbox m : this.displayPanel.moleculeCheckboxArrayList ) {
+				m.setState( state );
+				for ( ItemListener i : m.getItemListeners( )) {
+					i.itemStateChanged( new ItemEvent(
+						m,
+						-1,
+						m.getMolecule( ),
+						state ? ItemEvent.SELECTED : ItemEvent.DESELECTED ));
+				}
+			}
+		}
+
 	}
 
 	protected class CalculationChangeListener implements ItemListener {
