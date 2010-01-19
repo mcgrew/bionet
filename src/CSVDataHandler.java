@@ -53,7 +53,7 @@ public class CSVDataHandler extends DataHandler {
 				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
-			this.experiments.add( new Experiment( columnsHashMap ));
+			this.addExperiment( new Experiment( columnsHashMap ));
 		}
 		this.file.close( );
 

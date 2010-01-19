@@ -69,6 +69,14 @@ public class Correlation {
 		return this.molecules;
 	}
 
+	public Molecule getOpposite( Molecule molecule ) {
+		if ( molecule == this.molecules[ 0 ])
+			return this.molecules[ 1 ];
+		if ( molecule == this.molecules[ 1 ])
+			return this.molecules[ 0 ];
+		return null;
+	}
+
 	/**
 	 * Whether or not this Correlation is associated with the specified Molecule.
 	 * 
@@ -94,7 +102,7 @@ public class Correlation {
 	/**
 	 * Gets the correlation coeffiecient of this Correlation
 	 * 
-	 * @param recalce Whether or not to recalculate this value if it has already been calculated.
+	 * @param recalc Whether or not to recalculate this value if it has already been calculated.
 	 * @return A double containing the last calculated correlation coeficcient.
 	 */
 	public double getValue( boolean recalc ) {
@@ -117,7 +125,7 @@ public class Correlation {
 	 * 
 	 * @param method The coefficient calculation method to use. Should be one of
 	 *	Correlation.PEARSON, Correlation.SPEARMAN, or Correlation.KENDALL.
-	 * @param recalce Whether or not to recalculate this value if it has already been calculated.
+	 * @param recalc Whether or not to recalculate this value if it has already been calculated.
 	 * @return A double containing the requested correlation value.
 	 */
 	public double getValue( int method, boolean recalc ) {
@@ -455,7 +463,7 @@ public class Correlation {
 		Arrays.sort( copy );
 
 		for ( int i=0; i < arrayLen; i++ ) {
-			returnValue[ i ] = indexOf( copy, array[ i] );
+			returnValue[ i ] = indexOf( copy, array[ i ] );
 		}
 		
 		return returnValue;

@@ -84,7 +84,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 
 		this.menuBar.add( this.fileMenu );
 		this.menuBar.add( this.databaseMenu );
-//		this.menuBar.add( this.clusteringMenu );:wq
+//		this.menuBar.add( this.clusteringMenu );
 		this.menuBar.add( this.helpMenu );
 
 		this.setJMenuBar( this.menuBar );
@@ -133,6 +133,9 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 			DataHandler data = openCSV( );
 			if ( data == null ) {
 				return;
+			}
+			if ( Settings.DEBUG ) {
+				
 			}
 			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
 			this.tabPane.addTab( "Correlation View", cdp );

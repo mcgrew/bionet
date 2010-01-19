@@ -58,6 +58,8 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JRadioButtonMenuItem normalColorMenuItem = new JRadioButtonMenuItem( "Normal Color", true );
 	private JRadioButtonMenuItem highContrastColorMenuItem = new JRadioButtonMenuItem( "High Contrast Color" );
 
+	private CorrelationFilterPanel correlationFilterPanel;
+
 	private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
 	private JComboBox sortComboBox = new JComboBox( );
 //	private JPanel correlationViewPanel = new JPanel( );
@@ -67,17 +69,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
 	private ArrayList <MoleculeCheckbox> moleculeCheckboxArrayList = new ArrayList<MoleculeCheckbox>( );
 	
-	private JLabel minCorrelationLabel = new JLabel( 
-		"Higher Than: ", SwingConstants.RIGHT );
-	private JLabel maxCorrelationLabel = new JLabel( 
-		"Lower Than: ", SwingConstants.RIGHT );
-	private JSpinner minCorrelationSpinner = 
-		new JSpinner( new SpinnerNumberModel( 0.5, 0.0, 1.0, 0.01 ));
-	private JSpinner maxCorrelationSpinner = 
-		new JSpinner( new SpinnerNumberModel( 1.0, 0.0, 1.0, 0.01 ));
-
-	protected VisualizationViewer <Molecule,Correlation> viewer;
-	protected UndirectedSparseGraph <Molecule,Correlation> graph = new UndirectedSparseGraph <Molecule,Correlation>( );
+	protected CorrelationGraphVisualizer graph;
 	protected Layout <Molecule,Correlation> layout; //Graph Layout
 
 	protected DataHandler data = null;
@@ -127,32 +119,10 @@ public class CorrelationDisplayPanel extends JPanel {
 
 
 		// CORRELATION FILTER ELEMENTS
-		this.minCorrelationSpinner.setPreferredSize( new Dimension( 80, 25 ));
-		this.maxCorrelationSpinner.setPreferredSize( new Dimension( 80, 25 ));
-
-		JPanel minCorrelationFilterPanel = new JPanel( new BorderLayout( ));
-		minCorrelationFilterPanel.add( this.minCorrelationSpinner, BorderLayout.EAST );
-		minCorrelationFilterPanel.add( this.minCorrelationLabel, BorderLayout.CENTER );
-
-		JPanel maxCorrelationFilterPanel = new JPanel( new BorderLayout( ));
-		maxCorrelationFilterPanel.add( this.maxCorrelationSpinner, BorderLayout.EAST );
-		maxCorrelationFilterPanel.add( this.maxCorrelationLabel, BorderLayout.CENTER );
-
-		JPanel correlationFilterPanel = new JPanel( new BorderLayout( ));
-		correlationFilterPanel.add( minCorrelationFilterPanel, BorderLayout.NORTH );
-		correlationFilterPanel.add( maxCorrelationFilterPanel, BorderLayout.SOUTH );
-		correlationFilterPanel.setBorder( 
-			BorderFactory.createTitledBorder( 
-				BorderFactory.createLineBorder( Color.BLACK, 1 ),
-				"Correlation Filter",
-				TitledBorder.CENTER,
-				TitledBorder.TOP
-			)
-		);
-
 		JPanel leftPanel = new JPanel( new BorderLayout( ));
 		leftPanel.add( moleculeFilterPanel, BorderLayout.CENTER );
-		leftPanel.add( correlationFilterPanel, BorderLayout.SOUTH );
+		this.correlationFilterPanel = new CorrelationFilterPanel( );
+		leftPanel.add( this.correlationFilterPanel, BorderLayout.SOUTH );
 
 		//CALCULATION MENU
 		this.calculationMenu.setMnemonic( KeyEvent.VK_C );
@@ -239,22 +209,21 @@ public class CorrelationDisplayPanel extends JPanel {
 				return;
 			}
 
+			this.graph = new CorrelationGraphVisualizer( );
+			this.graph.setCorrelationFilterPanel( this.correlationFilterPanel );
+			this.graph.setCorrelationDisplayPanel( this );
 			this.addVertices( );
 			this.addEdges( );
-			this.filterEdges( );
+			this.graph.filterEdges( );
 
-			this.setGraphLayout( new CircleLayout<Molecule,Correlation>( this.graph ));
-
-			// add event listeners to the spinners to watch for changes.
-			EdgeFilterChangeListener efcl = new EdgeFilterChangeListener( this );
-			minCorrelationSpinner.addChangeListener( efcl ); 
-			maxCorrelationSpinner.addChangeListener( efcl );
+			this.setGraphVisualizer( this.graph );
+			this.setGraphLayout( CircleLayout.class );
 	}
 
 	protected int addVertices( ) {
 		int returnValue = 0;
 		MoleculeCheckbox cb;
-		VertexFilterChangeListener vfcl = new VertexFilterChangeListener( this );
+		VertexFilterChangeListener vfcl = new VertexFilterChangeListener( this.graph );
 		this.moleculeList.setLayout( new GridLayout( this.experiment.getMolecules( ).size( ), 1 ));
 		for( String groupName : this.experiment.getMoleculeGroupNames( )) {
 			for( Molecule molecule : this.experiment.getMoleculeGroup( groupName ).getMolecules( )) {
@@ -284,7 +253,7 @@ public class CorrelationDisplayPanel extends JPanel {
 				}
 			}
 		}
-		this.viewer.repaint( );
+		this.graph.repaint( );
 		return returnValue;
 	}
 
@@ -299,53 +268,22 @@ public class CorrelationDisplayPanel extends JPanel {
 		return returnValue;
 	}
 
-	protected boolean isValidEdge( Correlation correlation ) {
-		Molecule [] molecules = correlation.getMolecules( );
-		return ( this.graph.containsVertex( molecules[ 0 ] ) &&
-		         this.graph.containsVertex( molecules[ 1 ] ) &&
-						 correlation.getValue( ) > ((Double) minCorrelationSpinner.getValue( )).doubleValue( ) &&
-             correlation.getValue( ) < ((Double) maxCorrelationSpinner.getValue( )).doubleValue( ));
-	}
-
-	protected int filterEdges( ) {
-		int returnValue = 0;
-		for( Correlation correlation : this.experiment.getCorrelations( )) {
-			if ( this.isValidEdge( correlation )) {
-				returnValue++;
-				// this Correlation belongs on the graph, make sure it is there.
-				if ( !this.graph.containsEdge( correlation )) {
-					this.graph.addEdge( correlation, 
-						             new Pair <Molecule> ( correlation.getMolecules( )),
-						             EdgeType.UNDIRECTED );
-				}
-			}
-			else {
-				// this Correlation does not belong on the graph, make sure it is not there.
-				if ( this.graph.containsEdge( correlation )) {
-					this.graph.removeEdge( correlation );
-				}
-			}
-		}
-			return returnValue;
-	}
 	public void resetGraphLayout( ) {
-		this.layout.reset( );
+		this.graph.resetLayout( );
 	}
 
-	public void setGraphLayout( Layout<Molecule,Correlation> layout ) {
-		this.layout = layout;
-		if ( this.viewer != null )
-			this.remove( this.viewer );
-		this.viewer = new VisualizationViewer <Molecule,Correlation>( layout );
+	public void setGraphLayout( Class layout ) {
+		this.graph.setGraphLayout( layout );
+	}
+
+	private void setGraphVisualizer( CorrelationGraphVisualizer v ) {
+		if ( this.graph != null )
+			this.remove( this.graph );
+		this.graph = v;
+		this.correlationFilterPanel.setVisualization( v );
 		// add labels to the graph
-		this.viewer.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<Molecule>( ));
-//		this.viewer.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<Correlation>( ));
-		this.viewer.getRenderer( ).getVertexLabelRenderer( ).setPosition( Position.CNTR );
-		this.add( this.viewer, BorderLayout.CENTER );
-		DefaultModalGraphMouse mouse = new DefaultModalGraphMouse();
-		mouse.setMode( ModalGraphMouse.Mode.PICKING );
-		this.viewer.setGraphMouse( mouse );
-		this.viewer.repaint( );
+		this.add( this.graph, BorderLayout.CENTER );
+		this.graph.repaint( );
 	}
 	
 	public Experiment experimentSelection( ArrayList <Experiment> experiments ) {
@@ -380,41 +318,155 @@ public class CorrelationDisplayPanel extends JPanel {
 	}
 
 	// ******************* PROTECTED CLASSES **************************
-	protected class EdgeFilterChangeListener implements ChangeListener {
-		private CorrelationDisplayPanel cdp;
 
-		public EdgeFilterChangeListener( CorrelationDisplayPanel c ) {
-			this.cdp = c;
+	protected class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation>{
+		private CorrelationFilterPanel correlationFilterPanel;
+		private CorrelationDisplayPanel correlationDisplayPanel;
+
+		public void setCorrelationFilterPanel( CorrelationFilterPanel cfp ){
+			this.correlationFilterPanel = cfp;
+		}
+
+		public void setCorrelationDisplayPanel( CorrelationDisplayPanel cdp ){
+			this.correlationDisplayPanel = cdp;
+		}
+
+		public int filterEdges( ) {
+			
+			int returnValue = 0;
+			for( Correlation correlation : this.correlationDisplayPanel.experiment.getCorrelations( )) {
+				if ( this.isValidEdge( correlation )) {
+					returnValue++;
+					// this Correlation belongs on the graph, make sure it is there.
+					if ( !this.graph.containsEdge( correlation )) {
+						this.graph.addEdge( correlation, 
+													 new Pair <Molecule> ( correlation.getMolecules( )),
+													 EdgeType.UNDIRECTED );
+					}
+				}
+				else {
+					// this Correlation does not belong on the graph, make sure it is not there.
+					if ( this.graph.containsEdge( correlation )) {
+						this.graph.removeEdge( correlation );
+					}
+				}
+			}
+				return returnValue;
+		}
+		private boolean isValidEdge( Correlation correlation ) {
+			Molecule [] molecules = correlation.getMolecules( );
+			return ( this.graph.containsVertex( molecules[ 0 ] ) &&
+							 this.graph.containsVertex( molecules[ 1 ] ) &&
+							 correlation.getValue( ) > this.correlationFilterPanel.getLow( ) &&
+							 correlation.getValue( ) < this.correlationFilterPanel.getHigh( ));
+		}
+
+	}
+
+	protected class CorrelationFilterPanel extends JPanel {
+
+		private JLabel minCorrelationLabel = new JLabel( "Higher Than: ", SwingConstants.RIGHT );
+		private JLabel maxCorrelationLabel = new JLabel( "Lower Than: ", SwingConstants.RIGHT );
+		private JPanel minCorrelationFilterPanel = new JPanel( );
+		private JPanel maxCorrelationFilterPanel = new JPanel( );
+		private JSpinner minCorrelationSpinner;
+		private JSpinner maxCorrelationSpinner;
+		private EdgeFilterChangeListener efcl;   
+
+		public CorrelationFilterPanel( ) {
+			this( 0.5, 1.0 );
+		}
+
+		public CorrelationFilterPanel( double low, double high ) {
+			this( 0.0, 1.0, 0.01, low, high );
+		}
+
+		public CorrelationFilterPanel( double min, double max, double step, double low, double high ) {
+			this.setLayout( new BorderLayout( ));
+			this.minCorrelationSpinner = new JSpinner( new SpinnerNumberModel( low, min, max, step ));
+			this.maxCorrelationSpinner = new JSpinner( new SpinnerNumberModel( high, min, max, step ));
+
+			this.minCorrelationSpinner.setPreferredSize( new Dimension( 80, 25 ));
+			this.maxCorrelationSpinner.setPreferredSize( new Dimension( 80, 25 ));
+
+			this.minCorrelationFilterPanel = new JPanel( new BorderLayout( ));
+			this.minCorrelationFilterPanel.add( this.minCorrelationSpinner, BorderLayout.EAST );
+			this.minCorrelationFilterPanel.add( this.minCorrelationLabel, BorderLayout.CENTER );
+
+			this.maxCorrelationFilterPanel = new JPanel( new BorderLayout( ));
+			this.maxCorrelationFilterPanel.add( this.maxCorrelationSpinner, BorderLayout.EAST );
+			this.maxCorrelationFilterPanel.add( this.maxCorrelationLabel, BorderLayout.CENTER );
+
+			this.add( this.minCorrelationFilterPanel, BorderLayout.NORTH );
+			this.add( this.maxCorrelationFilterPanel, BorderLayout.SOUTH );
+
+			this.setBorder( 
+				BorderFactory.createTitledBorder( 
+					BorderFactory.createLineBorder( Color.BLACK, 1 ),
+					"Correlation Filter",
+					TitledBorder.CENTER,
+					TitledBorder.TOP
+			));
+		}
+
+		public void setVisualization( CorrelationGraphVisualizer v ) {
+			// add event listeners to the spinners to watch for changes.
+			// remove the current listeners (if any)
+			if ( this.efcl != null ) {
+				this.minCorrelationSpinner.removeChangeListener( this.efcl );
+				this.minCorrelationSpinner.removeChangeListener( this.efcl );
+			}
+			// add some new listeners
+			this.efcl = new EdgeFilterChangeListener( v );
+			this.minCorrelationSpinner.addChangeListener( this.efcl ); 
+			this.maxCorrelationSpinner.addChangeListener( this.efcl );
+		}
+
+		public double getLow( ) {
+			return (( Double )this.minCorrelationSpinner.getValue( )).doubleValue( );
+		}
+
+		public double getHigh( ) {
+			return (( Double )this.maxCorrelationSpinner.getValue( )).doubleValue( );
+		}
+
+	}
+
+	protected class EdgeFilterChangeListener implements ChangeListener {
+		private CorrelationGraphVisualizer v;
+
+		public EdgeFilterChangeListener( CorrelationGraphVisualizer v ) {
+			this.v = v;
 		}
 
 		public void stateChanged( ChangeEvent e ) {
-			this.cdp.filterEdges( );
-			this.cdp.viewer.repaint( );
+			this.v.filterEdges( );
+//			this.v.repaint( );
 		}
 	}
 
 	protected class VertexFilterChangeListener implements ItemListener {
-		private CorrelationDisplayPanel displayPanel;
+		private CorrelationGraphVisualizer graph;
 
-		public VertexFilterChangeListener( CorrelationDisplayPanel c ) {
-			this.displayPanel = c;
+		public VertexFilterChangeListener( CorrelationGraphVisualizer g ) {
+			this.graph = g;
 		}
 
 		public void itemStateChanged( ItemEvent event ) {
 				Molecule molecule = (( MoleculeCheckbox )event.getSource( )).getMolecule( );
 			if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
-				displayPanel.graph.addVertex( molecule );
+				this.graph.addVertex( molecule );
 				for( Correlation correlation : molecule.getCorrelations( )) {
-					if ( displayPanel.isValidEdge( correlation ))
-						displayPanel.graph.addEdge( correlation,
+					if ( this.graph.isValidEdge( correlation ))
+						this.graph.addEdge( correlation,
 						                            new Pair( correlation.getMolecules( )),
 																				EdgeType.UNDIRECTED );
 				}
 			}
 			else {
-				displayPanel.graph.removeVertex( molecule );
+				this.graph.removeVertex( molecule );
 			}
-			displayPanel.viewer.repaint( );
+			this.graph.repaint( );
 		}
 	}
 
@@ -454,12 +506,14 @@ public class CorrelationDisplayPanel extends JPanel {
 		private void setAll( boolean state ) {
 			for ( MoleculeCheckbox m : this.displayPanel.moleculeCheckboxArrayList ) {
 				m.setState( state );
+				// fire the listeners
 				for ( ItemListener i : m.getItemListeners( )) {
 					i.itemStateChanged( new ItemEvent(
 						m,
 						-1,
 						m.getMolecule( ),
-						state ? ItemEvent.SELECTED : ItemEvent.DESELECTED ));
+						state ? ItemEvent.SELECTED : ItemEvent.DESELECTED
+					));
 				}
 			}
 		}
@@ -483,7 +537,7 @@ public class CorrelationDisplayPanel extends JPanel {
 				else if ( item == this.displayPanel.kendallCalculationMenuItem )
 					Correlation.setDefaultMethod( Correlation.KENDALL );
 				this.displayPanel.resetGraphLayout( );
-				this.displayPanel.viewer.repaint( );
+				this.displayPanel.graph.repaint( );
 			}
 		}
 	}
@@ -499,9 +553,9 @@ public class CorrelationDisplayPanel extends JPanel {
 				JRadioButtonMenuItem item = ( JRadioButtonMenuItem )event.getSource( );
 				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
 					if ( item == this.cdp.singleCircleLayoutMenuItem )
-						this.cdp.setGraphLayout( new CircleLayout<Molecule,Correlation>( this.cdp.graph ));
+						this.cdp.setGraphLayout( CircleLayout.class );
 					else if ( item == this.cdp.clusteredLayoutMenuItem )
-						this.cdp.setGraphLayout( new ClusteredLayout<Molecule,Correlation>( this.cdp.graph ));
+						this.cdp.setGraphLayout( ClusteredLayout.class );
 				}
 			}
 	}

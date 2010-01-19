@@ -15,19 +15,23 @@ public abstract class DataHandler {
 	}
 
 	public ArrayList <Molecule>getMolecules( ){
-		return null;
+		ArrayList <Molecule> returnValue = new ArrayList<Molecule>( );
+		for ( Experiment e : this.getExperiments( )) {
+			returnValue.addAll( e.getMolecules( ));
+		}
+		return returnValue;
 	}
 
-	public boolean addExperiment( Experiment experiment ) {
-		return false;
+	public void addExperiment( Experiment experiment ) {
+		this.experiments.add( experiment );
 	}
 
 	public Experiment removeExperiment( int index ) {
-		return null;
+		return this.experiments.remove( index );
 	}
 
-	public Experiment removeExperiment( Experiment experiment ){
-		return null;
+	public boolean removeExperiment( Experiment experiment ){
+		return this.experiments.remove( experiment );
 	}
 
 }
