@@ -1,6 +1,10 @@
+package edu.purdue.jsysnet;
+
 import gnu.getopt.Getopt;
 import javax.swing.UIManager;
 import javax.swing.JOptionPane;
+import edu.purdue.jsysnet.ui.*;
+import edu.purdue.jsysnet.util.Settings;
 
 public class JSysNet {
 

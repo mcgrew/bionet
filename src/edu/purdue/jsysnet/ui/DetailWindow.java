@@ -1,6 +1,9 @@
+package edu.purdue.jsysnet.ui;
+
 import java.awt.BorderLayout;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
+import edu.purdue.jsysnet.util.*;
 
 public class DetailWindow extends JFrame {
 

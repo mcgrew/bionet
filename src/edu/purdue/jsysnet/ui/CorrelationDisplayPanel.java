@@ -1,3 +1,5 @@
+package edu.purdue.jsysnet.ui;
+
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -23,6 +25,9 @@ import edu.uci.ics.jung.visualization.control.*;
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
+import edu.purdue.jsysnet.ui.layout.*;
+import edu.purdue.jsysnet.util.*;
+import edu.purdue.jsysnet.io.*;
 
 
 

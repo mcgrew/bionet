@@ -6,7 +6,7 @@
 	<property name="jar_dir"    value="."                                  />
 	<property name="jar_file"   value="${jar_dir}/${ant.project.name}.jar" />
 	<property name="lib_dir"    value="lib"                                />
-	<property name="main_class" value="${ant.project.name}"                />
+	<property name="main_class" value="edu.purdue.jsysnet.${ant.project.name}" />
 
 	<path id="build_classpath">
 		<fileset dir="${lib_dir}">
@@ -50,7 +50,7 @@
 				<attribute name="Manifest-Version" value="1.0"                  />
 				<attribute name="Created-By"       value="Thomas McGrew"        />
 				<attribute name="Main-Class"       value="${main_class}"        />
-				<attribute name="Version"          value="pre"                  />
+				<attribute name="Version"          value="pre-release"          />
 				<attribute name="Vendor"           value="Purdue University"    />
 				<attribute name="Class-Path"       value="${manifest_classpath}"/> 
 			</manifest>
@@ -66,6 +66,6 @@
 	</target>
 
 	<target name="clean-build" depends="clean,jar"/>
-	<target name="default" depends="clean,run"/>
+	<target name="default" depends="clean,compile"/>
 </project>
 

@@ -1,6 +1,10 @@
+package edu.purdue.jsysnet.ui;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import edu.purdue.jsysnet.util.*;
+import edu.purdue.jsysnet.io.*;
 
 public class JSysNetWindow extends JFrame implements ActionListener {
 

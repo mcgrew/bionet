@@ -1,8 +1,11 @@
+package edu.purdue.jsysnet.ui;
+
 import java.util.ArrayList;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import edu.purdue.jsysnet.util.*;
 
 public class MoleculeDetailView extends JPanel {
 	private Molecule molecule;

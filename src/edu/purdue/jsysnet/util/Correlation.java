@@ -1,3 +1,5 @@
+package edu.purdue.jsysnet.util;
+
 import java.lang.Math;
 import java.lang.Double;
 import java.util.ArrayList;

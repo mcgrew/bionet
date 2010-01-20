@@ -1,9 +1,13 @@
+package edu.purdue.jsysnet.io;
+
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.io.File;
 import java.io.FileNotFoundException;
+import edu.purdue.jsysnet.util.*;
+import edu.purdue.jsysnet.JSysNet;
 
 /**
  * A class for reading CSV Data for SysNet.

@@ -1,9 +1,10 @@
+package edu.purdue.jsysnet.ui.layout;
 
 import java.awt.geom.Point2D;
-
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Pair;
+import edu.purdue.jsysnet.util.Correlation;
 
 
 /**

@@ -1,5 +1,6 @@
-import java.util.ArrayList;
+package edu.purdue.jsysnet.util;
 
+import java.util.ArrayList;
 
 /**
  * A class for holding data about a group of Molecules.

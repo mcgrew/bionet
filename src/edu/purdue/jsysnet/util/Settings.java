@@ -1,3 +1,5 @@
+package edu.purdue.jsysnet.util;
+
 import java.awt.Toolkit;
 import java.awt.Dimension;
 import java.util.Properties;

@@ -1,3 +1,5 @@
+package edu.purdue.jsysnet.ui;
+
 import java.util.Collection;
 import java.awt.Dimension;
 import edu.uci.ics.jung.graph.Graph;
