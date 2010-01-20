@@ -14,7 +14,7 @@ import edu.uci.ics.jung.graph.util.Pair;
 
 
 public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E> {
-	protected UndirectedSparseGraph<V,E> graph = new UndirectedSparseGraph( );
+	protected Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 
 
 	public GraphVisualizer( ) {
@@ -30,12 +30,33 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		super(( Layout<V,E> )GraphVisualizer.getLayoutInstance( layout ), size );
 		this.setupGraph( );
 	}
+	
+	// override the inherited constructors
+	public GraphVisualizer( Layout <V,E> layout ) {
+		super( layout );
+		this.setupGraph( );
+	}
 
-	private static Layout getLayoutInstance( Class <? extends AbstractLayout> layout ) {
+	public GraphVisualizer( Layout <V,E> layout, Dimension preferredSize ) {
+		super( layout, preferredSize );
+		this.setupGraph( );
+	}
+
+	public GraphVisualizer( VisualizationModel <V,E> model ) {
+		super( model );
+		this.setupGraph( );
+	}
+
+	public GraphVisualizer( VisualizationModel <V,E> model, Dimension preferredSize ) {
+		super( model, preferredSize );
+		this.setupGraph( );
+	}
+
+	protected static Layout getLayoutInstance( Class <? extends AbstractLayout> layout ) {
 		return GraphVisualizer.getLayoutInstance( layout, new UndirectedSparseGraph( ));
 	}
 
-	private static Layout getLayoutInstance( Class <? extends AbstractLayout> layout, Graph graph ) {
+	protected static Layout getLayoutInstance( Class <? extends AbstractLayout> layout, Graph graph ) {
 		try {  
 			return layout.getConstructor( Graph.class ).newInstance( graph );
 
@@ -52,7 +73,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	protected void setupGraph( ) {
-		this.graph = ( UndirectedSparseGraph )this.getGraphLayout( ).getGraph( );
+		this.graph = ( UndirectedSparseGraph<V,E> )this.getGraphLayout( ).getGraph( );
 		this.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<V>( ));
 //		this.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<E>( ));
 		this.getRenderer( ).getVertexLabelRenderer( ).setPosition( Position.CNTR );
@@ -68,7 +89,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 
 	public void setGraphLayout( Layout <V,E> layout ){
 		super.setGraphLayout( layout );
-		this.graph = ( UndirectedSparseGraph )this.getGraphLayout( ).getGraph( );
+		this.graph = ( UndirectedSparseGraph<V,E> )this.getGraphLayout( ).getGraph( );
 	}
 
 	public void resetLayout( ) {

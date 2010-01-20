@@ -277,7 +277,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.graph.resetLayout( );
 	}
 
-	public void setGraphLayout( Class layout ) {
+	public void setGraphLayout( Class <? extends AbstractLayout> layout ) {
 		this.graph.setGraphLayout( layout );
 	}
 
@@ -464,7 +464,7 @@ public class CorrelationDisplayPanel extends JPanel {
 				for( Correlation correlation : molecule.getCorrelations( )) {
 					if ( this.graph.isValidEdge( correlation ))
 						this.graph.addEdge( correlation,
-						                            new Pair( correlation.getMolecules( )),
+						                            new Pair<Molecule>( correlation.getMolecules( )),
 																				EdgeType.UNDIRECTED );
 				}
 			}
