@@ -1,7 +1,10 @@
 package edu.purdue.jsysnet.ui;
 
+import edu.purdue.jsysnet.ui.layout.*;
+
 import java.util.Collection;
 import java.awt.Dimension;
+import java.awt.geom.Point2D;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.*;
@@ -14,7 +17,7 @@ import edu.uci.ics.jung.graph.util.Pair;
 
 
 public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E> {
-	protected Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
+	public Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 
 
 	public GraphVisualizer( ) {
@@ -22,12 +25,12 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	public GraphVisualizer( Class <? extends AbstractLayout> layout ) {
-		super(( Layout<V,E> )GraphVisualizer.getLayoutInstance( layout ));
+		super(GraphVisualizer.getLayoutInstance( layout ));
 		this.setupGraph( );
 	}
 
 	public GraphVisualizer( Class <? extends AbstractLayout> layout, Dimension size ) {
-		super(( Layout<V,E> )GraphVisualizer.getLayoutInstance( layout ), size );
+		super(GraphVisualizer.getLayoutInstance( layout ), size );
 		this.setupGraph( );
 	}
 	
@@ -87,7 +90,8 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 			this.setGraphLayout(( Layout<V,E> )GraphVisualizer.getLayoutInstance( layout, this.graph ));
 	}
 
-	public void setGraphLayout( Layout <V,E> layout ){
+	public void setGraphLayout( AbstractLayout <V,E> layout ){
+		AbstractLayout<V,E> l = ( AbstractLayout<V,E> )this.getGraphLayout( );
 		super.setGraphLayout( layout );
 		this.graph = ( UndirectedSparseGraph<V,E> )this.getGraphLayout( ).getGraph( );
 	}

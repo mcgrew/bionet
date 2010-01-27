@@ -17,7 +17,7 @@ public class Correlation {
 	public static final int PEARSON = 0;
 	public static final int SPEARMAN = 1;
 	public static final int KENDALL = 2;
-	protected static int lastMethod = PEARSON;
+	protected static int defaultMethod = PEARSON;
 	protected double pearsonCorrelation = Double.NaN;
 	protected double spearmanCorrelation = Double.NaN;
 	protected double kendallCorrelation = Double.NaN;
@@ -58,7 +58,7 @@ public class Correlation {
 	public static boolean setDefaultMethod( int method ) {
 		if ( method < 0 || method > 2 )
 			return false;
-		lastMethod = method;
+		defaultMethod = method;
 		return true;
 	}
 	/**
@@ -98,7 +98,7 @@ public class Correlation {
 	 *	Defaults to PEARSON.
 	 */
 	public double getValue( ) {
-		return this.getValue( lastMethod, false );
+		return this.getValue( defaultMethod, false );
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class Correlation {
 	 * @return A double containing the last calculated correlation coeficcient.
 	 */
 	public double getValue( boolean recalc ) {
-		return this.getValue( lastMethod, recalc );
+		return this.getValue( defaultMethod, recalc );
 	}
 
 	/**
@@ -141,6 +141,42 @@ public class Correlation {
 
 			case KENDALL:
 				return this.getKendallCorrelation( );
+
+			default:
+				return -1;
+		}
+	}
+
+	/**
+	 * Gets the correlation coefficient of this Correlation.
+	 * 
+	 * @param molecule0 The first Molecule to use for the calculation.
+	 * @param molecule1 The second Molecule to use for the calculation. 
+	 * @return The correlation value;
+	 */
+	public static double getValue( Molecule molecule0, Molecule molecule1 ) {
+		return Correlation.getValue( defaultMethod, molecule0, molecule1 );
+	}
+
+	/**
+	 * Gets the correlation coefficient of this Correlation.
+	 * 
+	 * @param method The method to use for calculating the correlation. 
+	 * @param molecule0 The first Molecule to use for the calculation.
+	 * @param molecule1 The second Molecule to use for the calculation. 
+	 * @return The correlation value;
+	 */
+	public static double getValue( int method, Molecule molecule0, Molecule molecule1 ) {
+
+		switch ( method ) {
+			case PEARSON:
+				return Correlation.getPearsonCorrelation( molecule0, molecule1 );
+
+			case SPEARMAN:
+				return Correlation.getSpearmanCorrelation( molecule0, molecule1 );
+
+			case KENDALL:
+				return Correlation.getKendallCorrelation( molecule0, molecule1 );
 
 			default:
 				return -1;
@@ -193,9 +229,37 @@ public class Correlation {
 	 * @return       The Pearson correlation value.
 	 */
 	private double getPearsonCorrelation( boolean recalc ) {
-		this.lastMethod = PEARSON;
 		//See if this value has already been calculated
-		if ( recalc || Double.isNaN( pearsonCorrelation )) { 
+		if ( recalc || Double.isNaN( pearsonCorrelation )) {
+			this.pearsonCorrelation = 
+				Correlation.getPearsonCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
+		}
+		return this.pearsonCorrelation;
+	}
+
+	/**
+	 * Returns the Pearson correlation coefficient of the 2 molecueles.
+	 * 
+	 *    x = sample values in molecule 0
+	 *    y = sample values in molecule 1
+	 *    n = number of samples in each molecule
+	 *    Sx = standard deviation of x
+	 *    Sy = standard deviation of y
+	 * 
+	 * <pre>
+	 *                                               _              _
+	 *                     sum( i=0 to n-1, ( x[i] - x ) * ( y[i] - y ))
+	 * correlationValue = -----------------------------------------------
+	 *                                ( n - 1 ) Sx * Sy
+	 * </pre>
+	 * 
+	 * Adapted from	http://en.wikipedia.org/wiki/Correlation#Pearson.27s_product-moment_coefficient
+	 *
+	 * @param molecule0 The first Molecule to use for the calculation.
+	 * @param molecule1 The second Molecule to use for the calculation.
+	 * @return    The Pearson correlation value. 
+	 */
+	public static double getPearsonCorrelation( Molecule molecule0, Molecule molecule1 ) {
 			int S = 1, n = 0;
 			String currentXString, currentYString;
 			Double currentX, currentY;
@@ -204,8 +268,8 @@ public class Correlation {
 			ArrayList <Double> y = new ArrayList <Double>( );
 
 			// Get the sample data from the molecules.
-			while ((( currentXString = this.molecules[0].getAttribute( "S" + S )) != null )
-							&& (( currentYString = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
+			while ((( currentXString = molecule0.getAttribute( "S" + S )) != null )
+							&& (( currentYString = molecule1.getAttribute( "S" + S++ )) != null )) {
 				currentX = new Double( currentXString );
 				currentY = new Double( currentYString );
 				x.add( currentX );
@@ -227,12 +291,7 @@ public class Correlation {
 			Sx = Math.sqrt( Sx / n );
 			Sy = Math.sqrt( Sy / n );
 
-			this.pearsonCorrelation = ( numerator / (( n-1 ) * Sx * Sy ));
-			if ( this.pearsonCorrelation > 1 || this.pearsonCorrelation < -1 )
-				meanY = 0;
-		}
-
-		return this.pearsonCorrelation;
+			return ( numerator / (( n-1 ) * Sx * Sy ));
 
 	}
 
@@ -280,9 +339,35 @@ public class Correlation {
 	 * @return       The Spearman correlation value.
 	 */
 	private double getSpearmanCorrelation( boolean recalc ) {
-		this.lastMethod = SPEARMAN;
 		//See if this value has already been calculated
-		if ( recalc || Double.isNaN( this.spearmanCorrelation ) ) { 
+		if ( recalc || Double.isNaN( this.spearmanCorrelation ) ) {
+			Correlation.getSpearmanCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
+		}
+		return this.spearmanCorrelation;
+	}
+
+	/**
+	 * Returns the Spearman rank correlation coefficient of the 2 molecules.
+	 *
+	 * x = sample values in molecule 0
+	 * y = sample values in molecule 1
+	 * n = number of samples in each molecule
+	 * Rx = rank array of x, ie. the new locations of each element of x if x were sorted (starting at 1).
+	 * Ry = rank array of y, ie. the new locations of each element of y if y were sorted ( starting at 1)
+	 * 
+	 * <pre>
+	 *                         6 * sum( i=0 to n-1, ( Rx[i] - Ry[i] )^2 )
+	 * correlationValue = 1 - --------------------------------------------
+	 *                                       n * ( n^2 - 1 )
+	 * </pre>
+	 * 
+	 * Adapted from http://en.wikipedia.org/wiki/Spearman_correlation
+	 * 
+	 * @param molecule0 The first Molecule to use for the calculation.
+	 * @param molecule1 The second Molecule to use for the calculation.
+	 * @return       The Spearman correlation value.
+	 */
+	private static double getSpearmanCorrelation( Molecule molecule0, Molecule molecule1 ) {
 			
 			int S = 1, n = 0;
 			String currentXString, currentYString;
@@ -293,8 +378,8 @@ public class Correlation {
 			double mean, numerator=0;
 
 			// Get the sample data from the molecules.
-			while ((( currentXString = this.molecules[0].getAttribute( "S" + S )) != null )
-							&& (( currentYString = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
+			while ((( currentXString = molecule0.getAttribute( "S" + S )) != null )
+							&& (( currentYString = molecule1.getAttribute( "S" + S++ )) != null )) {
 					ValueListX.add( new Double( currentXString ));
 					ValueListY.add( new Double( currentYString ));
 			}
@@ -315,9 +400,7 @@ public class Correlation {
 			}
 			numerator *= 6;
 
-			this.spearmanCorrelation = 1 - ( numerator ) / ( n * ( n*n - 1 ));
-		}
-		return this.spearmanCorrelation;
+			return 1 - ( numerator ) / ( n * ( n*n - 1 ));
 	}
 
 	/**
@@ -336,6 +419,9 @@ public class Correlation {
 	 * correlationValue = -----------------------------
 	 *                     (1/2) * pairs * ( pairs-1 )
 	 * </pre>
+	 *
+	 * Adapted from http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient
+	 *
 	 * @return The Kendall tau correlation value.
 	 */
 	private double getKendallCorrelation( ) {
@@ -358,12 +444,44 @@ public class Correlation {
 	 * correlationValue = -----------------------------
 	 *                     (1/2) * pairs * ( pairs-1 )
 	 * </pre>
+	 *
+	 * Adapted from http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient
+	 *
 	 * @param recalc Whether or not to recalculate this value if it has already been calculated. 
 	 * @return The Kendall tau correlation value.
 	 */
 	private double getKendallCorrelation( boolean recalc ) {
-		this.lastMethod = KENDALL;
-		if ( recalc || Double.isNaN( this.kendallCorrelation )) { 			
+		if ( recalc || Double.isNaN( this.kendallCorrelation )) {
+			this.kendallCorrelation = 
+				Correlation.getKendallCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
+		}
+		return this.kendallCorrelation;
+	}
+
+	/**
+	 * Returns the Kendall tau rank correlation coefficient of the 2 molecules.
+	 * 
+	 * x = sample values of molecule 0
+	 * y = sample values of molecule 1
+	 * n = number of samples in each molecule
+	 * Rx = the rank of the samples in molecule 0
+	 * Ry = the rank of the samples in molecule 1
+	 * concordant = The number of concordant pairs
+	 * discordant = The number of discordant pairs
+	 *
+	 * </pre>
+	 *                       concordant - discordant
+	 * correlationValue = -----------------------------
+	 *                     (1/2) * pairs * ( pairs-1 )
+	 * </pre>
+	 *
+	 * Adapted from http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient
+	 *
+	 * @param molecule0 The first Molecule to use for the calculation.
+	 * @param molecule1 The second Molecule to use for the calculation.
+	 * @return The Kendall tau correlation value.
+	 */
+	private static double getKendallCorrelation( Molecule molecule0, Molecule molecule1 ) {
 			int S = 1, n = 0;
 			String currentXString, currentYString;
 			ArrayList <Double> ValueListX = new ArrayList <Double>( ),
@@ -373,8 +491,8 @@ public class Correlation {
 			double mean, numerator=0;
 
 			// Get the sample data from the molecules.
-			while ((( currentXString = this.molecules[0].getAttribute( "S" + S )) != null )
-							&& (( currentYString = this.molecules[1].getAttribute( "S" + S++ )) != null )) {
+			while ((( currentXString = molecule0.getAttribute( "S" + S )) != null )
+							&& (( currentYString = molecule1.getAttribute( "S" + S++ )) != null )) {
 					ValueListX.add( new Double( currentXString ));
 					ValueListY.add( new Double( currentYString ));
 			}
@@ -406,11 +524,8 @@ public class Correlation {
 				}
 			}
 
-			this.kendallCorrelation = 1 - 2 * ( concordant - discordant ) / ( n * ( n-1 ));
+			return 1 - 2 * ( concordant - discordant ) / ( n * ( n-1 ));
 			
-		}
-
-		return this.kendallCorrelation;
 	}
 
 	/** 

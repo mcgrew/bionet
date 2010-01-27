@@ -1,5 +1,9 @@
 package edu.purdue.jsysnet.ui;
 
+import edu.purdue.jsysnet.ui.layout.*;
+import edu.purdue.jsysnet.util.*;
+import edu.purdue.jsysnet.io.*;
+
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -25,9 +29,6 @@ import edu.uci.ics.jung.visualization.control.*;
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
-import edu.purdue.jsysnet.ui.layout.*;
-import edu.purdue.jsysnet.util.*;
-import edu.purdue.jsysnet.io.*;
 
 
 
@@ -48,6 +49,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem = new JRadioButtonMenuItem( "Multiple Circles" );
 	private JRadioButtonMenuItem singleCircleLayoutMenuItem = new JRadioButtonMenuItem( "Single Circle", true );
 	private JRadioButtonMenuItem clusteredLayoutMenuItem = new JRadioButtonMenuItem( "Clustered" );
+	private JRadioButtonMenuItem randomLayoutMenuItem = new JRadioButtonMenuItem( "Random" );
 	private JRadioButtonMenuItem springLayoutMenuItem = new JRadioButtonMenuItem( "Spring Embedded" );
 	private JRadioButtonMenuItem heatMapLayoutMenuItem = new JRadioButtonMenuItem( "Heat Map" );
 
@@ -67,7 +69,6 @@ public class CorrelationDisplayPanel extends JPanel {
 
 	private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
 	private JComboBox sortComboBox = new JComboBox( );
-//	private JPanel correlationViewPanel = new JPanel( );
 	private JButton noneButton = new JButton( "None" );
 	private JButton allButton = new JButton( "All" );
 	private JPanel moleculeList = new JPanel( );
@@ -154,16 +155,19 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.layoutMenuButtonGroup.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.clusteredLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.randomLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.springLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenu.add( this.clusteredLayoutMenuItem );
+		this.layoutMenu.add( this.randomLayoutMenuItem );
 		this.layoutMenu.add( this.springLayoutMenuItem );
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
 		this.multipleCirclesLayoutMenuItem.addItemListener( lcl );
 		this.singleCircleLayoutMenuItem.addItemListener( lcl );
 		this.clusteredLayoutMenuItem.addItemListener( lcl );
+		this.randomLayoutMenuItem.addItemListener( lcl );
 		this.springLayoutMenuItem.addItemListener( lcl );
 		this.heatMapLayoutMenuItem.addItemListener( lcl );
 
@@ -243,25 +247,6 @@ public class CorrelationDisplayPanel extends JPanel {
 		return returnValue;
 	}
 
-	protected int filterVertices( ) {
-		int returnValue = 0;
-		for( MoleculeCheckbox mcb : this.moleculeCheckboxArrayList ) {
-			if ( mcb.getState( )) {
-				returnValue++;
-				if ( !this.graph.containsVertex( mcb.getMolecule( ))) {
-					this.graph.removeVertex( mcb.getMolecule( ));
-				}
-			}
-			else {
-				if ( this.graph.containsVertex( mcb.getMolecule( ))) {
-					this.graph.addVertex( mcb.getMolecule( ));
-				}
-			}
-		}
-		this.graph.repaint( );
-		return returnValue;
-	}
-
 	protected int addEdges( ) {
 		int returnValue = 0;
 		for( Correlation correlation : this.experiment.getCorrelations( )) {
@@ -288,7 +273,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.correlationFilterPanel.setVisualization( v );
 		// add labels to the graph
 		this.add( this.graph, BorderLayout.CENTER );
-		this.graph.repaint( );
+//		this.graph.repaint( );
 	}
 	
 	public Experiment experimentSelection( ArrayList <Experiment> experiments ) {
@@ -379,7 +364,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		private EdgeFilterChangeListener efcl;   
 
 		public CorrelationFilterPanel( ) {
-			this( 0.5, 1.0 );
+			this( 0.6, 1.0 );
 		}
 
 		public CorrelationFilterPanel( double low, double high ) {
@@ -446,7 +431,6 @@ public class CorrelationDisplayPanel extends JPanel {
 
 		public void stateChanged( ChangeEvent e ) {
 			this.v.filterEdges( );
-//			this.v.repaint( );
 		}
 	}
 
@@ -557,10 +541,16 @@ public class CorrelationDisplayPanel extends JPanel {
 			public void itemStateChanged( ItemEvent event ) {
 				JRadioButtonMenuItem item = ( JRadioButtonMenuItem )event.getSource( );
 				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+					if ( item == this.cdp.multipleCirclesLayoutMenuItem )
+						this.cdp.setGraphLayout( MultipleCirclesLayout.class );
 					if ( item == this.cdp.singleCircleLayoutMenuItem )
 						this.cdp.setGraphLayout( CircleLayout.class );
 					else if ( item == this.cdp.clusteredLayoutMenuItem )
 						this.cdp.setGraphLayout( ClusteredLayout.class );
+					else if ( item == this.cdp.randomLayoutMenuItem )
+						this.cdp.setGraphLayout( RandomLayout.class );
+					else if ( item == this.cdp.springLayoutMenuItem )
+						this.cdp.setGraphLayout( SpringLayout2.class );
 				}
 			}
 	}
