@@ -86,34 +86,31 @@ public class MultipleCirclesLayout<V, E> extends AbstractLayout<V,E> {
 
 			}
 			
-			int columns = (int)Math.ceil( Math.sqrt( groups.size( )));
-			int gridWidth = (int)width / columns;
-			int gridHeight = (int)height / columns;
-			this.radius = (gridHeight < gridWidth ? gridHeight : gridWidth) * 0.38;
+			this.radius = ( Math.min( height, width )) * 0.3;
+			int groupRadius = (int)( this.radius / Math.sqrt( groups.size( )) );
 
 			int j = 0, x, y;
-			Point2D center = new Point2D.Double( );
-			ArrayList<V> a;
-			PolarPoint2D coord = new PolarPoint2D( );
+			Point2D.Double graphCenter = new Point2D.Double( width/2.0, height/2.0 );
+			PolarPoint2D center = new PolarPoint2D( 0, 0, graphCenter );
+			PolarPoint2D coord = new PolarPoint2D( 0, 0, center );
+			ArrayList<V> group;
+			double theta;
+
 			for ( String key : groups.keySet( )) {
-				a = groups.get( key );
-				x = (int)(( j % columns ) * gridWidth + ( gridWidth / 2 ));
-				y = (int)(( j / columns ) * gridHeight + ( gridHeight / 2 ));
+				group = groups.get( key );
+				theta = ( 2 * Math.PI * j ) / groups.size( );
 				j++;
-				center.setLocation( x, y );
+				center.setLocation( this.radius, theta, PolarPoint2D.POLAR );
 				int i = 0;
-				for (V v : a)
+				for ( V vertex : group )
 				{
 	
-					double angle = (2 * Math.PI * i) / a.size();
+					theta = ( 2 * Math.PI * i ) / group.size();
 	
-					coord.setLocation( this.radius, angle, PolarPoint2D.POLAR );
-					coord.move( center );
-					this.setLocation( v, coord );
+					coord.setLocation( groupRadius, theta, PolarPoint2D.POLAR );
+					this.setLocation( vertex, coord );
 	
-//					CircleVertexData data = getCircleData(v);
-//					data.setAngle(angle);
-						i++;
+					i++;
 				}
 			}
 		}

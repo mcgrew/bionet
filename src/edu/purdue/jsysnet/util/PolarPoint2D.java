@@ -13,6 +13,7 @@ public class PolarPoint2D extends Point2D.Double {
 	public double theta;
 	public final static boolean POLAR = true;
 	public final static boolean RECTANGULAR = false;
+	private Point2D origin;
 
 	/**
 	 * Creates a PolarPoint2D using polar notation.
@@ -22,11 +23,22 @@ public class PolarPoint2D extends Point2D.Double {
 	 * @param polar true if this point is being created with polar coordinates.
 	 */
 	public PolarPoint2D( double r, double theta, boolean polar ) {
+		this.setOrigin( 0, 0 );
 		if ( polar ) {
 			this.setLocation( r, theta, POLAR );
 		} else {
 			this.setLocation( r, theta );
 		}
+	}
+
+	public PolarPoint2D( double r, double theta, Point2D origin ) {
+		this.setOrigin( origin );
+		this.setLocation( r, theta, POLAR );
+	}
+
+	public PolarPoint2D( double r, double theta, double originX, double originY ) {
+		this.setOrigin( originX, originY );
+		this.setLocation( r, theta, POLAR );
 	}
 
 	/**
@@ -36,6 +48,7 @@ public class PolarPoint2D extends Point2D.Double {
 	 * @param y The y coordinate of the new point.
 	 */
 	public PolarPoint2D( double x, double y ) {
+		this.setOrigin( 0, 0 );
 		this.setLocation( x, y );
 	}
 
@@ -47,6 +60,7 @@ public class PolarPoint2D extends Point2D.Double {
 		this.y = 0;
 		this.r = 0;
 		this.theta = 0;
+		this.origin = new Point2D.Double( 0, 0 );
 	}
 
 	/**
@@ -67,8 +81,10 @@ public class PolarPoint2D extends Point2D.Double {
 	public void setLocation( double x, double y ) {
 		this.x = x;
 		this.y = y;
-		this.r = Math.hypot( x, y );
-		this.theta = Math.atan2( y, x );
+		double relativeX = x - this.origin.getX( );
+		double relativeY = y - this.origin.getY( );
+		this.r = Math.hypot( relativeX, relativeY );
+		this.theta = Math.atan2( relativeY, relativeX );
 	}
 
 	/**
@@ -81,7 +97,8 @@ public class PolarPoint2D extends Point2D.Double {
 	}
 
 	/**
-	 * Sets the location of this PolarPoint2D to the specified polar coordinates.
+	 * Sets the location of this PolarPoint2D to the specified polar coordinates relative to the
+	 * origin point.
 	 * 
 	 * @param r The r coordinate of the new location.
 	 * @param theta The angle theta of the new location.
@@ -92,11 +109,26 @@ public class PolarPoint2D extends Point2D.Double {
 		if ( polar ) {
 			this.r = r;
 			this.theta = theta;
-			this.x = r * Math.cos( theta );
-			this.y = r * Math.sin( theta );
+			this.x = r * Math.cos( theta ) + origin.getX( );
+			this.y = r * Math.sin( theta ) + origin.getY( );
 		} else {
 			this.setLocation( r, theta );
 		}
+	}
+
+	/**
+	 * Leaves the point in it's current location, but changes the location of the origin,
+	 * recalculating r and theta.
+	 * 
+	 * @param Point2D origin the new Point2D to be used as the origin.
+	 */
+	public void setOrigin( Point2D origin ) {
+		this.origin = origin;
+		this.setLocation( this.x, this.y );
+	}
+
+	public void setOrigin( double originX, double originY ) {
+		this.setOrigin( new Point2D.Double( originX, originY ));
 	}
 
 	/**
@@ -105,7 +137,7 @@ public class PolarPoint2D extends Point2D.Double {
 	 * @return a clone of this instance.
 	 */
 	public Object clone( ) {
-		return ( Object )new PolarPoint2D( this.x, this.y );
+		return ( Object )new PolarPoint2D( this.r, this.theta, this.origin );
 	}
 
 	/**
@@ -131,6 +163,11 @@ public class PolarPoint2D extends Point2D.Double {
 	 */
 	public void move( double r, double theta, boolean polar ) {
 			this.setLocation( this.r + r, this.theta + theta, polar );
+	}
+
+	public void move( double r, double theta, Point2D origin ) {
+		this.origin = (Point2D)origin.clone( );
+		this.setLocation( r, theta, POLAR );
 	}
 
 	/**
