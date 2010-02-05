@@ -7,10 +7,12 @@ import java.awt.geom.Point2D;
  * theta, it is not recommended to modify them directly, this may have unpredictable results. Instead use the
  * setLocation( ) and move( ) methods to manipulate the location of the point.
  */
-class PolarPoint2D extends Point2D.Double {
+public class PolarPoint2D extends Point2D.Double {
 
 	public double r;
 	public double theta;
+	public final static boolean POLAR = true;
+	public final static boolean RECTANGULAR = false;
 
 	/**
 	 * Creates a PolarPoint2D using polar notation.
@@ -21,7 +23,7 @@ class PolarPoint2D extends Point2D.Double {
 	 */
 	public PolarPoint2D( double r, double theta, boolean polar ) {
 		if ( polar ) {
-			this.setLocation( r, theta, true );
+			this.setLocation( r, theta, POLAR );
 		} else {
 			this.setLocation( r, theta );
 		}
@@ -114,6 +116,10 @@ class PolarPoint2D extends Point2D.Double {
 	 */
 	public void move( double x, double y ) {
 		this.setLocation( this.x + x, this.y + y );
+	}
+
+	public void move( Point2D p ) {
+		this.setLocation( this.x + p.getX( ), this.y + p.getY( ));
 	}
 
 	/**

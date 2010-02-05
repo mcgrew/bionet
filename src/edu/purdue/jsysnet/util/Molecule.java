@@ -151,7 +151,7 @@ public class Molecule {
 	 * @param group A string containing the group name for this Molecule.
 	 */
 	public void setGroup( String group ) {
-		this.setAttribute( "group", group );
+		this.setAttribute( "group_name", group );
 	}
 
 	/**
@@ -160,7 +160,7 @@ public class Molecule {
 	 * @return A String containing the group name for this Molecule.
 	 */
 	public String getGroup( ) {
-		return this.getAttribute( "group" );
+		return this.getAttribute( "group_name" );
 	}
 
 	/**
