@@ -102,7 +102,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	public void animate( ) {
 		if ( this.layoutAnimator != null )
 			this.layoutAnimator.stop( );
-		this.layoutAnimator = new LayoutAnimator( this.getGraphLayout( ));
+		this.layoutAnimator = new ClusterLayoutAnimator( this.getGraphLayout( ));
 		this.AnimThread = new Thread( this.layoutAnimator );
 		this.AnimThread.start( );
 	}

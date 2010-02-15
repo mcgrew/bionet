@@ -1,7 +1,6 @@
 package edu.purdue.jsysnet.ui;
 
 import edu.purdue.jsysnet.util.PolarPoint2D;
-import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Settings;
 
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -15,9 +14,9 @@ import java.util.Collection;
 
 
 /**
- * A class for animating the JUNG layouts.
+ * An abstract class for animating the JUNG layouts.
  */
-public class LayoutAnimator<V,E> implements Runnable {
+public abstract class LayoutAnimator<V,E> implements Runnable {
 	
 	protected AbstractLayout<V,E> layout;
 	protected ObservableCachingLayout<V,E> observableLayout;
@@ -80,8 +79,8 @@ public class LayoutAnimator<V,E> implements Runnable {
 				for ( V vertex2 : vertices ) {
 					if ( vertex1 != vertex2 ) {
 						PolarPoint2D v2Location = map.get( vertex2 );
-						double optimum = this.getOptimium( vertex1, vertex2 ) * layoutSize;
-						if ( optiumum >= 0 ) {
+						double optimum = this.getOptimum( vertex1, vertex2 ) * layoutSize;
+						if ( optimum >= 0 ) {
 							v1Location.setOrigin( v2Location ); 
 							double newR = v1Location.getR( );
 							if ( newR > optimum )
@@ -101,6 +100,14 @@ public class LayoutAnimator<V,E> implements Runnable {
 		}
 		// let the observableLayout know things have changed (repaint).
 		this.observableLayout.fireStateChanged( );
+	}
+
+	/**
+	 * Stops the animation.
+	 * 
+	 */
+	public void stop( ) {
+		this.stopped = true;
 	}
 
 	/**
@@ -126,9 +133,7 @@ public class LayoutAnimator<V,E> implements Runnable {
 	 * @param v2 The second vertex. 
 	 * @return The attraction force.
 	 */
-	protected double calcAttraction( V v1, V v2 ) {
-		return (( Molecule )v1).getCorrelation( (Molecule)v2 ).getValue( ) * 0.75;
-	}
+	protected abstract double getAttraction( V v1, V v2 );
 
 	/**
 	 * Returns the repulsion force between 2 vertices. In the default implementation this
@@ -138,9 +143,7 @@ public class LayoutAnimator<V,E> implements Runnable {
 	 * @param v2 The second vertex. 
 	 * @return The repulsion force between two vertices.
 	 */
-	protected double calcRepulsion( V v1, V v2 ) {
-		return 0.8;
-	}
+	protected abstract double getRepulsion( V v1, V v2 );
 
 	/**
 	 * Returns the optimum distance for 2 vertices. Ideally this should be between 0
@@ -154,10 +157,6 @@ public class LayoutAnimator<V,E> implements Runnable {
 	 */
 	protected double getOptimum( V v1, V v2 ) {
 		return this.getRepulsion( v1, v2 ) - this.getAttraction( v1, v2 );
-	}
-
-	public void stop( ) {
-		this.stopped = true;
 	}
 }
 
