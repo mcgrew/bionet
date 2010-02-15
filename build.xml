@@ -65,6 +65,29 @@
 		</java>
 	</target>
 
+	<target name="docs">
+		<javadoc
+           destdir="docs/api"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="JSysNet API">
+			
+			<fileset dir="src" defaultexcludes="yes">
+				<include name="edu/purdue/jsysnet/**"/>
+	    </fileset>
+			<classpath>
+				<path refid="build_classpath"/>
+			</classpath>
+			<doctitle><![CDATA[<h1>JSysNet</h1>]]></doctitle>
+			<bottom><![CDATA[<i>Copyright &#169; 2010 Purdue University. All Rights Reserved.</i>]]></bottom>
+			<tag name="todo" scope="all" description="To do:"/>
+			<group title="Packages" packages="edu.purdue.jsysnet.*"/>
+			<link offline="false" href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+			<link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+		</javadoc>
+	</target>
+
 	<target name="clean-build" depends="clean,jar"/>
 	<target name="default" depends="clean,jar"/>
 </project>
