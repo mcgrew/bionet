@@ -84,7 +84,6 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		DefaultModalGraphMouse mouse = new DefaultModalGraphMouse( );
 		mouse.setMode( ModalGraphMouse.Mode.PICKING );
 		this.setGraphMouse( mouse );
-		this.animate( );
 	}
 
 
@@ -96,15 +95,22 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		Layout<V,E> l = ( Layout<V,E> )this.getGraphLayout( );
 		super.setGraphLayout( layout );
 		this.graph = ( UndirectedSparseGraph<V,E> )this.getGraphLayout( ).getGraph( );
-		this.animate( );
 	}
 
 	public void animate( ) {
+		this.animate( true );
+	}
+
+	public void animate( boolean enable ) {
+		System.err.print( (enable) ? "Starting " : "Stopping " );
+		System.err.println( "animation..." );
 		if ( this.layoutAnimator != null )
 			this.layoutAnimator.stop( );
-		this.layoutAnimator = new ClusterLayoutAnimator( this.getGraphLayout( ));
-		this.AnimThread = new Thread( this.layoutAnimator );
-		this.AnimThread.start( );
+		if ( enable ) {
+			this.layoutAnimator = new ClusterLayoutAnimator( this.getGraphLayout( ));
+			this.AnimThread = new Thread( this.layoutAnimator );
+			this.AnimThread.start( );
+		}
 	}
 
 	public void resetLayout( ) {

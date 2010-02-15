@@ -9,6 +9,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.border.TitledBorder;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ActionListener;
@@ -50,8 +51,8 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JRadioButtonMenuItem singleCircleLayoutMenuItem = new JRadioButtonMenuItem( "Single Circle", true );
 	private JRadioButtonMenuItem clusteredLayoutMenuItem = new JRadioButtonMenuItem( "Clustered" );
 	private JRadioButtonMenuItem randomLayoutMenuItem = new JRadioButtonMenuItem( "Random" );
-	private JRadioButtonMenuItem springLayoutMenuItem = new JRadioButtonMenuItem( "Spring Embedded" );
 	private JRadioButtonMenuItem heatMapLayoutMenuItem = new JRadioButtonMenuItem( "Heat Map" );
+	private JCheckBoxMenuItem springLayoutMenuItem = new JCheckBoxMenuItem( "Spring Embedding" );
 
 	// view menu items
 	private JMenu viewMenu = new JMenu( "View" );
@@ -156,20 +157,20 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.clusteredLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.randomLayoutMenuItem );
-		this.layoutMenuButtonGroup.add( this.springLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenu.add( this.clusteredLayoutMenuItem );
 		this.layoutMenu.add( this.randomLayoutMenuItem );
-		this.layoutMenu.add( this.springLayoutMenuItem );
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
+		this.layoutMenu.addSeparator( );
+		this.layoutMenu.add( this.springLayoutMenuItem );
 		this.multipleCirclesLayoutMenuItem.addItemListener( lcl );
 		this.singleCircleLayoutMenuItem.addItemListener( lcl );
 		this.clusteredLayoutMenuItem.addItemListener( lcl );
 		this.randomLayoutMenuItem.addItemListener( lcl );
-		this.springLayoutMenuItem.addItemListener( lcl );
 		this.heatMapLayoutMenuItem.addItemListener( lcl );
+		this.springLayoutMenuItem.addItemListener( lcl );
 
 		//VIEW MENU
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
@@ -541,8 +542,12 @@ public class CorrelationDisplayPanel extends JPanel {
 			}
 
 			public void itemStateChanged( ItemEvent event ) {
-				JRadioButtonMenuItem item = ( JRadioButtonMenuItem )event.getSource( );
-				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+				Component item = ( Component )event.getSource( );
+
+				if ( item == this.cdp.springLayoutMenuItem ) {
+					this.cdp.graph.animate( this.cdp.springLayoutMenuItem.getState( ));
+				} else if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+					this.cdp.springLayoutMenuItem.setState( false );
 					if ( item == this.cdp.multipleCirclesLayoutMenuItem )
 						this.cdp.setGraphLayout( MultipleCirclesLayout.class );
 					if ( item == this.cdp.singleCircleLayoutMenuItem )
@@ -551,11 +556,10 @@ public class CorrelationDisplayPanel extends JPanel {
 						this.cdp.setGraphLayout( ClusteredLayout.class );
 					else if ( item == this.cdp.randomLayoutMenuItem )
 						this.cdp.setGraphLayout( RandomLayout.class );
-					else if ( item == this.cdp.springLayoutMenuItem )
-						this.cdp.setGraphLayout( SpringLayout2.class );
 				}
 			}
 	}
 }
+
 
 

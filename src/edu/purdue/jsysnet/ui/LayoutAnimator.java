@@ -46,11 +46,8 @@ public abstract class LayoutAnimator<V,E> implements Runnable {
 			System.err.println( String.format( "Class '%s' is not usable by LayoutAnimator", layout.getClass( ).toString( )));
 			return;
 		}
-		if ( Settings.DEBUG ) {
-			System.err.println( "Animating Layout..." );
-		}
 		while( true ) {
-			if ( stopped ) 
+			if ( this.stopped ) 
 				return;
 			synchronized ( this.observableLayout.getGraph( )) {
 				this.step( );
