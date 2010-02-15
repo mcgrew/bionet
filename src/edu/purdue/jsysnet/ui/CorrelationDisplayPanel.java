@@ -80,7 +80,7 @@ public class CorrelationDisplayPanel extends JPanel {
 
 	protected DataHandler data = null;
 	protected Experiment experiment = null;
-	
+
 	public CorrelationDisplayPanel ( ) {
 		super( new BorderLayout( ) );
 		this.buildPanel( );
@@ -229,7 +229,7 @@ public class CorrelationDisplayPanel extends JPanel {
 			this.setGraphLayout( CircleLayout.class );
 	}
 
-	protected int addVertices( ) {
+	protected synchronized int addVertices( ) {
 		int returnValue = 0;
 		MoleculeCheckbox cb;
 		VertexFilterChangeListener vfcl = new VertexFilterChangeListener( this.graph );
@@ -442,18 +442,20 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 
 		public void itemStateChanged( ItemEvent event ) {
+			synchronized( this.graph.graph ) {
 				Molecule molecule = (( MoleculeCheckbox )event.getSource( )).getMolecule( );
-			if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
-				this.graph.addVertex( molecule );
-				for( Correlation correlation : molecule.getCorrelations( )) {
-					if ( this.graph.isValidEdge( correlation ))
-						this.graph.addEdge( correlation,
-						                            new Pair<Molecule>( correlation.getMolecules( )),
-																				EdgeType.UNDIRECTED );
+				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+					this.graph.addVertex( molecule );
+					for( Correlation correlation : molecule.getCorrelations( )) {
+						if ( this.graph.isValidEdge( correlation ))
+							this.graph.addEdge( correlation,
+			                            new Pair<Molecule>( correlation.getMolecules( )),
+																	EdgeType.UNDIRECTED );
+					}
 				}
-			}
-			else {
-				this.graph.removeVertex( molecule );
+				else {
+					this.graph.removeVertex( molecule );
+				}
 			}
 			this.graph.repaint( );
 		}
