@@ -165,12 +165,12 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.addSeparator( );
 		this.layoutMenu.add( this.springLayoutMenuItem );
-		this.multipleCirclesLayoutMenuItem.addItemListener( lcl );
-		this.singleCircleLayoutMenuItem.addItemListener( lcl );
-		this.clusteredLayoutMenuItem.addItemListener( lcl );
-		this.randomLayoutMenuItem.addItemListener( lcl );
-		this.heatMapLayoutMenuItem.addItemListener( lcl );
-		this.springLayoutMenuItem.addItemListener( lcl );
+		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
+		this.singleCircleLayoutMenuItem.addActionListener( lcl );
+		this.clusteredLayoutMenuItem.addActionListener( lcl );
+		this.randomLayoutMenuItem.addActionListener( lcl );
+		this.heatMapLayoutMenuItem.addActionListener( lcl );
+		this.springLayoutMenuItem.addActionListener( lcl );
 
 		//VIEW MENU
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
@@ -365,11 +365,11 @@ public class CorrelationDisplayPanel extends JPanel {
 		private EdgeFilterChangeListener efcl;   
 
 		public CorrelationFilterPanel( ) {
-			this( 0.6, 1.0 );
+			this( 0.7, 1.0 );
 		}
 
 		public CorrelationFilterPanel( double low, double high ) {
-			this( 0.0, 1.0, 0.01, low, high );
+			this( 0.0, 1.0, 0.05, low, high );
 		}
 
 		public CorrelationFilterPanel( double min, double max, double step, double low, double high ) {
@@ -534,19 +534,19 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 	}
 
-	protected class LayoutChangeListener implements ItemListener {
+	protected class LayoutChangeListener implements ActionListener {
 			private CorrelationDisplayPanel cdp;
 
 			public LayoutChangeListener( CorrelationDisplayPanel c ) {
 				this.cdp = c;
 			}
 
-			public void itemStateChanged( ItemEvent event ) {
+			public void actionPerformed( ActionEvent event ) {
 				Component item = ( Component )event.getSource( );
 
 				if ( item == this.cdp.springLayoutMenuItem ) {
 					this.cdp.graph.animate( this.cdp.springLayoutMenuItem.getState( ));
-				} else if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+				} else {
 					this.cdp.springLayoutMenuItem.setState( false );
 					if ( item == this.cdp.multipleCirclesLayoutMenuItem )
 						this.cdp.setGraphLayout( MultipleCirclesLayout.class );
