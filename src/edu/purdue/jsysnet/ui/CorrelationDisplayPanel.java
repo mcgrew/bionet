@@ -222,6 +222,7 @@ public class CorrelationDisplayPanel extends JPanel {
 			this.graph = new CorrelationGraphVisualizer( );
 			this.graph.setCorrelationFilterPanel( this.correlationFilterPanel );
 			this.graph.setCorrelationDisplayPanel( this );
+			this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
 			this.addVertices( );
 			this.addEdges( );
 			this.graph.filterEdges( );
