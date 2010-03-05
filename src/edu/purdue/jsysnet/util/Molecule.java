@@ -60,7 +60,6 @@ public class Molecule {
 	 * Sets the &quot;index&quot; attribute for this Molecule.
 	 * 
 	 * @param index The index of this Molecule.
-	 * @return The index attribute of this Molecule.
 	 */
 	public void setIndex( int index ) {
 		this.setAttribute( "index", Integer.toString( index ));
@@ -112,7 +111,6 @@ public class Molecule {
 	 * Sets the &quot;Formula&quot; attribute for the Molecule.
 	 * 
 	 * @param formula A string containing the new &quot;formula&quot; attribute.
-	 * @return 
 	 */
 	public void setFormula( String formula ){
 		this.setAttribute( "formula", formula );

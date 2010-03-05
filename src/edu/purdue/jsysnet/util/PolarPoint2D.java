@@ -103,7 +103,6 @@ public class PolarPoint2D extends Point2D.Double {
 	 * @param r The r coordinate of the new location.
 	 * @param theta The angle theta of the new location.
 	 * @param polar true if these coordinates are in polar notation.
-	 * @return 
 	 */
 	public void setLocation( double r, double theta, boolean polar ) {
 		if ( polar ) {
@@ -120,7 +119,7 @@ public class PolarPoint2D extends Point2D.Double {
 	 * Leaves the point in it's current location, but changes the location of the origin,
 	 * recalculating r and theta.
 	 * 
-	 * @param Point2D origin the new Point2D to be used as the origin.
+	 * @param origin the new Point2D to be used as the origin.
 	 */
 	public void setOrigin( Point2D origin ) {
 		this.origin = origin;

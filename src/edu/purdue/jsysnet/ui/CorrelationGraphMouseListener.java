@@ -2,6 +2,7 @@ package edu.purdue.jsysnet.ui;
 
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
+import edu.purdue.jsysnet.util.Settings;
 
 import java.awt.event.MouseEvent;
 import java.awt.Component;
@@ -19,7 +20,8 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 
 	public void graphClicked( Molecule m, MouseEvent e ) {
 		if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
-			System.err.println( "Right Click on " + m );
+			if ( Settings.DEBUG )
+				System.err.println( "Right Click on " + m );
 			popup.show( e.getComponent( ), e.getX( ), e.getY( ), m );
 
 		}
@@ -56,6 +58,9 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			GraphVisualizer<Molecule,Correlation> graph = (GraphVisualizer<Molecule,Correlation>) this.getInvoker( );
 
 			if ( e.getSource( ) == this.detailsMenuItem ) {
+				if ( Settings.DEBUG )
+					System.err.println( "Opening Detail Window for " + molecule.toString( ));
+//				new DetailWindow( "", this.molecule );
 			} 
 			else if ( e.getSource( ) == this.selectMoleculesMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );
@@ -69,7 +74,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 					state.pick( c, true );
 				}
 			} 
-			else if ( e.getSource( ) == this.selectCorrelationsMenuItem ) {
+			else if ( e.getSource( ) == this.exploreCorrelationsMenuItem ) {
 			}
 		}
 		
