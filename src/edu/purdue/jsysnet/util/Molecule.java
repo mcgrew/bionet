@@ -75,17 +75,22 @@ public class Molecule {
 
 	/**
 	 * Sets the &quot;name&quot; attribute for the Molecule.
+	 * This method is deprecated; use setAttribute( &quot;name&quot; ) instead.
 	 * 
 	 * @param name The value for the &quot;name&quot; attribute.
 	 */
+	@Deprecated
 	public void setName( String name ){
 		this.setAttribute( "name", name );
 	}
+
 	/**
 	 * Gets the &quot;name&quot; attribute for the Molecule.
+	 * This method is deprecated; use getAttribute( &quot;name&quot; ) instead.
 	 * 
 	 * @return A string containing the &quot;name&quot; attribute for the Molecule.
 	 */
+	@Deprecated
 	public String getName( ){
 		return this.getAttribute( "name" );
 	}
@@ -109,19 +114,37 @@ public class Molecule {
 
 	/**
 	 * Sets the &quot;Formula&quot; attribute for the Molecule.
+	 * This method is deprecated; use setAttribute( &quot;formula&quot; ) instead.
 	 * 
 	 * @param formula A string containing the new &quot;formula&quot; attribute.
 	 */
+	@Deprecated
 	public void setFormula( String formula ){
 		this.setAttribute( "formula", formula );
 	}
 	/**
 	 * Gets the &quot;formula&quot; attribute for the module.
+	 * This method is deprecated; use getAttribute( &quot;formula&quot; ) instead.
 	 * 
 	 * @return A string containing the &quot;formula&quot; attribute for the Molecule.
 	 */
+	@Deprecated
 	public String getFormula( ){
 		return this.getAttribute( "formula" );
+	}
+
+	/**
+	 * Returns the sample values for this Molecule as an ArrayList of Doubles
+	 * 
+	 * @return An ArrayList containing a Double for each sample value
+	 */
+	public ArrayList<Double> getSamples( ){
+		int count=1;
+		ArrayList <Double> returnValue = new ArrayList( );
+		String current;
+		while (( current = this.getAttribute( "S" + count++ )) != null )
+			returnValue.add( new Double( current )); 
+		return returnValue;
 	}
 
 	/**

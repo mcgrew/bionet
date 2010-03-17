@@ -113,11 +113,11 @@ public class Correlation {
 	/**
 	 * Gets the correlation coeffiecient of this Correlation
 	 * 
-	 * @param recalc Whether or not to recalculate this value if it has already been calculated.
+	 * @param recalculate Whether or not to recalculate this value if it has already been calculated.
 	 * @return A double containing the last calculated correlation coeficcient.
 	 */
-	public double getValue( boolean recalc ) {
-		return this.getValue( defaultMethod, recalc );
+	public double getValue( boolean recalculate ) {
+		return this.getValue( defaultMethod, recalculate );
 	}
 
 	/**
@@ -136,10 +136,10 @@ public class Correlation {
 	 * 
 	 * @param method The coefficient calculation method to use. Should be one of
 	 *	Correlation.PEARSON, Correlation.SPEARMAN, or Correlation.KENDALL.
-	 * @param recalc Whether or not to recalculate this value if it has already been calculated.
+	 * @param recalculate Whether or not to recalculate this value if it has already been calculated.
 	 * @return A double containing the requested correlation value.
 	 */
-	public double getValue( int method, boolean recalc ) {
+	public double getValue( int method, boolean recalculate ) {
 		
 		switch ( method ) {
 			case PEARSON:
@@ -234,12 +234,12 @@ public class Correlation {
 	 * 
 	 * Adapted from	http://en.wikipedia.org/wiki/Correlation#Pearson.27s_product-moment_coefficient
 	 *
-	 * @param recalc True if you want the value recalculated, otherwise a cached value will be returned if present.
+	 * @param recalculate True if you want the value recalculated, otherwise a cached value will be returned if present.
 	 * @return       The Pearson correlation value.
 	 */
-	public double getPearsonCorrelation( boolean recalc ) {
+	public double getPearsonCorrelation( boolean recalculate ) {
 		//See if this value has already been calculated
-		if ( recalc || Double.isNaN( pearsonCorrelation )) {
+		if ( recalculate || Double.isNaN( this.pearsonCorrelation )) {
 			this.pearsonCorrelation = 
 				Correlation.getPearsonCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
 		}
@@ -269,21 +269,7 @@ public class Correlation {
 	 * @return    The Pearson correlation value. 
 	 */
 	public static double getPearsonCorrelation( Molecule molecule0, Molecule molecule1 ) {
-		int S = 1, n = 0;
-		String currentXString, currentYString;
-		Double currentX, currentY;
-		ArrayList <Double> x = new ArrayList <Double>( );
-		ArrayList <Double> y = new ArrayList <Double>( );
-
-		// Get the sample data from the molecules.
-		while ((( currentXString = molecule0.getAttribute( "S" + S )) != null )
-						&& (( currentYString = molecule1.getAttribute( "S" + S++ )) != null )) {
-			currentX = new Double( currentXString );
-			currentY = new Double( currentYString );
-			x.add( currentX );
-			y.add( currentY );
-		}
-		return Correlation.getPearsonCorrelation( x, y );
+		return Correlation.getPearsonCorrelation( molecule0.getSamples( ), molecule1.getSamples( ));
 	}
 
 	/**
@@ -377,12 +363,12 @@ public class Correlation {
 	 * 
 	 * Adapted from http://en.wikipedia.org/wiki/Spearman_correlation
 	 * 
-	 * @param recalc True if you want the value recalculated, otherwise a cached value will be returned if present.
+	 * @param recalculate True if you want the value recalculated, otherwise a cached value will be returned if present.
 	 * @return       The Spearman correlation value.
 	 */
-	public double getSpearmanCorrelation( boolean recalc ) {
+	public double getSpearmanCorrelation( boolean recalculate ) {
 		//See if this value has already been calculated
-		if ( recalc || Double.isNaN( this.spearmanCorrelation ) ) {
+		if ( recalculate || Double.isNaN( this.spearmanCorrelation ) ) {
 			Correlation.getSpearmanCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
 		}
 		return this.spearmanCorrelation;
@@ -410,19 +396,7 @@ public class Correlation {
 	 * @return       The Spearman correlation value.
 	 */
 	public static double getSpearmanCorrelation( Molecule molecule0, Molecule molecule1 ) {
-			
-		int S = 1, n = 0;
-		String currentXString, currentYString;
-		ArrayList <Double> ValueListX = new ArrayList <Double>( ),
-											 ValueListY = new ArrayList <Double>( );
-
-		// Get the sample data from the molecules.
-		while ((( currentXString = molecule0.getAttribute( "S" + S )) != null )
-						&& (( currentYString = molecule1.getAttribute( "S" + S++ )) != null )) {
-				ValueListX.add( new Double( currentXString ));
-				ValueListY.add( new Double( currentYString ));
-		}
-		return Correlation.getSpearmanCorrelation( ValueListX, ValueListY );
+		return Correlation.getSpearmanCorrelation( molecule0.getSamples( ), molecule1.getSamples( ));
 	}
 
 	/**
@@ -507,11 +481,11 @@ public class Correlation {
 	 *
 	 * Adapted from http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient
 	 *
-	 * @param recalc Whether or not to recalculate this value if it has already been calculated. 
+	 * @param recalculate Whether or not to recalculate this value if it has already been calculated. 
 	 * @return The Kendall tau correlation value.
 	 */
-	public double getKendallCorrelation( boolean recalc ) {
-		if ( recalc || Double.isNaN( this.kendallCorrelation )) {
+	public double getKendallCorrelation( boolean recalculate ) {
+		if ( recalculate || Double.isNaN( this.kendallCorrelation )) {
 			this.kendallCorrelation = 
 				Correlation.getKendallCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
 		}
@@ -542,18 +516,7 @@ public class Correlation {
 	 * @return The Kendall tau correlation value.
 	 */
 	public static double getKendallCorrelation( Molecule molecule0, Molecule molecule1 ) {
-		int S = 1;
-		String currentXString, currentYString;
-		ArrayList <Double> ValueListX = new ArrayList <Double>( ),
-											 ValueListY = new ArrayList <Double>( );
-
-		// Get the sample data from the molecules.
-		while ((( currentXString = molecule0.getAttribute( "S" + S )) != null )
-						&& (( currentYString = molecule1.getAttribute( "S" + S++ )) != null )) {
-				ValueListX.add( new Double( currentXString ));
-				ValueListY.add( new Double( currentYString ));
-		}
-		return getKendallCorrelation( ValueListX, ValueListY );
+		return getKendallCorrelation( molecule0.getSamples( ), molecule1.getSamples( ));
 	}
 
 	/**
