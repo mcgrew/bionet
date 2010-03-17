@@ -14,8 +14,8 @@ import edu.purdue.jsysnet.util.*;
 
 public class MoleculeDetailPanel extends JPanel {
 	private Molecule molecule;
-	private StaticJTable moleculeDetailTable;
-	private StaticJTable correlationsTable;
+	private JTable moleculeDetailTable;
+	private JTable correlationsTable;
 
 	public MoleculeDetailPanel ( Molecule molecule ) {
 		super( new BorderLayout( ));
@@ -24,23 +24,24 @@ public class MoleculeDetailPanel extends JPanel {
 		this.moleculeDetailTable = this.buildAttributeTable( this.molecule );
 		this.correlationsTable = this.buildCorrelationTable( this.molecule );
 		this.moleculeDetailTable = buildAttributeTable( this.molecule );
-		this.add( new JScrollPane( this.moleculeDetailTable ), BorderLayout.EAST );
+		this.add( new JScrollPane( this.moleculeDetailTable ), BorderLayout.WEST );
 		this.moleculeDetailTable.setFillsViewportHeight( true );
-		this.moleculeDetailTable.setPreferredSize( new Dimension( 400, 400 ));
 	}
 
-	private StaticJTable buildAttributeTable( Molecule molecule ) {
-		DefaultTableModel returnValue = new DefaultTableModel( );
+	private JTable buildAttributeTable( Molecule molecule ) {
+//		DefaultTableModel returnValue = new DefaultTableModel( );
 		String [] attributes = this.molecule.getAttributeNames( );
-		String [][] values = new String[ 2 ][ attributes.length ];
-//		return new StaticJTable( values, new String[]{ "", "" });
+		String [][] values = new String[ attributes.length ][ 2 ];
 		for ( int i=0; i < attributes.length; i++ ) {
-			returnValue.addRow( new Object[]{ attributes[i], this.molecule.getAttribute( attributes[ i ])});
+//			returnValue.addRow( new Object[]{ attributes[ i ], this.molecule.getAttribute( attributes[ i ])});
+			values[ i ][ 0 ] = attributes[ i ];
+			values[ i ][ 1 ] = this.molecule.getAttribute( attributes[ i ]);
 		}
-		return new StaticJTable( returnValue );
+		return new StaticJTable( values, new String[]{ "Attribute", "Value" });
+//		return new JTable( returnValue );
 	}
 
-	private StaticJTable buildCorrelationTable( Molecule molecule ) {
+	private JTable buildCorrelationTable( Molecule molecule ) {
 		DefaultTableModel returnValue = new DefaultTableModel( );
 	  ArrayList <Correlation> correlations = molecule.getCorrelations( );
 		String [][] data = new String [ 3 ][ correlations.size( ) ];
@@ -54,6 +55,10 @@ public class MoleculeDetailPanel extends JPanel {
 
 
 	protected class StaticJTable extends JTable {
+
+		public StaticJTable( Object[][] values, Object[] columnNames ) {
+			super( values, columnNames );
+		}
 
 		public StaticJTable( TableModel t ){
 			super( t );

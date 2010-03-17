@@ -41,7 +41,7 @@ public class ClusteredLayout extends RandomLayout<Molecule,Correlation> {
 	 */
 	public void initialize( ) {
 		super.initialize( );
-		this.maxIterations = Math.max( this.size.height, this.size.width ) * 2;
+		this.maxIterations = Math.max( this.size.height, this.size.width );
 		this.currentIteration = 0;
 		while ( !this.done( ))
 			this.step( );

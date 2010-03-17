@@ -6,6 +6,7 @@ import edu.purdue.jsysnet.util.Correlation;
 import java.awt.BorderLayout;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
+import java.awt.Dimension;
 import edu.purdue.jsysnet.util.*;
 
 public class DetailWindow extends JFrame {
@@ -14,6 +15,8 @@ public class DetailWindow extends JFrame {
 
 	public DetailWindow( String title ) {
 		super( title );
+		this.setSize( new Dimension( 600, 400 ));
+		this.setLayout( new BorderLayout( ) );
 		this.getContentPane( ).add( tabPane, BorderLayout.CENTER );
 		this.setVisible( true );
 

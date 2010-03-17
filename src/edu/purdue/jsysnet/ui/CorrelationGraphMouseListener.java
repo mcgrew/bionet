@@ -60,7 +60,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			if ( e.getSource( ) == this.detailsMenuItem ) {
 				if ( Settings.DEBUG )
 					System.err.println( "Opening Detail Window for " + molecule.toString( ));
-//				new DetailWindow( "", this.molecule );
+				new DetailWindow( "", this.molecule );
 			} 
 			else if ( e.getSource( ) == this.selectMoleculesMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );
