@@ -8,18 +8,17 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.border.TitledBorder;
+import javax.swing.JCheckBox;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.Canvas;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.Dialog;
-import java.awt.Checkbox;
 import java.awt.event.KeyEvent;
 import java.util.ListIterator;
 import java.util.ArrayList;
@@ -349,8 +348,8 @@ public class CorrelationDisplayPanel extends JPanel {
 			Molecule [] molecules = correlation.getMolecules( );
 			return ( this.graph.containsVertex( molecules[ 0 ] ) &&
 							 this.graph.containsVertex( molecules[ 1 ] ) &&
-							 correlation.getValue( ) > this.correlationFilterPanel.getLow( ) &&
-							 correlation.getValue( ) < this.correlationFilterPanel.getHigh( ));
+							 Math.abs( correlation.getValue( )) > this.correlationFilterPanel.getLow( ) &&
+							 Math.abs( correlation.getValue( )) < this.correlationFilterPanel.getHigh( ));
 		}
 
 	}
@@ -463,7 +462,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 	}
 
-	protected class MoleculeCheckbox extends Checkbox {
+	protected class MoleculeCheckbox extends JCheckBox {
 		private Molecule molecule;
 
 		public MoleculeCheckbox( Molecule molecule, boolean state ) {
@@ -498,7 +497,7 @@ public class CorrelationDisplayPanel extends JPanel {
 
 		private void setAll( boolean state ) {
 			for ( MoleculeCheckbox m : this.displayPanel.moleculeCheckboxArrayList ) {
-				m.setState( state );
+				m.setSelected( state );
 				// fire the listeners
 				for ( ItemListener i : m.getItemListeners( )) {
 					i.itemStateChanged( new ItemEvent(
