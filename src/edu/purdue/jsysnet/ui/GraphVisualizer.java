@@ -14,6 +14,7 @@ import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
 import edu.uci.ics.jung.graph.util.Pair;
+import edu.uci.ics.jung.visualization.picking.PickedState;
 
 
 public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E> {
@@ -107,7 +108,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		if ( this.layoutAnimator != null )
 			this.layoutAnimator.stop( );
 		if ( enable ) {
-			this.layoutAnimator = new ClusterLayoutAnimator( this.getGraphLayout( ));
+			this.layoutAnimator = new SpringLayoutAnimator( this.getGraphLayout( ));
 			this.AnimThread = new Thread( this.layoutAnimator );
 			this.AnimThread.start( );
 		}
@@ -115,6 +116,24 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 
 	public void resetLayout( ) {
 		this.getGraphLayout( ).reset( );
+	}
+
+	public void selectAll( ) {
+		PickedState <V> state = this.getPickedVertexState( );
+		for( V v : this.graph.getVertices( )) {
+			state.pick( v, true );
+		}
+	}
+
+	public void clearSelection( ) {
+		PickedState <V> state = this.getPickedVertexState( );
+		for( V v : this.graph.getVertices( )) {
+			state.pick( v, false );
+		}
+		PickedState <E> edgeState = this.getPickedEdgeState( );
+		for( E e : this.graph.getEdges( )) {
+			edgeState.pick( e, false );
+		}
 	}
 
 	// Graph interface Methods

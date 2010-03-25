@@ -1,4 +1,4 @@
-package edu.purdue.jsysnet.ui;
+package edu.purdue.jsysnet.ui.layout;
 
 import edu.purdue.jsysnet.util.PolarPoint2D;
 import edu.purdue.jsysnet.util.Settings;
@@ -123,8 +123,8 @@ public abstract class LayoutAnimator<V,E> implements Runnable {
 	}
 
 	/**
-	 * Returns the attraction force between two vertices. When attraction - repulsion
-	 * is negative, the vertices are not affected. A 
+	 * Returns the attraction force between two vertices. When repulsion - attraction
+	 * is negative, the vertices are not affected.
 	 * 
 	 * @param v1 The first vertex.
 	 * @param v2 The second vertex. 

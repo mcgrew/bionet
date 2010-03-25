@@ -16,7 +16,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 	private JMenuItem openFileMenuItem = new JMenuItem( "Open...", KeyEvent.VK_O );
 	private JMenuItem saveFileMenuItem = new JMenuItem( "Save...", KeyEvent.VK_S );
 	private JMenuItem printFileMenuItem = new JMenuItem( "Print...", KeyEvent.VK_P );
-	private JMenuItem exitFileMenuItem = new JMenuItem( "Exit", KeyEvent.VK_X );
+	private JMenuItem exitFileMenuItem = new JMenuItem( "Close", KeyEvent.VK_C );
 	private JMenu databaseMenu = new JMenu( "Database" );
 	private JMenu setupDatabaseMenu = new JMenu( "Setup" );
 	private JMenuItem addSetupDatabaseMenuItem = new JMenuItem( "Add...", KeyEvent.VK_A );
@@ -43,13 +43,6 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.getContentPane( ).add( tabPane, BorderLayout.CENTER );
 		this.tabPane.setVisible( true );
 
-//		if ( Settings.DEBUG ) {
-//			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( ) );
-//			this.tabPane.addTab( "Tab1", new JLabel( "This is Tab One" ));
-//			this.tabPane.addTab( "Tab2", new JLabel( "This is Tab Two" ));
-//			this.tabPane.addTab( "Tab3", new JLabel( "This is Tab Three" ));
-//		}
-
 		this.setVisible( true );
 		this.repaint( );
 	}
@@ -64,6 +57,14 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.fileMenu.add( this.saveFileMenuItem );
 		this.fileMenu.add( this.printFileMenuItem );
 		this.fileMenu.add( this.exitFileMenuItem );
+		this.openFileMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK ));
+		this.saveFileMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK ));
+		this.saveFileMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK ));
+		this.exitFileMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK ));
 
 		// DATABASE MENU
 		this.databaseMenu.setMnemonic( KeyEvent.VK_D );
@@ -133,7 +134,8 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 			System.err.println( "\t  paramString: "+e.paramString( ));
 		}
 
-		if ( e.getSource( ) == this.openFileMenuItem ) {
+		Component item = ( Component )e.getSource( );
+		if ( item == this.openFileMenuItem ) {
 			DataHandler data = openCSV( );
 			if ( data == null ) {
 				return;
@@ -144,6 +146,9 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
 			this.tabPane.addTab( "Correlation View", cdp );
 			cdp.createGraph( data );
+		}
+		else if ( item == this.exitFileMenuItem ) {
+			this.dispose( );
 		}
 	}
 }

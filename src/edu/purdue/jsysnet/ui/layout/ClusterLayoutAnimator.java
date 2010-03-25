@@ -1,4 +1,4 @@
-package edu.purdue.jsysnet.ui;
+package edu.purdue.jsysnet.ui.layout;
 
 import edu.purdue.jsysnet.util.PolarPoint2D;
 import edu.purdue.jsysnet.util.Molecule;
@@ -26,7 +26,7 @@ public class ClusterLayoutAnimator<V,E> extends LayoutAnimator<V,E> {
 	}
 
 	/**
-	 * Returns the attraction force between two vertices. When attraction - repulsion
+	 * Returns the attraction force between two vertices. When repulsion - attraction
 	 * is negative, the vertices are not affected. A 
 	 * 
 	 * @param v1 The first vertex.

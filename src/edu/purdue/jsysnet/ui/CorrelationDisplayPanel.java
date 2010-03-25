@@ -8,7 +8,6 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.border.TitledBorder;
-import javax.swing.JCheckBox;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ItemListener;
@@ -20,6 +19,7 @@ import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.Dialog;
 import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
 import java.util.ListIterator;
 import java.util.ArrayList;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
@@ -48,7 +48,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	private ButtonGroup layoutMenuButtonGroup = new ButtonGroup( );
 	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem = new JRadioButtonMenuItem( "Multiple Circles" );
 	private JRadioButtonMenuItem singleCircleLayoutMenuItem = new JRadioButtonMenuItem( "Single Circle", true );
-	private JRadioButtonMenuItem clusteredLayoutMenuItem = new JRadioButtonMenuItem( "Clustered" );
+//	private JRadioButtonMenuItem clusteredLayoutMenuItem = new JRadioButtonMenuItem( "Clustered" );
 	private JRadioButtonMenuItem randomLayoutMenuItem = new JRadioButtonMenuItem( "Random" );
 	private JRadioButtonMenuItem heatMapLayoutMenuItem = new JRadioButtonMenuItem( "Heat Map" );
 	private JCheckBoxMenuItem springLayoutMenuItem = new JCheckBoxMenuItem( "Spring Embedding" );
@@ -58,6 +58,8 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JMenuItem zoomInViewMenuItem = new JMenuItem( "Zoom In", KeyEvent.VK_I );
 	private JMenuItem zoomOutViewMenuItem = new JMenuItem( "Zoom Out", KeyEvent.VK_O );
 	private JMenuItem fitToWindowViewMenuItem = new JMenuItem( "Fit to Window", KeyEvent.VK_F );
+	private JMenuItem selectAllViewMenuItem = new JMenuItem( "Select All", KeyEvent.VK_A );
+	private JMenuItem clearSelectionViewMenuItem = new JMenuItem( "Clear Selection", KeyEvent.VK_C );
 	
 	// color menu items
 	private JMenu colorMenu = new JMenu( "Color" );
@@ -96,6 +98,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	 */
 	private void buildPanel ( ) {
 
+		MenuItemListener menuItemListener = new MenuItemListener( this );
 		JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
 		sortSelectionPanel.add( this.sortLabel, BorderLayout.CENTER );
 		sortSelectionPanel.add( this.sortComboBox, BorderLayout.EAST );
@@ -143,9 +146,10 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.calculationMenu.add( this.pearsonCalculationMenuItem );
 		this.calculationMenu.add( this.spearmanCalculationMenuItem );
 		this.calculationMenu.add( this.kendallCalculationMenuItem );
-		this.pearsonCalculationMenuItem.addItemListener( new CalculationChangeListener( this ));
-		this.spearmanCalculationMenuItem.addItemListener( new CalculationChangeListener( this ));
-		this.kendallCalculationMenuItem.addItemListener( new CalculationChangeListener( this ));
+		CalculationChangeListener ccl = new CalculationChangeListener( this );
+		this.pearsonCalculationMenuItem.addItemListener( ccl );
+		this.spearmanCalculationMenuItem.addItemListener( ccl ); 
+		this.kendallCalculationMenuItem.addItemListener( ccl );
 
 		//LAYOUT MENU
 		LayoutChangeListener lcl = new LayoutChangeListener( this );
@@ -154,19 +158,19 @@ public class CorrelationDisplayPanel extends JPanel {
 			"Change the layout of the graph" );
 		this.layoutMenuButtonGroup.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
-		this.layoutMenuButtonGroup.add( this.clusteredLayoutMenuItem );
+//		this.layoutMenuButtonGroup.add( this.clusteredLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.randomLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
-		this.layoutMenu.add( this.clusteredLayoutMenuItem );
+//		this.layoutMenu.add( this.clusteredLayoutMenuItem );
 		this.layoutMenu.add( this.randomLayoutMenuItem );
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.addSeparator( );
 		this.layoutMenu.add( this.springLayoutMenuItem );
 		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
 		this.singleCircleLayoutMenuItem.addActionListener( lcl );
-		this.clusteredLayoutMenuItem.addActionListener( lcl );
+//		this.clusteredLayoutMenuItem.addActionListener( lcl );
 		this.randomLayoutMenuItem.addActionListener( lcl );
 		this.heatMapLayoutMenuItem.addActionListener( lcl );
 		this.springLayoutMenuItem.addActionListener( lcl );
@@ -178,6 +182,14 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.viewMenu.add( this.zoomInViewMenuItem );
 		this.viewMenu.add( this.zoomOutViewMenuItem );
 		this.viewMenu.add( this.fitToWindowViewMenuItem );
+		this.viewMenu.add( this.selectAllViewMenuItem );
+		this.viewMenu.add( this.clearSelectionViewMenuItem );
+		this.selectAllViewMenuItem.addActionListener( menuItemListener );
+		this.clearSelectionViewMenuItem.addActionListener( menuItemListener );
+		this.selectAllViewMenuItem.setAccelerator(
+			KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK ));
+		this.clearSelectionViewMenuItem.setAccelerator(
+			KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ));
 
 		//COLOR MENU
 		this.colorMenu.setMnemonic( KeyEvent.VK_R );
@@ -365,7 +377,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		private EdgeFilterChangeListener efcl;   
 
 		public CorrelationFilterPanel( ) {
-			this( 0.7, 1.0 );
+			this( 0.6, 1.0 );
 		}
 
 		public CorrelationFilterPanel( double low, double high ) {
@@ -399,6 +411,7 @@ public class CorrelationDisplayPanel extends JPanel {
 					TitledBorder.TOP
 			));
 		}
+	
 
 		public void setVisualization( CorrelationGraphVisualizer v ) {
 			// add event listeners to the spinners to watch for changes.
@@ -424,14 +437,15 @@ public class CorrelationDisplayPanel extends JPanel {
 	}
 
 	protected class EdgeFilterChangeListener implements ChangeListener {
-		private CorrelationGraphVisualizer v;
+		private CorrelationGraphVisualizer graph;
 
 		public EdgeFilterChangeListener( CorrelationGraphVisualizer v ) {
-			this.v = v;
+			this.graph = v;
 		}
 
 		public void stateChanged( ChangeEvent e ) {
-			this.v.filterEdges( );
+			this.graph.filterEdges( );
+			this.graph.repaint( );
 		}
 	}
 
@@ -499,7 +513,7 @@ public class CorrelationDisplayPanel extends JPanel {
 			for ( MoleculeCheckbox m : this.displayPanel.moleculeCheckboxArrayList ) {
 				m.setSelected( state );
 				// fire the listeners
-				for ( ItemListener i : m.getItemListeners( )) {
+			for ( ItemListener i : m.getItemListeners( )) {
 					i.itemStateChanged( new ItemEvent(
 						m,
 						-1,
@@ -534,6 +548,25 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 	}
 
+	protected class MenuItemListener implements ActionListener {
+		private CorrelationDisplayPanel cdp;
+
+		public MenuItemListener ( CorrelationDisplayPanel c ) {
+			this.cdp = c;
+		}
+
+		public void actionPerformed( ActionEvent event ) {
+			Component item = ( Component )event.getSource( );
+
+			if ( item == this.cdp.selectAllViewMenuItem ) {
+				this.cdp.graph.selectAll( );
+			}
+			else if ( item == this.cdp.clearSelectionViewMenuItem ) {
+				this.cdp.graph.clearSelection( );
+			}
+		}
+	}
+
 	protected class LayoutChangeListener implements ActionListener {
 			private CorrelationDisplayPanel cdp;
 
@@ -552,8 +585,8 @@ public class CorrelationDisplayPanel extends JPanel {
 						this.cdp.setGraphLayout( MultipleCirclesLayout.class );
 					if ( item == this.cdp.singleCircleLayoutMenuItem )
 						this.cdp.setGraphLayout( CircleLayout.class );
-					else if ( item == this.cdp.clusteredLayoutMenuItem )
-						this.cdp.setGraphLayout( ClusteredLayout.class );
+//					else if ( item == this.cdp.clusteredLayoutMenuItem )
+//						this.cdp.setGraphLayout( ClusteredLayout.class );
 					else if ( item == this.cdp.randomLayoutMenuItem )
 						this.cdp.setGraphLayout( RandomLayout.class );
 				}
