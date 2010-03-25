@@ -30,6 +30,7 @@ import edu.uci.ics.jung.visualization.control.*;
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
+import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 import edu.uci.ics.jung.graph.Graph;
 
 
@@ -246,7 +247,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.graph = v;
 		this.correlationFilterPanel.setVisualization( v );
 		// add labels to the graph
-		this.add( this.graph, BorderLayout.CENTER );
+		this.add( new GraphZoomScrollPane( this.graph ), BorderLayout.CENTER );
 //		this.graph.repaint( );
 	}
 	

@@ -8,7 +8,7 @@ import edu.purdue.jsysnet.io.*;
 
 public class JSysNetWindow extends JFrame implements ActionListener {
 
-	private JTabbedPane tabPane = new JTabbedPane( );
+	private JTabbedPane tabPane = new ClosableTabbedPane( );
 	
 	// Menu elements
 	private JMenuBar menuBar = new JMenuBar( );
@@ -140,9 +140,6 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 			if ( data == null ) {
 				return;
 			}
-			if ( Settings.DEBUG ) {
-				
-			}
 			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
 			this.tabPane.addTab( "Correlation View", cdp );
 			cdp.createGraph( data );
@@ -151,4 +148,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 			this.dispose( );
 		}
 	}
+
+	
 }
+
