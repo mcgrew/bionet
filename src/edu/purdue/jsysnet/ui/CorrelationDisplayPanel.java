@@ -9,6 +9,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.border.TitledBorder;
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.Component;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
@@ -29,6 +30,7 @@ import edu.uci.ics.jung.visualization.control.*;
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
+import edu.uci.ics.jung.graph.Graph;
 
 
 
@@ -67,16 +69,9 @@ public class CorrelationDisplayPanel extends JPanel {
 	private JRadioButtonMenuItem normalColorMenuItem = new JRadioButtonMenuItem( "Normal Color", true );
 	private JRadioButtonMenuItem highContrastColorMenuItem = new JRadioButtonMenuItem( "High Contrast Color" );
 
+	private MoleculeFilterPanel moleculeFilterPanel;
 	private CorrelationFilterPanel correlationFilterPanel;
 
-	private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
-	private JComboBox sortComboBox = new JComboBox( );
-	private JButton noneButton = new JButton( "None" );
-	private JButton allButton = new JButton( "All" );
-	private JPanel moleculeList = new JPanel( );
-	private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
-	private ArrayList <MoleculeCheckbox> moleculeCheckboxArrayList = new ArrayList<MoleculeCheckbox>( );
-	
 	protected CorrelationGraphVisualizer graph;
 	protected Layout <Molecule,Correlation> layout; //Graph Layout
 
@@ -91,6 +86,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		super( new BorderLayout( ) );
 		this.buildPanel( );
 		this.createGraph( data );
+		this.moleculeFilterPanel.setGraph( this.graph );
 	}
 
 	/**
@@ -99,36 +95,10 @@ public class CorrelationDisplayPanel extends JPanel {
 	private void buildPanel ( ) {
 
 		MenuItemListener menuItemListener = new MenuItemListener( this );
-		JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
-		sortSelectionPanel.add( this.sortLabel, BorderLayout.CENTER );
-		sortSelectionPanel.add( this.sortComboBox, BorderLayout.EAST );
-
-		// ALL & RESET BUTTONS
-		JPanel moleculeButtonPanel = new JPanel( new BorderLayout( ) );
-		this.allButton.setPreferredSize( new Dimension( 75, 20 ));
-		this.noneButton.setPreferredSize( new Dimension( 75, 20 ));
-		this.allButton.addActionListener( new SelectButtonListener( this ));
-		this.noneButton.addActionListener( new SelectButtonListener( this ));
-		moleculeButtonPanel.add( this.allButton, BorderLayout.WEST );
-		moleculeButtonPanel.add( this.noneButton, BorderLayout.EAST );	
-
-		// MOLECULE LIST
-		JPanel moleculeFilterPanel = new JPanel( new BorderLayout( ));
-		moleculeFilterPanel.add( sortSelectionPanel, BorderLayout.NORTH );
-		moleculeFilterPanel.add( this.moleculeScrollPane, BorderLayout.CENTER );
-		moleculeFilterPanel.add( moleculeButtonPanel, BorderLayout.SOUTH );
-		moleculeFilterPanel.setBorder( 
-			BorderFactory.createTitledBorder( 
-				BorderFactory.createLineBorder( Color.BLACK, 1 ),
-					"Molecule Filter",
-					TitledBorder.CENTER,
-					TitledBorder.TOP
-			)
-		);
-
 
 		// CORRELATION FILTER ELEMENTS
 		JPanel leftPanel = new JPanel( new BorderLayout( ));
+		this.moleculeFilterPanel = new MoleculeFilterPanel( );
 		leftPanel.add( moleculeFilterPanel, BorderLayout.CENTER );
 		this.correlationFilterPanel = new CorrelationFilterPanel( );
 		leftPanel.add( this.correlationFilterPanel, BorderLayout.SOUTH );
@@ -205,10 +175,6 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.menuBar.add( this.viewMenu );
 		this.menuBar.add( this.colorMenu );
 
-		// control configuration
-		this.sortComboBox.addItem( "Index" );
-		this.sortComboBox.addItem( "Group" );
-		this.sortComboBox.addItem( "Name" );
 
 		// Add the panels to the main panel
 		this.add( menuBar, BorderLayout.NORTH );
@@ -244,16 +210,11 @@ public class CorrelationDisplayPanel extends JPanel {
 
 	protected synchronized int addVertices( ) {
 		int returnValue = 0;
-		MoleculeCheckbox cb;
-		VertexFilterChangeListener vfcl = new VertexFilterChangeListener( this.graph );
-		this.moleculeList.setLayout( new GridLayout( this.experiment.getMolecules( ).size( ), 1 ));
+		MoleculeCheckBox cb;
 		for( String groupName : this.experiment.getMoleculeGroupNames( )) {
 			for( Molecule molecule : this.experiment.getMoleculeGroup( groupName ).getMolecules( )) {
 				this.graph.addVertex( molecule );
-				cb = new MoleculeCheckbox( molecule, true );
-				cb.addItemListener( vfcl );
-				this.moleculeList.add( cb );
-				this.moleculeCheckboxArrayList.add( cb );
+				this.moleculeFilterPanel.add( molecule );
 				returnValue++;
 			}
 		}
@@ -436,29 +397,69 @@ public class CorrelationDisplayPanel extends JPanel {
 
 	}
 
-	protected class EdgeFilterChangeListener implements ChangeListener {
+	protected class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener {
+		private JButton noneButton = new JButton( "None" );
+		private JButton allButton = new JButton( "All" );
+		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 ));
+		private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
+		private ArrayList<MoleculeCheckBox> checkBoxArrayList = new ArrayList<MoleculeCheckBox>( );
 		private CorrelationGraphVisualizer graph;
+		private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
+		private JComboBox sortComboBox = new JComboBox( );
 
-		public EdgeFilterChangeListener( CorrelationGraphVisualizer v ) {
-			this.graph = v;
+		public MoleculeFilterPanel( ) {
+			super( new BorderLayout( ));
+			JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
+			sortSelectionPanel.add( this.sortLabel, BorderLayout.CENTER );
+			sortSelectionPanel.add( this.sortComboBox, BorderLayout.EAST );
+			// control configuration
+			this.sortComboBox.addItem( "Index" );
+			this.sortComboBox.addItem( "Group" );
+			this.sortComboBox.addItem( "Name" );
+		
+			// ALL & RESET BUTTONS
+			JPanel moleculeButtonPanel = new JPanel( new BorderLayout( ));
+			this.allButton.setPreferredSize( new Dimension( 75, 20 ));
+			this.noneButton.setPreferredSize( new Dimension( 75, 20 ));
+			this.allButton.addActionListener( this );
+			this.noneButton.addActionListener( this );
+			moleculeButtonPanel.add( this.allButton, BorderLayout.WEST );
+			moleculeButtonPanel.add( this.noneButton, BorderLayout.EAST );	
+
+			// MOLECULE LIST
+			this.add( sortSelectionPanel, BorderLayout.NORTH );
+			this.add( this.moleculeScrollPane, BorderLayout.CENTER );
+			this.add( moleculeButtonPanel, BorderLayout.SOUTH );
+			this.setBorder( 
+				BorderFactory.createTitledBorder( 
+					BorderFactory.createLineBorder( Color.BLACK, 1 ),
+						"Molecule Filter",
+						TitledBorder.CENTER,
+					TitledBorder.TOP
+				)
+			);
+			this.moleculeScrollPane.getVerticalScrollBar( ).setUnitIncrement( 50 );
 		}
 
-		public void stateChanged( ChangeEvent e ) {
-			this.graph.filterEdges( );
-			this.graph.repaint( );
-		}
-	}
-
-	protected class VertexFilterChangeListener implements ItemListener {
-		private CorrelationGraphVisualizer graph;
-
-		public VertexFilterChangeListener( CorrelationGraphVisualizer g ) {
+		public void setGraph( CorrelationGraphVisualizer g ) {
 			this.graph = g;
 		}
 
+		public void add( Molecule m ) {
+			MoleculeCheckBox cb = new MoleculeCheckBox( m, true );
+			this.moleculeList.add( cb );
+			this.checkBoxArrayList.add( cb );
+			cb.addItemListener( this );
+		}
+
+		public ArrayList <MoleculeCheckBox> getCheckBoxes( ) {
+			return this.checkBoxArrayList;
+		}
+
+		//for the checkboxes
 		public void itemStateChanged( ItemEvent event ) {
 			synchronized( this.graph.graph ) {
-				Molecule molecule = (( MoleculeCheckbox )event.getSource( )).getMolecule( );
+				Molecule molecule = (( MoleculeCheckBox )event.getSource( )).getMolecule( );
 				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
 					this.graph.addVertex( molecule );
 					for( Correlation correlation : molecule.getCorrelations( )) {
@@ -474,12 +475,50 @@ public class CorrelationDisplayPanel extends JPanel {
 			}
 			this.graph.repaint( );
 		}
+
+		// for the select buttons
+		public void actionPerformed( ActionEvent e ) {
+			JButton source = ( JButton )e.getSource( );
+			if ( source == this.allButton )
+				this.setAll( true );
+			else if ( source == this.noneButton )
+				this.setAll( false );
+		}
+
+		private void setAll( boolean state ) {
+			for ( MoleculeCheckBox m : this.getCheckBoxes( ) ) {
+				m.setSelected( state );
+				// fire the listeners
+				for ( ItemListener i : m.getItemListeners( )) {
+					i.itemStateChanged( new ItemEvent(
+						m,
+						-1,
+						m.getMolecule( ),
+						state ? ItemEvent.SELECTED : ItemEvent.DESELECTED
+					));
+				}
+			}
+		}
+		
 	}
 
-	protected class MoleculeCheckbox extends JCheckBox {
+	protected class EdgeFilterChangeListener implements ChangeListener {
+		private CorrelationGraphVisualizer graph;
+
+		public EdgeFilterChangeListener( CorrelationGraphVisualizer v ) {
+			this.graph = v;
+		}
+
+		public void stateChanged( ChangeEvent e ) {
+			this.graph.filterEdges( );
+			this.graph.repaint( );
+		}
+	}
+
+	protected class MoleculeCheckBox extends JCheckBox {
 		private Molecule molecule;
 
-		public MoleculeCheckbox( Molecule molecule, boolean state ) {
+		public MoleculeCheckBox( Molecule molecule, boolean state ) {
 			super( molecule.getAttribute( "id" ), state );
 			this.molecule = molecule;
 		}
@@ -492,38 +531,6 @@ public class CorrelationDisplayPanel extends JPanel {
 		public Molecule getMolecule( ) {
 			return this.molecule;
 		}
-	}
-
-	protected class SelectButtonListener implements ActionListener {
-		private CorrelationDisplayPanel displayPanel;
-
-		public SelectButtonListener( CorrelationDisplayPanel c ) {
-			this.displayPanel = c;
-		}
-
-		public void actionPerformed( ActionEvent e ) {
-			JButton source = ( JButton )e.getSource( );
-			if ( source == this.displayPanel.allButton )
-				this.setAll( true );
-			else if ( source == this.displayPanel.noneButton )
-				this.setAll( false );
-		}
-
-		private void setAll( boolean state ) {
-			for ( MoleculeCheckbox m : this.displayPanel.moleculeCheckboxArrayList ) {
-				m.setSelected( state );
-				// fire the listeners
-			for ( ItemListener i : m.getItemListeners( )) {
-					i.itemStateChanged( new ItemEvent(
-						m,
-						-1,
-						m.getMolecule( ),
-						state ? ItemEvent.SELECTED : ItemEvent.DESELECTED
-					));
-				}
-			}
-		}
-
 	}
 
 	protected class CalculationChangeListener implements ItemListener {
