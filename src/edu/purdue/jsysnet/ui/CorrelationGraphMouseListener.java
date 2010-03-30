@@ -3,6 +3,7 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Range;
 
 import java.awt.event.MouseEvent;
 import java.awt.Component;
@@ -55,12 +56,13 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 
 
 		public void actionPerformed ( ActionEvent e ) {
-			GraphVisualizer<Molecule,Correlation> graph = (GraphVisualizer<Molecule,Correlation>) this.getInvoker( );
+			CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer) this.getInvoker( );
+			Range range = graph.getCorrelationFilterPanel( ).getRange( );
 
 			if ( e.getSource( ) == this.detailsMenuItem ) {
 				if ( Settings.DEBUG )
 					System.err.println( "Opening Detail Window for " + molecule.toString( ));
-				new DetailWindow( "", this.molecule );
+				new DetailWindow( "Detail", this.molecule, range );
 			} 
 			else if ( e.getSource( ) == this.selectMoleculesMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );

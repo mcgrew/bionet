@@ -17,11 +17,11 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 	private JMenuItem saveFileMenuItem = new JMenuItem( "Save...", KeyEvent.VK_S );
 	private JMenuItem printFileMenuItem = new JMenuItem( "Print...", KeyEvent.VK_P );
 	private JMenuItem exitFileMenuItem = new JMenuItem( "Close", KeyEvent.VK_C );
-	private JMenu databaseMenu = new JMenu( "Database" );
-	private JMenu setupDatabaseMenu = new JMenu( "Setup" );
-	private JMenuItem addSetupDatabaseMenuItem = new JMenuItem( "Add...", KeyEvent.VK_A );
-	private JMenuItem removeSetupDatabaseMenuItem = new JMenuItem( "Remove...", KeyEvent.VK_R );
-	private JMenuItem connectDatabaseMenuItem = new JMenuItem( "Connect...", KeyEvent.VK_C );
+//	private JMenu databaseMenu = new JMenu( "Database" );
+//	private JMenu setupDatabaseMenu = new JMenu( "Setup" );
+//	private JMenuItem addSetupDatabaseMenuItem = new JMenuItem( "Add...", KeyEvent.VK_A );
+//	private JMenuItem removeSetupDatabaseMenuItem = new JMenuItem( "Remove...", KeyEvent.VK_R );
+//	private JMenuItem connectDatabaseMenuItem = new JMenuItem( "Connect...", KeyEvent.VK_C );
 //	private JMenu clusteringMenu = new JMenu( "Clustering" );
 //	private JMenuItem ldaClusteringMenuItem = new JMenuItem( "LDA", KeyEvent.VK_L );
 	private JMenu helpMenu = new JMenu( "Help" );
@@ -67,13 +67,13 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 			KeyStroke.getKeyStroke( KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK ));
 
 		// DATABASE MENU
-		this.databaseMenu.setMnemonic( KeyEvent.VK_D );
-		this.databaseMenu.getAccessibleContext( ).setAccessibleDescription(
-			"Manage Database Connections" );
-		this.databaseMenu.add( this.setupDatabaseMenu );
-		this.setupDatabaseMenu.add( this.addSetupDatabaseMenuItem );
-		this.setupDatabaseMenu.add( this.removeSetupDatabaseMenuItem );
-		this.databaseMenu.add( this.connectDatabaseMenuItem );
+//		this.databaseMenu.setMnemonic( KeyEvent.VK_D );
+//		this.databaseMenu.getAccessibleContext( ).setAccessibleDescription(
+//			"Manage Database Connections" );
+//		this.databaseMenu.add( this.setupDatabaseMenu );
+//		this.setupDatabaseMenu.add( this.addSetupDatabaseMenuItem );
+//		this.setupDatabaseMenu.add( this.removeSetupDatabaseMenuItem );
+//		this.databaseMenu.add( this.connectDatabaseMenuItem );
 
 
 		//CLUSTERING MENU
@@ -88,7 +88,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.helpMenu.add( this.aboutHelpMenuItem );
 
 		this.menuBar.add( this.fileMenu );
-		this.menuBar.add( this.databaseMenu );
+//		this.menuBar.add( this.databaseMenu );
 //		this.menuBar.add( this.clusteringMenu );
 		this.menuBar.add( this.helpMenu );
 
@@ -108,9 +108,9 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.saveFileMenuItem.addActionListener( this );
 		this.printFileMenuItem.addActionListener( this );
 		this.exitFileMenuItem.addActionListener( this );
-		this.addSetupDatabaseMenuItem.addActionListener( this );
-		this.removeSetupDatabaseMenuItem.addActionListener( this );
-		this.connectDatabaseMenuItem.addActionListener( this );
+//		this.addSetupDatabaseMenuItem.addActionListener( this );
+//		this.removeSetupDatabaseMenuItem.addActionListener( this );
+//		this.connectDatabaseMenuItem.addActionListener( this );
 		this.contentsHelpMenuItem.addActionListener( this );
 		this.aboutHelpMenuItem.addActionListener( this );
 	}
