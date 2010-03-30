@@ -1,0 +1,5 @@
+exp_id,label, label_unit,description,exp_date,remarks
+1,25,"mL",Test data #1,8/27/2007,
+2,50,"mL",Test data #2,8/27/2007,
+3,100,"mL",Test data #3,8/27/2007,
+4,300,"mL",Test data #4,8/27/2007,
