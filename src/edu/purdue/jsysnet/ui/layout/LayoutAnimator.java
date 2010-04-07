@@ -20,7 +20,6 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui.layout;
 
 import edu.purdue.jsysnet.util.PolarPoint2D;
-import edu.purdue.jsysnet.util.Settings;
 
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;

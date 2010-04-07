@@ -21,8 +21,8 @@ package edu.purdue.jsysnet.ui;
 
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
-import edu.purdue.jsysnet.util.Settings;
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.JSysNet;
 
 import java.awt.event.MouseEvent;
 import java.awt.Component;
@@ -40,7 +40,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 
 	public void graphClicked( Molecule m, MouseEvent e ) {
 		if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
-			if ( Settings.DEBUG )
+			if ( JSysNet.settings.getBoolean( "debug" ))
 				System.err.println( "Right Click on " + m );
 			popup.show( e.getComponent( ), e.getX( ), e.getY( ), m );
 
@@ -79,7 +79,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			Range range = graph.getCorrelationFilterPanel( ).getRange( );
 
 			if ( e.getSource( ) == this.detailsMenuItem ) {
-				if ( Settings.DEBUG )
+				if ( JSysNet.settings.getBoolean( "debug" ))
 					System.err.println( "Opening Detail Window for " + molecule.toString( ));
 				new DetailWindow( "Detail", this.molecule, range );
 			} 

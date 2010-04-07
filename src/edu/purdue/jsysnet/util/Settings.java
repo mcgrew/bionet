@@ -28,41 +28,106 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.File;
 import java.io.IOException;
+import javax.swing.filechooser.FileSystemView;
 
 public class Settings extends Properties {
 
-	private static Dimension DESKTOP_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
-	public static int DESKTOP_WIDTH  = DESKTOP_SIZE.width;
-	public static int DESKTOP_HEIGHT = DESKTOP_SIZE.height;
-	public static boolean DEBUG = false;
-	public static boolean VERBOSE = false;
-	public static int DEFAULT_WIDTH = 1024;
-	public static int DEFAULT_HEIGHT = 768;
-	private static String HOME_DIR = System.getenv( "HOME" );
-	private static String SETTINGS_FILE = HOME_DIR + "/.jsysnet";
-
-	public Settings ( ) {
+	public Settings( ) {
 		super( );
+		this.defaults = new DefaultSettings( );
+		this.load( );
 	}
-	public Settings( String [ ] args ) {
-		
+
+	public boolean getBoolean( String property ) {
+		return Boolean.parseBoolean( this.getProperty( property ));
+	}
+
+	public int getInt( String property ) {
+		return Integer.parseInt( this.getProperty( property ));
+	}
+
+	public double getDouble( String property ) {
+		return Double.parseDouble( this.getProperty( property ));
+	}
+
+	public Properties getDefaults( ) {
+		return this.defaults;
+	}
+
+	public Object setProperty( String property, String value ) {
+		Object returnValue = super.setProperty( property, value );
+		this.save( );
+		return returnValue;
+	}
+
+	public void setBoolean( String property, boolean value ) {
+		this.setProperty( property, Boolean.toString( value ));
+	}
+
+	public void setInt( String property, int value ) throws NumberFormatException {
+		this.setProperty( property, Integer.toString( value ));
+	}
+
+	public void setDouble( String property, double value ) throws NumberFormatException {
+		this.setProperty( property, Double.toString( value ));
 	}
 
 	public void save( ) {
 		try {
+			if ( this.getBoolean( "debug" ) ){
+				System.err.println( "Saving settings..." );
+			}
+			File settingsFile = new File( this.getProperty( "settingsFile" ));
+			if( !settingsFile.getParentFile( ).exists( ) && !settingsFile.getParentFile( ).mkdirs( )) {
+				System.err.println( String.format(
+				  "Unable to create directory '%s' for saving program settings.",
+					settingsFile.getParent( )));
+			}
 			this.storeToXML( new BufferedOutputStream( 
-				new FileOutputStream( new File( SETTINGS_FILE ))), null );
+				new FileOutputStream( settingsFile )), null );
 		} catch ( IOException e ) {
-			System.out.print( String.format( 
-				"Unable to save program settings. File %s is not writeable", SETTINGS_FILE ));
+			System.err.println( String.format( 
+				"Unable to save program settings. File '%s' is not writeable", 
+				this.getProperty( "settingsFile" )));
+			System.err.println( e.getMessage( ));
 		}
 	}
 	
 	public void load( ) {
 		try {
+			if ( this.getBoolean( "debug" ) ){
+				System.err.println( "Loading settings..." );
+			}
 			this.loadFromXML( new BufferedInputStream( 
-				new FileInputStream( new File( SETTINGS_FILE ))));
-		} catch ( IOException e ) { }
+				new FileInputStream( new File( this.getProperty( "settingsFile" )))));
+		} catch ( IOException e ) {
+			if ( this.getBoolean( "debug" )) {
+				System.err.println( String.format(
+				  "Unable to read program settings. File %s is not readable",
+					this.getProperty( "settingsFile" )));
+			}
+
+		}
 	}
+	
+	private class DefaultSettings extends Properties {
+
+		public DefaultSettings( ) {
+			super( );
+			this.setProperty( "windowWidth", "1024" );
+			this.setProperty( "windowHeight", "768" );
+			this.setProperty( "homeDir", System.getProperty( "user.home" ));
+			this.setProperty( "settingsFile", this.getProperty( "homeDir" ) + "/.jsysnet/settings.xml" );
+			Dimension desktopSize = Toolkit.getDefaultToolkit( ).getScreenSize( );
+			this.setProperty( "desktopWidth", Integer.toString( desktopSize.width ));
+			this.setProperty( "desktopHeight", Integer.toString( desktopSize.height ));
+			this.setProperty( "windowXPosition", Integer.toString(( desktopSize.width - 1024 ) / 2 ));
+			this.setProperty( "windowYPosition", Integer.toString(( desktopSize.height - 768 ) / 2 ));
+			this.setProperty( "debug", "false" );
+			this.setProperty( "verbose", "false" );
+		}
+
+	}
+
 
 }

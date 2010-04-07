@@ -19,11 +19,16 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet.ui;
 
+import java.io.File;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import edu.purdue.jsysnet.util.*;
 import edu.purdue.jsysnet.io.*;
+import edu.purdue.jsysnet.JSysNet;
 
 public class JSysNetWindow extends JFrame implements ActionListener {
 
@@ -53,9 +58,16 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		super( title );
 		this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		this.setLayout( new BorderLayout( ));
-		int x = ( Settings.DESKTOP_WIDTH - Settings.DEFAULT_WIDTH ) / 2;
-		int y = ( Settings.DESKTOP_HEIGHT - Settings.DEFAULT_HEIGHT ) / 2;
-		this.setBounds( x, y, Settings.DEFAULT_WIDTH, Settings.DEFAULT_HEIGHT );
+		int width = JSysNet.settings.getInt( "windowWidth" );
+		int height = JSysNet.settings.getInt( "windowHeight" );
+		int x = Math.min( 
+		  JSysNet.settings.getInt( "windowXPosition" ), 
+			JSysNet.settings.getInt( "desktopWidth" ) - width );
+		int y = Math.min( 
+		  JSysNet.settings.getInt( "windowYPosition" ), 
+			JSysNet.settings.getInt( "desktopHeight" ) - height );
+		
+		this.setBounds( x, y, width, height );
 
 		this.setupMenu( );
 
@@ -64,6 +76,18 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 
 		this.setVisible( true );
 		this.repaint( );
+
+		this.addWindowListener(new WindowAdapter() {
+		  public void windowClosing(WindowEvent e) {
+				JFrame f = (JFrame)e.getSource( );
+				JSysNet.settings.setInt( "windowXPosition", f.getX( ));
+				JSysNet.settings.setInt( "windowYPosition", f.getY( ));
+				JSysNet.settings.setInt( "windowWidth", f.getWidth( ));
+				JSysNet.settings.setInt( "windowHeight", f.getHeight( ));
+		    System.exit(0);
+			}
+		});
+
 	}
 
 	private void setupMenu( ) {
@@ -115,7 +139,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 
 		this.addMenuListeners( );
 
-		if ( Settings.DEBUG ) {
+		if ( JSysNet.settings.getBoolean( "debug" )) {
 			this.setVisible( true );
 			DataHandler data = new CSVDataHandler( "/home/mcgrew/projects/jsysnet/data/test_data/text" );
 			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( data ));
@@ -135,19 +159,36 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 	}
 
 	public DataHandler openCSV( ) {
-		JFileChooser fc = new JFileChooser( );
+		JFileChooser fc = new JFileChooser( JSysNet.settings.getProperty( "lastOpenCSV" ));
+		fc.setFileFilter( new CSVFileFilter( ));
 		fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );	
 		int options = fc.showOpenDialog( this );
 		if ( options == JFileChooser.APPROVE_OPTION ) {
-			DataHandler data = new CSVDataHandler( fc.getSelectedFile( ).getAbsolutePath( ));
+			File selected = fc.getSelectedFile( );
+			if ( !selected.isDirectory( ))
+				selected = selected.getParentFile( );
+			JSysNet.settings.setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
+			DataHandler data = new CSVDataHandler( selected.getAbsolutePath( ));
 			return data;
 		}
 		return null;
 	
 	}
 
+	private class CSVFileFilter extends FileFilter {
+
+		public boolean accept( File f ) {
+			return ( f.isDirectory( ));
+		}
+
+		public String getDescription( ) {
+			return "JSysNet data folder";
+		}
+
+	}
+
 	public void actionPerformed( ActionEvent e ) {
-		if ( Settings.DEBUG ) {
+		if ( JSysNet.settings.getBoolean( "debug" )) {
 			System.err.println( String.format( "ActionEvent fired:" ));
 			System.err.println( "\tactionCommand: "+e.getActionCommand( ));
 			System.err.println( "\t  paramString: "+e.paramString( ));
@@ -155,7 +196,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 
 		Component item = ( Component )e.getSource( );
 		if ( item == this.openFileMenuItem ) {
-			DataHandler data = openCSV( );
+			DataHandler data = this.openCSV( );
 			if ( data == null ) {
 				return;
 			}

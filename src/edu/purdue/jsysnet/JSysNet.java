@@ -19,44 +19,38 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet;
 
-import gnu.getopt.Getopt;
-import javax.swing.UIManager;
-import javax.swing.JOptionPane;
 import edu.purdue.jsysnet.ui.*;
 import edu.purdue.jsysnet.util.Settings;
 
-public class JSysNet {
+import gnu.getopt.Getopt;
 
+import javax.swing.UIManager;
+import javax.swing.JOptionPane;
+import java.util.Properties;
+
+
+public class JSysNet {
+	public static Settings settings;
 
 	public static void main ( String [ ] args ) {
-		// try to make this guy blend in :)
-		try {
-			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName());
-		} catch ( Exception e ) {
-			if ( Settings.VERBOSE ) {
-				System.err.println( "Attemping to load the system look and feel resulted "+
-					"in the following error:" );
-				System.err.println( "\t" + e.getMessage( ));
-			} else {
-				System.err.println( "Unable to load system look and feel, switching to default" );
-			}
-		}
-
 		// read the command line options
 		Getopt g = new Getopt( "JSysNet", args, "dg:hv" );
 		String arg;
 		int c;
 
+		JSysNet.settings = new Settings( );
+		JSysNet.settings.load( );
+
 		while (( c = g.getopt( )) != -1 ) {
 			switch( c ) {
 				case 'd':
-					Settings.DEBUG = true;
+					JSysNet.settings.getDefaults( ).setProperty( "debug", "true" );
 					break;
 				case 'g':
 					try {
 						String[] size = g.getOptarg( ).split( "x" );
-						Settings.DEFAULT_WIDTH  = Integer.parseInt( size[ 0 ] );
-						Settings.DEFAULT_HEIGHT = Integer.parseInt( size[ 1 ] );
+						JSysNet.settings.setInt( "windowWidth", Integer.parseInt( size[ 0 ] ));
+						JSysNet.settings.setInt( "windowHeight", Integer.parseInt( size[ 1 ] ));
 					} catch( NumberFormatException e ) {
 						System.out.println( "You specified an invalid value for -g.\n"+
 							"Values should be in the format WxH in pixels, such as 1024x768." );
@@ -69,11 +63,12 @@ public class JSysNet {
 					System.out.println( "java JSysNet [-d|h] [-g geometry]" );
 					System.out.println( "-d          Runs JSysnet in debug mode" );
 					System.out.printf ( "-g          Overrides the default window size of %dx%d\n",
-						Settings.DEFAULT_WIDTH, Settings.DEFAULT_HEIGHT );
+						JSysNet.settings.getDefaults( ).getProperty( "windowWidth" ), 
+						JSysNet.settings.getDefaults( ).getProperty( "windowHeight" ));
 					System.out.println( "-h          Prints this message and exits" );
 					System.exit( 0 );
 				case 'v':
-					Settings.VERBOSE = true;
+					JSysNet.settings.getDefaults( ).setProperty( "verbose", "true" );
 					break;
 				case '?':
 					break;
@@ -82,7 +77,20 @@ public class JSysNet {
 					System.exit( -1 );
 			}
 		}
-		newWindow( );
+		// try to make this blend in
+		try {
+			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName());
+		} catch ( Exception e ) {
+			if ( JSysNet.settings.getBoolean( "VERBOSE" )) {
+				System.err.println( "Attemping to load the system look and feel resulted "+
+					"in the following error:" );
+				System.err.println( "\t" + e.getMessage( ));
+			} else {
+				System.err.println( "Unable to load system look and feel, switching to default" );
+			}
+		}
+		
+		JSysNet.newWindow( );
 	}
 
 	public static void newWindow( ){
@@ -98,6 +106,6 @@ public class JSysNet {
 		JOptionPane.showMessageDialog( null, text );
 	}
 
+
 }
-	
-	
+
