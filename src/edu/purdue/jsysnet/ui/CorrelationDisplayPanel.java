@@ -129,7 +129,6 @@ public class CorrelationDisplayPanel extends JPanel {
 		super( new BorderLayout( ) );
 		this.buildPanel( );
 		this.createGraph( data );
-		this.moleculeFilterPanel.setGraph( this.graph );
 	}
 
 	/**
@@ -240,24 +239,25 @@ public class CorrelationDisplayPanel extends JPanel {
 	 * @param data A Datahandler Object containing the data to be used.
 	 */
 	public void createGraph( DataHandler data ) {
-			this.data = data;
-			this.setVisible( true );
-			
-			this.experiment = experimentSelection( data.getExperiments( ) );
-			if ( this.experiment == null ) {
-				return;
-			}
+		this.data = data;
+		this.setVisible( true );
+		
+		this.experiment = experimentSelection( data.getExperiments( ) );
+		if ( this.experiment == null ) {
+			return;
+		}
 
-			this.graph = new CorrelationGraphVisualizer( );
-			this.graph.setCorrelationFilterPanel( this.correlationFilterPanel );
-			this.graph.setCorrelationDisplayPanel( this );
-			this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
-			this.addVertices( );
-			this.addEdges( );
-			this.graph.filterEdges( );
+		this.graph = new CorrelationGraphVisualizer( );
+		this.graph.setCorrelationFilterPanel( this.correlationFilterPanel );
+		this.graph.setCorrelationDisplayPanel( this );
+		this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
+		this.addVertices( );
+		this.addEdges( );
+		this.graph.filterEdges( );
 
-			this.setGraphVisualizer( this.graph );
-			this.setGraphLayout( CircleLayout.class );
+		this.setGraphVisualizer( this.graph );
+		this.setGraphLayout( CircleLayout.class );
+		this.moleculeFilterPanel.setGraph( this.graph );
 	}
 
 	/**

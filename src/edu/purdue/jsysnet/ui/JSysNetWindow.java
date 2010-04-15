@@ -139,11 +139,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 
 		this.addMenuListeners( );
 
-		if ( JSysNet.settings.getBoolean( "debug" )) {
-			this.setVisible( true );
-			DataHandler data = new CSVDataHandler( "/home/mcgrew/projects/jsysnet/data/test_data/text" );
-			this.tabPane.addTab( "Correlation View", new CorrelationDisplayPanel( data ));
-		}
+//		this.setVisible( true );
 	}
 
 	private void addMenuListeners( ) {

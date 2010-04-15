@@ -30,6 +30,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JMenu;
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
@@ -53,23 +54,28 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 		protected JMenuItem detailsMenuItem = new JMenuItem( "Details" );
 		protected JMenuItem selectMoleculesMenuItem = new JMenuItem( "Select Correlated" );
 		protected JMenuItem selectCorrelationsMenuItem = new JMenuItem( "Select Correlations" );
-		protected JMenuItem exploreCorrelationsMenuItem = new JMenuItem( "Explore Correlations" );
+		protected JMenuItem exploreCorrelationsMenu = new JMenu( "Explore Correlations" );
 		protected Molecule molecule;
 		
 		public MoleculePopup ( ) {
 			this.add( this.detailsMenuItem );
 			this.add( this.selectMoleculesMenuItem );
 			this.add( this.selectCorrelationsMenuItem );
-			this.add( this.exploreCorrelationsMenuItem );
+			this.add( this.exploreCorrelationsMenu );
 			this.detailsMenuItem.addActionListener( this );
 			this.selectMoleculesMenuItem.addActionListener( this );
 			this.selectCorrelationsMenuItem.addActionListener( this );
-			this.exploreCorrelationsMenuItem.addActionListener( this );
 			
 		}
 
 		public void show( Component invoker, int x, int y, Molecule m ) {
 			this.molecule = m;
+			Range range = new Range( 0.6, 1 ); // Temporary
+			for( Correlation c : m.getCorrelations( )) {
+				if ( range.contains( Math.abs( c.getValue( )))) {
+					this.exploreCorrelationsMenu.add( new JMenuItem( c.getOpposite( m ).toString( )));
+				}
+			}
 			this.show( invoker, x, y );
 		}
 
@@ -95,8 +101,6 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 					state.pick( c, true );
 				}
 			} 
-			else if ( e.getSource( ) == this.exploreCorrelationsMenuItem ) {
-			}
 		}
 		
 	}
