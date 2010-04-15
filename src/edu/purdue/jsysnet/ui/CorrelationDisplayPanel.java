@@ -62,6 +62,9 @@ import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
+import edu.uci.ics.jung.algorithms.layout.KKLayout;
+import edu.uci.ics.jung.algorithms.layout.FRLayout;
+import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
 
 
 /**
@@ -86,7 +89,10 @@ public class CorrelationDisplayPanel extends JPanel {
 //	private JRadioButtonMenuItem clusteredLayoutMenuItem = new JRadioButtonMenuItem( "Clustered" );
 	private JRadioButtonMenuItem randomLayoutMenuItem = new JRadioButtonMenuItem( "Random" );
 	private JRadioButtonMenuItem heatMapLayoutMenuItem = new JRadioButtonMenuItem( "Heat Map" );
-	private JCheckBoxMenuItem springLayoutMenuItem = new JCheckBoxMenuItem( "Spring Embedding" );
+	private JRadioButtonMenuItem kkLayoutMenuItem = new JRadioButtonMenuItem( "KKLayout" );
+	private JRadioButtonMenuItem frLayoutMenuItem = new JRadioButtonMenuItem( "FRLayout" );
+	private JRadioButtonMenuItem springLayoutMenuItem = new JRadioButtonMenuItem( "Spring Layout" );
+	private JCheckBoxMenuItem clusteredLayoutMenuItem = new JCheckBoxMenuItem( "Clustered Spring Embedding" );
 
 	// view menu items
 	private JMenu viewMenu = new JMenu( "View" );
@@ -172,20 +178,29 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
 //		this.layoutMenuButtonGroup.add( this.clusteredLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.randomLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.kkLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.frLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.springLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
 //		this.layoutMenu.add( this.clusteredLayoutMenuItem );
 		this.layoutMenu.add( this.randomLayoutMenuItem );
+		this.layoutMenu.add( this.kkLayoutMenuItem );
+		this.layoutMenu.add( this.frLayoutMenuItem );
+		this.layoutMenu.add( this.springLayoutMenuItem );
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.addSeparator( );
-		this.layoutMenu.add( this.springLayoutMenuItem );
+		this.layoutMenu.add( this.clusteredLayoutMenuItem );
 		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
 		this.singleCircleLayoutMenuItem.addActionListener( lcl );
 //		this.clusteredLayoutMenuItem.addActionListener( lcl );
 		this.randomLayoutMenuItem.addActionListener( lcl );
-		this.heatMapLayoutMenuItem.addActionListener( lcl );
+		this.kkLayoutMenuItem.addActionListener( lcl );
+		this.frLayoutMenuItem.addActionListener( lcl );
 		this.springLayoutMenuItem.addActionListener( lcl );
+		this.heatMapLayoutMenuItem.addActionListener( lcl );
+		this.clusteredLayoutMenuItem.addActionListener( lcl );
 
 		//VIEW MENU
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
@@ -553,18 +568,25 @@ public class CorrelationDisplayPanel extends JPanel {
 			public void actionPerformed( ActionEvent event ) {
 				Component item = ( Component )event.getSource( );
 
-				if ( item == this.cdp.springLayoutMenuItem ) {
-					this.cdp.graph.animate( this.cdp.springLayoutMenuItem.getState( ));
+				if ( item == this.cdp.clusteredLayoutMenuItem ) {
+					this.cdp.graph.animate( this.cdp.clusteredLayoutMenuItem.getState( ));
 				} else {
-					this.cdp.springLayoutMenuItem.setState( false );
+					this.cdp.clusteredLayoutMenuItem.setState( false );
 					if ( item == this.cdp.multipleCirclesLayoutMenuItem )
 						this.cdp.setGraphLayout( MultipleCirclesLayout.class );
-					if ( item == this.cdp.singleCircleLayoutMenuItem )
+					else if ( item == this.cdp.singleCircleLayoutMenuItem )
 						this.cdp.setGraphLayout( CircleLayout.class );
 //					else if ( item == this.cdp.clusteredLayoutMenuItem )
 //						this.cdp.setGraphLayout( ClusteredLayout.class );
 					else if ( item == this.cdp.randomLayoutMenuItem )
 						this.cdp.setGraphLayout( RandomLayout.class );
+					else if ( item == this.cdp.kkLayoutMenuItem )
+						this.cdp.setGraphLayout( KKLayout.class );
+					else if ( item == this.cdp.frLayoutMenuItem )
+						this.cdp.setGraphLayout( FRLayout.class );
+					else if ( item == this.cdp.springLayoutMenuItem )
+						this.cdp.setGraphLayout( SpringLayout2.class );
+
 				}
 			}
 	}

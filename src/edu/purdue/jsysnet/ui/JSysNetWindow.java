@@ -60,12 +60,12 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.setLayout( new BorderLayout( ));
 		int width = JSysNet.settings.getInt( "windowWidth" );
 		int height = JSysNet.settings.getInt( "windowHeight" );
-		int x = Math.min( 
+		int x = Math.max( 0, Math.min( 
 		  JSysNet.settings.getInt( "windowXPosition" ), 
-			JSysNet.settings.getInt( "desktopWidth" ) - width );
-		int y = Math.min( 
+			JSysNet.settings.getInt( "desktopWidth" ) - width ));
+		int y = Math.max( 0, Math.min( 
 		  JSysNet.settings.getInt( "windowYPosition" ), 
-			JSysNet.settings.getInt( "desktopHeight" ) - height );
+			JSysNet.settings.getInt( "desktopHeight" ) - height ));
 		
 		this.setBounds( x, y, width, height );
 
