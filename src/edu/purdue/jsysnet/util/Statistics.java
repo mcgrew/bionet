@@ -126,7 +126,7 @@ public class Statistics {
 		for ( int i=0; i < n; i++ ) {
 			numerator += Math.pow( Rx[ i ] - Ry[ i ], 2 );
 		}
-
+		
 		return 1 - ( 6 * numerator ) / ( n * ( n*n - 1 ));
 	}
 

@@ -264,7 +264,7 @@ public class Correlation {
 	public double getSpearmanCorrelation( boolean recalculate ) {
 		//See if this value has already been calculated
 		if ( recalculate || Double.isNaN( this.spearmanCorrelation ) ) {
-			Correlation.getSpearmanCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
+			this.spearmanCorrelation = Correlation.getSpearmanCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
 		}
 		return this.spearmanCorrelation;
 	}

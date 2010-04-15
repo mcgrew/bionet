@@ -533,7 +533,7 @@ public class CorrelationDisplayPanel extends JPanel {
 					Correlation.setDefaultMethod( Correlation.SPEARMAN );
 				else if ( item == this.displayPanel.kendallCalculationMenuItem )
 					Correlation.setDefaultMethod( Correlation.KENDALL );
-				this.displayPanel.resetGraphLayout( );
+				this.displayPanel.graph.filterEdges( );
 				this.displayPanel.graph.repaint( );
 			}
 		}
