@@ -24,6 +24,7 @@ import edu.purdue.jsysnet.ui.layout.MultipleCirclesLayout;
 import edu.purdue.jsysnet.util.Experiment;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
+import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.io.DataHandler;
 
 import javax.swing.JPanel;
@@ -381,14 +382,14 @@ public class CorrelationDisplayPanel extends JPanel {
 
 	}
 
-//	/**
-//	 * Returns the range setting of the Correlation Filter
-//	 * 
-//	 * @return The value of the correlation setting
-//	 */
-//	public Range getCorrelationRange( ) {
-//		return this.correlationFilterPanel.getRange( );
-//	}
+	/**
+	 * Returns the range setting of the Correlation Filter
+	 * 
+	 * @return The value of the correlation setting
+	 */
+	public Range getCorrelationRange( ) {
+		return this.correlationFilterPanel.getRange( );
+	}
 
 	// ******************* PROTECTED CLASSES **************************
 

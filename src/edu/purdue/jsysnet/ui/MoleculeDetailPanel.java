@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
@@ -38,6 +39,7 @@ import edu.purdue.jsysnet.util.Range;
 public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private Molecule molecule;
 	private Range correlationRange;
+	private DetailWindow detailWindow;
 	private JTable moleculeDetailTable;
 	private JTable correlationsTable;
 	private JLabel selectedMoleculeLabel = new JLabel( "Selected Molecule" );
@@ -45,10 +47,11 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private JButton showElementButton = new JButton( "Show Element" );
 	private JButton showCorrelationButton = new JButton( "Show Correlation" );
 
-	public MoleculeDetailPanel ( Molecule molecule, Range range ) {
+	public MoleculeDetailPanel ( Molecule molecule, Range range, DetailWindow detailWindow ) {
 		super( new BorderLayout( ));
 		this.molecule = molecule;
 		this.correlationRange = range;
+		this.detailWindow = detailWindow;
 
 		this.moleculeDetailTable = DataTable.getMoleculeTable( this.molecule );
 		this.correlationsTable = DataTable.getCorrelatedTable( this.molecule, this.correlationRange );
@@ -75,6 +78,28 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 
 	public void actionPerformed( ActionEvent event ) {
 		Object source = event.getSource( );
+		if ( source == this.showElementButton ) {
+			this.detailWindow.show( 
+				this.getMoleculesInRange( ).get( 
+					this.correlationsTable.getSelectedRow( )));
+		}
+		if ( source == this.showCorrelationButton ) {
+			this.detailWindow.show( 
+				this.molecule.getCorrelation( 
+					this.getMoleculesInRange( ).get( 
+						this.correlationsTable.getSelectedRow( ))));
+		}
+
+	}
+
+	private List <Molecule> getMoleculesInRange( ) {
+		List <Molecule> returnValue = new ArrayList( );
+		for ( Correlation c : this.molecule.getCorrelations( )) {
+			if ( this.correlationRange.contains( Math.abs( c.getValue( )))) {
+					returnValue.add( c.getOpposite( this.molecule ));
+			}
+		}
+		return returnValue;
 	}
 
 }

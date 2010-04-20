@@ -24,6 +24,7 @@ import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.JSysNet;
 
+import java.util.HashMap;
 import java.awt.event.MouseEvent;
 import java.awt.Component;
 import java.awt.event.ActionListener;
@@ -56,6 +57,8 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 		protected JMenuItem selectCorrelationsMenuItem = new JMenuItem( "Select Correlations" );
 		protected JMenuItem exploreCorrelationsMenu = new JMenu( "Explore Correlations" );
 		protected Molecule molecule;
+		protected HashMap <JMenuItem,Correlation> correlationMap = 
+			new HashMap <JMenuItem,Correlation>( );
 		
 		public MoleculePopup ( ) {
 			this.add( this.detailsMenuItem );
@@ -69,11 +72,16 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 		}
 
 		public void show( Component invoker, int x, int y, Molecule m ) {
+			this.exploreCorrelationsMenu.removeAll( );
+			this.correlationMap.clear( );
 			this.molecule = m;
 			Range range = new Range( 0.6, 1 ); // Temporary
 			for( Correlation c : m.getCorrelations( )) {
 				if ( range.contains( Math.abs( c.getValue( )))) {
-					this.exploreCorrelationsMenu.add( new JMenuItem( c.getOpposite( m ).toString( )));
+					JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
+					this.correlationMap.put( menuItem, c );
+					this.exploreCorrelationsMenu.add( menuItem );
+					menuItem.addActionListener( this );
 				}
 			}
 			this.show( invoker, x, y );
@@ -83,19 +91,23 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 		public void actionPerformed ( ActionEvent e ) {
 			CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer) this.getInvoker( );
 			Range range = graph.getCorrelationFilterPanel( ).getRange( );
+			Object source = e.getSource( );
 
-			if ( e.getSource( ) == this.detailsMenuItem ) {
+			if ( this.correlationMap.containsKey( source )) {
+				new DetailWindow( "Detail", this.correlationMap.get( source ), new Range( 0.6, 1 ));
+			}
+			else if ( source == this.detailsMenuItem ) {
 				if ( JSysNet.settings.getBoolean( "debug" ))
 					System.err.println( "Opening Detail Window for " + molecule.toString( ));
 				new DetailWindow( "Detail", this.molecule, range );
 			} 
-			else if ( e.getSource( ) == this.selectMoleculesMenuItem ) {
+			else if ( source == this.selectMoleculesMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );
 				for ( Molecule m : graph.getNeighbors( this.molecule )) {
 					state.pick( m, true );
 				}
 			} 
-			else if ( e.getSource( ) == this.selectCorrelationsMenuItem ) {
+			else if ( source == this.selectCorrelationsMenuItem ) {
 				PickedState<Correlation> state = graph.getPickedEdgeState( );
 				for ( Correlation c : graph.getIncidentEdges( this.molecule )) {
 					state.pick( c, true );

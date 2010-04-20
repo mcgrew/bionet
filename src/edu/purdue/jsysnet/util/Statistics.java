@@ -18,10 +18,6 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 */
 package edu.purdue.jsysnet.util;
 
-import java.lang.Math;
-import java.lang.Double;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Arrays;
 
@@ -34,28 +30,26 @@ import java.util.Arrays;
  */
 public class Statistics {
 
-	public static final int PEARSON = 0;
-	public static final int SPEARMAN = 1;
-	public static final int KENDALL = 2;
-	protected static int defaultMethod = PEARSON;
-
 	/**
 	 * Returns the Pearson correlation coefficient of the 2 sets of values.
 	 * 
+	 * <PRE>
 	 *    x = sample values in molecule 0
 	 *    y = sample values in molecule 1
 	 *    n = number of samples in each molecule
 	 *    Sx = standard deviation of x
 	 *    Sy = standard deviation of y
 	 * 
-	 * <pre>
 	 *                                               _              _
 	 *                     sum( i=0 to n-1, ( x[i] - x ) * ( y[i] - y ))
 	 * correlationValue = -----------------------------------------------
 	 *                                ( n - 1 ) Sx * Sy
-	 * </pre>
 	 * 
-	 * Adapted from	http://en.wikipedia.org/wiki/Correlation3#Pearson.27s_product-moment_coefficient
+	 * References:
+	 * <CITE>Wikipedia, the free encyclopedia (2010, April 13).
+	 *     <I>Correlation and Dependence</I>.
+	 *     Retrieved April 14, 2010, from http://en.wikipedia.org/wiki/Correlation#Pearson.27s_product-moment_coefficient</CITE>
+	 * </PRE>
 	 *
 	 * @param x The first set of values to use for the calculation.
 	 * @param y The second set of values to use for the calculation.
@@ -96,19 +90,23 @@ public class Statistics {
 	/**
 	 * Returns the Spearman rank correlation coefficient of the 2 sets of data.
 	 *
+	 * <PRE>
 	 * x = sample values in molecule 0
 	 * y = sample values in molecule 1
 	 * n = number of samples in each molecule
-	 * Rx = rank array of x, ie. the new locations of each element of x if x were sorted (starting at 1).
-	 * Ry = rank array of y, ie. the new locations of each element of y if y were sorted ( starting at 1)
+	 * Rx = rank array of x, ie. the new locations of each element of x if x were sorted
+	 * Ry = rank array of y, ie. the new locations of each element of y if y were sorted
 	 * 
-	 * <pre>
 	 *                         6 * sum( i=0 to n-1, ( Rx[i] - Ry[i] )^2 )
 	 * correlationValue = 1 - --------------------------------------------
 	 *                                       n * ( n^2 - 1 )
-	 * </pre>
 	 * 
-	 * Adapted from http://en.wikipedia.org/wiki/Spearman_correlation
+	 * References: 
+	 * <CITE>Wikipedia, the free encyclopedia (2010, April 1). 
+	 *     <I>Spearman's rank correlation coefficient</I>. 
+	 *     Retrieved April 14, 2010, from http://en.wikipedia.org/wiki/Spearman's_rank_correlation_coefficient</CITE>
+	 * <CITE>Spiegel, Murray R. (1961). Statistics, 2nd Edition (pp 376,391-393). New York.</CITE>
+	 * </PRE>
 	 * 
 	 * @param x The first set of data to use for the calculation.
 	 * @param y The second set of data to use for the calculation.
@@ -133,21 +131,27 @@ public class Statistics {
 	/**
 	 * Returns the Kendall tau rank correlation coefficient of the 2 sets of data.
 	 * 
+	 * <PRE>
 	 * x = sample values of molecule 0
 	 * y = sample values of molecule 1
 	 * n = number of samples in each molecule
 	 * Rx = the rank of the samples in molecule 0
 	 * Ry = the rank of the samples in molecule 1
+	 * Tx = the number of ties in x.
+	 * Ty = the number of ties in y.
 	 * concordant = The number of concordant pairs
 	 * discordant = The number of discordant pairs
 	 *
-	 * </pre>
-	 *                       concordant - discordant
-	 * correlationValue = -----------------------------
-	 *                     (1/2) * pairs * ( pairs-1 )
-	 * </pre>
+	 *                                 concordant - discordant
+	 * correlationValue = ---------------------------------------------
+	 *                              n*(n-1)            n*(n-1)         
+	 *                     sqrt( ( ------- - Tx ) * (  ------- - Ty ) )
+	 *                                2                   2            
 	 *
-	 * Adapted from http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient
+	 * <CITE>Wikipedia, the free encyclopedia (2010, March 25). 
+	 *     <I>Kendall tau rank correlation coefficient</I>. 
+	 *     Retrieved April 14, 2010, from http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient</CITE>
+	 * </PRE>
 	 *
 	 * @param x The first set of data to use for the calculation.
 	 * @param y The second set of data to use for the calculation.
@@ -185,8 +189,7 @@ public class Statistics {
 	}
 
 	/** 
-	 * Returns the rank of each element, ie the new location of each element
-	 * in the array if the array were sorted. Based on selection sort.
+	 * Finds the rank of each element in a List.
 	 *	
 	 * @param array The arrayList to get the rank of.
 	 * @return	    An array containing the rank order of each element.

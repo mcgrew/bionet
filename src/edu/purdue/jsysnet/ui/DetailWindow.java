@@ -37,7 +37,7 @@ public class DetailWindow extends JFrame {
 	public DetailWindow( String title, Range range ) {
 		super( title );
 		this.correlationRange = range;
-		this.setSize( new Dimension( 600, 400 ));
+		this.setSize( new Dimension( 800, 500 ));
 		this.setLayout( new BorderLayout( ));
 		this.getContentPane( ).add( tabPane, BorderLayout.CENTER );
 		this.setVisible( true );
@@ -51,15 +51,19 @@ public class DetailWindow extends JFrame {
 
 	public DetailWindow( String title, Correlation correlation, Range range ) {
 		this( title, range );
-		//this.show( correlation )
+		this.show( correlation );
 	}
 
 	public void show( Molecule molecule ) {
-		this.tabPane.add( molecule.toString( ), 
-		  new MoleculeDetailPanel( molecule, this.correlationRange ));
+		this.tabPane.setSelectedComponent( 
+			this.tabPane.add( molecule.toString( ), 
+			  new MoleculeDetailPanel( molecule, this.correlationRange, this )));
 	}
 
 	public void show( Correlation correlation ) {
+		this.tabPane.setSelectedComponent( 
+			this.tabPane.add( correlation.toString( ),
+				new CorrelationDetailPanel( correlation, this.correlationRange, this )));
 	}
 
 }

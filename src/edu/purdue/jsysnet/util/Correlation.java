@@ -313,6 +313,9 @@ public class Correlation {
 	public static double getKendallCorrelation( Molecule molecule0, Molecule molecule1 ) {
 		return Statistics.getKendallCorrelation( molecule0.getSamples( ), molecule1.getSamples( ));
 	}
-
+	
+	public String toString( ) {
+		return String.format( "%s - %s", this.molecules[0].toString( ), this.molecules[1].toString( ));
+	}
 }
 
