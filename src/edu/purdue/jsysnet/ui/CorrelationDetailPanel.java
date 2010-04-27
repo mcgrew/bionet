@@ -20,18 +20,27 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import java.util.List;
+import java.util.Iterator;
 import java.awt.Graphics;
 import java.awt.Font;
+import java.awt.Color;
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
-import javax.swing.JSplitPane;
 import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
+
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.ChartFactory;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
@@ -71,12 +80,12 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		this.molecule0Button.addActionListener( this );
 		this.molecule1Button.addActionListener( this );
 
-		JSplitPane moleculePane = new JSplitPane( 
-		  JSplitPane.VERTICAL_SPLIT, topMoleculePanel, bottomMoleculePanel );
-		moleculePane.setDividerLocation( 217 );
+		JPanel moleculePane = new JPanel( new GridLayout( 2, 1 ));
+		moleculePane.add( topMoleculePanel );
+		moleculePane.add( bottomMoleculePanel );
 		JPanel moleculePanel = new JPanel( new BorderLayout( ));
 		moleculePanel.add( moleculePane, BorderLayout.CENTER );
-		JPanel graphPanel = new JPanel( ); // Just a placeholder
+		JPanel graphPanel = new ScatterPlot( correlation.getMolecules( ));
 		JPanel infoPanel = new InfoPanel( 
 			this.correlation.getValue( ), 
 			molecule0Samples.size( ),
@@ -100,6 +109,42 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		}
 		else if ( source == this.molecule1Button ) {
 			this.detailWindow.show( this.correlation.getMolecules( )[ 1 ]);
+		}
+	}
+
+	private class ScatterPlot extends JPanel {
+		private JFreeChart chart;
+
+		public ScatterPlot ( Molecule [] molecules ) {
+			super( );
+			List <Double> mol0Samples = molecules[ 0 ].getSamples( );
+			List <Double> mol1Samples = molecules[ 1 ].getSamples( );
+			XYSeries data = new XYSeries( "Sample Data" );
+			Iterator <Double> mol0Iterator = mol0Samples.iterator( );
+			Iterator <Double> mol1Iterator = mol1Samples.iterator( );
+			while ( mol0Iterator.hasNext( )) {
+				data.add( mol0Iterator.next( ).doubleValue( ),
+				          mol1Iterator.next( ).doubleValue( ));
+			}
+			XYSeriesCollection dataset = new XYSeriesCollection( );
+			dataset.addSeries( data );
+			this.chart = ChartFactory.createScatterPlot(
+				null, //title
+				molecules[ 0 ].toString( ), // x axis label
+				molecules[ 1 ].toString( ), //y axis label
+				dataset, // plot data
+				PlotOrientation.VERTICAL, // Plot Orientation
+				false, // show legend
+				false, // use tooltips
+				false  // configure chart to generate URLs (?!)
+			);
+		}
+
+		public void paintComponent ( Graphics g ) {
+			super.paintComponent( g );
+			Dimension size = this.getSize( null );
+			BufferedImage drawing = chart.createBufferedImage( size.width, size.height );
+			g.drawImage( drawing, 0, 0, Color.WHITE, this );
 		}
 	}
 	

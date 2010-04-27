@@ -22,11 +22,14 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.JSysNet;
 
 import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
-import java.awt.Dimension;
 import edu.purdue.jsysnet.util.*;
 
 public class DetailWindow extends JFrame {
@@ -37,11 +40,29 @@ public class DetailWindow extends JFrame {
 	public DetailWindow( String title, Range range ) {
 		super( title );
 		this.correlationRange = range;
-		this.setSize( new Dimension( 800, 500 ));
+		int width  = JSysNet.settings.getInt( "detailWindowWidth"  );
+		int height = JSysNet.settings.getInt( "detailWindowHeight" );
+		int x = Math.max( 0, Math.min( 
+		  JSysNet.settings.getInt( "detailWindowXPosition" ), 
+			JSysNet.settings.getInt( "desktopWidth" ) - width ));
+		int y = Math.max( 0, Math.min( 
+		  JSysNet.settings.getInt( "detailWindowYPosition" ), 
+			JSysNet.settings.getInt( "desktopHeight" ) - height ));
+		
+		this.setBounds( x, y, width, height );
 		this.setLayout( new BorderLayout( ));
 		this.getContentPane( ).add( tabPane, BorderLayout.CENTER );
 		this.setVisible( true );
 
+		this.addWindowListener(new WindowAdapter() {
+		  public void windowClosing(WindowEvent e) {
+				JFrame f = (JFrame)e.getSource( );
+				JSysNet.settings.setInt( "detailWindowXPosition", f.getX( ));
+				JSysNet.settings.setInt( "detailWindowYPosition", f.getY( ));
+				JSysNet.settings.setInt( "detailWindowWidth", f.getWidth( ));
+				JSysNet.settings.setInt( "detailWindowHeight", f.getHeight( ));
+			}
+		});
 	}
 
 	public DetailWindow( String title, Molecule molecule, Range range ) {

@@ -31,10 +31,12 @@ import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JSplitPane;
 import javax.swing.JScrollPane;
+import javax.swing.JOptionPane;
 
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.JSysNet;
 
 public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private Molecule molecule;
@@ -72,22 +74,27 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 		rightPanel.add( new JScrollPane( this.correlationsTable ), BorderLayout.CENTER );
 		rightPanel.add( buttonPanel, BorderLayout.SOUTH );
 		JSplitPane splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel );
-		splitPane.setDividerLocation( 200 );
+		splitPane.setDividerLocation( 300 );
 		this.add( splitPane, BorderLayout.CENTER );
 	}
 
 	public void actionPerformed( ActionEvent event ) {
 		Object source = event.getSource( );
-		if ( source == this.showElementButton ) {
-			this.detailWindow.show( 
-				this.getMoleculesInRange( ).get( 
-					this.correlationsTable.getSelectedRow( )));
-		}
-		if ( source == this.showCorrelationButton ) {
-			this.detailWindow.show( 
-				this.molecule.getCorrelation( 
+		if ( this.correlationsTable.getSelectedRow( ) >= 0 ) {
+			if ( source == this.showElementButton ) {
+				this.detailWindow.show( 
 					this.getMoleculesInRange( ).get( 
-						this.correlationsTable.getSelectedRow( ))));
+						this.correlationsTable.getSelectedRow( )));
+			}
+			if ( source == this.showCorrelationButton ) {
+				this.detailWindow.show( 
+					this.molecule.getCorrelation( 
+						this.getMoleculesInRange( ).get( 
+							this.correlationsTable.getSelectedRow( ))));
+			}
+		} else {
+			JOptionPane.showMessageDialog( this, 
+				"You must select a molecule from the table to view its details" );
 		}
 
 	}

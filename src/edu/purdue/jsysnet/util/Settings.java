@@ -123,6 +123,10 @@ public class Settings extends Properties {
 			this.setProperty( "desktopHeight", Integer.toString( desktopSize.height ));
 			this.setProperty( "windowXPosition", Integer.toString(( desktopSize.width - 1024 ) / 2 ));
 			this.setProperty( "windowYPosition", Integer.toString(( desktopSize.height - 768 ) / 2 ));
+			this.setProperty( "detailWindowWidth", "850" );
+			this.setProperty( "detailWindowHeight", "350" );
+			this.setProperty( "detailWindowXPosition", "100" );
+			this.setProperty( "detailWindowYPosition", "40" );
 			this.setProperty( "debug", "false" );
 			this.setProperty( "verbose", "false" );
 		}

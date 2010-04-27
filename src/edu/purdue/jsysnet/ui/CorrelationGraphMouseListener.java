@@ -75,7 +75,8 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			this.exploreCorrelationsMenu.removeAll( );
 			this.correlationMap.clear( );
 			this.molecule = m;
-			Range range = new Range( 0.6, 1 ); // Temporary
+			Range range =
+				((CorrelationGraphVisualizer)invoker).getCorrelationFilterPanel( ).getRange( );
 			for( Correlation c : m.getCorrelations( )) {
 				if ( range.contains( Math.abs( c.getValue( )))) {
 					JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
