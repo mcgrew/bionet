@@ -28,11 +28,12 @@ import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.Dimension;
+import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import edu.purdue.jsysnet.util.*;
 
-public class DetailWindow extends JFrame {
+public class DetailWindow extends JFrame implements TabbedWindow {
 
 	private JTabbedPane tabPane = new ClosableTabbedPane( );
 	private Range correlationRange;
@@ -85,6 +86,14 @@ public class DetailWindow extends JFrame {
 		this.tabPane.setSelectedComponent( 
 			this.tabPane.add( correlation.toString( ),
 				new CorrelationDetailPanel( correlation, this.correlationRange, this )));
+	}
+
+	public void addTab( String title, Component c ) {
+		this.tabPane.addTab( title, c );
+	}
+
+	public TabbedWindow newWindow( ) {
+		return new DetailWindow( this.getTitle( ), this.correlationRange );
 	}
 
 }

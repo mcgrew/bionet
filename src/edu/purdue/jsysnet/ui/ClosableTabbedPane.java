@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -28,15 +29,22 @@ import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.JTabbedPane;
+import javax.swing.JComponent;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Icon;
 import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 
-public class ClosableTabbedPane extends JTabbedPane implements ActionListener {
+public class ClosableTabbedPane extends JTabbedPane implements ActionListener,MouseListener {
+	protected boolean tearOffEnabled = true;
+	protected TabPopup tabPopup = new TabPopup( );
 	
 	public void addTab( String title, Component component ) {
 		super.addTab( title, component );
@@ -65,16 +73,82 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener {
 		tabComponent.add( button, BorderLayout.EAST );
 		this.setTabComponentAt( index, tabComponent );
 		button.addActionListener( this );
+		if ( tearOffEnabled )
+			this.enableTearOff( index );
+	}
+
+	private void enableTearOff( int index ) {
+		this.getTabComponentAt( index ).addMouseListener( this );
 	}
 
 	public void actionPerformed( ActionEvent event ) {
-		int i = this.indexOfTabComponent( ((TabCloseButton)event.getSource( )).getParent( ));
-		if (  i >= 0 ) {
-			this.remove( i );
+		Object source = event.getSource( );
+		if ( source.getClass( ) == TabCloseButton.class ) {
+			int i = this.indexOfTabComponent( ((JComponent)source).getParent( ));
+			if (  i >= 0 ) {
+				this.remove( i );
+			}
 		}
 	}
 
-	private class TabCloseButton extends JButton {
+	public void mouseClicked( MouseEvent event ) {
+		JComponent source = (JComponent)event.getSource( );
+		int index = this.indexOfTabComponent( source );
+		if ( index >= 0 ) {
+			if ( event.getButton( ) == MouseEvent.BUTTON1 ) {
+				this.setSelectedIndex( index );
+			} else if ( event.getButton( ) == MouseEvent.BUTTON3 ) {
+				Component c = this.getComponentAt( index );
+				this.tabPopup.show( 
+					(JComponent)event.getSource( ), 
+					event.getX( ), event.getY( ), 
+					this.getTitleAt( index ),
+					this.getComponentAt( index ));
+			}
+		}
+	}
+
+	public void mouseEntered( MouseEvent event ) { }
+	public void mouseExited( MouseEvent event ) { }
+	public void mousePressed( MouseEvent event ) { }
+	public void mouseReleased( MouseEvent event ) { }
+
+	public void setTearOff( boolean enable ) {
+		this.tearOffEnabled = enable;
+	}
+
+	protected class TabPopup extends JPopupMenu implements ActionListener {
+		private JMenuItem tearOffMenuItem = new JMenuItem( "Open in  new window" );
+		private String tabTitle;
+		private Component tabComponent;
+
+		public TabPopup( ) {
+			super( );
+			this.tearOffMenuItem.addActionListener( this );
+			this.add( this.tearOffMenuItem );
+		}
+
+		public void show( Component invoker, int x, int y, String tabTitle, Component tabComponent ) {
+			if ( TabbedWindow.class.isAssignableFrom(
+				((JComponent)invoker).getTopLevelAncestor( ).getClass( ))) {
+					this.tabTitle = tabTitle;
+					this.tabComponent = tabComponent;
+					this.show( invoker, x, y );
+			}
+		}
+
+		public void actionPerformed( ActionEvent event ) {
+			Object source = event.getSource( );
+			if ( source == this.tearOffMenuItem ) {
+				TabbedWindow top = (TabbedWindow)((JComponent)this.getInvoker( )).getTopLevelAncestor( );
+				TabbedWindow newWindow = top.newWindow( );
+				newWindow.addTab( this.tabTitle, this.tabComponent );
+			}
+		}
+
+	}
+
+	protected class TabCloseButton extends JButton {
 		private final int size = 17;
 
 		public TabCloseButton ( ) {
@@ -95,11 +169,6 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener {
 			if ( this.getModel( ).isPressed( ))
 				g2.translate( 1, 1 );
 			g2.setStroke( new BasicStroke( 2 ));
-//			if( this.getModel( ).isRollover( ))
-//				g2.setColor( new Color( 1f, 0.5f, 0.5f ));
-//			else
-//				g2.setColor( Color.RED );
-//			g2.fillRect( 5,3,8,8 );
 			g2.setColor( Color.BLACK );
 			g2.drawLine( 7,5,11,9 );
 			g2.drawLine( 11,5,7,9 );

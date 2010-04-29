@@ -24,19 +24,21 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import edu.purdue.jsysnet.util.*;
 import edu.purdue.jsysnet.io.*;
 import edu.purdue.jsysnet.JSysNet;
 
-public class JSysNetWindow extends JFrame implements ActionListener {
+public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow {
 
 	private JTabbedPane tabPane = new ClosableTabbedPane( );
 	
 	// Menu elements
 	private JMenuBar menuBar = new JMenuBar( );
 	private JMenu fileMenu = new JMenu( "File" );
+	private JMenuItem newWindowFileMenuItem = new JMenuItem( "New Window", KeyEvent.VK_N );
 	private JMenuItem openFileMenuItem = new JMenuItem( "Open...", KeyEvent.VK_O );
 	private JMenuItem saveFileMenuItem = new JMenuItem( "Save...", KeyEvent.VK_S );
 	private JMenuItem printFileMenuItem = new JMenuItem( "Print...", KeyEvent.VK_P );
@@ -52,11 +54,13 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 	private JMenuItem contentsHelpMenuItem = new JMenuItem( "Contents", KeyEvent.VK_C );
 	private JMenuItem aboutHelpMenuItem = new JMenuItem( "About", KeyEvent.VK_A );
 
+	public JSysNetWindow( ) {
+		this( "JSysNet" );
+	}
 
 	public JSysNetWindow ( String title ) {
 
 		super( title );
-		this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		this.setLayout( new BorderLayout( ));
 		int width = JSysNet.settings.getInt( "windowWidth" );
 		int height = JSysNet.settings.getInt( "windowHeight" );
@@ -84,10 +88,27 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 				JSysNet.settings.setInt( "windowYPosition", f.getY( ));
 				JSysNet.settings.setInt( "windowWidth", f.getWidth( ));
 				JSysNet.settings.setInt( "windowHeight", f.getHeight( ));
-		    System.exit(0);
+				if ( this.getWindowCount( ) == 1 )
+			    System.exit(0);
+			}
+			private int getWindowCount( ) {
+				int returnValue = 0;
+				for( Window w : Window.getWindows( )) {
+					if ( w.isShowing( ))
+						returnValue++;
+				}
+				return returnValue;
 			}
 		});
 
+	}
+
+	public void addTab( String title, Component c ) {
+		this.tabPane.addTab( title, c );
+	}
+	
+	public TabbedWindow newWindow( ) {
+		return new JSysNetWindow( this.getTitle( ));
 	}
 
 	private void setupMenu( ) {
@@ -96,10 +117,13 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 		this.fileMenu.setMnemonic( KeyEvent.VK_F );
 		this.fileMenu.getAccessibleContext( ).setAccessibleDescription(
 			"Perform file operations" );
+		this.fileMenu.add( this.newWindowFileMenuItem );
 		this.fileMenu.add( this.openFileMenuItem );
 		this.fileMenu.add( this.saveFileMenuItem );
 		this.fileMenu.add( this.printFileMenuItem );
 		this.fileMenu.add( this.exitFileMenuItem );
+		this.newWindowFileMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK ));
 		this.openFileMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK ));
 		this.saveFileMenuItem.setAccelerator( 
@@ -143,6 +167,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 	}
 
 	private void addMenuListeners( ) {
+		this.newWindowFileMenuItem.addActionListener( this );
 		this.openFileMenuItem.addActionListener( this );
 		this.saveFileMenuItem.addActionListener( this );
 		this.printFileMenuItem.addActionListener( this );
@@ -190,8 +215,10 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 			System.err.println( "\t  paramString: "+e.paramString( ));
 		}
 
-		Component item = ( Component )e.getSource( );
-		if ( item == this.openFileMenuItem ) {
+		Object item = e.getSource( );
+		if ( item == this.newWindowFileMenuItem ) {
+			this.newWindow( );
+		} else if ( item == this.openFileMenuItem ) {
 			DataHandler data = this.openCSV( );
 			if ( data == null ) {
 				return;
@@ -199,8 +226,7 @@ public class JSysNetWindow extends JFrame implements ActionListener {
 			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
 			this.tabPane.addTab( "Correlation View", cdp );
 			cdp.createGraph( data );
-		}
-		else if ( item == this.exitFileMenuItem ) {
+		} else if ( item == this.exitFileMenuItem ) {
 			this.dispose( );
 		}
 	}
