@@ -128,7 +128,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK ));
 		this.saveFileMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK ));
-		this.saveFileMenuItem.setAccelerator( 
+		this.printFileMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK ));
 		this.exitFileMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK ));

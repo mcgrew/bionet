@@ -24,6 +24,9 @@ import edu.purdue.jsysnet.ui.layout.*;
 import java.util.Collection;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
+import java.awt.event.MouseWheelEvent;
+import javax.swing.JScrollBar;
+
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.*;
@@ -34,6 +37,9 @@ import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
 import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.visualization.picking.PickedState;
+import edu.uci.ics.jung.visualization.control.ViewScalingControl;
+import edu.uci.ics.jung.visualization.control.AbsoluteCrossoverScalingControl;
+import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 
 
 /**
@@ -43,6 +49,11 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	public Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
+	private AbsoluteCrossoverScalingControl absoluteViewScaler = new AbsoluteCrossoverScalingControl( );
+//	private ViewScalingControl viewScaler = new ViewScalingControl( );
+	private GraphZoomScrollPane scrollPane;
+	private float currentZoom = 1.0f;
+	private static float minimumZoom = 0.8f;
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -156,7 +167,11 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		this.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<V>( ));
 //		this.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<E>( ));
 		this.getRenderer( ).getVertexLabelRenderer( ).setPosition( Position.CNTR );
-		DefaultModalGraphMouse mouse = new DefaultModalGraphMouse( );
+		DefaultModalGraphMouse mouse = new DefaultModalGraphMouse( ) {
+			public void mouseWheelMoved( MouseWheelEvent e ) {
+				scale((float)Math.pow( 1.25, -e.getWheelRotation( )), e.getPoint( ));
+			}
+		};
 		mouse.setMode( ModalGraphMouse.Mode.PICKING );
 		this.setGraphMouse( mouse );
 	}
@@ -235,6 +250,91 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		for( E e : this.graph.getEdges( )) {
 			edgeState.pick( e, false );
 		}
+	}
+
+	/**
+	 * Scales the graph view by the given amount.
+	 * 
+	 * @param amount The multiplier to apply to the scaling.
+	 */
+	public void scale( float amount ) {
+		this.scale( amount, this.getCenterPoint( ));
+	}
+
+	/**
+	 * Scales the gaph view by the givem amount, centered on the 
+	 * given point.
+	 * 
+	 * @param amount The multiplier to apply to the scaling.
+	 * @param center The center point for the scaling operation.
+	 */
+	public void scale( float amount, Point2D center ) {
+//		this.viewScaler.scale( this, amount, center );
+		this.zoomTo( currentZoom * amount, center );
+	}
+
+	/**
+	 * Zooms to the given graph level, 1.0 being 100%.
+	 * 
+	 * @param level The level to zoom to.
+	 */
+	public void zoomTo( float level ) {
+		this.zoomTo( level, this.getCenterPoint( ));
+	}
+
+	/**
+	 * Zooms to the given graph level, 1.0 being 100%.
+	 * 
+	 * @param level The level to zoom to.
+	 * @param center The center point for the scaling operation.
+	 */
+	public void zoomTo( float level, Point2D center ) {
+		this.currentZoom = Math.max( minimumZoom, level );
+		this.absoluteViewScaler.scale( this, level, center );
+	}
+
+	/**
+	 * Centers the graph in the display.
+	 */
+	public void center( ) {
+			// toggle the scrollbars back and forth to center the image
+			JScrollBar sb = scrollPane.getHorizontalScrollBar( );
+			sb.setValue( sb.getMaximum( ));
+			sb.setValue( sb.getMinimum( ));
+			sb.setValue(( sb.getMaximum( ) + sb.getMinimum( )) / 2 );
+			sb = scrollPane.getVerticalScrollBar( );
+			sb.setValue( sb.getMaximum( ));
+			sb.setValue( sb.getMinimum( ));
+			sb.setValue( (sb.getMaximum( ) + sb.getMinimum( )) / 2 );
+	}
+	
+	/**
+	 * Resets the zoom level to 100% and centers the viewport.
+	 */
+	public void resetView( ) {
+		this.zoomTo( 1.0f );
+		this.center( );
+	}
+
+	/**
+	 * Gets the GraphZoomScrollPane associated with this viewer.
+	 * 
+	 * @return A GraphZoomScrollPane which contains this GraphVisualizer.
+	 */
+	public GraphZoomScrollPane getScrollPane( ) {
+		if ( this.scrollPane == null )
+			this.scrollPane = new GraphZoomScrollPane( this );
+		return this.scrollPane;
+	}
+
+	/**
+	 * Get the center point for the graph.
+	 * 
+	 * @return The center point of this graph as a Point2D.
+	 */
+	public Point2D getCenterPoint( ) {
+		Dimension size = this.getGraphLayout( ).getSize( );
+		return new Point2D.Double( size.width / 2.0, size.height / 2.0 );
 	}
 
 	// Graph interface Methods

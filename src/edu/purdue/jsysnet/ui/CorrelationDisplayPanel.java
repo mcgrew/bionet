@@ -44,6 +44,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
+import javax.swing.Action;
+import javax.swing.AbstractAction;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ItemListener;
@@ -64,7 +66,6 @@ import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
-import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 import edu.uci.ics.jung.algorithms.layout.KKLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
@@ -73,7 +74,7 @@ import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
 /**
  * A class for displaying and interacting with Correlation data for a set of molecules.
  */
-public class CorrelationDisplayPanel extends JPanel {
+public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 
 	private JMenuBar menuBar = new JMenuBar( );
 
@@ -135,7 +136,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	 * @param data The data to be used in this Panel
 	 */
 	public CorrelationDisplayPanel ( DataHandler data ) {
-		super( new BorderLayout( ) );
+		super( new BorderLayout( ));
 		this.buildPanel( );
 		this.createGraph( data );
 	}
@@ -145,7 +146,7 @@ public class CorrelationDisplayPanel extends JPanel {
 	 */
 	private void buildPanel ( ) {
 
-		MenuItemListener menuItemListener = new MenuItemListener( this );
+		MenuItemListener menuItemListener = new MenuItemListener( );
 
 		// CORRELATION FILTER ELEMENTS
 		JPanel leftPanel = new JPanel( new BorderLayout( ));
@@ -167,13 +168,13 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.calculationMenu.add( this.pearsonCalculationMenuItem );
 		this.calculationMenu.add( this.spearmanCalculationMenuItem );
 		this.calculationMenu.add( this.kendallCalculationMenuItem );
-		CalculationChangeListener ccl = new CalculationChangeListener( this );
+		CalculationChangeListener ccl = new CalculationChangeListener( );
 		this.pearsonCalculationMenuItem.addItemListener( ccl );
 		this.spearmanCalculationMenuItem.addItemListener( ccl ); 
 		this.kendallCalculationMenuItem.addItemListener( ccl );
 
 		//LAYOUT MENU
-		LayoutChangeListener lcl = new LayoutChangeListener( this );
+		LayoutChangeListener lcl = new LayoutChangeListener( );
 		this.layoutMenu.setMnemonic( KeyEvent.VK_L );
 		this.layoutMenu.getAccessibleContext( ).setAccessibleDescription(
 			"Change the layout of the graph" );
@@ -209,17 +210,27 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
 		this.viewMenu.getAccessibleContext( ).setAccessibleDescription(
 			"Change the data view settings" );
-		this.viewMenu.add( this.zoomInViewMenuItem );
 		this.viewMenu.add( this.zoomOutViewMenuItem );
+		this.viewMenu.add( this.zoomInViewMenuItem );
 		this.viewMenu.add( this.fitToWindowViewMenuItem );
 		this.viewMenu.add( this.selectAllViewMenuItem );
 		this.viewMenu.add( this.clearSelectionViewMenuItem );
-		this.selectAllViewMenuItem.addActionListener( menuItemListener );
-		this.clearSelectionViewMenuItem.addActionListener( menuItemListener );
+		this.zoomOutViewMenuItem.addActionListener( this );
+		this.zoomInViewMenuItem.addActionListener( this );
+		this.fitToWindowViewMenuItem.addActionListener( this );
+		this.selectAllViewMenuItem.addActionListener( this );
+		this.clearSelectionViewMenuItem.addActionListener( this );
 		this.selectAllViewMenuItem.setAccelerator(
 			KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK ));
 		this.clearSelectionViewMenuItem.setAccelerator(
 			KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ));
+
+		this.zoomOutViewMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK ));
+		this.zoomInViewMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK ));
+		this.fitToWindowViewMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK ));
 
 		//COLOR MENU
 		this.colorMenu.setMnemonic( KeyEvent.VK_R );
@@ -340,7 +351,7 @@ public class CorrelationDisplayPanel extends JPanel {
 		this.graph = v;
 		this.correlationFilterPanel.setVisualization( v );
 		// add labels to the graph
-		this.add( new GraphZoomScrollPane( this.graph ), BorderLayout.CENTER );
+		this.add( this.graph.getScrollPane( ), BorderLayout.CENTER );
 //		this.graph.repaint( );
 	}
 	
@@ -393,8 +404,45 @@ public class CorrelationDisplayPanel extends JPanel {
 		return this.correlationFilterPanel.getRange( );
 	}
 
-	// ******************* PROTECTED CLASSES **************************
+	/**
+	 * Scales the graph to the given level relative to the current zoom level.
+	 * 
+	 * @param amount The amount to scale the graph view by.
+	 */
+	public void zoom( float amount ) {
+		this.graph.scale( amount );
+	}
 
+	/**
+	 * Sets the graph to the given zoom level, 1.0 being 100%.
+	 * 
+	 * @param level the new Zoom level.
+	 */
+	public void setZoom( float level ) {
+		this.graph.zoomTo( level );
+	}
+
+	/**
+	 * The actionPerformed method of the ActionListener interface.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
+	public void actionPerformed( ActionEvent event ) {
+		Component item = ( Component )event.getSource( );
+		if ( item == this.selectAllViewMenuItem ) {
+			this.graph.selectAll( );
+		} else if ( item == this.clearSelectionViewMenuItem ) {
+			this.graph.clearSelection( );
+		}	else if ( item == this.zoomInViewMenuItem ) {
+			this.graph.scale( 1.25f );
+		} else if ( item == this.zoomOutViewMenuItem ) {
+			this.graph.scale( 0.8f );
+		} else if ( item == this.fitToWindowViewMenuItem ) {
+			this.graph.resetView( );
+		}
+	}
+
+	// ******************* PRIVATE/PROTECTED CLASSES **************************
 
 	protected class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener {
 		private JButton noneButton = new JButton( "None" );
@@ -402,7 +450,6 @@ public class CorrelationDisplayPanel extends JPanel {
 		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 ));
 		private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
 		private ArrayList<MoleculeCheckBox> checkBoxArrayList = new ArrayList<MoleculeCheckBox>( );
-		private CorrelationGraphVisualizer graph;
 		private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
 		private JComboBox sortComboBox = new JComboBox( );
 
@@ -446,7 +493,6 @@ public class CorrelationDisplayPanel extends JPanel {
 		 * @param g The CorrelationGraphVisualizer to use to display the graph.
 		 */
 		public void setGraph( CorrelationGraphVisualizer g ) {
-			this.graph = g;
 		}
 
 		/**
@@ -477,22 +523,22 @@ public class CorrelationDisplayPanel extends JPanel {
 		 * @param event the event which triggered this action.
 		 */
 		public void itemStateChanged( ItemEvent event ) {
-			synchronized( this.graph.graph ) {
+			synchronized( graph.graph ) {
 				Molecule molecule = (( MoleculeCheckBox )event.getSource( )).getMolecule( );
 				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
-					this.graph.addVertex( molecule );
+					graph.addVertex( molecule );
 					for( Correlation correlation : molecule.getCorrelations( )) {
-						if ( this.graph.isValidEdge( correlation ))
-							this.graph.addEdge( correlation,
+						if ( graph.isValidEdge( correlation ))
+							graph.addEdge( correlation,
 			                            new Pair<Molecule>( correlation.getMolecules( )),
 																	EdgeType.UNDIRECTED );
 					}
 				}
 				else {
-					this.graph.removeVertex( molecule );
+					graph.removeVertex( molecule );
 				}
 			}
-			this.graph.repaint( );
+			graph.repaint( );
 		}
 
 		// for the select buttons
@@ -581,16 +627,6 @@ public class CorrelationDisplayPanel extends JPanel {
 	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
 	 */
 	protected class CalculationChangeListener implements ItemListener {
-		private CorrelationDisplayPanel displayPanel;
-
-		/**
-		 * Constructs a CalculationChangeListener object.
-		 * 
-		 * @param c The correlationDisplayPanel to be associated with this Listener.
-		 */
-		public CalculationChangeListener( CorrelationDisplayPanel c ) {
-			this.displayPanel = c;
-		}
 
 		/**
 		 * The itemStateChanged method of the ItemListener interface.
@@ -600,14 +636,14 @@ public class CorrelationDisplayPanel extends JPanel {
 		public void itemStateChanged( ItemEvent event ) {
 			JRadioButtonMenuItem item = (( JRadioButtonMenuItem )event.getSource( ));
 			if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
-				if ( item == this.displayPanel.pearsonCalculationMenuItem )
+				if ( item == pearsonCalculationMenuItem )
 					Correlation.setDefaultMethod( Correlation.PEARSON );
-				else if ( item == this.displayPanel.spearmanCalculationMenuItem )
+				else if ( item == spearmanCalculationMenuItem )
 					Correlation.setDefaultMethod( Correlation.SPEARMAN );
-				else if ( item == this.displayPanel.kendallCalculationMenuItem )
+				else if ( item == kendallCalculationMenuItem )
 					Correlation.setDefaultMethod( Correlation.KENDALL );
-				this.displayPanel.graph.filterEdges( );
-				this.displayPanel.graph.repaint( );
+				graph.filterEdges( );
+				graph.repaint( );
 			}
 		}
 	}
@@ -617,16 +653,6 @@ public class CorrelationDisplayPanel extends JPanel {
 	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
 	 */
 	protected class MenuItemListener implements ActionListener {
-		private CorrelationDisplayPanel cdp;
-
-		/**
-		 * Constructs a MenuItemListener.
-		 * 
-		 * @param c The CorrelationDisplayPanel to be associated with this listener.
-		 */
-		public MenuItemListener ( CorrelationDisplayPanel c ) {
-			this.cdp = c;
-		}
 
 		/**
 		 * The actionPerformed method of the ActionListener interface.
@@ -636,11 +662,11 @@ public class CorrelationDisplayPanel extends JPanel {
 		public void actionPerformed( ActionEvent event ) {
 			Component item = ( Component )event.getSource( );
 
-			if ( item == this.cdp.selectAllViewMenuItem ) {
-				this.cdp.graph.selectAll( );
+			if ( item == selectAllViewMenuItem ) {
+				graph.selectAll( );
 			}
-			else if ( item == this.cdp.clearSelectionViewMenuItem ) {
-				this.cdp.graph.clearSelection( );
+			else if ( item == clearSelectionViewMenuItem ) {
+				graph.clearSelection( );
 			}
 		}
 	}
@@ -650,16 +676,6 @@ public class CorrelationDisplayPanel extends JPanel {
 	 * @todo Integrate this class with the CorrelationDisplayPanel class.
 	 */
 	protected class LayoutChangeListener implements ActionListener {
-			private CorrelationDisplayPanel cdp;
-
-			/**
-			 * Constructs a new LayoutChangeListener.
-			 * 
-			 * @param c The CorrelationDisplayPanel to be associated with this listener
-			 */
-			public LayoutChangeListener( CorrelationDisplayPanel c ) {
-				this.cdp = c;
-			}
 
 			/**
 			 * The actionPerformed method of the ActionListener interface.
@@ -669,24 +685,24 @@ public class CorrelationDisplayPanel extends JPanel {
 			public void actionPerformed( ActionEvent event ) {
 				Component item = ( Component )event.getSource( );
 
-				if ( item == this.cdp.clusteredLayoutMenuItem ) {
-					this.cdp.graph.animate( this.cdp.clusteredLayoutMenuItem.getState( ));
+				if ( item == clusteredLayoutMenuItem ) {
+					graph.animate( clusteredLayoutMenuItem.getState( ));
 				} else {
-					this.cdp.clusteredLayoutMenuItem.setState( false );
-					if ( item == this.cdp.multipleCirclesLayoutMenuItem )
-						this.cdp.setGraphLayout( MultipleCirclesLayout.class );
-					else if ( item == this.cdp.singleCircleLayoutMenuItem )
-						this.cdp.setGraphLayout( CircleLayout.class );
-//					else if ( item == this.cdp.clusteredLayoutMenuItem )
-//						this.cdp.setGraphLayout( ClusteredLayout.class );
-					else if ( item == this.cdp.randomLayoutMenuItem )
-						this.cdp.setGraphLayout( RandomLayout.class );
-					else if ( item == this.cdp.kkLayoutMenuItem )
-						this.cdp.setGraphLayout( KKLayout.class );
-					else if ( item == this.cdp.frLayoutMenuItem )
-						this.cdp.setGraphLayout( FRLayout.class );
-					else if ( item == this.cdp.springLayoutMenuItem )
-						this.cdp.setGraphLayout( SpringLayout2.class );
+					clusteredLayoutMenuItem.setState( false );
+					if ( item == multipleCirclesLayoutMenuItem )
+						setGraphLayout( MultipleCirclesLayout.class );
+					else if ( item == singleCircleLayoutMenuItem )
+						setGraphLayout( CircleLayout.class );
+//					else if ( item == clusteredLayoutMenuItem )
+//						setGraphLayout( ClusteredLayout.class );
+					else if ( item == randomLayoutMenuItem )
+						setGraphLayout( RandomLayout.class );
+					else if ( item == kkLayoutMenuItem )
+						setGraphLayout( KKLayout.class );
+					else if ( item == frLayoutMenuItem )
+						setGraphLayout( FRLayout.class );
+					else if ( item == springLayoutMenuItem )
+						setGraphLayout( SpringLayout2.class );
 
 				}
 			}
