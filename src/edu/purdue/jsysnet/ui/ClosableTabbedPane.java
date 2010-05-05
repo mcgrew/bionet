@@ -42,29 +42,63 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 
+/**
+ * A class for adding the ability to close tabs and move tabs to a new window.
+ */
 public class ClosableTabbedPane extends JTabbedPane implements ActionListener,MouseListener {
 	protected boolean tearOffEnabled = true;
 	protected TabPopup tabPopup = new TabPopup( );
 	
+	/**
+	 * Adds a component represented by a title and no icon.
+	 * 
+	 * @param title the title to be displayed in this tab.
+	 * @param component the component to be displayed when this tab is clicked.
+	 */
 	public void addTab( String title, Component component ) {
 		super.addTab( title, component );
 		this.makeClosable( this.getTabCount( )-1 );
 	}
 
+	/**
+	 * Adds a component represented by a title and/or icon, either of which can be null. 
+	 * 
+	 * @param title the title to be displayed in this tab.
+	 * @param icon the icon to be displayed in this tab.
+	 * @param component the component to be displayed when this tab is clicked.
+	 */
 	public void addTab( String title, Icon icon, Component component ) {
 		super.addTab( title, icon, component );
 		this.makeClosable( this.getTabCount( )-1 );
 	}
 		
+	/**
+	 * Adds a component and tip represented by a title and/or icon, either of which can be null.
+	 * 
+	 * @param title the title to be displayed in this tab
+	 * @param icon the icon to be displayed in this tab
+	 * @param component the component to be displayed when this tab is clicked.
+	 */
 	public void addTab( String title, Icon icon, Component component, String tip ) {
 		super.addTab( title, icon, component, tip );
 		this.makeClosable( this.getTabCount( )-1 );
 	}
 
-	public void makeClosable( int index ) {
+	/**
+	 * Makes a tab closable.
+	 * 
+	 * @param index The index of the tab to make closable.
+	 */
+	private void makeClosable( int index ) {
 		this.makeClosable( index, true );
 	}
 
+	/**
+	 * Makes a tab closable.
+	 * 
+	 * @param index the index of the tab to make closable.
+	 * @param closable true to make the tab closable, false otherwise. Currently ignored.
+	 */
 	private void makeClosable( int index, boolean closable ) {
 		JPanel tabComponent = new JPanel( new BorderLayout( ));
 		JLabel tabLabel = new JLabel( this.getTitleAt( index ));
@@ -77,10 +111,20 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 			this.enableTearOff( index );
 	}
 
+	/**
+	 * Enables the ability to move a tab to a new window.
+	 * 
+	 * @param index The index of the tab to enable tear off on.
+	 */
 	private void enableTearOff( int index ) {
 		this.getTabComponentAt( index ).addMouseListener( this );
 	}
 
+	/**
+	 * actionPerformed method of the ActionListener interface.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void actionPerformed( ActionEvent event ) {
 		Object source = event.getSource( );
 		if ( source.getClass( ) == TabCloseButton.class ) {
@@ -91,6 +135,11 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 		}
 	}
 
+	/**
+	 * The mouseClicked method of the MouseListener interface.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mouseClicked( MouseEvent event ) {
 		JComponent source = (JComponent)event.getSource( );
 		int index = this.indexOfTabComponent( source );
@@ -108,26 +157,64 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 		}
 	}
 
+	/**
+	 * The mouseEntered method of the MouseListener interface.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mouseEntered( MouseEvent event ) { }
+
+	/**
+	 * The mouseExited method of the MouseListener interface.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mouseExited( MouseEvent event ) { }
+
+	/**
+	 * The mousePressed method of the MouseListener interface.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mousePressed( MouseEvent event ) { }
+	
+	/**
+	 * The mouseReleased method of the MouseListener interface.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mouseReleased( MouseEvent event ) { }
 
 	public void setTearOff( boolean enable ) {
 		this.tearOffEnabled = enable;
 	}
 
+	/**
+	 * The popup menu for the tabs.
+	 */
 	protected class TabPopup extends JPopupMenu implements ActionListener {
 		private JMenuItem tearOffMenuItem = new JMenuItem( "Open in  new window" );
 		private String tabTitle;
 		private Component tabComponent;
 
+		/**
+		 * Constructs a new TabPopup
+		 */
 		public TabPopup( ) {
 			super( );
 			this.tearOffMenuItem.addActionListener( this );
 			this.add( this.tearOffMenuItem );
 		}
 
+		/**
+		 * Displays the popup menu.
+		 * 
+		 * @param invoker The Component which invoked this menu.
+		 * @param x The x coordinate of the location for this menu.
+		 * @param y The y coordinate of the location for this menu.
+		 * @param tabTitle The title of the tab which was clicked on.
+		 * @param tabComponent The component contained in the tab which was clicked on.
+		 */
 		public void show( Component invoker, int x, int y, String tabTitle, Component tabComponent ) {
 			if ( TabbedWindow.class.isAssignableFrom(
 				((JComponent)invoker).getTopLevelAncestor( ).getClass( ))) {
@@ -137,6 +224,11 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 			}
 		}
 
+		/**
+		 * The actionPerformed method of the ActionListener interface.
+		 * 
+		 * @param event The event which triggered this action.
+		 */
 		public void actionPerformed( ActionEvent event ) {
 			Object source = event.getSource( );
 			if ( source == this.tearOffMenuItem ) {
@@ -148,9 +240,15 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 
 	}
 
+	/**
+	 * A button with an 'x' on it for closing tabs.
+	 */
 	protected class TabCloseButton extends JButton {
 		private final int size = 17;
 
+		/**
+		 * Constructs a new TabCloseButton
+		 */
 		public TabCloseButton ( ) {
 			this.setPreferredSize( new Dimension( this.size, this.size ));
 			this.setToolTipText( "Close" );
@@ -161,8 +259,17 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 			this.setBorderPainted( false );
 		}
 		
+		/**
+		 * Overrides the updateUI method of JButton with a method
+		 * which does nothing.
+		 */
 		public void updateUI( ) { }
 
+		/**
+		 * Draws the 'x' on the button.
+		 * 
+		 * @param g The graphics component of this button.
+		 */
 		protected void paintComponent( Graphics g ) {
 			super.paintComponent( g );
 			Graphics2D g2 = (Graphics2D)g.create( );

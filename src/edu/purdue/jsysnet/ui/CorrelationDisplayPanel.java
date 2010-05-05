@@ -56,6 +56,8 @@ import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
+
 import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -438,10 +440,20 @@ public class CorrelationDisplayPanel extends JPanel {
 			this.moleculeScrollPane.getVerticalScrollBar( ).setUnitIncrement( 50 );
 		}
 
+		/**
+		 * Sets the graph viisualizer for the CorrelationDisplayPanel
+		 * 
+		 * @param g The CorrelationGraphVisualizer to use to display the graph.
+		 */
 		public void setGraph( CorrelationGraphVisualizer g ) {
 			this.graph = g;
 		}
 
+		/**
+		 * Adds a molecule to the Graph and creates a Checkbox for removing it.
+		 * 
+		 * @param m The Molecule to add.
+		 */
 		public void add( Molecule m ) {
 			MoleculeCheckBox cb = new MoleculeCheckBox( m, true );
 			this.moleculeList.add( cb );
@@ -449,11 +461,21 @@ public class CorrelationDisplayPanel extends JPanel {
 			cb.addItemListener( this );
 		}
 
+		/**
+		 * Returns An arrayList of MoleculeCheckBoxes.
+		 * 
+		 * @return an ArrayList of MoleculeCheckBoxes from the display panel
+		 */
 		public ArrayList <MoleculeCheckBox> getCheckBoxes( ) {
 			return this.checkBoxArrayList;
 		}
 
 		//for the checkboxes
+		/**
+		 * The itemStateChanged method of the ItemListener interface.
+		 * 
+		 * @param event the event which triggered this action.
+		 */
 		public void itemStateChanged( ItemEvent event ) {
 			synchronized( this.graph.graph ) {
 				Molecule molecule = (( MoleculeCheckBox )event.getSource( )).getMolecule( );
@@ -474,6 +496,11 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 
 		// for the select buttons
+		/**
+		 * The actionPerformed method of the ActionListener interface.
+		 * 
+		 * @param e The event which triggered this action.
+		 */
 		public void actionPerformed( ActionEvent e ) {
 			JButton source = ( JButton )e.getSource( );
 			if ( source == this.allButton )
@@ -482,6 +509,11 @@ public class CorrelationDisplayPanel extends JPanel {
 				this.setAll( false );
 		}
 
+		/**
+		 * Sets all checkboxes to the desired state.
+		 * 
+		 * @param state True for checkecd, false for unchecked.
+		 */
 		private void setAll( boolean state ) {
 			for ( MoleculeCheckBox m : this.getCheckBoxes( ) ) {
 				m.setSelected( state );
@@ -496,35 +528,75 @@ public class CorrelationDisplayPanel extends JPanel {
 				}
 			}
 		}
+
+		public void filter( String filter ) {
+			Pattern p = Pattern.compile( filter );
+			for( MoleculeCheckBox m : this.getCheckBoxes( )) {
+				m.setVisible( p.matcher( m.getMolecule( ).toString( ) ).matches( ));
+			}
+		}
 		
 	}
 
 
+	/**
+	 * A class for checkboxes to turn on and off graph nodes.
+	 */
 	protected class MoleculeCheckBox extends JCheckBox {
 		private Molecule molecule;
 
+		/**
+		 * Constructs a MoleculeCheckBox object.
+		 * 
+		 * @param molecule The molecule to connect with this check box.
+		 * @param state The initial state of the checkbox.
+		 */
 		public MoleculeCheckBox( Molecule molecule, boolean state ) {
 			super( molecule.getAttribute( "id" ), state );
 			this.molecule = molecule;
 		}
 
+		/**
+		 * Sets the molecule to be associated with this check box.
+		 * 
+		 * @param molecule The molecule to connect with this check box.
+		 */
 		public void setMolecule( Molecule molecule ) {
 			this.setLabel( molecule.getAttribute( "id" ));
 			this.molecule = molecule;
 		}
 
+		/**
+		 * Returns the molecule associated with this check box.
+		 * 
+		 * @return The Molecule assocated with this check box.
+		 */
 		public Molecule getMolecule( ) {
 			return this.molecule;
 		}
 	}
 
+	/**
+	 * A class which listens for a change in the state of the calculation menu.
+	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
+	 */
 	protected class CalculationChangeListener implements ItemListener {
 		private CorrelationDisplayPanel displayPanel;
 
+		/**
+		 * Constructs a CalculationChangeListener object.
+		 * 
+		 * @param c The correlationDisplayPanel to be associated with this Listener.
+		 */
 		public CalculationChangeListener( CorrelationDisplayPanel c ) {
 			this.displayPanel = c;
 		}
 
+		/**
+		 * The itemStateChanged method of the ItemListener interface.
+		 * 
+		 * @param event The event which triggered this action.
+		 */
 		public void itemStateChanged( ItemEvent event ) {
 			JRadioButtonMenuItem item = (( JRadioButtonMenuItem )event.getSource( ));
 			if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
@@ -540,13 +612,27 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 	}
 
+	/**
+	 * A class for listening for clicks on menu items.
+	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
+	 */
 	protected class MenuItemListener implements ActionListener {
 		private CorrelationDisplayPanel cdp;
 
+		/**
+		 * Constructs a MenuItemListener.
+		 * 
+		 * @param c The CorrelationDisplayPanel to be associated with this listener.
+		 */
 		public MenuItemListener ( CorrelationDisplayPanel c ) {
 			this.cdp = c;
 		}
 
+		/**
+		 * The actionPerformed method of the ActionListener interface.
+		 * 
+		 * @param event The event which triggered this action.
+		 */
 		public void actionPerformed( ActionEvent event ) {
 			Component item = ( Component )event.getSource( );
 
@@ -559,13 +645,27 @@ public class CorrelationDisplayPanel extends JPanel {
 		}
 	}
 
+	/**
+	 * A class for listening for changes to the layout menu.
+	 * @todo Integrate this class with the CorrelationDisplayPanel class.
+	 */
 	protected class LayoutChangeListener implements ActionListener {
 			private CorrelationDisplayPanel cdp;
 
+			/**
+			 * Constructs a new LayoutChangeListener.
+			 * 
+			 * @param c The CorrelationDisplayPanel to be associated with this listener
+			 */
 			public LayoutChangeListener( CorrelationDisplayPanel c ) {
 				this.cdp = c;
 			}
 
+			/**
+			 * The actionPerformed method of the ActionListener interface.
+			 * 
+			 * @param event The event which triggered this action.
+			 */
 			public void actionPerformed( ActionEvent event ) {
 				Component item = ( Component )event.getSource( );
 

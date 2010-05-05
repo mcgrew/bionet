@@ -46,6 +46,9 @@ import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
 
+/**
+ * A panel for displaying detailed information about a correlation.
+ */
 public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	private Correlation correlation;
 	private Range correlationRange;
@@ -57,6 +60,13 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	List molecule0Samples;
 	List molecule1Samples;
 
+	/**
+	 * Constructs a new CorrelationDetailPanel
+	 * 
+	 * @param correlation The Correlation to display information about.
+	 * @param range The valid range for correlations displayed in this window.
+	 * @param detailWindow The parent window of this panel.
+	 */
 	public CorrelationDetailPanel( Correlation correlation, Range range, DetailWindow detailWindow ) {
 		super( new BorderLayout( ));
 		this.correlation = correlation;
@@ -88,8 +98,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		JPanel graphPanel = new ScatterPlot( correlation.getMolecules( ));
 		JPanel infoPanel = new InfoPanel( 
 			this.correlation.getValue( ), 
-			molecule0Samples.size( ),
-			new double[] { 0.497, 0.576, 0.658, 0.708 }
+			molecule0Samples.size( )
 		);
 
 		JPanel mainPanel = new JPanel( new BorderLayout( ));
@@ -102,6 +111,11 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 
 	}
 
+	/**
+	 * The actionPerformed method of the ActionListener interface.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void actionPerformed( ActionEvent event ) {
 		Object source = event.getSource( );
 		if ( source == this.molecule0Button ) {
@@ -112,9 +126,17 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		}
 	}
 
+	/**
+	 * A panel for displaying a scatter plot containing molecule information.
+	 */
 	private class ScatterPlot extends JPanel {
 		private JFreeChart chart;
 
+		/**
+		 * Construcs a new ScatterPlot instance.
+		 * 
+		 * @param molecules An array of 2 molecules to display the information of.
+		 */
 		public ScatterPlot ( Molecule [] molecules ) {
 			super( );
 			List <Double> mol0Samples = molecules[ 0 ].getSamples( );
@@ -140,6 +162,11 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			);
 		}
 
+		/**
+		 * Draws the graph.
+		 * 
+		 * @param g The Graphics object of this component.
+		 */
 		public void paintComponent ( Graphics g ) {
 			super.paintComponent( g );
 			Dimension size = this.getSize( null );
@@ -148,33 +175,71 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * A panel for displaying information about this Correlation.
+	 */
 	private class InfoPanel extends JPanel {
-		double coefficient;
-		int sampleVolume;
-		double [] significance;
+		private double coefficient;
+		private int sampleVolume;
+		private double [] criticalValues;
 
-		public InfoPanel( double coefficient, int sampleVolume, double [] significance ) {
+		/**
+		 * Constructs a new InfoPanel.
+		 * 
+		 * @param coefficient
+		 * @param sampleVolume
+		 * @param significance.
+		 */
+		public InfoPanel( double coefficient, int sampleVolume ) {
 			this.coefficient = coefficient;
 			this.sampleVolume = sampleVolume;
-			this.significance = significance;
+			this.criticalValues = Correlation.getCriticalValues( 
+					Correlation.getDefaultMethod( ), this.sampleVolume );
 		}
 
+		/**
+		 * Redraws this component.
+		 * 
+		 * @param g The Graphics object corresponding to this component.
+		 */
 		public void paintComponent( Graphics g ) {
+			int [] xpos = { 20, 90, 150, 220 };
+
+			g.setColor( Color.WHITE );
+			g.fillRect( xpos[0]-5, 246, xpos[3]-xpos[0]+50, 16 );
+			g.fillRect( 137, 56, 25, 16 );
+			g.fillRect( 227, 26, 55, 16 );
+
+			g.setColor( Color.BLACK );
 			g.setFont( new Font( "SansSerif", Font.PLAIN, 14 ));
-			g.drawString( String.format( "Current correlation coefficient: %.3f", this.coefficient ), 10, 40 );
-			g.drawString( String.format( "Sample Volume N: %d", this.sampleVolume ), 10, 70 );
+			g.drawString( "Current correlation coefficient:", 10, 40 );
+			g.drawString( "Sample Volume N:", 10, 70 );
+			g.drawString( "0.05",   xpos[0], 180 );
+			g.drawString( "0.025",  xpos[1], 180 );
+			g.drawString( "0.05",   xpos[2], 180 );
+			g.drawString( "0.005",  xpos[3], 180 );
+			g.drawString( "0.1",   xpos[0], 220 );
+			g.drawString( "0.05",  xpos[1], 220 );
+			g.drawString( "0.02",  xpos[2], 220 );
+			g.drawString( "0.01",  xpos[3], 220 );
+
+			g.setFont( new Font( "SansSerif", Font.BOLD, 14 ));
 			g.drawString( "Table of critical values for", 10, 100 );
-			g.drawString( String.format( "correlation test %s", "" ), 10, 120 );
+			g.drawString( "correlation test", 10, 120 );
 			g.drawString( "One-tailed level of significance", 10, 160 );
-			g.drawString( "0.05",   20, 180 );
-			g.drawString( "0.025",  90, 180 );
-			g.drawString( "0.05",  150, 180 );
-			g.drawString( "0.005", 220, 180 );
 			g.drawString( "Two-tailed levelof significance", 10, 200 );
-			g.drawString( "0.1",   20, 220 );
-			g.drawString( "0.05",  90, 220 );
-			g.drawString( "0.02", 150, 220 );
-			g.drawString( "0.01", 220, 220 );
+			for( int i=0; i < 4; i++ ) {
+				if ( this.criticalValues[ i ] < 0 )
+					g.drawString( "-", xpos[ i ], 260 );
+				else
+					g.drawString( Double.toString( this.criticalValues[ i ]), xpos[ i ], 260 );
+			}
+			g.drawString( Integer.toString( this.sampleVolume ), 140, 70 ); // sample volume
+			g.drawString( String.format( "%.3f", this.coefficient ), 230, 40 ); // correlation coefficient
+
+			g.setFont( new Font( "SansSerif", Font.BOLD | Font.ITALIC, 14 ));
+			g.setColor( Color.BLUE );
+			g.drawString( Correlation.NAME[ Correlation.getDefaultMethod( )], 125, 120 ); // correlation name;
 		}
 
 	}

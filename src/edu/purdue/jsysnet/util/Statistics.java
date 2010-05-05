@@ -191,8 +191,8 @@ public class Statistics {
 	/** 
 	 * Finds the rank of each element in a List.
 	 *	
-	 * @param array The arrayList to get the rank of.
-	 * @return	    An array containing the rank order of each element.
+	 * @param list The arrayList to get the rank of.
+	 * @return An array containing the rank order of each element.
 	 */
 	public static double [] getRank( List<Double> list ) {
 		int size = list.size( );

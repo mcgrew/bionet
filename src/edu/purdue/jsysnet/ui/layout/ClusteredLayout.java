@@ -66,6 +66,9 @@ public class ClusteredLayout extends RandomLayout<Molecule,Correlation> {
 			this.step( );
 	}
 
+	/**
+	 * Performs one step in the calculation of this layout.
+	 */
 	public void step( ) {
 		double layoutSize = Math.min( this.size.height, this.size.width );
 		Collection<Molecule> vertices = this.graph.getVertices( );
@@ -94,10 +97,20 @@ public class ClusteredLayout extends RandomLayout<Molecule,Correlation> {
 		this.currentIteration++;
 	}
 
+	/**
+	 * Indicates whether this Layout is done calculating positions.
+	 * 
+	 * @return true if the calculation is complete, false otherwise.
+	 */
 	public boolean done( ){ 
 		return ( this.currentIteration >= this.maxIterations );
 	}
 
+	/**
+	 * Sets a new size for the layout.
+	 * 
+	 * @param size the new size for the layout.
+	 */
 	public void setSize( Dimension size ){
 		super.setSize( size );
 		this.reset( );

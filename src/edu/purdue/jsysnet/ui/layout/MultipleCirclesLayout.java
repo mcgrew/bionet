@@ -22,12 +22,6 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
  * of California
  * All rights reserved.
  *
- * This software is open-source under the BSD license; see either
- * "license.txt" or
- * http://jung.sourceforge.net/license.txt for a description.
- */
-/*
- * Created on Dec 4, 2003
  */
 package edu.purdue.jsysnet.ui.layout;
 
@@ -82,10 +76,16 @@ public class MultipleCirclesLayout<V, E> extends AbstractLayout<V,E> {
 		this.radius = radius;
 	}
 
+	/**
+	 * Resets the position of the Graph Nodes.
+	 */
 	public void reset() {
 		initialize();
 	}
 
+	/**
+	 * Sets the initial position of the Graph nodes.
+	 */
 	public void initialize() {
 
 		Dimension d = this.getSize();

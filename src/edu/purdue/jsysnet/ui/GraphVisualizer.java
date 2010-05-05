@@ -36,50 +36,102 @@ import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.visualization.picking.PickedState;
 
 
+/**
+ * A class for visualizing a network graph. 
+ */
 public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E> {
 	public Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
 
+	/**
+	 * Constructs a GraphVisualizer object.
+	 */
 	public GraphVisualizer( ) {
 		this( CircleLayout.class );
 	}
 
+	/**
+	 * Constructs a GraphVisualizer Object.
+	 * 
+	 * @param layout A Class object of the type of class to use for the graph layout.
+	 */
 	public GraphVisualizer( Class <? extends AbstractLayout> layout ) {
 		super(GraphVisualizer.getLayoutInstance( layout ));
 		this.setupGraph( );
 	}
 
+	/**
+	 * Constructs a GraphVisualizer Object.
+	 * 
+	 * @param layout A Class object of the type of class to use for the graph layout.
+	 * @param size The initial size of the GraphVisualizer Object.
+	 */
 	public GraphVisualizer( Class <? extends AbstractLayout> layout, Dimension size ) {
 		super(GraphVisualizer.getLayoutInstance( layout ), size );
 		this.setupGraph( );
 	}
 	
 	// override the inherited constructors
+	/**
+	 * Constructs a GraphVisualizer Object.
+	 * 
+	 * @param layout The Layout to use for the graph.
+	 */
 	public GraphVisualizer( Layout <V,E> layout ) {
 		super( layout );
 		this.setupGraph( );
 	}
 
+	/**
+	 * Constructs a GraphVisualizer Object.
+	 * 
+	 * @param layout The Layout to use for the graph.
+	 * @param preferredSize The preferred size of the GraphVisualizer.
+	 */
 	public GraphVisualizer( Layout <V,E> layout, Dimension preferredSize ) {
 		super( layout, preferredSize );
 		this.setupGraph( );
 	}
 
+	/**
+	 * Constructs a GraphVisualizer Object.
+	 * 
+	 * @param model The VisualizationModel to use for the graph.
+	 */
 	public GraphVisualizer( VisualizationModel <V,E> model ) {
 		super( model );
 		this.setupGraph( );
 	}
 
+	/**
+	 * Constructs a GraphVisualizer Object.
+	 * 
+	 * @param model The VisualizationModel to use for the graph.
+	 * @param preferredSize The preferred size of the graph.
+	 */
 	public GraphVisualizer( VisualizationModel <V,E> model, Dimension preferredSize ) {
 		super( model, preferredSize );
 		this.setupGraph( );
 	}
 
+	/**
+	 * Creates a new layout instance from a Class Object.
+	 * 
+	 * @param layout The Class object to create the instance of.
+	 * @return A new instance of the Layout.
+	 */
 	protected static Layout getLayoutInstance( Class <? extends AbstractLayout> layout ) {
 		return GraphVisualizer.getLayoutInstance( layout, new UndirectedSparseGraph( ));
 	}
 
+	/**
+	 * Creates a Layout instance from a Class Object.
+	 * 
+	 * @param layout The class object to create the instance of.
+	 * @param graph The graph to use to instantiate the Layout.
+	 * @return A new instance of the Layout.
+	 */
 	protected static Layout getLayoutInstance( Class <? extends AbstractLayout> layout, Graph graph ) {
 		try {  
 			return layout.getConstructor( Graph.class ).newInstance( graph );
@@ -96,6 +148,9 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		return null;
 	}
 
+	/**
+	 * Performs the necessary actions to set up the Graph.
+	 */
 	protected void setupGraph( ) {
 		this.graph = ( UndirectedSparseGraph<V,E> )this.getGraphLayout( ).getGraph( );
 		this.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<V>( ));
@@ -107,20 +162,38 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 
+	/**
+	 * Sets a new Layout for the graph.
+	 * 
+	 * @param layout A Class object containing the Layout to be used.
+	 */
 	public void setGraphLayout( Class <? extends AbstractLayout> layout ){
 			this.setGraphLayout(( Layout<V,E> )GraphVisualizer.getLayoutInstance( layout, this.graph ));
 	}
 
+	/**
+	 * Sets a new Layout for the graph.
+	 * 
+	 * @param layout The Layout instance to use for the new Graph Layout.
+	 */
 	public void setGraphLayout( Layout <V,E> layout ){
 		Layout<V,E> l = ( Layout<V,E> )this.getGraphLayout( );
 		super.setGraphLayout( layout );
 		this.graph = ( UndirectedSparseGraph<V,E> )this.getGraphLayout( ).getGraph( );
 	}
 
+	/**
+	 * Starts the animation of the graph.
+	 */
 	public void animate( ) {
 		this.animate( true );
 	}
 
+	/**
+	 * Starts the animation of the graph.
+	 * 
+	 * @param enable True to stop animation of the Graph, false to stop.
+	 */
 	public void animate( boolean enable ) {
 		System.err.print( (enable) ? "Starting " : "Stopping " );
 		System.err.println( "animation..." );
@@ -133,10 +206,16 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		}
 	}
 
+	/**
+	 * Resets the graph Layout to it's initial state.
+	 */
 	public void resetLayout( ) {
 		this.getGraphLayout( ).reset( );
 	}
 
+	/**
+	 * Sets all Graph nodes as selected.
+	 */
 	public void selectAll( ) {
 		PickedState <V> state = this.getPickedVertexState( );
 		for( V v : this.graph.getVertices( )) {
@@ -144,6 +223,9 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		}
 	}
 
+	/**
+	 * Clear the selection of all nodes.
+	 */
 	public void clearSelection( ) {
 		PickedState <V> state = this.getPickedVertexState( );
 		for( V v : this.graph.getVertices( )) {

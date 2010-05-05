@@ -21,9 +21,25 @@ package edu.purdue.jsysnet.ui;
 
 import java.awt.Component;
 
+/**
+ * An interface for dealing with generic classes which extend JFrame and 
+ * contain a JTabbedPane
+ */
 public interface TabbedWindow {
 
+	/**
+	 * A method for adding a new tab to the window.
+	 * 
+	 * @param title The title for the tab.
+	 * @param c The component to add to the tab.
+	 */
 	public void addTab( String title, Component c );
+
+	/**
+	 * Creates a new instance of this JFrame with an enpty JTabbedPane.
+	 * 
+	 * @return A new instance of this class casted as a TabbedWindow.
+	 */
 	public TabbedWindow newWindow( );
 
 }

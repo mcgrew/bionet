@@ -61,7 +61,7 @@ public class RandomLayout<V,E> extends AbstractLayout<V,E> {
 	}
 	
 	/**
-	 * Calls this.initialize( )
+	 * Calls initialize( )
 	 */
 	public void reset( ) {
 		this.initialize( );
