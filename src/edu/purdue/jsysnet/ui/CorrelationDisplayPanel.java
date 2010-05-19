@@ -689,6 +689,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 					graph.animate( clusteredLayoutMenuItem.getState( ));
 				} else {
 					clusteredLayoutMenuItem.setState( false );
+					graph.resetView( );
 					if ( item == multipleCirclesLayoutMenuItem )
 						setGraphLayout( MultipleCirclesLayout.class );
 					else if ( item == singleCircleLayoutMenuItem )
