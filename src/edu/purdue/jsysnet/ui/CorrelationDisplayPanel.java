@@ -131,6 +131,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 
 	protected DataHandler data = null;
 	protected Experiment experiment = null;
+	private String title;
 
 	/**
 	 * Creates a new CorrelationDisplayPanel. When this constructor is used,
@@ -150,6 +151,25 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		super( new BorderLayout( ));
 		this.buildPanel( );
 		this.createGraph( data );
+	}
+
+	/**
+	 * Gets the title of this CorrelationDisplayPanel, which should be the
+	 * description field of the experiment.
+	 * 
+	 * @return the title of this CorrelationDisplayPanel.
+	 */
+	public String getTitle( ) {
+		return this.title;
+	}
+
+	/**
+	 * Sets the title of this CorrelationDisplayPanel.
+	 * 
+	 * @param title The new title for this Panel
+	 */
+	public void setTitle( String title ) {
+		this.title = title;
 	}
 
 	/**
@@ -266,9 +286,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	/**
 	 * Creates a Graph using the data supplied in the constructor.
 	 */
-	public void createGraph( ) {
-			if ( this.data != null )
+	public boolean createGraph( ) {
+			if ( this.data != null ) {
 				this.createGraph( this.data );
+				return true;
+			}
+			return false;
 	}
 
 	/**
@@ -276,14 +299,15 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 * 
 	 * @param data A Datahandler Object containing the data to be used.
 	 */
-	public void createGraph( DataHandler data ) {
+	public boolean createGraph( DataHandler data ) {
 		this.data = data;
 		this.setVisible( true );
 		
-		this.experiment = experimentSelection( data.getExperiments( ) );
+		this.experiment = experimentSelection( data.getExperiments( ));
 		if ( this.experiment == null ) {
-			return;
+			return false;
 		}
+		this.title = this.experiment.getAttribute( "description" );
 
 		this.graph = new CorrelationGraphVisualizer( );
 		this.graph.setCorrelationFilterPanel( this.correlationFilterPanel );
@@ -299,6 +323,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			JSysNet.settings.getInt( "windowHeight" ) - 250 );
 		this.setGraphVisualizer( this.graph );
 		this.setGraphLayout( CircleLayout.class );
+		return true;
 	}
 
 	/**
@@ -642,11 +667,17 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		}
 	}
 
+	/**
+	 * A class for displaying the table below the graph.
+	 */
 	protected class InfoPanel extends JTabbedPane {
 		private final static String MOLECULE_INDEX = "id";
 		private JTable moleculeTable = new JTable(0,0);
 		private JTable correlationTable = new JTable(0,0);
 
+		/**
+		 * Creates a new InfoPanel.
+		 */
 		public InfoPanel( ) {
 			super( );
 			this.moleculeTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
@@ -655,6 +686,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			this.add( new JScrollPane( correlationTable ), "Correlations" );
 		}
 
+		/**
+		 * Adds a new Molecule to the table.
+		 * 
+		 * @param molecule The new molecule to be added.
+		 */
 		public void add( Molecule molecule ) {
 			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
 			String [] attributes = molecule.getAttributeNames( );
@@ -674,6 +710,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			tm.addRow( newRow );
 		}
 
+		/**
+		 * Adds a new Correlation to the table.
+		 * 
+		 * @param correlation The new Correlation to be added.
+		 */
 		public void add( Correlation correlation ) {
 			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
 			if ( tm.getColumnCount( ) == 0 ) {
@@ -695,18 +736,31 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			tm.addRow( newRow );
 		}
 
+		/**
+		 * Removes a Molecule from the table. Does nothing if the Molecule is not present.
+		 * 
+		 * @param molecule the Molecule to be removed.
+		 */
 		public void remove( Molecule molecule ) {
 			int row = this.getRowOf( molecule );
 			if ( row >= 0 )
 				((DefaultTableModel)this.moleculeTable.getModel( )).removeRow( row );
 		}
 
+		/**
+		 * Removes a Correlation from the table. Does nothing if the Correlation is not present.
+		 * 
+		 * @param correlation the Correlation to be added.
+		 */
 		public void remove( Correlation correlation ) {
 			int row = getRowOf( correlation );
 			if ( row >= 0 )
 				((DefaultTableModel)this.correlationTable.getModel( )).removeRow( row );
 		}
 
+		/**
+		 * Clears the Molecule table.
+		 */
 		public void clearMolecules( ) {
 			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
 			while( tm.getRowCount( ) > 0 ) {
@@ -714,6 +768,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			}
 		}
 
+		/**
+		 * Clears tht Correlation Table.
+		 */
 		public void clearCorrelations( ) {
 			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
 			while( tm.getRowCount( ) > 0 ) {
@@ -721,7 +778,13 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			}
 		}
 
-		private int getRowOf( Molecule molecule  ) {
+		/**
+		 * Finds the appropriate row in the table for the given Molecule.
+		 * 
+		 * @param Molecule The Molecule to search for.
+		 * @return The row number of the Molecule.
+		 */
+		private int getRowOf( Molecule molecule ) {
 			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
 			int returnValue = 0;
 			boolean match;
@@ -738,6 +801,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			return -1;
 		}
 
+		/**
+		 * Finds the apropriate row in the table for the given Correlation.
+		 * 
+		 * @param correlation The Correlation to search for.
+		 * @return The row number of the Correlation.
+		 */
 		private int getRowOf( Correlation correlation ) {
 			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
 			int returnValue = 0;

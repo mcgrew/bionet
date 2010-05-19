@@ -359,14 +359,30 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		return new Point2D.Double( size.width / 2.0, size.height / 2.0 );
 	}
 
+	/**
+	 * Adds a PickedVertexStateChangeListener to the graph.
+	 * 
+	 * @param l The PickedStateChangeListener to add.
+	 */
 	public void addPickedVertexStateChangeListener( PickedStateChangeListener<V> l ) {
 		this.pickedVertexStateChangeListeners.add( l );
 	}
 
+	/**
+	 * Adds a PickedEdgeStateChangeListener to the graph.
+	 * 
+	 * @param l The PickedStateChangeListener to add.
+	 */
 	public void addPickedEdgeStateChangeListener( PickedStateChangeListener<E> l ) {
 		this.pickedEdgeStateChangeListeners.add( l );
 	}
 
+	/**
+	 * Fires a PickedStateChangeEvent for a change on a vertex.
+	 * 
+	 * @param item The item whose state changed.
+	 * @param picked Whether or not the item is selected.
+	 */
 	private void firePickedVertexChangeEvent( V item, boolean picked ) {
 		PickedStateChangeEvent<V> event = new PickedStateChangeEvent<V>( this, item, picked );
 		for ( PickedStateChangeListener<V> p : this.pickedVertexStateChangeListeners ) {
@@ -374,6 +390,12 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		}
 	}
 
+	/**
+	 * Fires a PickedStateChangeEvent for a change on an Edge.
+	 * 
+	 * @param item The item whose state changed.
+	 * @param picked Whether or not the item is selected.
+	 */
 	private void firePickedEdgeChangeEvent( E item, boolean picked ) {
 		PickedStateChangeEvent<E> event = new PickedStateChangeEvent<E>( this, item, picked );
 		for ( PickedStateChangeListener<E> p : this.pickedEdgeStateChangeListeners ) {
@@ -381,6 +403,11 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		}
 	}
 
+	/**
+	 * The itemStateChanged method of the ItemListener interface.
+	 * 
+	 * @param event The event which triggered this ItemListener.
+	 */
 	public void itemStateChanged( ItemEvent event ) {
 		Object source = event.getItem( );
 		try {

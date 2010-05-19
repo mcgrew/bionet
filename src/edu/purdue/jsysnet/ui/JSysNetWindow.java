@@ -224,8 +224,8 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 				return;
 			}
 			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
-			this.tabPane.addTab( "Correlation View", cdp );
-			cdp.createGraph( data );
+			if( cdp.createGraph( data ))
+				this.tabPane.addTab( cdp.getTitle( ), cdp );
 		} else if ( item == this.exitFileMenuItem ) {
 			this.dispose( );
 		}

@@ -95,12 +95,10 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			Object source = e.getSource( );
 
 			if ( this.correlationMap.containsKey( source )) {
-				new DetailWindow( "Detail", this.correlationMap.get( source ), new Range( 0.6, 1 ));
+				new DetailWindow( graph.getCorrelationDisplayPanel( ).getTitle( ), this.correlationMap.get( source ), new Range( 0.6, 1 ));
 			}
 			else if ( source == this.detailsMenuItem ) {
-				if ( JSysNet.settings.getBoolean( "debug" ))
-					System.err.println( "Opening Detail Window for " + molecule.toString( ));
-				new DetailWindow( "Detail", this.molecule, range );
+				new DetailWindow( graph.getCorrelationDisplayPanel( ).getTitle( ), this.molecule, range );
 			} 
 			else if ( source == this.selectMoleculesMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );
