@@ -26,6 +26,7 @@ import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.io.DataHandler;
+import edu.purdue.jsysnet.JSysNet;
 
 import javax.swing.JPanel;
 import javax.swing.JMenuBar;
@@ -46,12 +47,19 @@ import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.JTabbedPane;
+import javax.swing.table.TableColumn;
+import javax.swing.table.DefaultTableModel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Dimension;
@@ -59,6 +67,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import java.util.Enumeration;
 
 import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -117,6 +126,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 
 	protected CorrelationGraphVisualizer graph;
 	protected Layout <Molecule,Correlation> layout; //Graph Layout
+	protected InfoPanel infoPanel = new InfoPanel( );
+	protected JSplitPane graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
 
 	protected DataHandler data = null;
 	protected Experiment experiment = null;
@@ -145,8 +156,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 * Adds all of the necessary Components to this Component.
 	 */
 	private void buildPanel ( ) {
-
-		MenuItemListener menuItemListener = new MenuItemListener( );
 
 		// CORRELATION FILTER ELEMENTS
 		JPanel leftPanel = new JPanel( new BorderLayout( ));
@@ -284,9 +293,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		this.addEdges( );
 		this.graph.filterEdges( );
 
+		this.add( this.graphSplitPane, BorderLayout.CENTER );
+		this.graphSplitPane.setBottomComponent( this.infoPanel );
+		this.graphSplitPane.setDividerLocation( 
+			JSysNet.settings.getInt( "windowHeight" ) - 250 );
 		this.setGraphVisualizer( this.graph );
 		this.setGraphLayout( CircleLayout.class );
-		this.moleculeFilterPanel.setGraph( this.graph );
 	}
 
 	/**
@@ -351,10 +363,27 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		this.graph = v;
 		this.correlationFilterPanel.setVisualization( v );
 		// add labels to the graph
-		this.add( this.graph.getScrollPane( ), BorderLayout.CENTER );
-//		this.graph.repaint( );
+		this.graphSplitPane.setTopComponent( this.graph.getScrollPane( ));
+		v.addPickedVertexStateChangeListener( new PickedStateChangeListener <Molecule> ( ){
+
+			public void stateChanged( PickedStateChangeEvent <Molecule> event ) {
+				if ( event.getStateChange( ))
+					infoPanel.add( event.getItem( ));
+				else
+					infoPanel.remove( event.getItem( ));
+			}
+		});
+		v.addPickedEdgeStateChangeListener( new PickedStateChangeListener <Correlation> ( ){
+			public void stateChanged( PickedStateChangeEvent <Correlation> event ) {
+				if ( event.getStateChange( ))
+					infoPanel.add( event.getItem( ));
+				else
+					infoPanel.remove( event.getItem( ));
+			}
+		});
+
 	}
-	
+
 	/**
 	 * Brings up a dialog to allow you to select the appropriate experiment. If
 	 *	only one experiment is available, no dialog is shown an this method simply
@@ -488,14 +517,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		}
 
 		/**
-		 * Sets the graph viisualizer for the CorrelationDisplayPanel
-		 * 
-		 * @param g The CorrelationGraphVisualizer to use to display the graph.
-		 */
-		public void setGraph( CorrelationGraphVisualizer g ) {
-		}
-
-		/**
 		 * Adds a molecule to the Graph and creates a Checkbox for removing it.
 		 * 
 		 * @param m The Molecule to add.
@@ -584,7 +605,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		
 	}
 
-
 	/**
 	 * A class for checkboxes to turn on and off graph nodes.
 	 */
@@ -620,6 +640,118 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		public Molecule getMolecule( ) {
 			return this.molecule;
 		}
+	}
+
+	protected class InfoPanel extends JTabbedPane {
+		private final static String MOLECULE_INDEX = "id";
+		private JTable moleculeTable = new JTable(0,0);
+		private JTable correlationTable = new JTable(0,0);
+
+		public InfoPanel( ) {
+			super( );
+			this.moleculeTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+			this.correlationTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+			this.add( new JScrollPane( moleculeTable ), "Molecules" );
+			this.add( new JScrollPane( correlationTable ), "Correlations" );
+		}
+
+		public void add( Molecule molecule ) {
+			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
+			String [] attributes = molecule.getAttributeNames( );
+			if ( tm.getColumnCount( ) == 0 ) {
+				for ( String key : attributes ) {
+					tm.addColumn( key );
+				}
+				Enumeration <TableColumn> columns = this.moleculeTable.getColumnModel( ).getColumns( );
+				while( columns.hasMoreElements( ))
+					columns.nextElement( ).setPreferredWidth( 75 );
+			}
+			int c = attributes.length;
+			Object[] newRow = new Object[ c ];
+			for( int i=0; i < c; i++ ) {
+				newRow[ i ] = molecule.getAttribute( tm.getColumnName( i ));
+			}
+			tm.addRow( newRow );
+		}
+
+		public void add( Correlation correlation ) {
+			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
+			if ( tm.getColumnCount( ) == 0 ) {
+				String [ ] keys = { "Molecule 1", "Molecule 2", "Pearson Value", "Spearman Rank Value",
+					"Kendall Tau b Rank Value" };
+				for ( String key : keys ) {
+					tm.addColumn( key );
+				}
+				Enumeration <TableColumn> columns = this.correlationTable.getColumnModel( ).getColumns( );
+				while( columns.hasMoreElements( ))
+					columns.nextElement( ).setPreferredWidth( 150 );
+			}
+			Object[] newRow = new Object[ 5 ];
+			newRow[ 0 ] = correlation.getMolecules( )[ 0 ].getAttribute( MOLECULE_INDEX );
+			newRow[ 1 ] = correlation.getMolecules( )[ 1 ].getAttribute( MOLECULE_INDEX );
+			newRow[ 2 ] = String.format( "%.5f", correlation.getValue( Correlation.PEARSON ));
+			newRow[ 3 ] = String.format( "%.5f", correlation.getValue( Correlation.SPEARMAN ));
+			newRow[ 4 ] = String.format( "%.5f", correlation.getValue( Correlation.KENDALL ));
+			tm.addRow( newRow );
+		}
+
+		public void remove( Molecule molecule ) {
+			int row = this.getRowOf( molecule );
+			if ( row >= 0 )
+				((DefaultTableModel)this.moleculeTable.getModel( )).removeRow( row );
+		}
+
+		public void remove( Correlation correlation ) {
+			int row = getRowOf( correlation );
+			if ( row >= 0 )
+				((DefaultTableModel)this.correlationTable.getModel( )).removeRow( row );
+		}
+
+		public void clearMolecules( ) {
+			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
+			while( tm.getRowCount( ) > 0 ) {
+				tm.removeRow( 0 );
+			}
+		}
+
+		public void clearCorrelations( ) {
+			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
+			while( tm.getRowCount( ) > 0 ) {
+				tm.removeRow( 0 );
+			}
+		}
+
+		private int getRowOf( Molecule molecule  ) {
+			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
+			int returnValue = 0;
+			boolean match;
+			while( returnValue < tm.getRowCount( )) {
+				match = true;
+				for( int i=0; match && i < tm.getColumnCount( ); i++ ) {
+					match = ( molecule.getAttribute( tm.getColumnName( i )).equals( 
+						tm.getValueAt( returnValue, i )));
+				}
+				if ( match )
+					return returnValue;
+				returnValue++;
+			}
+			return -1;
+		}
+
+		private int getRowOf( Correlation correlation ) {
+			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
+			int returnValue = 0;
+			while( returnValue < tm.getRowCount( )) {
+				if ( correlation.getMolecules( )[ 0 ].getAttribute( MOLECULE_INDEX ).equals( 
+					tm.getValueAt( returnValue, 0 )) && 
+					correlation.getMolecules( )[ 1 ].getAttribute( MOLECULE_INDEX ).equals(
+					tm.getValueAt( returnValue, 1 )))
+					return returnValue;
+			}
+			return -1;
+
+		}
+
 	}
 
 	/**

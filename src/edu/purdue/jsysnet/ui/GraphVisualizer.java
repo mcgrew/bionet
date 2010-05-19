@@ -22,9 +22,13 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.ui.layout.*;
 
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Vector;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 import javax.swing.JScrollBar;
 
 import edu.uci.ics.jung.graph.Graph;
@@ -45,15 +49,22 @@ import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 /**
  * A class for visualizing a network graph. 
  */
-public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E> {
+public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener {
 	public Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
-	private AbsoluteCrossoverScalingControl absoluteViewScaler = new AbsoluteCrossoverScalingControl( );
+	private AbsoluteCrossoverScalingControl absoluteViewScaler = 
+		new AbsoluteCrossoverScalingControl( );
+	private ArrayList <PickedStateChangeListener> pickedVertexStateChangeListeners =
+		new ArrayList<PickedStateChangeListener>( );
+	private ArrayList <PickedStateChangeListener> pickedEdgeStateChangeListeners =
+		new ArrayList<PickedStateChangeListener>( );
 //	private ViewScalingControl viewScaler = new ViewScalingControl( );
 	private GraphZoomScrollPane scrollPane;
 	private float currentZoom = 1.0f;
 	private static float minimumZoom = 0.8f;
+	private Collection <V> lastPickedVertices = new Vector<V>( );
+	private Collection <E> lastPickedEdges = new Vector<E>( );;
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -69,7 +80,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 */
 	public GraphVisualizer( Class <? extends AbstractLayout> layout ) {
 		super(GraphVisualizer.getLayoutInstance( layout ));
-		this.setupGraph( );
+		this.setup( );
 	}
 
 	/**
@@ -80,7 +91,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 */
 	public GraphVisualizer( Class <? extends AbstractLayout> layout, Dimension size ) {
 		super(GraphVisualizer.getLayoutInstance( layout ), size );
-		this.setupGraph( );
+		this.setup( );
 	}
 	
 	// override the inherited constructors
@@ -91,7 +102,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 */
 	public GraphVisualizer( Layout <V,E> layout ) {
 		super( layout );
-		this.setupGraph( );
+		this.setup( );
 	}
 
 	/**
@@ -102,7 +113,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 */
 	public GraphVisualizer( Layout <V,E> layout, Dimension preferredSize ) {
 		super( layout, preferredSize );
-		this.setupGraph( );
+		this.setup( );
 	}
 
 	/**
@@ -112,7 +123,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 */
 	public GraphVisualizer( VisualizationModel <V,E> model ) {
 		super( model );
-		this.setupGraph( );
+		this.setup( );
 	}
 
 	/**
@@ -123,7 +134,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 */
 	public GraphVisualizer( VisualizationModel <V,E> model, Dimension preferredSize ) {
 		super( model, preferredSize );
-		this.setupGraph( );
+		this.setup( );
 	}
 
 	/**
@@ -162,7 +173,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	/**
 	 * Performs the necessary actions to set up the Graph.
 	 */
-	protected void setupGraph( ) {
+	protected void setup( ) {
 		this.graph = ( UndirectedSparseGraph<V,E> )this.getGraphLayout( ).getGraph( );
 		this.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<V>( ));
 //		this.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<E>( ));
@@ -174,6 +185,8 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		};
 		mouse.setMode( ModalGraphMouse.Mode.PICKING );
 		this.setGraphMouse( mouse );
+		this.getPickedVertexState( ).addItemListener( this );
+		this.getPickedEdgeState( ).addItemListener( this );
 	}
 
 
@@ -233,8 +246,15 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 */
 	public void selectAll( ) {
 		PickedState <V> state = this.getPickedVertexState( );
-		for( V v : this.graph.getVertices( )) {
+		Collection <V> vertices = this.graph.getVertices( );
+		for( V v : vertices ) {
 			state.pick( v, true );
+		}
+
+		PickedState <E> edgeState = this.getPickedEdgeState( );
+		Collection <E> edges = this.graph.getEdges( );
+		for ( E e : edges ) {
+			edgeState.pick( e, true );
 		}
 	}
 
@@ -243,11 +263,13 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 */
 	public void clearSelection( ) {
 		PickedState <V> state = this.getPickedVertexState( );
-		for( V v : this.graph.getVertices( )) {
+		Collection <V> pickedVertices = new Vector<V>( state.getPicked( ));
+		for( V v : pickedVertices ) {
 			state.pick( v, false );
 		}
 		PickedState <E> edgeState = this.getPickedEdgeState( );
-		for( E e : this.graph.getEdges( )) {
+		Collection <E> pickedEdges = new Vector<E>( edgeState.getPicked( ));
+		for( E e : pickedEdges ) {
 			edgeState.pick( e, false );
 		}
 	}
@@ -335,6 +357,38 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	public Point2D getCenterPoint( ) {
 		Dimension size = this.getGraphLayout( ).getSize( );
 		return new Point2D.Double( size.width / 2.0, size.height / 2.0 );
+	}
+
+	public void addPickedVertexStateChangeListener( PickedStateChangeListener<V> l ) {
+		this.pickedVertexStateChangeListeners.add( l );
+	}
+
+	public void addPickedEdgeStateChangeListener( PickedStateChangeListener<E> l ) {
+		this.pickedEdgeStateChangeListeners.add( l );
+	}
+
+	private void firePickedVertexChangeEvent( V item, boolean picked ) {
+		PickedStateChangeEvent<V> event = new PickedStateChangeEvent<V>( this, item, picked );
+		for ( PickedStateChangeListener<V> p : this.pickedVertexStateChangeListeners ) {
+			p.stateChanged( event );
+		}
+	}
+
+	private void firePickedEdgeChangeEvent( E item, boolean picked ) {
+		PickedStateChangeEvent<E> event = new PickedStateChangeEvent<E>( this, item, picked );
+		for ( PickedStateChangeListener<E> p : this.pickedEdgeStateChangeListeners ) {
+			p.stateChanged( event );
+		}
+	}
+
+	public void itemStateChanged( ItemEvent event ) {
+		Object source = event.getItem( );
+		try {
+			firePickedVertexChangeEvent( (V)source, event.getStateChange( ) == ItemEvent.SELECTED );
+		} catch( ClassCastException e ) {
+			firePickedEdgeChangeEvent( (E)source, event.getStateChange( ) == ItemEvent.SELECTED );
+		}
+
 	}
 
 	// Graph interface Methods
@@ -516,5 +570,6 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	public boolean addEdge( E edge, Pair<? extends V> endpoints, EdgeType edgeType ) {
 		return this.graph.addEdge( edge, endpoints, edgeType );
 	}
+
 }
 
