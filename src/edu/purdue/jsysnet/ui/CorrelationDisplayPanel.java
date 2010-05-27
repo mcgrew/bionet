@@ -719,7 +719,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
 			if ( tm.getColumnCount( ) == 0 ) {
 				String [ ] keys = { "Molecule 1", "Molecule 2", "Pearson Value", "Spearman Rank Value",
-					"Kendall Tau b Rank Value" };
+					"Kendall Tau-b Rank Value" };
 				for ( String key : keys ) {
 					tm.addColumn( key );
 				}

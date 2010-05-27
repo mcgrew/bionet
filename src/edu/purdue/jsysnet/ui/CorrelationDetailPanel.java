@@ -41,6 +41,9 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.ChartFactory;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
@@ -129,7 +132,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	/**
 	 * A panel for displaying a scatter plot containing molecule information.
 	 */
-	private class ScatterPlot extends JPanel {
+	private class ScatterPlot extends JPanel implements XYItemLabelGenerator {
 		private JFreeChart chart;
 
 		/**
@@ -160,6 +163,21 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 				false, // use tooltips
 				false  // configure chart to generate URLs (?!)
 			);
+			XYItemRenderer renderer = this.chart.getXYPlot( ).getRenderer( );
+			renderer.setItemLabelGenerator( this );
+			renderer.setItemLabelsVisible( true );
+		}
+
+		/**
+		 * The generateLabel method of the XYItemLabelGenerator interface.
+		 * 
+		 * @param dataset The dataset to generate labels for.
+		 * @param series The series for which the item belongs to.
+		 * @param item The item in the series to generate a label for.
+		 * @return The label for the item as a String.
+		 */
+		public String generateLabel( XYDataset dataset, int series, int item ) {
+			return "S" + Integer.toString( item + 1 );
 		}
 
 		/**
