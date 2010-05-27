@@ -25,6 +25,8 @@ import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.JSysNet;
 
 import java.util.HashMap;
+import java.util.Collection;
+import java.util.ArrayList;
 import java.awt.event.MouseEvent;
 import java.awt.Component;
 import java.awt.event.ActionListener;
@@ -52,21 +54,27 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 	public void graphReleased( Molecule m, MouseEvent e ) { }
 
 	protected class MoleculePopup extends JPopupMenu implements ActionListener {
+		protected JMenuItem hideMenuItem = new JMenuItem( "Hide" );
 		protected JMenuItem detailsMenuItem = new JMenuItem( "Details" );
 		protected JMenuItem selectMoleculesMenuItem = new JMenuItem( "Select Correlated" );
 		protected JMenuItem selectCorrelationsMenuItem = new JMenuItem( "Select Correlations" );
+		protected JMenuItem selectSubnetworkMenuItem = new JMenuItem( "Select Subnetwork" );
 		protected JMenuItem exploreCorrelationsMenu = new JMenu( "Explore Correlations" );
 		protected Molecule molecule;
 		protected HashMap <JMenuItem,Correlation> correlationMap = 
 			new HashMap <JMenuItem,Correlation>( );
 		
 		public MoleculePopup ( ) {
+			this.add( this.hideMenuItem );
 			this.add( this.detailsMenuItem );
 			this.add( this.selectMoleculesMenuItem );
 			this.add( this.selectCorrelationsMenuItem );
+			this.add( this.selectSubnetworkMenuItem );
 			this.add( this.exploreCorrelationsMenu );
+			this.hideMenuItem.addActionListener( this );
 			this.detailsMenuItem.addActionListener( this );
 			this.selectMoleculesMenuItem.addActionListener( this );
+			this.selectSubnetworkMenuItem.addActionListener( this );
 			this.selectCorrelationsMenuItem.addActionListener( this );
 			
 		}
@@ -96,22 +104,57 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 
 			if ( this.correlationMap.containsKey( source )) {
 				new DetailWindow( graph.getCorrelationDisplayPanel( ).getTitle( ), this.correlationMap.get( source ), new Range( 0.6, 1 ));
-			}
-			else if ( source == this.detailsMenuItem ) {
+			} else if ( source == this.hideMenuItem ) {
+				graph.getCorrelationDisplayPanel( ).hide( this.molecule );
+
+			} else if ( source == this.detailsMenuItem ) {
 				new DetailWindow( graph.getCorrelationDisplayPanel( ).getTitle( ), this.molecule, range );
-			} 
-			else if ( source == this.selectMoleculesMenuItem ) {
+
+			} else if ( source == this.selectMoleculesMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );
 				for ( Molecule m : graph.getNeighbors( this.molecule )) {
 					state.pick( m, true );
 				}
-			} 
-			else if ( source == this.selectCorrelationsMenuItem ) {
+
+			} else if ( source == this.selectCorrelationsMenuItem ) {
 				PickedState<Correlation> state = graph.getPickedEdgeState( );
 				for ( Correlation c : graph.getIncidentEdges( this.molecule )) {
 					state.pick( c, true );
 				}
-			} 
+
+			} else if ( source == this.selectSubnetworkMenuItem ) {
+				PickedState<Molecule> state = graph.getPickedVertexState( );
+				PickedState<Correlation> edgeState = graph.getPickedEdgeState( );
+				Collection <Molecule> subnetwork = this.getSubnetwork( this.molecule, 
+	        (CorrelationGraphVisualizer)this.getInvoker( ), null);
+				for( Molecule m : subnetwork ) {
+					state.pick( m, true );
+					for ( Correlation c : m.getCorrelations( )) {
+						edgeState.pick( c, true );
+					}
+				}
+			}
+		}
+
+		/**
+		 * Recursive function for selecting connected nodes.
+		 * 
+		 * @param molecule The central molcule to select all connected nodes for.
+		 * @param graph The graph the molecule belongs to.
+		 */
+		private Collection<Molecule> getSubnetwork( Molecule molecule, 
+		                                            CorrelationGraphVisualizer graph, 
+																								Collection<Molecule> collection ) {
+			if ( collection == null ) 
+				collection = new ArrayList<Molecule>( );
+			if ( collection.contains( molecule ))
+				return collection;
+
+			collection.add( molecule );
+			for ( Molecule m : graph.getNeighbors( molecule )) {
+				this.getSubnetwork( m, graph, collection );
+			}
+			return collection;
 		}
 		
 	}

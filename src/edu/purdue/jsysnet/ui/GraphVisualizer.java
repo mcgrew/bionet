@@ -50,7 +50,7 @@ import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
  * A class for visualizing a network graph. 
  */
 public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener {
-	public Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
+	protected Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
 	private AbsoluteCrossoverScalingControl absoluteViewScaler = 
@@ -189,6 +189,14 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		this.getPickedEdgeState( ).addItemListener( this );
 	}
 
+	/**
+	 * Returns the underlying graph for this GraphVisualizer.
+	 * 
+	 * @return The underlying graph for this GraphVisualizer.
+	 */
+	public Graph getGraph( ) {
+		return this.graph;
+	}
 
 	/**
 	 * Sets a new Layout for the graph.
@@ -284,7 +292,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	/**
-	 * Scales the gaph view by the givem amount, centered on the 
+	 * Scales the graph view by the givem amount, centered on the 
 	 * given point.
 	 * 
 	 * @param amount The multiplier to apply to the scaling.

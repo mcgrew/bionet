@@ -31,6 +31,7 @@ import java.util.Properties;
 
 public class JSysNet {
 	public static Settings settings;
+	public static final Object dummyObject = new Object( ); // used for synchronizing threads
 
 	public static void main ( String [ ] args ) {
 		// read the command line options

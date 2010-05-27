@@ -66,6 +66,7 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 			else {
 				// this Correlation does not belong on the graph, make sure it is not there.
 				if ( this.graph.containsEdge( correlation )) {
+					this.getPickedEdgeState( ).pick( correlation, false );
 					this.graph.removeEdge( correlation );
 				}
 			}
