@@ -36,11 +36,14 @@ import java.awt.event.MouseListener;
 import javax.swing.JPanel;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.awt.Rectangle;
 import java.awt.Point;
+import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.JScrollPane;
 
 import org.jfree.data.general.DefaultHeatMapDataset;
 import org.jfree.data.general.HeatMapDataset;
@@ -52,7 +55,7 @@ import org.jfree.chart.axis.AxisState;
 
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 
-public class HeatMap extends JPanel implements MouseListener, GraphMouseListener<Correlation>, ChangeListener, GraphItemChangeListener<Molecule> {
+public class HeatMap extends JPanel implements MouseListener, GraphMouseListener<Correlation>, ChangeListener, GraphItemChangeListener<Molecule>, Scalable {
 	private List <Molecule> moleculeList;
 	private int tickSize = 0;
 	private ArrayList<GraphMouseListener> graphMouseListeners = 
@@ -60,6 +63,8 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	private Rectangle mapPosition;
 	private String title;
 	private MonitorableRange range;
+	private JScrollPane scrollPane;
+	private float zoomLevel = 1.0f;
 
 	public HeatMap ( Collection <Molecule> molecules ) {
 		this( "", molecules, new MonitorableRange( 0.0, 1.0 ));
@@ -67,6 +72,7 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 
 	public HeatMap ( String title, Collection <Molecule> molecules, MonitorableRange range ) {
 		super( );
+		this.scrollPane = new JScrollPane( this );
 		this.title = title;
 		this.range = range;
 		range.addChangeListener( this );
@@ -92,6 +98,33 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 		return returnValue;
 	}
 
+	public JScrollPane getScrollPane( ) {
+		return this.scrollPane;
+	}
+
+	public float scale( float amount ) {
+		return this.scaleTo( this.zoomLevel * amount );
+	}
+
+	public float scale( float amount, Point2D center ) {
+		return this.scaleTo( this.zoomLevel * amount );
+	}
+
+	public float scaleTo( float amount ) {
+		this.zoomLevel = Math.max( amount, 0.99f );
+		Dimension newSize = new Dimension( 
+			(int)( this.scrollPane.getWidth( )  * zoomLevel ),
+			(int)( this.scrollPane.getHeight( ) * zoomLevel ));
+		this.setPreferredSize( newSize );
+		this.setSize( newSize );
+		System.out.println( "New Size " + this.getSize( ));
+		return this.zoomLevel;
+	}
+
+	public float scaleTo( float amount, Point2D center ) {
+		return this.scaleTo( amount );
+	}
+
 	/**
 	 * This method retrieves a heatmap image from jfreechart and places it on the panel
 	 * along with black divider lines and labels to create a heat map graph.
@@ -100,6 +133,8 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	 */
 	public void paintComponent( Graphics g ) {
 		super.paintComponent( g );
+		if ( moleculeList.size( ) == 0 )
+			return;
 		float tickStep;
 		BufferedImage drawing = HeatMapUtilities.createHeatMapImage( 
 			this.getDataset( ), new Spectrum( range ));
@@ -198,7 +233,7 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 		Molecule molecule = event.getItem( );
 		if ( change == GraphItemChangeEvent.REMOVED )
 			moleculeList.remove( molecule );
-		if ( change == GraphItemChangeEvent.ADDED && !moleculeList.contains( molecule ))
+		else if ( change == GraphItemChangeEvent.ADDED && !moleculeList.contains( molecule ))
 			moleculeList.add( molecule );
 		this.repaint( );
 	}

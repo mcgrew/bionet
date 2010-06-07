@@ -49,7 +49,7 @@ import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 /**
  * A class for visualizing a network graph. 
  */
-public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener {
+public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, Scalable {
 	protected Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
@@ -287,8 +287,8 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * 
 	 * @param amount The multiplier to apply to the scaling.
 	 */
-	public void scale( float amount ) {
-		this.scale( amount, this.getCenterPoint( ));
+	public float scale( float amount ) {
+		return this.scale( amount, this.getCenterPoint( ));
 	}
 
 	/**
@@ -298,9 +298,8 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * @param amount The multiplier to apply to the scaling.
 	 * @param center The center point for the scaling operation.
 	 */
-	public void scale( float amount, Point2D center ) {
-//		this.viewScaler.scale( this, amount, center );
-		this.zoomTo( currentZoom * amount, center );
+	public float scale( float amount, Point2D center ) {
+		return this.scaleTo( currentZoom * amount, center );
 	}
 
 	/**
@@ -308,8 +307,8 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * 
 	 * @param level The level to zoom to.
 	 */
-	public void zoomTo( float level ) {
-		this.zoomTo( level, this.getCenterPoint( ));
+	public float scaleTo( float level ) {
+		return this.scaleTo( level, this.getCenterPoint( ));
 	}
 
 	/**
@@ -318,9 +317,12 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * @param level The level to zoom to.
 	 * @param center The center point for the scaling operation.
 	 */
-	public void zoomTo( float level, Point2D center ) {
+	public float scaleTo( float level, Point2D center ) {
 		this.currentZoom = Math.max( minimumZoom, level );
 		this.absoluteViewScaler.scale( this, level, center );
+		if ( Float.compare( level, 1.0f ) == 0 )
+			this.center( );
+		return this.currentZoom;
 	}
 
 	/**
@@ -342,7 +344,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * Resets the zoom level to 100% and centers the viewport.
 	 */
 	public void resetView( ) {
-		this.zoomTo( 1.0f );
+		this.scaleTo( 1.0f );
 		this.center( );
 	}
 

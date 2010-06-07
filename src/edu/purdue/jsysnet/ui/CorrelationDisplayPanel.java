@@ -146,6 +146,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	private DataHandler data = null;
 	private Experiment experiment = null;
 	private String title;
+	private Scalable visibleGraph;
 
 	/**
 	 * Creates a new CorrelationDisplayPanel. When this constructor is used,
@@ -373,13 +374,15 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		if ( this.heatMapPanel != null && this.heatMapPanel.isShowing( )) {
 			this.remove( this.heatMapPanel );
 			this.add( this.graphSplitPane );
+			this.visibleGraph = this.graph;
 		}
 		this.graph.setGraphLayout( layout );
 	}
 
 	private void heatMap( ) {
 		this.remove( this.graphSplitPane );
-		this.add( this.heatMapPanel, BorderLayout.CENTER );
+		this.add( this.heatMapPanel.getScrollPane( ), BorderLayout.CENTER );
+		this.visibleGraph = this.heatMapPanel;
 	}
 
 	/**
@@ -394,6 +397,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		this.correlationFilterPanel.getMonitorableRange( ).addChangeListener( v );
 		// add labels to the graph
 		this.graphSplitPane.setTopComponent( this.graph.getScrollPane( ));
+		this.visibleGraph = this.graph;
 		v.addPickedVertexStateChangeListener( new PickedStateChangeListener <Molecule> ( ){
 
 			public void stateChanged( PickedStateChangeEvent <Molecule> event ) {
@@ -490,8 +494,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 * 
 	 * @param amount The amount to scale the graph view by.
 	 */
-	public void zoom( float amount ) {
-		this.graph.scale( amount );
+	public float scale( float amount ) {
+		return this.visibleGraph.scale( amount );
 	}
 
 	/**
@@ -499,8 +503,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 * 
 	 * @param level the new Zoom level.
 	 */
-	public void setZoom( float level ) {
-		this.graph.zoomTo( level );
+	public float scaleTo( float level ) {
+		return this.visibleGraph.scaleTo( level );
 	}
 
 	/**
@@ -519,11 +523,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		} else if ( item == this.clearSelectionViewMenuItem ) {
 			this.graph.clearSelection( );
 		}	else if ( item == this.zoomInViewMenuItem ) {
-			this.graph.scale( 1.25f );
+			this.visibleGraph.scale( 1.25f );
 		} else if ( item == this.zoomOutViewMenuItem ) {
-			this.graph.scale( 0.8f );
+			this.visibleGraph.scale( 0.8f );
 		} else if ( item == this.fitToWindowViewMenuItem ) {
-			this.graph.resetView( );
+			this.visibleGraph.scale( 1.0f );
 		} else if ( item == this.invertSelectionViewMenuItem ) {
 			for ( Molecule m : vertices )
 				pickedVertexState.pick( m, !pickedVertexState.isPicked( m ));
