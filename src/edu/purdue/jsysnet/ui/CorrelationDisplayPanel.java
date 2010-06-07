@@ -141,7 +141,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	private Layout <Molecule,Correlation> layout; //Graph Layout
 	private InfoPanel infoPanel = new InfoPanel( );
 	private JSplitPane graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
-	private JPanel heatMapPanel;
+	private HeatMap  heatMapPanel;
 
 	private DataHandler data = null;
 	private Experiment experiment = null;
@@ -317,8 +317,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 */
 	public boolean createGraph( ) {
 			if ( this.data != null ) {
-				this.createGraph( this.data );
-				return true;
+				return this.createGraph( this.data );
 			}
 			return false;
 	}
@@ -351,6 +350,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			JSysNet.settings.getInt( "windowHeight" ) - 250 );
 		this.setGraphVisualizer( this.graph );
 		this.setGraphLayout( CircleLayout.class );
+
+		this.heatMapPanel = new HeatMap( this.getTitle( ), this.graph.getVertices( ), this.getCorrelationRange( ));
+		this.graph.addVertexChangeListener( this.heatMapPanel );
 		return true;
 	}
 
@@ -376,7 +378,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	}
 
 	private void heatMap( ) {
-		this.heatMapPanel = new HeatMap( this.getTitle( ), this.graph.getVertices( ), this.getCorrelationRange( ));
 		this.remove( this.graphSplitPane );
 		this.add( this.heatMapPanel, BorderLayout.CENTER );
 	}
@@ -656,8 +657,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 					for( Correlation correlation : molecule.getCorrelations( )) {
 						if ( graph.isValidEdge( correlation ))
 							graph.addEdge( correlation,
-			                            new Pair<Molecule>( correlation.getMolecules( )),
-																	EdgeType.UNDIRECTED );
+								new Pair<Molecule>( correlation.getMolecules( )),
+								EdgeType.UNDIRECTED );
 					}
 				}
 				else {

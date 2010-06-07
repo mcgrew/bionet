@@ -420,13 +420,16 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	private void fireVertexChangeEvent( V item, int action ) {
-		for ( GraphItemChangeListener <V> v : vertexChangeListeners )
-			v.stateChanged( new GraphItemChangeEvent<V>( this, item, action ));
+		GraphItemChangeEvent <V> event = new GraphItemChangeEvent<V>( this, item, action );
+		for ( GraphItemChangeListener <V> v : vertexChangeListeners ) {
+			v.stateChanged( event );
+		}
 	}
 
 	private void fireEdgeChangeEvent( E item, int action ) {
+		GraphItemChangeEvent <E> event = new GraphItemChangeEvent<E>( this, item, action );
 		for ( GraphItemChangeListener <E> e : edgeChangeListeners )
-			e.stateChanged( new GraphItemChangeEvent<E>( this, item, action ));
+			e.stateChanged( event );
 	}
 
 	/**
@@ -618,7 +621,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	public boolean removeVertex( V vertex ) {
-		this.fireVertexChangeEvent( vertex, GraphItemChangeEvent.ADDED );
+		this.fireVertexChangeEvent( vertex, GraphItemChangeEvent.REMOVED );
 		return this.graph.removeVertex( vertex );
 	}
 

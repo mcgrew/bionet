@@ -52,8 +52,7 @@ import org.jfree.chart.axis.AxisState;
 
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 
-public class HeatMap extends JPanel implements MouseListener, GraphMouseListener<Correlation>,ChangeListener {
-	private DefaultHeatMapDataset dataset;
+public class HeatMap extends JPanel implements MouseListener, GraphMouseListener<Correlation>, ChangeListener, GraphItemChangeListener<Molecule> {
 	private List <Molecule> moleculeList;
 	private int tickSize = 0;
 	private ArrayList<GraphMouseListener> graphMouseListeners = 
@@ -74,19 +73,23 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 		this.addMouseListener( this );
 		this.addGraphMouseListener( this );
 		this.moleculeList = new Vector( molecules );
+	}
+
+	private DefaultHeatMapDataset getDataset( ) {
 		int size = moleculeList.size( );
-		this.dataset = new DefaultHeatMapDataset( 
+		DefaultHeatMapDataset returnValue = new DefaultHeatMapDataset( 
 			size, size,
 			0.0, (double)size,
 			0.0, (double)size );
 		for( int i=0; i < size; i++ ){
 			for( int j=0; j < size; j++ ) {
 
-				dataset.setZValue( i, j, (i==j)? Double.NaN : 
+				returnValue.setZValue( i, j, (i==j)? Double.NaN : 
 					Math.abs( Correlation.getValue( 
 						moleculeList.get( i ), moleculeList.get( j ))));
 			}
 		}
+		return returnValue;
 	}
 
 	/**
@@ -99,7 +102,7 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 		super.paintComponent( g );
 		float tickStep;
 		BufferedImage drawing = HeatMapUtilities.createHeatMapImage( 
-			this.dataset, new Spectrum( range ));
+			this.getDataset( ), new Spectrum( range ));
 		int leftEdge = this.getWidth( ) / 8;
 		int topEdge = this.getHeight( ) / 32;
 		int bottomEdge = this.getHeight( ) * 7 / 8;
@@ -185,10 +188,20 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	public void graphPressed( Correlation c, MouseEvent e ) { }
 	public void graphReleased( Correlation c, MouseEvent e ) { }
 
-	// ChanteListener interface method
+	// ChangeListener interface method
 	public void stateChanged( ChangeEvent event ) {
-//		MonitorableRange range = (MonitorableRange)event.getSource( );	
 		this.repaint( );
 	}
+
+	public void stateChanged( GraphItemChangeEvent<Molecule> event ) {
+		int change = event.getAction( );
+		Molecule molecule = event.getItem( );
+		if ( change == GraphItemChangeEvent.REMOVED )
+			moleculeList.remove( molecule );
+		if ( change == GraphItemChangeEvent.ADDED && !moleculeList.contains( molecule ))
+			moleculeList.add( molecule );
+		this.repaint( );
+	}
+
 }
 
