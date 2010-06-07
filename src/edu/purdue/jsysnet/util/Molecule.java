@@ -246,7 +246,7 @@ public class Molecule {
 	 */
 	public Correlation getCorrelation( Molecule molecule ) {
 		for( Correlation correlation : this.correlations ) {
-			if ( correlation.hasMolecule( molecule ))
+			if ( correlation.getOpposite( this ) == molecule )
 				return correlation;
 		}
 		return null;

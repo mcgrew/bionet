@@ -19,17 +19,11 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet.ui;
 
-/**
- * Interface class for listening for PickedStateChangeEvents on a graph.
- */
-public interface PickedStateChangeListener <T> {
+import java.util.EventListener;
 
-	/**
-	 * Called when the picked state has changed.
-	 * 
-	 * @param event The event which triggered this action.
-	 */
-	void stateChanged( PickedStateChangeEvent <T> event );
-	
+public interface GraphItemChangeListener<T> extends EventListener {
+
+	public void stateChanged( GraphItemChangeEvent<T> e );
+
 }
 

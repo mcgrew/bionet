@@ -40,7 +40,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 
 	public DetailWindow( String title, Range range ) {
 		super( title );
-		this.correlationRange = range;
+		this.correlationRange = range.clone( );
 		int width  = JSysNet.settings.getInt( "detailWindowWidth"  );
 		int height = JSysNet.settings.getInt( "detailWindowHeight" );
 		int x = Math.max( 0, Math.min( 

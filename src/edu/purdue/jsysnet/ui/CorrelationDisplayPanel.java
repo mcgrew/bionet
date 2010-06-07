@@ -25,6 +25,7 @@ import edu.purdue.jsysnet.util.Experiment;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.util.MonitorableRange;
 import edu.purdue.jsysnet.io.DataHandler;
 import edu.purdue.jsysnet.JSysNet;
 
@@ -136,13 +137,14 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	private MoleculeFilterPanel moleculeFilterPanel;
 	private CorrelationFilterPanel correlationFilterPanel;
 
-	protected CorrelationGraphVisualizer graph;
-	protected Layout <Molecule,Correlation> layout; //Graph Layout
-	protected InfoPanel infoPanel = new InfoPanel( );
-	protected JSplitPane graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+	private CorrelationGraphVisualizer graph;
+	private Layout <Molecule,Correlation> layout; //Graph Layout
+	private InfoPanel infoPanel = new InfoPanel( );
+	private JSplitPane graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+	private JPanel heatMapPanel;
 
-	protected DataHandler data = null;
-	protected Experiment experiment = null;
+	private DataHandler data = null;
+	private Experiment experiment = null;
 	private String title;
 
 	/**
@@ -336,13 +338,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		}
 		this.title = this.experiment.getAttribute( "description" );
 
-		this.graph = new CorrelationGraphVisualizer( );
-		this.graph.setCorrelationFilterPanel( this.correlationFilterPanel );
-		this.graph.setCorrelationDisplayPanel( this );
+		this.graph = new CorrelationGraphVisualizer( 
+			this.experiment, this.correlationFilterPanel.getMonitorableRange( ));
 		this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
-		this.addVertices( );
-		this.addEdges( );
-		this.graph.filterEdges( );
+		for( String groupName : this.experiment.getMoleculeGroupNames( ))
+			for( Molecule molecule : this.experiment.getMoleculeGroup( groupName ).getMolecules( ))
+				this.moleculeFilterPanel.add( molecule );
 
 		this.add( this.graphSplitPane, BorderLayout.CENTER );
 		this.graphSplitPane.setBottomComponent( this.infoPanel );
@@ -351,40 +352,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		this.setGraphVisualizer( this.graph );
 		this.setGraphLayout( CircleLayout.class );
 		return true;
-	}
-
-	/**
-	 * Adds the Vertices (Molecules) to the Graph
-	 * 
-	 * @return The number of molecules added to the graph
-	 */
-	protected int addVertices( ) {
-		int returnValue = 0;
-		MoleculeCheckBox cb;
-		for( String groupName : this.experiment.getMoleculeGroupNames( )) {
-			for( Molecule molecule : this.experiment.getMoleculeGroup( groupName ).getMolecules( )) {
-				this.graph.addVertex( molecule );
-				this.moleculeFilterPanel.add( molecule );
-				returnValue++;
-			}
-		}
-		return returnValue;
-	}
-
-	/**
-	 * Adds the Edges (Correlations) to the Graph.
-	 * 
-	 * @return The number of Correlations added to the graph.
-	 */
-	protected int addEdges( ) {
-		int returnValue = 0;
-		for( Correlation correlation : this.experiment.getCorrelations( )) {
-			this.graph.addEdge( correlation, 
-				             new Pair <Molecule> ( correlation.getMolecules( )),
-				             EdgeType.UNDIRECTED );
-			returnValue++;
-		}
-		return returnValue;
 	}
 
 	/**
@@ -401,7 +368,17 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 *	instance will be created.
 	 */
 	public void setGraphLayout( Class <? extends AbstractLayout> layout ) {
+		if ( this.heatMapPanel != null && this.heatMapPanel.isShowing( )) {
+			this.remove( this.heatMapPanel );
+			this.add( this.graphSplitPane );
+		}
 		this.graph.setGraphLayout( layout );
+	}
+
+	private void heatMap( ) {
+		this.heatMapPanel = new HeatMap( this.getTitle( ), this.graph.getVertices( ), this.getCorrelationRange( ));
+		this.remove( this.graphSplitPane );
+		this.add( this.heatMapPanel, BorderLayout.CENTER );
 	}
 
 	/**
@@ -413,7 +390,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		if ( this.graph != null )
 			this.remove( this.graph );
 		this.graph = v;
-		this.correlationFilterPanel.setVisualization( v );
+		this.correlationFilterPanel.getMonitorableRange( ).addChangeListener( v );
 		// add labels to the graph
 		this.graphSplitPane.setTopComponent( this.graph.getScrollPane( ));
 		v.addPickedVertexStateChangeListener( new PickedStateChangeListener <Molecule> ( ){
@@ -434,6 +411,10 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			}
 		});
 
+	}
+	
+	public Experiment getExperiment( ) {
+		return experiment;
 	}
 
 	/**
@@ -499,8 +480,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 * 
 	 * @return The value of the correlation setting
 	 */
-	public Range getCorrelationRange( ) {
-		return this.correlationFilterPanel.getRange( );
+	public MonitorableRange getCorrelationRange( ) {
+		return this.correlationFilterPanel.getMonitorableRange( );
 	}
 
 	/**
@@ -596,7 +577,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 
 	// ******************* PRIVATE/PROTECTED CLASSES **************************
 
-	protected class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener {
+	private class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener {
 		private JButton noneButton = new JButton( "None" );
 		private JButton allButton = new JButton( "All" );
 		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 ));
@@ -736,7 +717,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	/**
 	 * A class for checkboxes to turn on and off graph nodes.
 	 */
-	protected class MoleculeCheckBox extends JCheckBox {
+	private class MoleculeCheckBox extends JCheckBox {
 		private Molecule molecule;
 
 		/**
@@ -773,7 +754,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	/**
 	 * A class for displaying the table below the graph.
 	 */
-	protected class InfoPanel extends JTabbedPane {
+	private class InfoPanel extends JTabbedPane {
 		private final static String MOLECULE_INDEX = "id";
 		private JTable moleculeTable = new JTable(0,0);
 		private JTable correlationTable = new JTable(0,0);
@@ -931,7 +912,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 * A class which listens for a change in the state of the calculation menu.
 	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
 	 */
-	protected class CalculationChangeListener implements ItemListener {
+	private class CalculationChangeListener implements ItemListener {
 
 		/**
 		 * The itemStateChanged method of the ItemListener interface.
@@ -957,7 +938,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 * A class for listening for clicks on menu items.
 	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
 	 */
-	protected class MenuItemListener implements ActionListener {
+	private class MenuItemListener implements ActionListener {
 
 		/**
 		 * The actionPerformed method of the ActionListener interface.
@@ -980,7 +961,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 * A class for listening for changes to the layout menu.
 	 * @todo Integrate this class with the CorrelationDisplayPanel class.
 	 */
-	protected class LayoutChangeListener implements ActionListener {
+	private class LayoutChangeListener implements ActionListener {
 
 			/**
 			 * The actionPerformed method of the ActionListener interface.
@@ -1009,6 +990,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 						setGraphLayout( FRLayout.class );
 					else if ( item == springLayoutMenuItem )
 						setGraphLayout( SpringLayout2.class );
+					else if ( item == heatMapLayoutMenuItem )
+						heatMap( );
+						repaint( );
 
 				}
 			}

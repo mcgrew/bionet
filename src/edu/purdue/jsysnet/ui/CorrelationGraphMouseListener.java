@@ -84,7 +84,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			this.correlationMap.clear( );
 			this.molecule = m;
 			Range range =
-				((CorrelationGraphVisualizer)invoker).getCorrelationFilterPanel( ).getRange( );
+				((CorrelationGraphVisualizer)invoker).getRange( );
 			for( Correlation c : m.getCorrelations( )) {
 				if ( range.contains( Math.abs( c.getValue( )))) {
 					JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
@@ -98,17 +98,17 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 
 
 		public void actionPerformed ( ActionEvent e ) {
-			CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer) this.getInvoker( );
-			Range range = graph.getCorrelationFilterPanel( ).getRange( );
+			CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer)this.getInvoker( );
+			Range range = graph.getRange( );
 			Object source = e.getSource( );
 
 			if ( this.correlationMap.containsKey( source )) {
-				new DetailWindow( graph.getCorrelationDisplayPanel( ).getTitle( ), this.correlationMap.get( source ), new Range( 0.6, 1 ));
+				new DetailWindow( graph.getExperiment( ).getAttribute( "description" ), this.correlationMap.get( source ), new Range( 0.6, 1 ));
 			} else if ( source == this.hideMenuItem ) {
-				graph.getCorrelationDisplayPanel( ).hide( this.molecule );
+//				graph.getCorrelationDisplayPanel( ).hide( this.molecule );
 
 			} else if ( source == this.detailsMenuItem ) {
-				new DetailWindow( graph.getCorrelationDisplayPanel( ).getTitle( ), this.molecule, range );
+				new DetailWindow( graph.getExperiment( ).getAttribute( "description" ), this.molecule, range );
 
 			} else if ( source == this.selectMoleculesMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );
@@ -129,7 +129,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 	        (CorrelationGraphVisualizer)this.getInvoker( ), null);
 				for( Molecule m : subnetwork ) {
 					state.pick( m, true );
-					for ( Correlation c : m.getCorrelations( )) {
+					for ( Correlation c : graph.getIncidentEdges( m )) {
 						edgeState.pick( c, true );
 					}
 				}

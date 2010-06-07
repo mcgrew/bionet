@@ -52,7 +52,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	public MoleculeDetailPanel ( Molecule molecule, Range range, DetailWindow detailWindow ) {
 		super( new BorderLayout( ));
 		this.molecule = molecule;
-		this.correlationRange = range;
+		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 
 		this.moleculeDetailTable = DataTable.getMoleculeTable( this.molecule );

@@ -73,7 +73,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	public CorrelationDetailPanel( Correlation correlation, Range range, DetailWindow detailWindow ) {
 		super( new BorderLayout( ));
 		this.correlation = correlation;
-		this.correlationRange = range;
+		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 
 		molecule0Samples = correlation.getMolecules( )[ 0 ].getSamples( );

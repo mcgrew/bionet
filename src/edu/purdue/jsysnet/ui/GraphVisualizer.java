@@ -55,16 +55,16 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	private Thread AnimThread;
 	private AbsoluteCrossoverScalingControl absoluteViewScaler = 
 		new AbsoluteCrossoverScalingControl( );
-	private ArrayList <PickedStateChangeListener> pickedVertexStateChangeListeners =
-		new ArrayList<PickedStateChangeListener>( );
-	private ArrayList <PickedStateChangeListener> pickedEdgeStateChangeListeners =
-		new ArrayList<PickedStateChangeListener>( );
+	private ArrayList <PickedStateChangeListener<V>> pickedVertexStateChangeListeners =
+		new ArrayList<PickedStateChangeListener<V>>( );
+	private ArrayList <PickedStateChangeListener<E>> pickedEdgeStateChangeListeners =
+		new ArrayList<PickedStateChangeListener<E>>( );
 //	private ViewScalingControl viewScaler = new ViewScalingControl( );
 	private GraphZoomScrollPane scrollPane;
 	private float currentZoom = 1.0f;
 	private static float minimumZoom = 0.8f;
-	private Collection <V> lastPickedVertices = new Vector<V>( );
-	private Collection <E> lastPickedEdges = new Vector<E>( );;
+	private ArrayList<GraphItemChangeListener<V>> vertexChangeListeners = new ArrayList<GraphItemChangeListener<V>>( );
+	private ArrayList<GraphItemChangeListener<E>> edgeChangeListeners = new ArrayList<GraphItemChangeListener<E>>( );
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -411,6 +411,24 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		}
 	}
 
+	public void addVertexChangeListener( GraphItemChangeListener <V> g ) {
+		this.vertexChangeListeners.add( g );
+	}
+
+	public void addEdgeChangeListener( GraphItemChangeListener <E> g ) {
+		this.edgeChangeListeners.add( g );
+	}
+
+	private void fireVertexChangeEvent( V item, int action ) {
+		for ( GraphItemChangeListener <V> v : vertexChangeListeners )
+			v.stateChanged( new GraphItemChangeEvent<V>( this, item, action ));
+	}
+
+	private void fireEdgeChangeEvent( E item, int action ) {
+		for ( GraphItemChangeListener <E> e : edgeChangeListeners )
+			e.stateChanged( new GraphItemChangeEvent<E>( this, item, action ));
+	}
+
 	/**
 	 * The itemStateChanged method of the ItemListener interface.
 	 * 
@@ -509,6 +527,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	public boolean addVertex( V vertex ) {
+		this.fireVertexChangeEvent( vertex, GraphItemChangeEvent.ADDED );
 		return this.graph.addVertex( vertex );
 	}
 
@@ -594,15 +613,18 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	public boolean removeEdge( E edge ) {
+		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.REMOVED );
 		return this.graph.removeEdge( edge );
 	}
 
 	public boolean removeVertex( V vertex ) {
+		this.fireVertexChangeEvent( vertex, GraphItemChangeEvent.ADDED );
 		return this.graph.removeVertex( vertex );
 	}
 
 	//UndirectedSparseGraph pass through Methods
 	public boolean addEdge( E edge, Pair<? extends V> endpoints, EdgeType edgeType ) {
+		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.ADDED );
 		return this.graph.addEdge( edge, endpoints, edgeType );
 	}
 

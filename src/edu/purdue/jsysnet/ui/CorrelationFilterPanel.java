@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.util.MonitorableRange;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -34,7 +35,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.SwingConstants;
 import javax.swing.SpinnerNumberModel;
 
-public class CorrelationFilterPanel extends JPanel {
+public class CorrelationFilterPanel extends JPanel implements ChangeListener {
 
 	private JLabel minCorrelationLabel = new JLabel( "Higher Than: ", SwingConstants.RIGHT );
 	private JLabel maxCorrelationLabel = new JLabel( "Lower Than: ", SwingConstants.RIGHT );
@@ -42,7 +43,7 @@ public class CorrelationFilterPanel extends JPanel {
 	private JPanel maxCorrelationFilterPanel = new JPanel( );
 	private JSpinner minCorrelationSpinner;
 	private JSpinner maxCorrelationSpinner;
-	private EdgeFilterChangeListener efcl;   
+	private MonitorableRange range; 
 
 	public CorrelationFilterPanel( ) {
 		this( 0.6, 1.0 );
@@ -53,6 +54,7 @@ public class CorrelationFilterPanel extends JPanel {
 	}
 
 	public CorrelationFilterPanel( double min, double max, double step, double low, double high ) {
+		this.range = new MonitorableRange( low, high );
 		this.setLayout( new BorderLayout( ));
 		this.minCorrelationSpinner = new JSpinner( new SpinnerNumberModel( low, min, max, step ));
 		this.maxCorrelationSpinner = new JSpinner( new SpinnerNumberModel( high, min, max, step ));
@@ -70,6 +72,8 @@ public class CorrelationFilterPanel extends JPanel {
 
 		this.add( this.minCorrelationFilterPanel, BorderLayout.NORTH );
 		this.add( this.maxCorrelationFilterPanel, BorderLayout.SOUTH );
+		this.minCorrelationSpinner.addChangeListener( this ); 
+		this.maxCorrelationSpinner.addChangeListener( this );
 
 		this.setBorder( 
 			BorderFactory.createTitledBorder( 
@@ -81,35 +85,17 @@ public class CorrelationFilterPanel extends JPanel {
 	}
 
 
-	public void setVisualization( CorrelationGraphVisualizer v ) {
-		// add event listeners to the spinners to watch for changes.
-		// remove the current listeners (if any)
-		if ( this.efcl != null ) {
-			this.minCorrelationSpinner.removeChangeListener( this.efcl );
-			this.minCorrelationSpinner.removeChangeListener( this.efcl );
-		}
-		// add some new listeners
-		this.efcl = new EdgeFilterChangeListener( v );
-		this.minCorrelationSpinner.addChangeListener( this.efcl ); 
-		this.maxCorrelationSpinner.addChangeListener( this.efcl );
-	}
-
 	public Range getRange( ) {
-		return new Range((( Double )this.minCorrelationSpinner.getValue( )).doubleValue( ),
-										 (( Double )this.maxCorrelationSpinner.getValue( )).doubleValue( ));
+		return range;
 	}
 
-	protected class EdgeFilterChangeListener implements ChangeListener {
-		private CorrelationGraphVisualizer graph;
+	public MonitorableRange getMonitorableRange( ) {
+		return range;
+	}
 
-		public EdgeFilterChangeListener( CorrelationGraphVisualizer v ) {
-			this.graph = v;
-		}
-
-		public void stateChanged( ChangeEvent e ) {
-			this.graph.filterEdges( );
-			this.graph.repaint( );
-		}
+	public void stateChanged( ChangeEvent e ) {
+		range.setRange((( Double )this.minCorrelationSpinner.getValue( )).doubleValue( ),
+										 (( Double )this.maxCorrelationSpinner.getValue( )).doubleValue( ));
 	}
 
 }

@@ -22,7 +22,7 @@ package edu.purdue.jsysnet.util;
 /**
  * A class for finding whether a particular value falls within a Range.
  */
-public class Range {
+public class Range implements Cloneable {
 	private double min;
 	private double max;
 
@@ -71,8 +71,8 @@ public class Range {
 	 * 
 	 * @param min The new min value for this Range.
 	 */
-	public void setMinimum( int min ) {
-		this.min = max;
+	public void setMin( int min ) {
+		this.setMin( (double)min );
 	}
 
 	/**
@@ -80,8 +80,8 @@ public class Range {
 	 * 
 	 * @param min The new min value for this Range.
 	 */
-	public void setMinimum( float min ) {
-		this.min = max;
+	public void setMin( float min ) {
+		this.setMin( (double)min );
 	}
 
 	/**
@@ -89,8 +89,8 @@ public class Range {
 	 * 
 	 * @param min The new min value for this Range.
 	 */
-	public void setMinimum( double min ) {
-		this.min = max;
+	public void setMin( double min ) {
+		this.min = min;
 	}
 
 	/**
@@ -98,8 +98,8 @@ public class Range {
 	 * 
 	 * @param max The new min value for this Range.
 	 */
-	public void setMaximum( int max ) {
-		this.max = max;
+	public void setMax( int max ) {
+		this.setMax( (double)max );
 	}
 
 	/**
@@ -107,8 +107,8 @@ public class Range {
 	 * 
 	 * @param max The new min value for this Range.
 	 */
-	public void setMaximum( float max ) {
-		this.max = max;
+	public void setMax( float max ) {
+		this.setMax( (double)min );
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class Range {
 	 * 
 	 * @param max The new minimum value for this Range.
 	 */
-	public void setMaximum( double max ) {
+	public void setMax( double max ) {
 		this.max = max;
 	}
 
@@ -127,8 +127,7 @@ public class Range {
 	 * @param max The new maximum value for this Range.
 	 */
 	public void setRange( int min, int max ) {
-		this.min = min;
-		this.max = max;
+		this.setRange( (double)min, (double)max );
 	}
 
 	/**
@@ -138,8 +137,7 @@ public class Range {
 	 * @param max The new maximum value for this Range.
 	 */
 	public void setRange( float min, float max ) {
-		this.min = min;
-		this.max = max;
+		this.setRange( (double)min, (double)max );
 	}
 
 	/**
@@ -169,6 +167,15 @@ public class Range {
 	 */
 	public double getMax( ) {
 		return this.max;
+	}
+
+	/**
+	 * Returns the size of this Range.
+	 * 
+	 * @return the size of this Range.
+	 */
+	public double getSize( ) {
+		return this.max - this.min;
 	}
 
 	/**
@@ -234,6 +241,24 @@ public class Range {
 		return ( value > this.min && value < this.max );
 	}
 
+	/**
+	 * Creates a copy of this range
+	 * 
+	 * @return a A new Range that is a copy of this range.
+	 */
+	public Range clone( ) {
+		return new Range( this.min, this.max );
+	}
+
+	/**
+	 * Determines if the two ranges are equal.
+	 * 
+	 * @param r The range to compare this range to.
+	 * @return True if the 2 ranges are equal, false otherwise.
+	 */
+	public boolean equals( Range r ) {
+		return ( this.min == r.getMin( ) && this.max == r.getMax( ));
+	}
 }
 
 
