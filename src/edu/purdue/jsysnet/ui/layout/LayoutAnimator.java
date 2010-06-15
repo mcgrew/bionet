@@ -28,6 +28,7 @@ import edu.uci.ics.jung.algorithms.layout.LayoutDecorator;
 
 import java.util.HashMap;
 import java.util.Collection;
+import java.util.Vector;
 
 
 
@@ -132,7 +133,7 @@ public abstract class LayoutAnimator<V,E> implements Runnable {
 	 * @return A HashMap containing the vertices and their locations.
 	 */
 	protected HashMap<V,PolarPoint2D> getMap( ) {
-		Collection<V> vertices = this.layout.getGraph( ).getVertices( );
+		Collection<V> vertices = new Vector( this.layout.getGraph( ).getVertices( ));
 		HashMap <V,PolarPoint2D> map = new HashMap<V,PolarPoint2D>( );
 		for( V v : vertices ){
 			map.put( v, new PolarPoint2D( layout.getX( v ), layout.getY( v )));

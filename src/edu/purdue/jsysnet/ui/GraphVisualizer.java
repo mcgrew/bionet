@@ -24,12 +24,17 @@ import edu.purdue.jsysnet.ui.layout.*;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.HashMap;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import java.awt.Dimension;
+import java.awt.Point;
 import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
@@ -44,6 +49,8 @@ import edu.uci.ics.jung.visualization.picking.PickedState;
 import edu.uci.ics.jung.visualization.control.ViewScalingControl;
 import edu.uci.ics.jung.visualization.control.AbsoluteCrossoverScalingControl;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
+import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
+import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 
 
 /**
@@ -60,9 +67,9 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	private ArrayList <PickedStateChangeListener<E>> pickedEdgeStateChangeListeners =
 		new ArrayList<PickedStateChangeListener<E>>( );
 //	private ViewScalingControl viewScaler = new ViewScalingControl( );
-	private GraphZoomScrollPane scrollPane;
+	private JScrollPane scrollPane;
 	private float currentZoom = 1.0f;
-	private static float minimumZoom = 0.8f;
+	private static float minimumZoom = 0.99f;
 	private ArrayList<GraphItemChangeListener<V>> vertexChangeListeners = new ArrayList<GraphItemChangeListener<V>>( );
 	private ArrayList<GraphItemChangeListener<E>> edgeChangeListeners = new ArrayList<GraphItemChangeListener<E>>( );
 
@@ -318,11 +325,63 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * @param center The center point for the scaling operation.
 	 */
 	public float scaleTo( float level, Point2D center ) {
+		float oldZoom = this.currentZoom;
 		this.currentZoom = Math.max( minimumZoom, level );
-		this.absoluteViewScaler.scale( this, level, center );
+//		this.absoluteViewScaler.scale( this, level, center );
+		Dimension newSize = new Dimension( 
+			(int)( this.scrollPane.getWidth( ) * currentZoom ),
+			(int)( this.scrollPane.getHeight( ) * currentZoom ));
+		this.setPreferredSize( newSize );
+		this.setSize( newSize );
+		new LayoutScaler( this.getGraphLayout( )).setSize( newSize );
 		if ( Float.compare( level, 1.0f ) == 0 )
 			this.center( );
+
+		// translate the new view position so the mouse is in the same place
+		// on the scaled view.
+		JViewport vp = this.scrollPane.getViewport( );
+		double centerX = center.getX( );
+		double centerY = center.getY( );
+		double viewPortMouseX = centerX - vp.getViewPosition( ).getX( );
+		double viewPortMouseY = centerY - vp.getViewPosition( ).getY( );
+		centerX *= currentZoom / oldZoom;
+		centerY *= currentZoom / oldZoom;
+		viewPortMouseX = centerX - viewPortMouseX;
+		viewPortMouseY = centerY - viewPortMouseY;
+		vp.setViewPosition( new Point( (int)viewPortMouseX, (int)viewPortMouseY ));
+
 		return this.currentZoom;
+	}
+
+	// jung's built in layout scaling doesn't seem to work very well,
+	// so here's my workaround implementation.
+	private class LayoutScaler {
+		private AbstractLayout<V,E> layout;
+		private ObservableCachingLayout<V,E> observableLayout;
+
+		public LayoutScaler( Layout layout ) {
+			this.observableLayout = (ObservableCachingLayout)layout;
+			while ( !AbstractLayout.class.isAssignableFrom( layout.getClass( ))) 
+				layout = ((LayoutDecorator<V,E>)layout).getDelegate( );
+			this.layout = ( AbstractLayout )layout;
+		}
+
+		private void setSize( Dimension size ) {
+			// change the size of the layout without triggering the automatic resizing.
+			double wScale = size.getWidth( ) / this.layout.getSize( ).getWidth( );
+			double hScale = size.getHeight( ) / this.layout.getSize( ).getHeight( );
+			this.layout.getSize( ).setSize( size );
+			Collection<V> vertices = new Vector( this.layout.getGraph( ).getVertices( ));
+			synchronized( graph ) {
+				for ( V v : vertices ) {
+					this.layout.setLocation( v, new Point2D.Double( 
+						this.layout.getX( v ) * wScale,
+						this.layout.getY( v ) * hScale ));
+				}
+			}
+			this.observableLayout.fireStateChanged( );
+		}
+
 	}
 
 	/**
@@ -349,13 +408,15 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	/**
-	 * Gets the GraphZoomScrollPane associated with this viewer.
+	 * Gets the ScrollPane associated with this viewer.
 	 * 
-	 * @return A GraphZoomScrollPane which contains this GraphVisualizer.
+	 * @return A ScrollPane which contains this GraphVisualizer.
 	 */
-	public GraphZoomScrollPane getScrollPane( ) {
-		if ( this.scrollPane == null )
-			this.scrollPane = new GraphZoomScrollPane( this );
+	public JScrollPane getScrollPane( ) {
+		if ( this.scrollPane == null ) {
+			this.scrollPane = new JScrollPane( this );
+			this.scrollPane.setWheelScrollingEnabled( false );
+		}
 		return this.scrollPane;
 	}
 
