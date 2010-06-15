@@ -297,6 +297,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			"Change the color of the graph" );
 		this.colorMenuButtonGroup.add( this.normalColorMenuItem );
 		this.colorMenuButtonGroup.add( this.highContrastColorMenuItem );
+		this.highContrastColorMenuItem.setEnabled( false );
 		this.colorMenu.add( this.normalColorMenuItem );
 		this.colorMenu.add( this.highContrastColorMenuItem );
 
@@ -371,15 +372,29 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 *	instance will be created.
 	 */
 	public void setGraphLayout( Class <? extends AbstractLayout> layout ) {
-		if ( this.heatMapPanel != null && this.heatMapPanel.isShowing( )) {
-			this.remove( this.heatMapPanel );
-			this.add( this.graphSplitPane );
+		if ( this.heatMapPanel != null && this.visibleGraph == this.heatMapPanel ) {
+			this.remove( this.heatMapPanel.getScrollPane( ));
+			this.add( this.graphSplitPane, BorderLayout.CENTER );
 			this.visibleGraph = this.graph;
+			this.selectAllViewMenuItem.setEnabled( true );
+			this.clearSelectionViewMenuItem.setEnabled( true );
+			this.invertSelectionViewMenuItem.setEnabled( true );
+			this.selectCorrelatedViewMenuItem.setEnabled( true );
+			this.hideSelectedViewMenuItem.setEnabled( true );
+			this.hideUnselectedViewMenuItem.setEnabled( true );
+			this.hideUncorrelatedViewMenuItem.setEnabled( true );
 		}
 		this.graph.setGraphLayout( layout );
 	}
 
 	private void heatMap( ) {
+		this.selectAllViewMenuItem.setEnabled( false );
+		this.clearSelectionViewMenuItem.setEnabled( false );
+		this.invertSelectionViewMenuItem.setEnabled( false );
+		this.selectCorrelatedViewMenuItem.setEnabled( false );
+		this.hideSelectedViewMenuItem.setEnabled( false );
+		this.hideUnselectedViewMenuItem.setEnabled( false );
+		this.hideUncorrelatedViewMenuItem.setEnabled( false );
 		this.remove( this.graphSplitPane );
 		this.add( this.heatMapPanel.getScrollPane( ), BorderLayout.CENTER );
 		this.visibleGraph = this.heatMapPanel;

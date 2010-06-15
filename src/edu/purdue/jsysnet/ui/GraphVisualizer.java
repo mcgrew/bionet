@@ -293,6 +293,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * Scales the graph view by the given amount.
 	 * 
 	 * @param amount The multiplier to apply to the scaling.
+	 * @return The new zoom level.
 	 */
 	public float scale( float amount ) {
 		return this.scale( amount, this.getCenterPoint( ));
@@ -304,25 +305,29 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * 
 	 * @param amount The multiplier to apply to the scaling.
 	 * @param center The center point for the scaling operation.
+	 * @return The new zoom level.
 	 */
 	public float scale( float amount, Point2D center ) {
 		return this.scaleTo( currentZoom * amount, center );
 	}
 
 	/**
-	 * Zooms to the given graph level, 1.0 being 100%.
+	 * Scales to the given graph level, 1.0 being 100%.
 	 * 
 	 * @param level The level to zoom to.
+	 * @return The new zoom level.
 	 */
 	public float scaleTo( float level ) {
 		return this.scaleTo( level, this.getCenterPoint( ));
 	}
 
 	/**
-	 * Zooms to the given graph level, 1.0 being 100%.
+	 * Scales to the given zoom level, 1.0 being 100%, centered on the 
+	 * given point.
 	 * 
 	 * @param level The level to zoom to.
 	 * @param center The center point for the scaling operation.
+	 * @return The new zoom level.
 	 */
 	public float scaleTo( float level, Point2D center ) {
 		float oldZoom = this.currentZoom;
@@ -353,12 +358,20 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		return this.currentZoom;
 	}
 
-	// jung's built in layout scaling doesn't seem to work very well,
+	// JUNGs built in layout scaling doesn't seem to work very well,
 	// so here's my workaround implementation.
+	/**
+	 * A class for scaling a Layout externally.
+	 */
 	private class LayoutScaler {
 		private AbstractLayout<V,E> layout;
 		private ObservableCachingLayout<V,E> observableLayout;
 
+		/**
+		 * Creates a new LayoutScaler
+		 * 
+		 * @param layout The layout to be manipulated.
+		 */
 		public LayoutScaler( Layout layout ) {
 			this.observableLayout = (ObservableCachingLayout)layout;
 			while ( !AbstractLayout.class.isAssignableFrom( layout.getClass( ))) 
@@ -366,6 +379,11 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 			this.layout = ( AbstractLayout )layout;
 		}
 
+		/**
+		 * Changes the size of the underlying Layout.
+		 * 
+		 * @param size The new size for the layout.
+		 */
 		private void setSize( Dimension size ) {
 			// change the size of the layout without triggering the automatic resizing.
 			double wScale = size.getWidth( ) / this.layout.getSize( ).getWidth( );
