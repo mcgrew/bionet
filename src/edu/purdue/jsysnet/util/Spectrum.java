@@ -21,12 +21,12 @@ package edu.purdue.jsysnet.util;
 
 import java.awt.Color;
 import java.awt.Paint;
-import java.io.Serializable;
 
 import org.jfree.chart.renderer.PaintScale;
 
-public class Spectrum implements PaintScale,Cloneable,Serializable {
-	private Range range;
+public class Spectrum implements PaintScale,Cloneable {
+	protected Range range;
+	protected Paint outOfRangePaint = null;
 
 	public Spectrum( ) {
 		this( 0.0, 1.0 );
@@ -36,8 +36,18 @@ public class Spectrum implements PaintScale,Cloneable,Serializable {
 		this.range = new Range( lowerBound, upperBound );
 	}
 
+	public Spectrum( double lowerBound, double upperBound, Paint outOfRangePaint ) {
+		this.range = new Range( lowerBound, upperBound );
+		this.outOfRangePaint = outOfRangePaint;
+	}
+
 	public Spectrum( Range range ) {
 		this.range = range;
+	}
+
+	public Spectrum( Range range, Paint outOfRangePaint ) {
+		this.range = range;
+		this.outOfRangePaint = outOfRangePaint;
 	}
 
 	public double getLowerBound( ) {
@@ -57,24 +67,70 @@ public class Spectrum implements PaintScale,Cloneable,Serializable {
 	}
 
 	public Paint getPaint( double value ) throws IllegalArgumentException {
-		if ( !this.range.contains( value ) || value == Double.NaN ) {
-			return Color.WHITE;
+		if ( !this.inRange( value )) {
+			if ( this.outOfRangePaint != null ) {
+				return this.outOfRangePaint;
+			} else {
+				throw new IllegalArgumentException( String.format( 
+					"%f is not a valid value for this %s. The value must be between %f and %f (inclusive).",
+					value, this.getClass( ).getName( ), this.range.getMin( ), this.range.getMax( )));
+			}
 		}
-		if ( value < this.range.getMin( ) || value > this.range.getMax( )) {
-			throw new IllegalArgumentException( String.format( 
-				"%f is not a valid value for this %s. The value must be between %f and %f (inclusive).",
-				value, this.getClass( ).getName( ), this.range.getMin( ), this.range.getMax( )));
-		}
-		value = ( value - this.range.getMin( )) / ( this.range.getSize( ));
-		float red   = (float)( Math.max( 0, value * 2 - 1 ));
-		float green = (float)( Math.max( 0, 1 - 2 * Math.abs( value - 0.5 ) ));
-		float blue  = (float)( Math.max( 0, ( 1 - value ) * 2 - 1 ));
-//		System.out.println( String.format( "Color: %f, %f, %f", red, green, blue ));
-		return new Color( red, green, blue );
+		value = this.normalize( value );
+		return new Color( 
+			this.getRed( value ), 
+			this.getGreen( value ), 
+			this.getBlue( value ));
 	}
 
 	public Spectrum clone( ) {
-		return new Spectrum( this.range.clone( ));
+		return new Spectrum( this.range );
+	}
+
+	/**
+	 * Returns true if the value is contained in this Spectrum's Range.
+	 * 
+	 * @param value The value to be checked.
+	 * @return Whether the value is in range or not.
+	 */
+	protected boolean inRange( double value ) {
+		return ( value != Double.NaN && this.range.contains( value ));
+	}
+
+	protected double normalize( double value ) {
+		return ( value - this.range.getMin( )) / ( this.range.getSize( ));
+	}
+
+	public float getRed( double v ) {
+		return this.getRed( (float)v );
+	}
+
+	public float getRed( float v ) {
+		return (float)( Math.min( 1, Math.max( 0, 4 * v - 2 )));
+	}
+
+	public float getGreen( double v ) {
+		return this.getGreen( (float)v );
+	}
+
+	public float getGreen( float v ) {
+		return (float)( Math.min( 1, Math.max( 0, -4 * Math.abs( v - 0.5 ) + 1.5 )));
+	}
+
+	public float getBlue( double v ) {
+		return this.getBlue( (float)v );
+	}
+
+	public float getBlue( float v ) {
+		return (float)( Math.min( 1, Math.max( 0, -3 * v + 1.5 )));
+	}
+
+	public void setOutOfRangePaint( Paint p ) {
+		this.outOfRangePaint = p;
+	}
+
+	public Paint getOutOfRangePaint( ) {
+		return this.outOfRangePaint;
 	}
 
 }

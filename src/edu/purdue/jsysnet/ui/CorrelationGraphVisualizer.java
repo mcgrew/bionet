@@ -23,23 +23,43 @@ import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.MonitorableRange;
 import edu.purdue.jsysnet.util.Experiment;
+import edu.purdue.jsysnet.util.Spectrum;
+import edu.purdue.jsysnet.util.SplitSpectrum;
 
 import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import edu.uci.ics.jung.visualization.picking.PickedState;
 
+import org.apache.commons.collections15.Transformer;
+
+import java.awt.Paint;
+import java.awt.Color;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
 public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,PickedStateChangeListener<Correlation> {
 	public MonitorableRange range;
 	public Experiment experiment;
+	protected Spectrum spectrum;
 
 	public CorrelationGraphVisualizer( Experiment experiment, MonitorableRange range ) {
 		super( );
 		this.setRange( range );
 		this.setExperiment( experiment );
 		this.addPickedEdgeStateChangeListener( this );
+
+		this.spectrum = new SplitSpectrum( range );
+		this.spectrum.setOutOfRangePaint( Color.WHITE );
+		Transformer e = new Transformer<Correlation,Paint>( ) {
+			public Paint transform( Correlation e ) {
+				if ( getPickedEdgeState( ).isPicked( e )) {
+					return pickedEdgePaint;
+				} else {
+					return spectrum.getPaint( e.getValue( ));
+				}
+			}
+		};
+		this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
 	}
 
 	public void setExperiment( Experiment experiment ) {

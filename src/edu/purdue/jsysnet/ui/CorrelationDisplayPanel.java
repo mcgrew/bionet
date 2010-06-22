@@ -382,6 +382,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			this.hideSelectedViewMenuItem.setEnabled( true );
 			this.hideUnselectedViewMenuItem.setEnabled( true );
 			this.hideUncorrelatedViewMenuItem.setEnabled( true );
+			this.animatedLayoutMenuItem.setEnabled( true );
+			this.graph.getScrollPane( ).repaint( );
 		}
 		this.graph.setGraphLayout( layout );
 	}
@@ -394,9 +396,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.hideSelectedViewMenuItem.setEnabled( false );
 		this.hideUnselectedViewMenuItem.setEnabled( false );
 		this.hideUncorrelatedViewMenuItem.setEnabled( false );
+		this.animatedLayoutMenuItem.setEnabled( false );
 		this.remove( this.graphSplitPane );
 		this.add( this.heatMapPanel.getScrollPane( ), BorderLayout.CENTER );
 		this.visibleGraph = this.heatMapPanel;
+		this.heatMapPanel.getScrollPane( ).repaint( );
 	}
 
 	/**

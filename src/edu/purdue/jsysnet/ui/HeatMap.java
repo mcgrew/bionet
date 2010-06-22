@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import edu.purdue.jsysnet.util.Spectrum;
+import edu.purdue.jsysnet.util.SplitSpectrum;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.MonitorableRange;
@@ -95,8 +96,8 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 			for( int j=0; j < size; j++ ) {
 
 				returnValue.setZValue( i, j, (i==j)? Double.NaN : 
-					Math.abs( Correlation.getValue( 
-						moleculeList.get( i ), moleculeList.get( j ))));
+					Correlation.getValue( 
+						moleculeList.get( i ), moleculeList.get( j )));
 			}
 		}
 		return returnValue;
@@ -198,7 +199,7 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 			return;
 		float tickStep;
 		BufferedImage drawing = HeatMapUtilities.createHeatMapImage( 
-			this.getDataset( ), new Spectrum( range ));
+			this.getDataset( ), new SplitSpectrum( range, Color.WHITE ));
 		int leftEdge = this.getWidth( ) / 8;
 		int topEdge = this.getHeight( ) / 32;
 		int bottomEdge = this.getHeight( ) * 7 / 8;

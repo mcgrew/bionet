@@ -37,6 +37,8 @@ import javax.swing.event.ChangeListener;
 import java.awt.event.InputEvent;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Color;
+import java.awt.Paint;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
@@ -57,6 +59,7 @@ import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 
+import org.apache.commons.collections15.Transformer;
 
 /**
  * A class for visualizing a network graph. 
@@ -79,6 +82,10 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	private ArrayList<GraphItemChangeListener<E>> edgeChangeListeners = new ArrayList<GraphItemChangeListener<E>>( );
 	private ArrayList<ChangeListener> animationListeners = new ArrayList<ChangeListener>( );
 	private ArrayList<GraphMouseListener<E>> graphMouseEdgeListeners = new ArrayList<GraphMouseListener<E>>( );
+	protected Paint vertexPaint = Color.ORANGE;
+	protected Paint pickedVertexPaint = Color.YELLOW;
+	protected Paint edgePaint = Color.GREEN;
+	protected Paint pickedEdgePaint = Color.BLACK;
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -197,13 +204,37 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 				scale((float)Math.pow( 1.25, -e.getWheelRotation( )), e.getPoint( ));
 			}
 		};
+		mouse.add( new PickingGraphMousePlugin( ));
 		mouse.add( new PickingGraphMousePlugin( 
-			InputEvent.BUTTON1_MASK,
-			InputEvent.BUTTON1_MASK | InputEvent.CTRL_MASK ));
+			-1, InputEvent.BUTTON1_MASK | InputEvent.CTRL_MASK ));
 		this.setGraphMouse( mouse );
 		this.getPickedVertexState( ).addItemListener( this );
 		this.getPickedEdgeState( ).addItemListener( this );
 		this.addMouseListener( this );
+
+		// set up coloring
+		Transformer v = new Transformer<V,Paint>( ) {
+			public Paint transform( V v ) {
+				if ( getPickedVertexState( ).isPicked( v )) {
+					return pickedVertexPaint;
+				} else {
+					return vertexPaint;
+				}
+			}
+		};
+		this.getRenderContext( ).setVertexFillPaintTransformer( v );
+		this.getRenderContext( ).setVertexDrawPaintTransformer( v );
+
+		Transformer e = new Transformer<E,Paint>( ) {
+			public Paint transform( E e ) {
+				if ( getPickedEdgeState( ).isPicked( e )) {
+					return pickedEdgePaint;
+				} else {
+					return edgePaint;
+				}
+			}
+		};
+		this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
 	}
 
 	/**
@@ -466,6 +497,48 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	public Point2D getCenterPoint( ) {
 		Dimension size = this.getGraphLayout( ).getSize( );
 		return new Point2D.Double( size.width / 2.0, size.height / 2.0 );
+	}
+
+	/**
+	 * Sets the Paint to be used for filling vertices on the graph.
+	 * 
+	 * @param p The new Paint to use.
+	 */
+	public void setVertexPaint( Paint p ) {
+		this.vertexPaint = p;
+	}
+
+	/**
+	 * Gets the current paint that is being used to render vertices.
+	 * 
+	 * @return The Paint currently being used to render vertices.
+	 */
+	public Paint getVertexPaint( ) {
+		return this.vertexPaint;
+	}
+
+	public void setPickedVertexPaint( Paint p ) {
+		this.pickedVertexPaint = p;
+	}
+
+	public Paint getPickedVertexPaint( ) {
+		return this.pickedVertexPaint;
+	}
+
+	public void setEdgePaint( Paint p ) {
+		this.edgePaint = p;
+	}
+
+	public Paint getEdgePaint( ) {
+		return this.edgePaint;
+	}
+
+	public void setPickedEdgePaint( Paint p ) {
+		this.pickedEdgePaint = p;
+	}
+
+	public Paint getPickedEdgePaint( ) {
+		return this.pickedEdgePaint;
 	}
 
 	/**
