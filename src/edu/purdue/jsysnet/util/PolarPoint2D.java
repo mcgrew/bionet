@@ -102,7 +102,7 @@ public class PolarPoint2D extends Point2D.Double {
 		this.y = y;
 		double relativeX = x - this.origin.getX( );
 		double relativeY = y - this.origin.getY( );
-		this.r = Math.hypot( relativeX, relativeY );
+		this.r = Math.abs( Math.hypot( relativeX, relativeY ));
 		this.theta = Math.atan2( relativeY, relativeX );
 	}
 
@@ -125,6 +125,10 @@ public class PolarPoint2D extends Point2D.Double {
 	 */
 	public void setLocation( double r, double theta, boolean polar ) {
 		if ( polar ) {
+			if ( r < 0 ) {
+				r = Math.abs( r );
+				theta = ( theta < 0 ) ? theta + Math.PI : theta - Math.PI;
+			}
 			this.r = r;
 			this.theta = theta;
 			this.x = r * Math.cos( theta ) + origin.getX( );
@@ -132,6 +136,10 @@ public class PolarPoint2D extends Point2D.Double {
 		} else {
 			this.setLocation( r, theta );
 		}
+	}
+
+	public Point2D getOrigin( ) {
+		return this.origin;
 	}
 
 	/**
@@ -180,12 +188,13 @@ public class PolarPoint2D extends Point2D.Double {
 	 * @param polar true if these coordinates are in polar notation.
 	 */
 	public void move( double r, double theta, boolean polar ) {
-			this.setLocation( this.r + r, this.theta + theta, polar );
-	}
-
-	public void move( double r, double theta, Point2D origin ) {
-		this.origin = (Point2D)origin.clone( );
-		this.setLocation( r, theta, POLAR );
+		if ( r < 0 ) {
+			r = Math.abs( r );
+			theta = ( theta < 0 ) ? theta + Math.PI : theta - Math.PI;
+		}
+		double x = r * Math.cos( theta );
+		double y = r * Math.sin( theta );
+		this.move( x, y );
 	}
 
 	/**

@@ -30,6 +30,8 @@ import java.awt.geom.Point2D;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.Dimension;
 import java.awt.Point;
 import javax.swing.JScrollBar;
@@ -72,6 +74,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	private static float minimumZoom = 0.99f;
 	private ArrayList<GraphItemChangeListener<V>> vertexChangeListeners = new ArrayList<GraphItemChangeListener<V>>( );
 	private ArrayList<GraphItemChangeListener<E>> edgeChangeListeners = new ArrayList<GraphItemChangeListener<E>>( );
+	private ArrayList<ChangeListener> animationListeners = new ArrayList<ChangeListener>( );
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -243,9 +246,19 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		if ( this.layoutAnimator != null )
 			this.layoutAnimator.stop( );
 		if ( enable ) {
-			this.layoutAnimator = new SpringLayoutAnimator( this.getGraphLayout( ));
+			this.layoutAnimator = new FRLayoutAnimator( this.getGraphLayout( ));
+			for ( ChangeListener c : animationListeners ) {
+				this.layoutAnimator.addAnimationListener( c );
+			}
 			this.AnimThread = new Thread( this.layoutAnimator );
 			this.AnimThread.start( );
+		}
+	}
+
+	public void addAnimationListener( ChangeListener c ) {
+		this.animationListeners.add( c );
+		if ( this.layoutAnimator != null ) {
+			this.layoutAnimator.addAnimationListener( c );
 		}
 	}
 

@@ -19,6 +19,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet.ui;
 
+import edu.purdue.jsysnet.ui.layout.LayoutAnimator;
 import edu.purdue.jsysnet.ui.layout.RandomLayout;
 import edu.purdue.jsysnet.ui.layout.MultipleCirclesLayout;
 import edu.purdue.jsysnet.util.Experiment;
@@ -66,6 +67,8 @@ import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.Enumeration;
@@ -88,7 +91,7 @@ import edu.uci.ics.jung.visualization.picking.PickedState;
 /**
  * A class for displaying and interacting with Correlation data for a set of molecules.
  */
-public class CorrelationDisplayPanel extends JPanel implements ActionListener {
+public class CorrelationDisplayPanel extends JPanel implements ActionListener,ChangeListener {
 
 	private JMenuBar menuBar = new JMenuBar( );
 
@@ -104,13 +107,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	private ButtonGroup layoutMenuButtonGroup = new ButtonGroup( );
 	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem = new JRadioButtonMenuItem( "Multiple Circles" );
 	private JRadioButtonMenuItem singleCircleLayoutMenuItem = new JRadioButtonMenuItem( "Single Circle", true );
-//	private JRadioButtonMenuItem clusteredLayoutMenuItem = new JRadioButtonMenuItem( "Clustered" );
 	private JRadioButtonMenuItem randomLayoutMenuItem = new JRadioButtonMenuItem( "Random" );
 	private JRadioButtonMenuItem heatMapLayoutMenuItem = new JRadioButtonMenuItem( "Heat Map" );
 	private JRadioButtonMenuItem kkLayoutMenuItem = new JRadioButtonMenuItem( "KKLayout" );
 	private JRadioButtonMenuItem frLayoutMenuItem = new JRadioButtonMenuItem( "FRLayout" );
 	private JRadioButtonMenuItem springLayoutMenuItem = new JRadioButtonMenuItem( "Spring Layout" );
-	private JCheckBoxMenuItem clusteredLayoutMenuItem = new JCheckBoxMenuItem( "Clustered Spring Embedding" );
+	private JCheckBoxMenuItem animatedLayoutMenuItem = new JCheckBoxMenuItem( "Spring Embedding" );
 
 	// view menu items
 	private JMenu viewMenu = new JMenu( "View" );
@@ -224,7 +226,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			"Change the layout of the graph" );
 		this.layoutMenuButtonGroup.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
-//		this.layoutMenuButtonGroup.add( this.clusteredLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.randomLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.kkLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.frLayoutMenuItem );
@@ -232,23 +233,21 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
-//		this.layoutMenu.add( this.clusteredLayoutMenuItem );
 		this.layoutMenu.add( this.randomLayoutMenuItem );
 		this.layoutMenu.add( this.kkLayoutMenuItem );
 		this.layoutMenu.add( this.frLayoutMenuItem );
 		this.layoutMenu.add( this.springLayoutMenuItem );
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.addSeparator( );
-		this.layoutMenu.add( this.clusteredLayoutMenuItem );
+		this.layoutMenu.add( this.animatedLayoutMenuItem );
 		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
 		this.singleCircleLayoutMenuItem.addActionListener( lcl );
-//		this.clusteredLayoutMenuItem.addActionListener( lcl );
 		this.randomLayoutMenuItem.addActionListener( lcl );
 		this.kkLayoutMenuItem.addActionListener( lcl );
 		this.frLayoutMenuItem.addActionListener( lcl );
 		this.springLayoutMenuItem.addActionListener( lcl );
 		this.heatMapLayoutMenuItem.addActionListener( lcl );
-		this.clusteredLayoutMenuItem.addActionListener( lcl );
+		this.animatedLayoutMenuItem.addActionListener( lcl );
 
 		//VIEW MENU
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
@@ -413,6 +412,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 		// add labels to the graph
 		this.graphSplitPane.setTopComponent( this.graph.getScrollPane( ));
 		this.visibleGraph = this.graph;
+		this.graph.addAnimationListener( this );
 		v.addPickedVertexStateChangeListener( new PickedStateChangeListener <Molecule> ( ){
 
 			public void stateChanged( PickedStateChangeEvent <Molecule> event ) {
@@ -520,6 +520,17 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 	 */
 	public float scaleTo( float level ) {
 		return this.visibleGraph.scaleTo( level );
+	}
+
+	/**
+	 * The stateChanged method of the ChangeListener interface
+	 * 
+	 * @param event The event which triggered this action.
+	 */
+	public void stateChanged( ChangeEvent event ) {
+		LayoutAnimator animator = (LayoutAnimator)event.getSource( );
+		if ( animator.isStopped( ))
+			this.animatedLayoutMenuItem.setState( false );
 	}
 
 	/**
@@ -991,17 +1002,15 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener {
 			public void actionPerformed( ActionEvent event ) {
 				Component item = ( Component )event.getSource( );
 
-				if ( item == clusteredLayoutMenuItem ) {
-					graph.animate( clusteredLayoutMenuItem.getState( ));
+				if ( item == animatedLayoutMenuItem ) {
+					graph.animate( animatedLayoutMenuItem.getState( ));
 				} else {
-					clusteredLayoutMenuItem.setState( false );
+					graph.animate( false );
 					graph.resetView( );
 					if ( item == multipleCirclesLayoutMenuItem )
 						setGraphLayout( MultipleCirclesLayout.class );
 					else if ( item == singleCircleLayoutMenuItem )
 						setGraphLayout( CircleLayout.class );
-//					else if ( item == clusteredLayoutMenuItem )
-//						setGraphLayout( ClusteredLayout.class );
 					else if ( item == randomLayoutMenuItem )
 						setGraphLayout( RandomLayout.class );
 					else if ( item == kkLayoutMenuItem )
