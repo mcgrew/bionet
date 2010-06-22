@@ -31,6 +31,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.awt.GradientPaint;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JTable;
@@ -44,6 +45,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.plot.XYPlot;
 
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
@@ -163,7 +165,13 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 				false, // use tooltips
 				false  // configure chart to generate URLs (?!)
 			);
-			XYItemRenderer renderer = this.chart.getXYPlot( ).getRenderer( );
+
+			this.chart.setBackgroundPaint( new GradientPaint( 0, 1000, Color.WHITE, 1000, 0, Color.GRAY ));
+			XYPlot plot = this.chart.getXYPlot( );
+			plot.setBackgroundPaint( Color.WHITE );
+			plot.setRangeGridlinePaint( Color.GRAY );
+			plot.setDomainGridlinePaint( Color.GRAY );
+			XYItemRenderer renderer = plot.getRenderer( );
 			renderer.setItemLabelGenerator( this );
 			renderer.setItemLabelsVisible( true );
 		}

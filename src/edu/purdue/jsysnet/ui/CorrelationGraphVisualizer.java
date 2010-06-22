@@ -26,11 +26,12 @@ import edu.purdue.jsysnet.util.Experiment;
 
 import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import edu.uci.ics.jung.visualization.picking.PickedState;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
-public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener {
+public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,PickedStateChangeListener<Correlation> {
 	public MonitorableRange range;
 	public Experiment experiment;
 
@@ -38,6 +39,7 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		super( );
 		this.setRange( range );
 		this.setExperiment( experiment );
+		this.addPickedEdgeStateChangeListener( this );
 	}
 
 	public void setExperiment( Experiment experiment ) {
@@ -118,6 +120,13 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 
 	public void stateChanged( ChangeEvent event ) {
 		this.filterEdges( );
+	}
+
+	public void stateChanged( PickedStateChangeEvent<Correlation> event ) {
+		Molecule [] m = event.getItem( ).getMolecules( );
+		PickedState <Molecule> state = this.getPickedVertexState( );
+		state.pick( m[0], true );
+		state.pick( m[1], true );
 	}
 
 }

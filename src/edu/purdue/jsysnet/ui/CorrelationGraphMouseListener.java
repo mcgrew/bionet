@@ -56,8 +56,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 	protected class MoleculePopup extends JPopupMenu implements ActionListener {
 		protected JMenuItem hideMenuItem = new JMenuItem( "Hide" );
 		protected JMenuItem detailsMenuItem = new JMenuItem( "Details" );
-		protected JMenuItem selectMoleculesMenuItem = new JMenuItem( "Select Correlated" );
-		protected JMenuItem selectCorrelationsMenuItem = new JMenuItem( "Select Correlations" );
+		protected JMenuItem selectCorrelatedMenuItem = new JMenuItem( "Select Correlated" );
 		protected JMenuItem selectSubnetworkMenuItem = new JMenuItem( "Select Subnetwork" );
 		protected JMenuItem exploreCorrelationsMenu = new JMenu( "Explore Correlations" );
 		protected Molecule molecule;
@@ -67,15 +66,13 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 		public MoleculePopup ( ) {
 			this.add( this.hideMenuItem );
 			this.add( this.detailsMenuItem );
-			this.add( this.selectMoleculesMenuItem );
-			this.add( this.selectCorrelationsMenuItem );
+			this.add( this.selectCorrelatedMenuItem );
 			this.add( this.selectSubnetworkMenuItem );
 			this.add( this.exploreCorrelationsMenu );
 			this.hideMenuItem.addActionListener( this );
 			this.detailsMenuItem.addActionListener( this );
-			this.selectMoleculesMenuItem.addActionListener( this );
 			this.selectSubnetworkMenuItem.addActionListener( this );
-			this.selectCorrelationsMenuItem.addActionListener( this );
+			this.selectCorrelatedMenuItem.addActionListener( this );
 			
 		}
 
@@ -110,16 +107,15 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			} else if ( source == this.detailsMenuItem ) {
 				new DetailWindow( graph.getExperiment( ).getAttribute( "description" ), this.molecule, range );
 
-			} else if ( source == this.selectMoleculesMenuItem ) {
+			} else if ( source == this.selectCorrelatedMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );
+				state.pick( this.molecule, true );
 				for ( Molecule m : graph.getNeighbors( this.molecule )) {
 					state.pick( m, true );
 				}
-
-			} else if ( source == this.selectCorrelationsMenuItem ) {
-				PickedState<Correlation> state = graph.getPickedEdgeState( );
+				PickedState<Correlation> edgeState = graph.getPickedEdgeState( );
 				for ( Correlation c : graph.getIncidentEdges( this.molecule )) {
-					state.pick( c, true );
+					edgeState.pick( c, true );
 				}
 
 			} else if ( source == this.selectSubnetworkMenuItem ) {

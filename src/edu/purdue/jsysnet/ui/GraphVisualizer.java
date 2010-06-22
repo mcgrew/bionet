@@ -30,8 +30,11 @@ import java.awt.geom.Point2D;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.event.InputEvent;
 import java.awt.Dimension;
 import java.awt.Point;
 import javax.swing.JScrollBar;
@@ -58,23 +61,24 @@ import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 /**
  * A class for visualizing a network graph. 
  */
-public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, Scalable {
+public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, MouseListener, Scalable {
 	protected Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
 	private AbsoluteCrossoverScalingControl absoluteViewScaler = 
 		new AbsoluteCrossoverScalingControl( );
+	private JScrollPane scrollPane;
+	private float currentZoom = 1.0f;
+	private static float minimumZoom = 0.99f;
+
 	private ArrayList <PickedStateChangeListener<V>> pickedVertexStateChangeListeners =
 		new ArrayList<PickedStateChangeListener<V>>( );
 	private ArrayList <PickedStateChangeListener<E>> pickedEdgeStateChangeListeners =
 		new ArrayList<PickedStateChangeListener<E>>( );
-//	private ViewScalingControl viewScaler = new ViewScalingControl( );
-	private JScrollPane scrollPane;
-	private float currentZoom = 1.0f;
-	private static float minimumZoom = 0.99f;
 	private ArrayList<GraphItemChangeListener<V>> vertexChangeListeners = new ArrayList<GraphItemChangeListener<V>>( );
 	private ArrayList<GraphItemChangeListener<E>> edgeChangeListeners = new ArrayList<GraphItemChangeListener<E>>( );
 	private ArrayList<ChangeListener> animationListeners = new ArrayList<ChangeListener>( );
+	private ArrayList<GraphMouseListener<E>> graphMouseEdgeListeners = new ArrayList<GraphMouseListener<E>>( );
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -188,15 +192,18 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		this.getRenderContext( ).setVertexLabelTransformer( new ToStringLabeller<V>( ));
 //		this.getRenderContext( ).setEdgeLabelTransformer( new ToStringLabeller<E>( ));
 		this.getRenderer( ).getVertexLabelRenderer( ).setPosition( Position.CNTR );
-		DefaultModalGraphMouse mouse = new DefaultModalGraphMouse( ) {
+		PluggableGraphMouse mouse = new PluggableGraphMouse( ) {
 			public void mouseWheelMoved( MouseWheelEvent e ) {
 				scale((float)Math.pow( 1.25, -e.getWheelRotation( )), e.getPoint( ));
 			}
 		};
-		mouse.setMode( ModalGraphMouse.Mode.PICKING );
+		mouse.add( new PickingGraphMousePlugin( 
+			InputEvent.BUTTON1_MASK,
+			InputEvent.BUTTON1_MASK | InputEvent.CTRL_MASK ));
 		this.setGraphMouse( mouse );
 		this.getPickedVertexState( ).addItemListener( this );
 		this.getPickedEdgeState( ).addItemListener( this );
+		this.addMouseListener( this );
 	}
 
 	/**
@@ -462,6 +469,54 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	}
 
 	/**
+	 * Adds a GraphMouseListener to listen for edge clicks on the graph.
+	 * 
+	 * @param l The GraphMouseListener to be added.
+	 */
+	public void addGraphMouseEdgeListener( GraphMouseListener<E> l ) {
+		this.graphMouseEdgeListeners.add( l );
+	}
+
+	/**
+	 * Notifies all GraphMouseListeners listening for Edge clicks that an edge has
+	 * been clicked on.
+	 * 
+	 * @param edge The edge that was clicked on.
+	 * @param event The MouseEvent which triggered this action.
+	 */
+	private void fireGraphMouseEdgeClickedEvent( E edge, MouseEvent event ) {
+		for ( GraphMouseListener<E> g : graphMouseEdgeListeners ) {
+			g.graphClicked( edge, event );
+		}
+	}
+
+	/**
+	 * Notifies all GraphMouseListeners listening for Edge clicks that an edge has
+	 * been clicked on.
+	 * 
+	 * @param edge The edge that was clicked on.
+	 * @param event The MouseEvent which triggered this action.
+	 */
+	private void fireGraphMouseEdgePressedEvent( E edge, MouseEvent event ) {
+		for ( GraphMouseListener<E> g : graphMouseEdgeListeners ) {
+			g.graphPressed( edge, event );
+		}
+	}
+
+	/**
+	 * Notifies all GraphMouseListeners listening for Edge clicks that an edge has
+	 * been clicked on.
+	 * 
+	 * @param edge The edge that was clicked on.
+	 * @param event The MouseEvent which triggered this action.
+	 */
+	private void fireGraphMouseEdgeReleasedEvent( E edge, MouseEvent event ) {
+		for ( GraphMouseListener<E> g : graphMouseEdgeListeners ) {
+			g.graphReleased( edge, event );
+		}
+	}
+
+	/**
 	 * Adds a PickedVertexStateChangeListener to the graph.
 	 * 
 	 * @param l The PickedStateChangeListener to add.
@@ -540,6 +595,34 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 		}
 
 	}
+
+	// MouseListener interface methods
+	public void mouseClicked( MouseEvent event ) {
+		E edge = this.getPickSupport( ).getEdge( this.getGraphLayout( ), event.getX( ), event.getY( ));
+		V vertex = this.getPickSupport( ).getVertex( this.getGraphLayout( ), event.getX( ), event.getY( ));
+		if ( edge != null && vertex == null ) {
+			this.fireGraphMouseEdgeClickedEvent( edge, event );
+		}
+	}
+
+	public void mousePressed( MouseEvent event ) {
+		E edge = this.getPickSupport( ).getEdge( this.getGraphLayout( ), event.getX( ), event.getY( ));
+		V vertex = this.getPickSupport( ).getVertex( this.getGraphLayout( ), event.getX( ), event.getY( ));
+		if ( edge != null && vertex == null ) {
+			this.fireGraphMouseEdgePressedEvent( edge, event );
+		}
+	}
+
+	public void mouseReleased( MouseEvent event ) {
+		E edge = this.getPickSupport( ).getEdge( this.getGraphLayout( ), event.getX( ), event.getY( ));
+		V vertex = this.getPickSupport( ).getVertex( this.getGraphLayout( ), event.getX( ), event.getY( ));
+		if ( edge != null && vertex == null ) {
+			this.fireGraphMouseEdgeReleasedEvent( edge, event );
+		}
+	}
+
+	public void mouseEntered( MouseEvent event ) { }
+	public void mouseExited( MouseEvent event ) { }
 
 	// Graph interface Methods
 	public boolean addEdge( E e, V v1, V v2 ) {
