@@ -199,7 +199,7 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 			return;
 		float tickStep;
 		BufferedImage drawing = HeatMapUtilities.createHeatMapImage( 
-			this.getDataset( ), new SplitSpectrum( range, Color.WHITE ));
+			this.getDataset( ), new SplitSpectrum( range, this.getBackground( )));
 		int leftEdge = this.getWidth( ) / 8;
 		int topEdge = this.getHeight( ) / 32;
 		int bottomEdge = this.getHeight( ) * 7 / 8;

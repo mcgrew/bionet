@@ -58,6 +58,7 @@ import edu.uci.ics.jung.visualization.control.AbsoluteCrossoverScalingControl;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
+import edu.uci.ics.jung.visualization.renderers.DefaultVertexLabelRenderer;
 
 import org.apache.commons.collections15.Transformer;
 
@@ -86,6 +87,7 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	protected Paint pickedVertexPaint = Color.YELLOW;
 	protected Paint edgePaint = Color.GREEN;
 	protected Paint pickedEdgePaint = Color.BLACK;
+	protected Color pickedLabelColor = Color.BLUE;
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -235,6 +237,8 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 			}
 		};
 		this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
+
+		this.setPickedLabelColor( this.pickedLabelColor );
 	}
 
 	/**
@@ -539,6 +543,16 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 
 	public Paint getPickedEdgePaint( ) {
 		return this.pickedEdgePaint;
+	}
+
+	public void setPickedLabelColor( Color c ) {
+		this.pickedLabelColor = c;
+		this.getRenderContext( ).setVertexLabelRenderer( 
+			new DefaultVertexLabelRenderer( c ));
+	}
+
+	public Color getPickedLabelColor( ) {
+		return this.pickedLabelColor;
 	}
 
 	/**

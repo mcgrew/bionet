@@ -91,7 +91,7 @@ import edu.uci.ics.jung.visualization.picking.PickedState;
 /**
  * A class for displaying and interacting with Correlation data for a set of molecules.
  */
-public class CorrelationDisplayPanel extends JPanel implements ActionListener,ChangeListener {
+public class CorrelationDisplayPanel extends JPanel implements ActionListener,ChangeListener,ItemListener {
 
 	private JMenuBar menuBar = new JMenuBar( );
 
@@ -297,9 +297,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			"Change the color of the graph" );
 		this.colorMenuButtonGroup.add( this.normalColorMenuItem );
 		this.colorMenuButtonGroup.add( this.highContrastColorMenuItem );
-		this.highContrastColorMenuItem.setEnabled( false );
+//		this.highContrastColorMenuItem.setEnabled( false );
 		this.colorMenu.add( this.normalColorMenuItem );
 		this.colorMenu.add( this.highContrastColorMenuItem );
+		this.normalColorMenuItem.addItemListener( this );
+		this.highContrastColorMenuItem.addItemListener( this );
 
 		this.menuBar.add( this.calculationMenu );
 		this.menuBar.add( this.layoutMenu );
@@ -519,6 +521,33 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		LayoutAnimator animator = (LayoutAnimator)event.getSource( );
 		if ( animator.isStopped( ))
 			this.animatedLayoutMenuItem.setState( false );
+	}
+
+	public void itemStateChanged( ItemEvent e ) {
+		if ( e.getStateChange( ) == ItemEvent.SELECTED ) {
+			Object item = e.getSource( );
+			if ( item == this.highContrastColorMenuItem ) {
+				graph.setBackground( Color.BLACK );
+				graph.setForeground( Color.WHITE );
+				graph.setPickedLabelColor( Color.WHITE );
+				graph.setVertexPaint( Color.ORANGE.darker( ));
+				graph.setPickedVertexPaint( Color.RED );
+				graph.setPickedEdgePaint( Color.WHITE );
+				heatMapPanel.setBackground( Color.BLACK );
+				heatMapPanel.setForeground( Color.WHITE );
+			}
+			else if ( item == this.normalColorMenuItem ) {
+				graph.setBackground( null );
+				graph.setForeground( Color.BLACK );
+				graph.setPickedLabelColor( Color.BLUE );
+				graph.setVertexPaint( Color.ORANGE );
+				graph.setPickedVertexPaint( Color.YELLOW );
+				graph.setPickedEdgePaint( Color.BLACK );
+				heatMapPanel.setForeground( Color.BLACK );
+				heatMapPanel.setBackground( null );
+			}
+
+		}
 	}
 
 	/**
@@ -755,8 +784,16 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	 */
 	private class InfoPanel extends JTabbedPane {
 		private final static String MOLECULE_INDEX = "id";
-		private JTable moleculeTable = new JTable(0,0);
-		private JTable correlationTable = new JTable(0,0);
+		private JTable moleculeTable = new JTable(0,0) {
+			public boolean isCellEditable( int row, int col ) {
+				return false;
+			}
+		};
+		private JTable correlationTable = new JTable(0,0) {
+			public boolean isCellEditable( int row, int col ) {
+				return false;
+			}
+		};
 
 		/**
 		 * Creates a new InfoPanel.
@@ -808,7 +845,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				}
 				Enumeration <TableColumn> columns = this.correlationTable.getColumnModel( ).getColumns( );
 				while( columns.hasMoreElements( ))
-					columns.nextElement( ).setPreferredWidth( 150 );
+					columns.nextElement( ).setPreferredWidth( 175 );
 			}
 			Object[] newRow = new Object[ 5 ];
 			newRow[ 0 ] = correlation.getMolecules( )[ 0 ].getAttribute( MOLECULE_INDEX );
