@@ -283,8 +283,6 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	 * @param enable True to stop animation of the Graph, false to stop.
 	 */
 	public void animate( boolean enable ) {
-		System.err.print( (enable) ? "Starting " : "Stopping " );
-		System.err.println( "animation..." );
 		if ( this.layoutAnimator != null )
 			this.layoutAnimator.stop( );
 		if ( enable ) {

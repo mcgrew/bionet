@@ -33,6 +33,7 @@ import edu.purdue.jsysnet.JSysNet;
 import javax.swing.JPanel;
 import javax.swing.JMenuBar;
 import javax.swing.ButtonGroup;
+import javax.swing.AbstractButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -54,6 +55,7 @@ import javax.swing.JTable;
 import javax.swing.JTabbedPane;
 import javax.swing.table.TableColumn;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ItemListener;
@@ -357,6 +359,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 		this.heatMapPanel = new HeatMap( this.getTitle( ), this.graph.getVertices( ), this.getCorrelationRange( ));
 		this.graph.addVertexChangeListener( this.heatMapPanel );
+		this.pearsonCalculationMenuItem.addChangeListener( this.heatMapPanel );
+		this.spearmanCalculationMenuItem.addChangeListener( this.heatMapPanel );
+		this.kendallCalculationMenuItem.addChangeListener( this.heatMapPanel );
 		return true;
 	}
 
@@ -782,7 +787,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	/**
 	 * A class for displaying the table below the graph.
 	 */
-	private class InfoPanel extends JTabbedPane {
+	private class InfoPanel extends JTabbedPane implements ChangeListener {
 		private final static String MOLECULE_INDEX = "id";
 		private JTable moleculeTable = new JTable(0,0) {
 			public boolean isCellEditable( int row, int col ) {
@@ -844,8 +849,26 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 					tm.addColumn( key );
 				}
 				Enumeration <TableColumn> columns = this.correlationTable.getColumnModel( ).getColumns( );
-				while( columns.hasMoreElements( ))
-					columns.nextElement( ).setPreferredWidth( 175 );
+				int column = 0;
+				while( columns.hasMoreElements( )) {
+					TableColumn tc = columns.nextElement( );
+					tc.setPreferredWidth( 175 );
+					switch ( column ) {
+						case 2:
+							tc.setCellRenderer( new PickedColumnRenderer( pearsonCalculationMenuItem ));
+							break;
+						case 3:
+							tc.setCellRenderer( new PickedColumnRenderer( spearmanCalculationMenuItem ));
+							break;
+						case 4:
+							tc.setCellRenderer( new PickedColumnRenderer( kendallCalculationMenuItem ));
+							break;
+					}
+					column++;
+				}
+				pearsonCalculationMenuItem.addChangeListener( this );
+				spearmanCalculationMenuItem.addChangeListener( this );
+				kendallCalculationMenuItem.addChangeListener( this );
 			}
 			Object[] newRow = new Object[ 5 ];
 			newRow[ 0 ] = correlation.getMolecules( )[ 0 ].getAttribute( MOLECULE_INDEX );
@@ -897,6 +920,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				tm.removeRow( 0 );
 			}
 		}
+			
 
 		/**
 		 * Finds the appropriate row in the table for the given Molecule.
@@ -940,6 +964,39 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			}
 			return -1;
 
+		}
+
+		public void stateChanged( ChangeEvent event ) {
+			correlationTable.repaint( );	
+		}
+
+		/**
+		 * A class for highlighting the selected correlation in the InfoTable
+		 */
+		private class PickedColumnRenderer extends DefaultTableCellRenderer {
+			private AbstractButton pickedIndicator;
+			private Color backgroundColor = Color.WHITE;
+			private Color pickedColor = Color.YELLOW;
+
+			public PickedColumnRenderer( AbstractButton indicator ) {
+				super( );
+				this.pickedIndicator = indicator;
+			}
+
+			public Component getTableCellRendererComponent( 
+				JTable table, Object value, boolean isSelected, 
+				boolean hasFocus,int row, int column ) {
+
+				Component cell = super.getTableCellRendererComponent( 
+					table, value, isSelected, hasFocus, row, column );
+				if ( pickedIndicator.isSelected( )) {
+					cell.setBackground( this.pickedColor );
+				} else {
+				 cell.setBackground( null );
+				}
+				return cell;
+
+			}
 		}
 
 	}
