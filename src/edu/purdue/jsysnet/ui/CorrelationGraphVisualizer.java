@@ -29,15 +29,18 @@ import edu.purdue.jsysnet.util.SplitSpectrum;
 import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import edu.uci.ics.jung.visualization.picking.PickedState;
+import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 
 import org.apache.commons.collections15.Transformer;
 
 import java.awt.Paint;
 import java.awt.Color;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
-public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,PickedStateChangeListener<Correlation> {
+public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,GraphMouseListener<Correlation> {
 	public MonitorableRange range;
 	public Experiment experiment;
 	protected Spectrum spectrum;
@@ -46,7 +49,7 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		super( );
 		this.setRange( range );
 		this.setExperiment( experiment );
-		this.addPickedEdgeStateChangeListener( this );
+		this.addGraphMouseEdgeListener( this );
 
 		this.spectrum = new SplitSpectrum( range );
 		this.spectrum.setOutOfRangePaint( Color.WHITE );
@@ -142,11 +145,16 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		this.filterEdges( );
 	}
 
-	public void stateChanged( PickedStateChangeEvent<Correlation> event ) {
-		Molecule [] m = event.getItem( ).getMolecules( );
+	public void graphClicked( Correlation edge, MouseEvent event ) {
+		Molecule [] m = edge.getMolecules( );
 		PickedState <Molecule> state = this.getPickedVertexState( );
+		if(( event.getModifiers( ) & ( InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK )) == 0 ) 
+				state.clear( );
 		state.pick( m[0], true );
 		state.pick( m[1], true );
 	}
+	
+	public void graphPressed( Correlation edge, MouseEvent event ) { }
+	public void graphReleased( Correlation edge, MouseEvent event ) { }
 
 }

@@ -699,11 +699,15 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 
 	// Graph interface Methods
 	public boolean addEdge( E e, V v1, V v2 ) {
-		return this.graph.addEdge( e, v1, v2 );
+		boolean returnValue = this.graph.addEdge( e, v1, v2 );
+		this.repaint( );
+		return returnValue;
 	}
 
 	public boolean addEdge( E e, V v1, V v2, EdgeType edgetype ) {
-		return this.graph.addEdge( e, v1, v2, edgetype );
+		boolean returnValue = this.graph.addEdge( e, v1, v2, edgetype );
+		this.repaint( );
+		return returnValue;
 	}
 
 	public V getDest( E directed_edge ) {
@@ -772,16 +776,22 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 
 	// Hypergraph interface methods
 	public boolean addEdge( E edge, Collection<? extends V> vertices ) {
-		return this.graph.addEdge( edge, vertices );
+		boolean returnValue = this.graph.addEdge( edge, vertices );
+		this.repaint( );
+		return returnValue;
 	}
 
 	public boolean addEdge( E edge, Collection<? extends V> vertices, EdgeType edge_type ) {
-		return this.graph.addEdge( edge, vertices, edge_type );
+		boolean returnValue = this.graph.addEdge( edge, vertices, edge_type );
+		this.repaint( );
+		return returnValue;
 	}
 
 	public boolean addVertex( V vertex ) {
 		this.fireVertexChangeEvent( vertex, GraphItemChangeEvent.ADDED );
-		return this.graph.addVertex( vertex );
+		boolean returnValue = this.graph.addVertex( vertex );
+		this.repaint( );
+		return returnValue;
 	}
 
 	public boolean containsEdge( E edge ) {
@@ -867,18 +877,24 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 
 	public boolean removeEdge( E edge ) {
 		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.REMOVED );
-		return this.graph.removeEdge( edge );
+		boolean returnValue = this.graph.removeEdge( edge );
+		this.repaint( );
+		return returnValue;
 	}
 
 	public boolean removeVertex( V vertex ) {
 		this.fireVertexChangeEvent( vertex, GraphItemChangeEvent.REMOVED );
-		return this.graph.removeVertex( vertex );
+		boolean returnValue = this.graph.removeVertex( vertex );
+		this.repaint( );
+		return returnValue;
 	}
 
 	//UndirectedSparseGraph pass through Methods
 	public boolean addEdge( E edge, Pair<? extends V> endpoints, EdgeType edgeType ) {
 		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.ADDED );
-		return this.graph.addEdge( edge, endpoints, edgeType );
+		boolean returnValue = this.graph.addEdge( edge, endpoints, edgeType );
+		this.repaint( );
+		return returnValue;
 	}
 
 }

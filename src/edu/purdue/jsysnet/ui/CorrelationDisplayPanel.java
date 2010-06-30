@@ -273,6 +273,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.selectAllViewMenuItem.addActionListener( this );
 		this.clearSelectionViewMenuItem.addActionListener( this );
 		this.invertSelectionViewMenuItem.addActionListener( this );
+		this.selectCorrelatedViewMenuItem.addActionListener( this );
 		this.hideSelectedViewMenuItem.addActionListener( this );
 		this.hideUnselectedViewMenuItem.addActionListener( this );
 		this.hideUncorrelatedViewMenuItem.addActionListener( this );
@@ -400,7 +401,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.remove( this.graphSplitPane );
 		this.add( this.heatMapPanel.getScrollPane( ), BorderLayout.CENTER );
 		this.visibleGraph = this.heatMapPanel;
-		this.heatMapPanel.getScrollPane( ).repaint( );
+		this.repaint( );
 	}
 
 	/**
@@ -417,6 +418,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.graphSplitPane.setTopComponent( this.graph.getScrollPane( ));
 		this.visibleGraph = this.graph;
 		this.graph.addAnimationListener( this );
+		this.graph.addVertexChangeListener( this.moleculeFilterPanel );
 		v.addPickedVertexStateChangeListener( new PickedStateChangeListener <Molecule> ( ){
 
 			public void stateChanged( PickedStateChangeEvent <Molecule> event ) {
@@ -482,24 +484,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	}
 
 	/**
-	 * Unchecks the molecule's CheckBox and hides it in the graph.
-	 * 
-	 * @param m The molecule to hide.
-	 */
-	public void hide( Molecule m ) {
-		this.moleculeFilterPanel.set( m, false );
-	}
-
-	/**
-	 * Checks the molecule's CheckBox and shows it in the graph.
-	 * 
-	 * @param The molecule to show.
-	 */
-	public void show( Molecule m ) {
-		this.moleculeFilterPanel.set( m, true );
-	}
-
-	/**
 	 * Returns the range setting of the Correlation Filter
 	 * 
 	 * @return The value of the correlation setting
@@ -557,14 +541,14 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		} else if ( item == this.zoomOutViewMenuItem ) {
 			this.visibleGraph.scale( 0.8f );
 		} else if ( item == this.fitToWindowViewMenuItem ) {
-			this.visibleGraph.scale( 1.0f );
+			this.visibleGraph.scale( 0.99f );
 		} else if ( item == this.invertSelectionViewMenuItem ) {
 			for ( Molecule m : vertices )
 				pickedVertexState.pick( m, !pickedVertexState.isPicked( m ));
 			for ( Correlation c : edges )
 				pickedEdgeState.pick( c, !pickedEdgeState.isPicked( c ));
 		} else if ( item == this.selectCorrelatedViewMenuItem ) {
-			Collection <Molecule> picked = pickedVertexState.getPicked( );
+			Collection <Molecule> picked = new Vector( pickedVertexState.getPicked( ));
 			for ( Molecule m : picked ) {
 				for ( Correlation c : graph.getIncidentEdges( m )) {
 					pickedEdgeState.pick( c, true );
@@ -573,11 +557,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			}
 		} else if ( item == this.hideSelectedViewMenuItem ) {
 			for ( Molecule m : new Vector<Molecule>( pickedVertexState.getPicked( )))
-				this.hide( m );
+				this.graph.removeVertex( m );
 		} else if ( item == this.hideUnselectedViewMenuItem ) {
 			for ( Molecule m : vertices ) {
 				if ( !pickedVertexState.isPicked( m ))
-					this.hide( m );
+					this.graph.removeVertex( m );
 			}
 		} else if ( item == this.hideUncorrelatedViewMenuItem ) {
 			boolean keep;
@@ -589,14 +573,14 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 						pickedVertexState.isPicked( c.getOpposite( m ));
 				}
 				if ( !keep ) {
-					this.hide( m );
+					this.graph.removeVertex( m );
 				}
 			}
 
 		} else if ( item == this.hideOrphansViewMenuItem ) {
 			for ( Molecule m : vertices ) {
 				if ( this.graph.getNeighborCount( m ) == 0 )
-					this.hide( m );
+					this.graph.removeVertex( m );
 			}
 		} else if ( item == this.showCorrelatedViewMenuItem ) {
 			for ( Molecule m : this.experiment.getMolecules( )) {
@@ -604,7 +588,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 					if ( this.getCorrelationRange( ).contains( c.getValue( ))
 						&& !vertices.contains( m )
 						&& vertices.contains( c.getOpposite( m )))
-						this.show( m );
+						this.graph.addVertex( m );
 				}
 			}
 		}
@@ -612,13 +596,15 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 	// ******************* PRIVATE/PROTECTED CLASSES **************************
 
-	private class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener {
+	private class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener,GraphItemChangeListener<Molecule> {
 		private JButton noneButton = new JButton( "None" );
 		private JButton allButton = new JButton( "All" );
 		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 ));
 		private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
-		private HashMap<Molecule,MoleculeCheckBox> checkBoxMap = 
-			new HashMap<Molecule,MoleculeCheckBox>( );
+		private HashMap<Molecule,JCheckBox> checkBoxMap = 
+			new HashMap<Molecule,JCheckBox>( );
+		private HashMap<JCheckBox,Molecule> moleculeMap =
+			new HashMap<JCheckBox,Molecule>( );
 		private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
 		private JComboBox sortComboBox = new JComboBox( );
 
@@ -662,9 +648,10 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		 * @param m The Molecule to add.
 		 */
 		public void add( Molecule m ) {
-			MoleculeCheckBox cb = new MoleculeCheckBox( m, true );
+			JCheckBox cb = new JCheckBox( m.toString( ), true );
 			this.moleculeList.add( cb );
 			this.checkBoxMap.put( m, cb );
+			this.moleculeMap.put( cb, m );
 			cb.addItemListener( this );
 		}
 
@@ -673,7 +660,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		 * 
 		 * @return an ArrayList of MoleculeCheckBoxes from the display panel
 		 */
-		public Collection <MoleculeCheckBox> getCheckBoxes( ) {
+		public Collection <JCheckBox> getCheckBoxes( ) {
 			return this.checkBoxMap.values( );
 		}
 
@@ -685,7 +672,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		 */
 		public void itemStateChanged( ItemEvent event ) {
 			synchronized( graph.getGraph( )) {
-				Molecule molecule = (( MoleculeCheckBox )event.getSource( )).getMolecule( );
+				Molecule molecule = moleculeMap.get( event.getSource( ));
 				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
 					graph.addVertex( molecule );
 					for( Correlation correlation : molecule.getCorrelations( )) {
@@ -729,7 +716,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		}
 
 		private void set( Molecule m, boolean state ) {
-			MoleculeCheckBox cb = this.checkBoxMap.get( m );
+			JCheckBox cb = this.checkBoxMap.get( m );
 			cb.setSelected( state );
 			// fire the listeners
 			for ( ItemListener i : cb.getItemListeners( )) {
@@ -742,48 +729,25 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 		public void filter( String filter ) {
 			Pattern p = Pattern.compile( filter );
-			for( MoleculeCheckBox m : this.getCheckBoxes( )) {
-				m.setVisible( p.matcher( m.getMolecule( ).toString( ) ).matches( ));
+			for( JCheckBox cb : this.getCheckBoxes( )) {
+				cb.setVisible( p.matcher( this.moleculeMap.get( cb ).toString( ) ).matches( ));
 			}
 		}
+
+		/**
+		 * The stateChanged method of the GraphItemChangeListener interface.
+		 * 
+		 * @param event The GraphItemChangeEvent which triggered this action.
+		 */
+		public void stateChanged( GraphItemChangeEvent<Molecule> event ) {
+			JCheckBox cb = this.checkBoxMap.get(event.getItem( ));
+			int change = event.getAction( );
+			if ( change == GraphItemChangeEvent.REMOVED )
+				cb.setSelected( false );
+			else if ( change == GraphItemChangeEvent.ADDED )
+				cb.setSelected( true );
+		}
 		
-	}
-
-	/**
-	 * A class for checkboxes to turn on and off graph nodes.
-	 */
-	private class MoleculeCheckBox extends JCheckBox {
-		private Molecule molecule;
-
-		/**
-		 * Constructs a MoleculeCheckBox object.
-		 * 
-		 * @param molecule The molecule to connect with this check box.
-		 * @param state The initial state of the checkbox.
-		 */
-		public MoleculeCheckBox( Molecule molecule, boolean state ) {
-			super( molecule.getAttribute( "id" ), state );
-			this.molecule = molecule;
-		}
-
-		/**
-		 * Sets the molecule to be associated with this check box.
-		 * 
-		 * @param molecule The molecule to connect with this check box.
-		 */
-		public void setMolecule( Molecule molecule ) {
-			this.setLabel( molecule.getAttribute( "id" ));
-			this.molecule = molecule;
-		}
-
-		/**
-		 * Returns the molecule associated with this check box.
-		 * 
-		 * @return The Molecule assocated with this check box.
-		 */
-		public Molecule getMolecule( ) {
-			return this.molecule;
-		}
 	}
 
 	/**
@@ -1025,7 +989,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 						setGraphLayout( SpringLayout2.class );
 					else if ( item == heatMapLayoutMenuItem )
 						heatMap( );
-						repaint( );
 
 				}
 			}
