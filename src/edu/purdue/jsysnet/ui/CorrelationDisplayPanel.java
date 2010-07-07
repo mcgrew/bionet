@@ -46,6 +46,7 @@ import javax.swing.KeyStroke;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.Action;
@@ -64,6 +65,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Dimension;
@@ -77,6 +80,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.Vector;
+import java.util.regex.PatternSyntaxException;
 
 import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -88,6 +92,7 @@ import edu.uci.ics.jung.algorithms.layout.KKLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
 import edu.uci.ics.jung.visualization.picking.PickedState;
+import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 
 
 /**
@@ -346,6 +351,18 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.graph = new CorrelationGraphVisualizer( 
 			this.experiment, this.correlationFilterPanel.getMonitorableRange( ));
 		this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
+
+		this.graph.addGraphMouseEdgeListener( new GraphMouseListener<Correlation>( ) {
+
+			public void graphClicked( Correlation c, MouseEvent e ) {
+				if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
+					new DetailWindow( title, c, correlationFilterPanel.getRange( ));
+				}
+			}
+			public void graphPressed(  Correlation c, MouseEvent e ) { } 
+			public void graphReleased( Correlation c, MouseEvent e ) { }
+		});
+
 		for( String groupName : this.experiment.getMoleculeGroupNames( ))
 			for( Molecule molecule : this.experiment.getMoleculeGroup( groupName ).getMolecules( ))
 				this.moleculeFilterPanel.add( molecule );
@@ -391,6 +408,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			this.hideUnselectedViewMenuItem.setEnabled( true );
 			this.hideUncorrelatedViewMenuItem.setEnabled( true );
 			this.animatedLayoutMenuItem.setEnabled( true );
+			this.validate( );
 			this.graph.getScrollPane( ).repaint( );
 		}
 		this.graph.setGraphLayout( layout );
@@ -408,7 +426,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.remove( this.graphSplitPane );
 		this.add( this.heatMapPanel.getScrollPane( ), BorderLayout.CENTER );
 		this.visibleGraph = this.heatMapPanel;
-		this.repaint( );
+		this.validate( );
+		this.heatMapPanel.getScrollPane( ).repaint( );
 	}
 
 	/**
@@ -630,27 +649,54 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 	// ******************* PRIVATE/PROTECTED CLASSES **************************
 
-	private class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener,GraphItemChangeListener<Molecule> {
+	private class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener,GraphItemChangeListener<Molecule>,KeyListener {
 		private JButton noneButton = new JButton( "None" );
 		private JButton allButton = new JButton( "All" );
-		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 ));
-		private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
 		private HashMap<Molecule,JCheckBox> checkBoxMap = 
 			new HashMap<Molecule,JCheckBox>( );
 		private HashMap<JCheckBox,Molecule> moleculeMap =
 			new HashMap<JCheckBox,Molecule>( );
-		private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
-		private JComboBox sortComboBox = new JComboBox( );
+//		private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
+//		private JComboBox sortComboBox = new JComboBox( );
+		private JLabel filterLabel = new JLabel( "Filter: ", SwingConstants.RIGHT );
+		private JButton clearButton = new JButton( "Clear Filter" );
+		private JTextField filterBox = new JTextField( );
+
+		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 )) {
+			// Inserts the checkboxes in alphabetical order
+			public Component add( Component component ) {
+				int index = 0;
+				// find where the new checkBox should go.
+				try {
+					for ( Component c : this.getComponents( )) {
+						if ( ((JCheckBox)c).getText( ).compareTo( 
+							((JCheckBox)component).getText( )) > 0 )
+							break;
+						index++;
+					}
+				} catch ( ClassCastException e ) {
+					return super.add( component );
+				}
+				return this.add( component, index );
+			}
+		};
+		private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
 
 		public MoleculeFilterPanel( ) {
 			super( new BorderLayout( ));
 			JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
-			sortSelectionPanel.add( this.sortLabel, BorderLayout.CENTER );
-			sortSelectionPanel.add( this.sortComboBox, BorderLayout.EAST );
+//			sortSelectionPanel.add( this.sortLabel, BorderLayout.CENTER );
+//			sortSelectionPanel.add( this.sortComboBox, BorderLayout.EAST );
 			// control configuration
-			this.sortComboBox.addItem( "Index" );
-			this.sortComboBox.addItem( "Group" );
-			this.sortComboBox.addItem( "Name" );
+//			this.sortComboBox.addItem( "Index" );
+//			this.sortComboBox.addItem( "Group" );
+//			this.sortComboBox.addItem( "Name" );
+			sortSelectionPanel.add( this.clearButton, BorderLayout.SOUTH );
+			sortSelectionPanel.add( this.filterLabel, BorderLayout.WEST );
+			sortSelectionPanel.add( this.filterBox, BorderLayout.CENTER );
+			this.filterBox.addKeyListener( this );
+			this.clearButton.addActionListener( this );
+			this.clearButton.setPreferredSize( new Dimension( 75, 20 ));
 		
 			// ALL & RESET BUTTONS
 			JPanel moleculeButtonPanel = new JPanel( new BorderLayout( ));
@@ -668,7 +714,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			this.setBorder( 
 				BorderFactory.createTitledBorder( 
 					BorderFactory.createLineBorder( Color.BLACK, 1 ),
-						"Molecule Filter",
+						"Molecule List",
 						TitledBorder.CENTER,
 					TitledBorder.TOP
 				)
@@ -731,12 +777,32 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		 * @param e The event which triggered this action.
 		 */
 		public void actionPerformed( ActionEvent e ) {
-			JButton source = ( JButton )e.getSource( );
+			Object source = e.getSource( );
 			if ( source == this.allButton )
 				this.setAll( true );
 			else if ( source == this.noneButton )
 				this.setAll( false );
+			else if ( source == this.clearButton ) {
+				this.filterBox.setText( "" );
+				KeyEvent keyEvent = new KeyEvent( this.filterBox, -1,
+					System.currentTimeMillis( ), 0, KeyEvent.VK_BACK_SPACE, '\b' );
+				for ( KeyListener k : this.filterBox.getKeyListeners( )) {
+					k.keyPressed( keyEvent );
+					k.keyTyped( keyEvent );
+					k.keyReleased( keyEvent );
+				}
+			}
 		}
+
+		public void keyReleased( KeyEvent e ) {
+			Object source = e.getSource( );
+			if ( source == this.filterBox ) {
+				String text = this.filterBox.getText( );
+				this.filter( text );
+			}
+		}
+		public void keyPressed( KeyEvent e ) { }
+		public void keyTyped( KeyEvent e ) { }
 
 		/**
 		 * Sets all checkboxes to the desired state.
@@ -762,9 +828,33 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		}
 
 		public void filter( String filter ) {
-			Pattern p = Pattern.compile( filter );
+			// try the string as a regular Pattern, if that fails then try a literal string 
+			// match. If all of that fails, just print the stack trace and show all.
+			Pattern p;
+			filter = String.format( ".*%s.*", filter.replace( "*", ".*" ).replace( "?", "." ));
+			try { 
+				p = Pattern.compile( filter, Pattern.CASE_INSENSITIVE );
+
+				} catch ( PatternSyntaxException e ) { 
+					try {
+						p = Pattern.compile( filter, Pattern.CASE_INSENSITIVE | Pattern.LITERAL );
+
+					} catch ( PatternSyntaxException exc ) {
+						e.printStackTrace( System.err );
+						p = Pattern.compile( ".*", Pattern.CASE_INSENSITIVE );
+					}
+				}
+
 			for( JCheckBox cb : this.getCheckBoxes( )) {
-				cb.setVisible( p.matcher( this.moleculeMap.get( cb ).toString( ) ).matches( ));
+				if ( cb.isVisible( ) && !p.matcher( this.moleculeMap.get( cb ).toString( ) ).matches( )) {
+					this.moleculeList.remove( cb );
+					cb.setVisible( false );
+					
+				} else if ( !cb.isVisible( ) && p.matcher( this.moleculeMap.get( cb ).toString( )).matches( )) {
+					this.moleculeList.add( cb );
+					cb.setVisible( true );
+				}
+				this.moleculeScrollPane.validate( );
 			}
 		}
 

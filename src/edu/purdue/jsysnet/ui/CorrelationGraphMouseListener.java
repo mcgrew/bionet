@@ -100,7 +100,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			Object source = e.getSource( );
 
 			if ( this.correlationMap.containsKey( source )) {
-				new DetailWindow( graph.getExperiment( ).getAttribute( "description" ), this.correlationMap.get( source ), new Range( 0.6, 1 ));
+				new DetailWindow( graph.getExperiment( ).getAttribute( "description" ), this.correlationMap.get( source ), range );
 			} else if ( source == this.hideMenuItem ) {
 				graph.removeVertex( this.molecule );
 

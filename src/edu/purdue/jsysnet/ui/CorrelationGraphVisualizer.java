@@ -146,12 +146,14 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 	}
 
 	public void graphClicked( Correlation edge, MouseEvent event ) {
-		Molecule [] m = edge.getMolecules( );
-		PickedState <Molecule> state = this.getPickedVertexState( );
-		if(( event.getModifiers( ) & ( InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK )) == 0 ) 
-				state.clear( );
-		state.pick( m[0], true );
-		state.pick( m[1], true );
+		if ( event.getButton( ) == MouseEvent.BUTTON1 ) {
+			Molecule [] m = edge.getMolecules( );
+			PickedState <Molecule> state = this.getPickedVertexState( );
+			if(( event.getModifiers( ) & ( InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK )) == 0 ) 
+					state.clear( );
+			state.pick( m[0], true );
+			state.pick( m[1], true );
+		}
 	}
 	
 	public void graphPressed( Correlation edge, MouseEvent event ) { }
