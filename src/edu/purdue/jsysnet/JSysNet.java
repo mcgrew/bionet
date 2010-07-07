@@ -30,7 +30,6 @@ import java.util.Properties;
 
 
 public class JSysNet {
-	public static Settings settings;
 	public static final Object dummyObject = new Object( ); // used for synchronizing threads
 
 	public static void main ( String [ ] args ) {
@@ -39,19 +38,18 @@ public class JSysNet {
 		String arg;
 		int c;
 
-		JSysNet.settings = new Settings( );
-		JSysNet.settings.load( );
+		Settings settings = Settings.getSettings( );
 
 		while (( c = g.getopt( )) != -1 ) {
 			switch( c ) {
 				case 'd':
-					JSysNet.settings.getDefaults( ).setProperty( "debug", "true" );
+					settings.getDefaults( ).setProperty( "debug", "true" );
 					break;
 				case 'g':
 					try {
 						String[] size = g.getOptarg( ).split( "x" );
-						JSysNet.settings.setInt( "windowWidth", Integer.parseInt( size[ 0 ] ));
-						JSysNet.settings.setInt( "windowHeight", Integer.parseInt( size[ 1 ] ));
+						settings.setInt( "windowWidth", Integer.parseInt( size[ 0 ] ));
+						settings.setInt( "windowHeight", Integer.parseInt( size[ 1 ] ));
 					} catch( NumberFormatException e ) {
 						System.out.println( "You specified an invalid value for -g.\n"+
 							"Values should be in the format WxH in pixels, such as 1024x768." );
@@ -64,12 +62,12 @@ public class JSysNet {
 					System.out.println( "java JSysNet [-d|h] [-g geometry]" );
 					System.out.println( "-d          Runs JSysnet in debug mode" );
 					System.out.printf ( "-g          Overrides the default window size of %dx%d\n",
-						JSysNet.settings.getDefaults( ).getProperty( "windowWidth" ), 
-						JSysNet.settings.getDefaults( ).getProperty( "windowHeight" ));
+						settings.getDefaults( ).getProperty( "windowWidth" ), 
+						settings.getDefaults( ).getProperty( "windowHeight" ));
 					System.out.println( "-h          Prints this message and exits" );
 					System.exit( 0 );
 				case 'v':
-					JSysNet.settings.getDefaults( ).setProperty( "verbose", "true" );
+					settings.getDefaults( ).setProperty( "verbose", "true" );
 					break;
 				case '?':
 					break;
@@ -82,7 +80,7 @@ public class JSysNet {
 		try {
 			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName());
 		} catch ( Exception e ) {
-			if ( JSysNet.settings.getBoolean( "VERBOSE" )) {
+			if ( settings.getBoolean( "VERBOSE" )) {
 				System.err.println( "Attemping to load the system look and feel resulted "+
 					"in the following error:" );
 				System.err.println( "\t" + e.getMessage( ));

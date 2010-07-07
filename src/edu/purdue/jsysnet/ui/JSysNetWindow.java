@@ -27,9 +27,11 @@ import java.awt.event.*;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import edu.purdue.jsysnet.util.*;
 import edu.purdue.jsysnet.io.*;
-import edu.purdue.jsysnet.JSysNet;
+
+import net.sourceforge.helpgui.gui.MainFrame;
 
 public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow {
 
@@ -61,15 +63,16 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	public JSysNetWindow ( String title ) {
 
 		super( title );
+		Settings settings = Settings.getSettings( );
 		this.setLayout( new BorderLayout( ));
-		int width = JSysNet.settings.getInt( "windowWidth" );
-		int height = JSysNet.settings.getInt( "windowHeight" );
+		int width = settings.getInt( "windowWidth" );
+		int height = settings.getInt( "windowHeight" );
 		int x = Math.max( 0, Math.min( 
-		  JSysNet.settings.getInt( "windowXPosition" ), 
-			JSysNet.settings.getInt( "desktopWidth" ) - width ));
+		  settings.getInt( "windowXPosition" ), 
+			settings.getInt( "desktopWidth" ) - width ));
 		int y = Math.max( 0, Math.min( 
-		  JSysNet.settings.getInt( "windowYPosition" ), 
-			JSysNet.settings.getInt( "desktopHeight" ) - height ));
+		  settings.getInt( "windowYPosition" ), 
+			settings.getInt( "desktopHeight" ) - height ));
 		
 		this.setBounds( x, y, width, height );
 
@@ -83,11 +86,12 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 
 		this.addWindowListener(new WindowAdapter() {
 		  public void windowClosing(WindowEvent e) {
+				Settings settings = Settings.getSettings( );
 				JFrame f = (JFrame)e.getSource( );
-				JSysNet.settings.setInt( "windowXPosition", f.getX( ));
-				JSysNet.settings.setInt( "windowYPosition", f.getY( ));
-				JSysNet.settings.setInt( "windowWidth", f.getWidth( ));
-				JSysNet.settings.setInt( "windowHeight", f.getHeight( ));
+				settings.setInt( "windowXPosition", f.getX( ));
+				settings.setInt( "windowYPosition", f.getY( ));
+				settings.setInt( "windowWidth", f.getWidth( ));
+				settings.setInt( "windowHeight", f.getHeight( ));
 				if ( this.getWindowCount( ) == 1 )
 			    System.exit(0);
 			}
@@ -180,7 +184,8 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	public DataHandler openCSV( ) {
-		JFileChooser fc = new JFileChooser( JSysNet.settings.getProperty( "lastOpenCSV" ));
+		Settings settings = Settings.getSettings( );
+		JFileChooser fc = new JFileChooser( settings.getProperty( "lastOpenCSV" ));
 		fc.setFileFilter( new CSVFileFilter( ));
 		fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );	
 		int options = fc.showOpenDialog( this );
@@ -188,7 +193,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			File selected = fc.getSelectedFile( );
 			if ( !selected.isDirectory( ))
 				selected = selected.getParentFile( );
-			JSysNet.settings.setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
+			settings.setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
 			DataHandler data = new CSVDataHandler( selected.getAbsolutePath( ));
 			return data;
 		}
@@ -209,7 +214,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	public void actionPerformed( ActionEvent e ) {
-		if ( JSysNet.settings.getBoolean( "debug" )) {
+		if ( Settings.getSettings( ).getBoolean( "debug" )) {
 			System.err.println( String.format( "ActionEvent fired:" ));
 			System.err.println( "\tactionCommand: "+e.getActionCommand( ));
 			System.err.println( "\t  paramString: "+e.paramString( ));
@@ -226,9 +231,17 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
 			if( cdp.createGraph( data ))
 				this.tabPane.addTab( cdp.getTitle( ), cdp );
+
 		} else if ( item == this.exitFileMenuItem ) {
 			this.dispose( );
+
+		} else if ( item == this.contentsHelpMenuItem ) {
+			new MainFrame( "/docs/help/", "plastic" ).setVisible( true );
+		} else if ( item == this.aboutHelpMenuItem ) {
+			new About( ).setVisible( true );
 		}
+		
+
 	}
 
 	

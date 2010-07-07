@@ -1,0 +1,67 @@
+/*
+
+This file is part of JSysNet.
+
+JSysNet is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+JSysNet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+package edu.purdue.jsysnet.ui;
+
+import edu.purdue.jsysnet.util.Settings;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Graphics;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Font;
+
+
+public class About extends JFrame {
+	private JPanel panel = new AboutPanel( );
+
+	public About( ) {
+		super( );
+		int x = Settings.getSettings( ).getInt( "windowXPosition" );
+		int y = Settings.getSettings( ).getInt( "windowYPosition" );
+		this.setBounds( x, y, 400, 250 );
+		this.add( this.panel );
+	}
+
+	private class AboutPanel extends JPanel {
+
+		public void paintComponent( Graphics g ) {
+			String text;
+			FontMetrics f = g.getFontMetrics( );
+
+			text = "Copyright \u00A92010 Purdue University."; 
+			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 150 );
+
+			text = "JSysNet is distributed under the GNU GPL license.";
+			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 170 );
+
+			g.setFont( new Font( "Serif", Font.BOLD, 42 ));
+			f = g.getFontMetrics( );
+
+			text = "JSysNet";
+			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 80 );
+
+		}
+	}
+
+}
+
+

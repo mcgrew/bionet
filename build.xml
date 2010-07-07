@@ -37,6 +37,10 @@
 				<path refid="build_classpath"/>
 			</classpath>
 		</javac>
+		<mkdir dir="${class_dir}/docs/help"/>
+		<copy todir="${class_dir}/docs/help/">
+			<fileset dir="docs/help"/>
+		</copy>
 	</target>
 
 	<!-- ============ TARGET: JAR ====================== -->

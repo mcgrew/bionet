@@ -31,6 +31,11 @@ import java.io.IOException;
 import javax.swing.filechooser.FileSystemView;
 
 public class Settings extends Properties {
+	private static Settings settings = new Settings( );
+
+	public static Settings getSettings( ) {
+		return settings;
+	}
 
 	public Settings( ) {
 		super( );

@@ -22,7 +22,7 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
-import edu.purdue.jsysnet.JSysNet;
+import edu.purdue.jsysnet.util.Settings;
 
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
@@ -41,14 +41,15 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	public DetailWindow( String title, Range range ) {
 		super( title );
 		this.correlationRange = range.clone( );
-		int width  = JSysNet.settings.getInt( "detailWindowWidth"  );
-		int height = JSysNet.settings.getInt( "detailWindowHeight" );
+		Settings settings = Settings.getSettings( );
+		int width  = settings.getInt( "detailWindowWidth"  );
+		int height = settings.getInt( "detailWindowHeight" );
 		int x = Math.max( 0, Math.min( 
-		  JSysNet.settings.getInt( "detailWindowXPosition" ), 
-			JSysNet.settings.getInt( "desktopWidth" ) - width ));
+		  settings.getInt( "detailWindowXPosition" ), 
+			settings.getInt( "desktopWidth" ) - width ));
 		int y = Math.max( 0, Math.min( 
-		  JSysNet.settings.getInt( "detailWindowYPosition" ), 
-			JSysNet.settings.getInt( "desktopHeight" ) - height ));
+		  settings.getInt( "detailWindowYPosition" ), 
+			settings.getInt( "desktopHeight" ) - height ));
 		
 		this.setBounds( x, y, width, height );
 		this.setLayout( new BorderLayout( ));
@@ -58,10 +59,11 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 		this.addWindowListener(new WindowAdapter() {
 		  public void windowClosing(WindowEvent e) {
 				JFrame f = (JFrame)e.getSource( );
-				JSysNet.settings.setInt( "detailWindowXPosition", f.getX( ));
-				JSysNet.settings.setInt( "detailWindowYPosition", f.getY( ));
-				JSysNet.settings.setInt( "detailWindowWidth", f.getWidth( ));
-				JSysNet.settings.setInt( "detailWindowHeight", f.getHeight( ));
+				Settings settings = Settings.getSettings( );
+				settings.setInt( "detailWindowXPosition", f.getX( ));
+				settings.setInt( "detailWindowYPosition", f.getY( ));
+				settings.setInt( "detailWindowWidth", f.getWidth( ));
+				settings.setInt( "detailWindowHeight", f.getHeight( ));
 			}
 		});
 	}

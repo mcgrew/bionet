@@ -27,8 +27,8 @@ import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.util.MonitorableRange;
+import edu.purdue.jsysnet.util.Settings;
 import edu.purdue.jsysnet.io.DataHandler;
-import edu.purdue.jsysnet.JSysNet;
 
 import javax.swing.JPanel;
 import javax.swing.JMenuBar;
@@ -353,7 +353,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.add( this.graphSplitPane, BorderLayout.CENTER );
 		this.graphSplitPane.setBottomComponent( this.infoPanel );
 		this.graphSplitPane.setDividerLocation( 
-			JSysNet.settings.getInt( "windowHeight" ) - 250 );
+			Settings.getSettings( ).getInt( "windowHeight" ) - 250 );
 		this.setGraphVisualizer( this.graph );
 		this.setGraphLayout( CircleLayout.class );
 
