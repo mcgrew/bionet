@@ -22,7 +22,6 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
-import edu.purdue.jsysnet.util.Settings;
 
 import java.util.HashMap;
 import java.util.Collection;
@@ -44,10 +43,11 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 
 	public void graphClicked( Molecule m, MouseEvent e ) {
 		if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
-			if ( Settings.getSettings( ).getBoolean( "debug" ))
-				System.err.println( "Right Click on " + m );
 			popup.show( e.getComponent( ), e.getX( ), e.getY( ), m );
-
+		} else if ( e.getButton( ) == MouseEvent.BUTTON1 && e.getClickCount( ) >= 2 ) {
+			CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer)e.getComponent( );
+				new DetailWindow( graph.getExperiment( ).getAttribute( "description" ), 
+					m, graph.getRange( ));
 		}
 	}
 	public void graphPressed(  Molecule m, MouseEvent e ) { } 

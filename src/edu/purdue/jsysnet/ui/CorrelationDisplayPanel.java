@@ -116,8 +116,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	private JRadioButtonMenuItem singleCircleLayoutMenuItem = new JRadioButtonMenuItem( "Single Circle", true );
 	private JRadioButtonMenuItem randomLayoutMenuItem = new JRadioButtonMenuItem( "Random" );
 	private JRadioButtonMenuItem heatMapLayoutMenuItem = new JRadioButtonMenuItem( "Heat Map" );
-	private JRadioButtonMenuItem kkLayoutMenuItem = new JRadioButtonMenuItem( "KKLayout" );
-	private JRadioButtonMenuItem frLayoutMenuItem = new JRadioButtonMenuItem( "FRLayout" );
+	private JRadioButtonMenuItem kkLayoutMenuItem = new JRadioButtonMenuItem( "Kamada-Kawai" );
+	private JRadioButtonMenuItem frLayoutMenuItem = new JRadioButtonMenuItem( "Fruchterman-Reingold" );
 	private JRadioButtonMenuItem springLayoutMenuItem = new JRadioButtonMenuItem( "Spring Layout" );
 	private JCheckBoxMenuItem animatedLayoutMenuItem = new JCheckBoxMenuItem( "Spring Embedding" );
 
@@ -355,7 +355,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.graph.addGraphMouseEdgeListener( new GraphMouseListener<Correlation>( ) {
 
 			public void graphClicked( Correlation c, MouseEvent e ) {
-				if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
+				if ( e.getButton( ) == MouseEvent.BUTTON1 && e.getClickCount( ) >= 2 ) {
 					new DetailWindow( title, c, correlationFilterPanel.getRange( ));
 				}
 			}
@@ -658,8 +658,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			new HashMap<JCheckBox,Molecule>( );
 //		private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
 //		private JComboBox sortComboBox = new JComboBox( );
-		private JLabel filterLabel = new JLabel( "Filter: ", SwingConstants.RIGHT );
-		private JButton clearButton = new JButton( "Clear Filter" );
+		private JLabel filterLabel = new JLabel( "Search: ", SwingConstants.RIGHT );
+		private JButton clearButton = new JButton( "Clear" );
 		private JTextField filterBox = new JTextField( );
 
 		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 )) {
@@ -779,9 +779,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		public void actionPerformed( ActionEvent e ) {
 			Object source = e.getSource( );
 			if ( source == this.allButton )
-				this.setAll( true );
+				this.setAllVisible( true );
 			else if ( source == this.noneButton )
-				this.setAll( false );
+				this.setAllVisible( false );
 			else if ( source == this.clearButton ) {
 				this.filterBox.setText( "" );
 				KeyEvent keyEvent = new KeyEvent( this.filterBox, -1,
@@ -803,6 +803,19 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		}
 		public void keyPressed( KeyEvent e ) { }
 		public void keyTyped( KeyEvent e ) { }
+
+		/**
+		 * Sets all visible checkboxes to the desired state.
+		 * 
+		 * @param state True for checked, false for unchecked.
+		 */
+		private void setAllVisible( boolean state ) {
+			for ( Component c : this.moleculeList.getComponents( )) {
+				Molecule m = this.moleculeMap.get( c );
+				if ( m != null )
+					this.set( m, state );
+			}
+		}
 
 		/**
 		 * Sets all checkboxes to the desired state.
