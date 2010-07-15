@@ -115,17 +115,17 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 			if ( this.isValidEdge( correlation )) {
 				returnValue++;
 				// this Correlation belongs on the graph, make sure it is there.
-				if ( !this.graph.containsEdge( correlation )) {
-					this.graph.addEdge( correlation, 
+				if ( !this.containsEdge( correlation )) {
+					this.addEdge( correlation, 
 												 new Pair <Molecule> ( correlation.getMolecules( )),
 												 EdgeType.UNDIRECTED );
 				}
 			}
 			else {
 				// this Correlation does not belong on the graph, make sure it is not there.
-				if ( this.graph.containsEdge( correlation )) {
+				if ( this.containsEdge( correlation )) {
 					this.getPickedEdgeState( ).pick( correlation, false );
-					this.graph.removeEdge( correlation );
+					this.removeEdge( correlation );
 				}
 			}
 		}
@@ -135,8 +135,8 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 
 	public boolean isValidEdge( Correlation correlation ) {
 		Molecule [] molecules = correlation.getMolecules( );
-		return ( this.graph.containsVertex( molecules[ 0 ] ) &&
-						 this.graph.containsVertex( molecules[ 1 ] ) &&
+		return ( this.containsVertex( molecules[ 0 ] ) &&
+						 this.containsVertex( molecules[ 1 ] ) &&
 						 this.range.contains( 
 							 Math.abs( correlation.getValue( ))));
 	}

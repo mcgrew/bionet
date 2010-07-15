@@ -72,6 +72,8 @@ import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
+import java.awt.Graphics;
+import java.awt.Font;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
@@ -87,6 +89,7 @@ import edu.uci.ics.jung.graph.util.EdgeType;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
+import edu.uci.ics.jung.algorithms.layout.LayoutDecorator;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.algorithms.layout.KKLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
@@ -148,7 +151,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 	private CorrelationGraphVisualizer graph;
 	private Layout <Molecule,Correlation> layout; //Graph Layout
-	private InfoPanel infoPanel = new InfoPanel( );
+	private InfoPanel infoPanel;
 	private JSplitPane graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
 	private HeatMap  heatMapPanel;
 
@@ -238,6 +241,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.layoutMenuButtonGroup.add( this.frLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.springLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
+		
+		Enumeration<AbstractButton> e = this.layoutMenuButtonGroup.getElements( );
 		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenu.add( this.randomLayoutMenuItem );
@@ -350,6 +355,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 		this.graph = new CorrelationGraphVisualizer( 
 			this.experiment, this.correlationFilterPanel.getMonitorableRange( ));
+		this.infoPanel = new InfoPanel( );
 		this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
 
 		this.graph.addGraphMouseEdgeListener( new GraphMouseListener<Correlation>( ) {
@@ -892,6 +898,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	 */
 	private class InfoPanel extends JTabbedPane implements ChangeListener {
 		private final static String MOLECULE_INDEX = "id";
+		private JPanel conditionPanel = new ConditionPanel( );
+		private JPanel topologyPanel = new TopologyPanel( );
 		private JTable moleculeTable = new JTable(0,0) {
 			public boolean isCellEditable( int row, int col ) {
 				return false;
@@ -912,6 +920,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			this.correlationTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 			this.add( new JScrollPane( moleculeTable ), "Molecules" );
 			this.add( new JScrollPane( correlationTable ), "Correlations" );
+			this.add( new JScrollPane( conditionPanel ), "Display Conditions" );
+			this.add( new JScrollPane( topologyPanel ), "Topological Information" );
 		}
 
 		/**
@@ -1099,6 +1109,114 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				}
 				return cell;
 
+			}
+		}
+
+		private class ConditionPanel extends JPanel implements ActionListener {
+
+			public ConditionPanel( ) {
+				super( );
+				// listen for changes to layout/calculation
+				multipleCirclesLayoutMenuItem.addActionListener( this );
+				multipleCirclesLayoutMenuItem.addActionListener( this );
+				singleCircleLayoutMenuItem.addActionListener( this );
+				randomLayoutMenuItem.addActionListener( this );
+				kkLayoutMenuItem.addActionListener( this );
+				frLayoutMenuItem.addActionListener( this );
+				springLayoutMenuItem.addActionListener( this );
+				pearsonCalculationMenuItem.addActionListener( this );
+				spearmanCalculationMenuItem.addActionListener( this ); 
+				kendallCalculationMenuItem.addActionListener( this );
+			}
+
+			public void paintComponent( Graphics g ) {
+				super.paintComponent( g );
+				g.setFont( new Font( "Sans Serif", Font.BOLD, 18 ));
+				String text;
+				
+				String layoutName;
+				try { 
+					layoutName = ((LayoutDecorator)graph.getGraphLayout( )).getDelegate( ) .getClass( ).getSimpleName( );
+				} catch ( ClassCastException e ) {
+					layoutName = graph.getGraphLayout( ).getClass( ).getSimpleName( );
+				}
+				text = String.format( "Layout: %s", layoutName );
+				g.drawString( text, 20, 30 );
+
+				text = String.format( "Correlation Method: %s",
+					Correlation.NAME[ Correlation.getDefaultMethod( )]);
+				g.drawString( text, 20, 70 );
+			}
+
+			public void actionPerformed( ActionEvent e ) {
+				if ( this.isVisible( ))
+					this.repaint( );
+			}
+		}
+
+		private class TopologyPanel extends JPanel implements GraphItemChangeListener {
+
+			public TopologyPanel( ) {
+				super( );
+				graph.addVertexChangeListener( this );
+				graph.addEdgeChangeListener( this );
+			}
+
+			public void paintComponent( Graphics g ) {
+				super.paintComponent( g );
+				Vector <Molecule> molecules = new Vector<Molecule>( graph.getVertices( ));
+				Vector <Correlation> correlations = new Vector<Correlation>( graph.getEdges( ));
+//				g.setFont( new Font( "Sans Serif", Font.BOLD, 18 ));
+				String text;
+				
+				text = String.format( "Number of Nodes: %d", molecules.size( ));
+				g.drawString( text, 20, 16 );
+
+				text = String.format( "Number of Edges: %d", correlations.size( ));
+				g.drawString( text, 20, 34 );
+
+				text = String.format( "Number of correlated molecules: %d", getCorrelatedCount( molecules ));
+				g.drawString( text, 20, 52 );
+
+				text = String.format( "Average number of neighbors: %.2f", getAverageNeighbors( molecules ));
+				g.drawString( text, 20, 70 );
+
+				text = String.format( "Network diameter: %d", getNetworkDiameter( molecules ));
+				g.drawString( text, 20, 86 );
+
+				text = String.format( "Characteristic path length: %.2f", getCharacteristicPathLength( molecules ));
+				g.drawString( text, 20, 102 );
+
+			}
+
+			public int getCorrelatedCount( Collection <Molecule> molecules ) {
+				int returnValue = 0;
+				for ( Molecule m : molecules ) {
+					if ( graph.getNeighborCount( m ) > 0 )
+						returnValue++;
+				}
+				return returnValue;
+			}
+
+			public double getAverageNeighbors( Collection <Molecule> molecules ) {
+				int neighbors = 0;
+				for ( Molecule m : molecules ) {
+					neighbors += graph.getNeighborCount( m );
+				}
+				return (double)neighbors / molecules.size( );
+			}
+
+			public int getNetworkDiameter( Collection <Molecule> molecules ) {
+				return -1;
+			}
+
+			public double getCharacteristicPathLength( Collection <Molecule> molecules ) {
+				return Double.NaN;
+			}
+
+			public void stateChanged( GraphItemChangeEvent event ) {
+				if ( this.isVisible( ))
+					this.repaint( );
 			}
 		}
 

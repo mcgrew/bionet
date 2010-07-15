@@ -140,8 +140,8 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	 * @param level The level to zoom to.
 	 * @return The new zoom level.
 	 */
-	public float scaleTo( float amount ) {
-		return this.scaleTo( amount, this.getCenterPoint( ));
+	public float scaleTo( float level ) {
+		return this.scaleTo( level, this.getCenterPoint( ));
 	}
 
 	/**
@@ -152,9 +152,9 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	 * @param center The center point for the scaling operation.
 	 * @return The new zoom level.
 	 */
-	public float scaleTo( float amount, Point2D center ) {
+	public float scaleTo( float level, Point2D center ) {
 		float oldZoom = this.currentZoom;
-		this.currentZoom = Math.max( amount, 0.99f );
+		this.currentZoom = Math.max( level, 0.99f );
 		Dimension newSize = new Dimension( 
 			(int)( this.scrollPane.getWidth( )  * currentZoom ),
 			(int)( this.scrollPane.getHeight( ) * currentZoom ));
