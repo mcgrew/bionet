@@ -28,10 +28,14 @@ import java.awt.Graphics;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Font;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 
 
 public class About extends JFrame {
 	private JPanel panel = new AboutPanel( );
+	private BufferedImage logo;
 
 	public About( ) {
 		super( );
@@ -39,6 +43,10 @@ public class About extends JFrame {
 		int y = Settings.getSettings( ).getInt( "windowYPosition" );
 		this.setBounds( x, y, 400, 250 );
 		this.add( this.panel );
+		try { 
+			this.logo = ImageIO.read( getClass( ).getResourceAsStream( "/resources/logo.png" ));
+		} catch ( IOException e ) {
+		}
 	}
 
 	private class AboutPanel extends JPanel {
@@ -48,16 +56,21 @@ public class About extends JFrame {
 			FontMetrics f = g.getFontMetrics( );
 
 			text = "Copyright \u00A92010 Purdue University."; 
-			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 150 );
+			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 130 );
 
 			text = "JSysNet is distributed under the GNU GPL license.";
+			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 150 );
+
+			text = "This project is funded by NIH Grant 5R01GM087735";
 			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 170 );
 
 			g.setFont( new Font( "Serif", Font.BOLD, 42 ));
 			f = g.getFontMetrics( );
 
 			text = "JSysNet";
-			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 80 );
+			g.drawString( text, 230 - (f.stringWidth( text ) / 2), 80 );
+
+			g.drawImage( logo, 50, 30, null );
 
 		}
 	}

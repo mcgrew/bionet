@@ -41,6 +41,9 @@
 		<copy todir="${class_dir}/docs/help/">
 			<fileset dir="docs/help"/>
 		</copy>
+		<copy todir="${class_dir}/resources/">
+			<fileset dir="resources/"/>
+		</copy>
 	</target>
 
 	<!-- ============ TARGET: JAR ====================== -->
