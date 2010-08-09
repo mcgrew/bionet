@@ -158,7 +158,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			this.chart = ChartFactory.createScatterPlot(
 				null, //title
 				molecules[ 0 ].toString( ), // x axis label
-				molecules[ 1 ].toString( ), //y axis label
+				molecules[ 1 ].toString( ), // y axis label
 				dataset, // plot data
 				PlotOrientation.VERTICAL, // Plot Orientation
 				false, // show legend
@@ -166,7 +166,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 				false  // configure chart to generate URLs (?!)
 			);
 
-			this.chart.setBackgroundPaint( new GradientPaint( 0, 1000, Color.WHITE, 1000, 0, Color.GRAY ));
+			this.chart.setBackgroundPaint( new GradientPaint( 
+				0, 1000, Color.WHITE, 1000, 0, Color.GRAY ));
 			XYPlot plot = this.chart.getXYPlot( );
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );

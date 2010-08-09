@@ -74,6 +74,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.awt.Graphics;
 import java.awt.Font;
+import java.awt.image.BufferedImage;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
@@ -82,6 +83,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.Vector;
+import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
 import edu.uci.ics.jung.graph.util.Pair;
@@ -97,6 +99,15 @@ import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
 import edu.uci.ics.jung.visualization.picking.PickedState;
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.chart.plot.CategoryPlot;
 
 /**
  * A class for displaying and interacting with Correlation data for a set of molecules.
@@ -376,7 +387,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.add( this.graphSplitPane, BorderLayout.CENTER );
 		this.graphSplitPane.setBottomComponent( this.infoPanel );
 		this.graphSplitPane.setDividerLocation( 
-			Settings.getSettings( ).getInt( "windowHeight" ) - 250 );
+			Settings.getSettings( ).getInt( "windowHeight" ) - 400 );
 		this.setGraphVisualizer( this.graph );
 		this.setGraphLayout( CircleLayout.class );
 
@@ -1131,7 +1142,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 			public void paintComponent( Graphics g ) {
 				super.paintComponent( g );
-				g.setFont( new Font( "Sans Serif", Font.BOLD, 18 ));
 				String text;
 				
 				String layoutName;
@@ -1155,11 +1165,99 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		}
 
 		private class TopologyPanel extends JPanel implements GraphItemChangeListener {
+			private static final int GRAPH_LEFT_MARGIN = 250;
+			private JFreeChart degreeDistributionChart;
+			private JFreeChart correlationDistributionChart;
+			private DefaultCategoryDataset degreeDistributionData;
+			private DefaultCategoryDataset correlationDistributionData;
+			private JTabbedPane tabPane;
+
+			private JPanel degreeDistributionPanel = new JPanel( ) {
+				public void paintComponent( Graphics g ) {
+					super.paintComponent( g );
+					Vector<Molecule> molecules = new Vector<Molecule>( graph.getVertices( ));
+					int max = -1;
+					int [] dist = new int[ molecules.size( ) ];
+					for( Molecule m : molecules ) {
+						int currentDeg = graph.getNeighborCount( m );
+						max = Math.max( max, currentDeg );
+						dist[ currentDeg ]++;
+					}
+					degreeDistributionData.clear( );
+					for ( int i=0; i <= max; i++ ) {
+						degreeDistributionData.addValue( dist[ i ], "", new Integer( i ));
+					}
+					g.drawImage( 
+						degreeDistributionChart.createBufferedImage( getWidth( ), getHeight( )), 
+						0, 0, Color.WHITE, this );
+				}
+			};
+
+			private JPanel correlationDistributionPanel = new JPanel( ) {
+				public void paintComponent( Graphics g ) {
+					super.paintComponent( g );
+					Vector <Correlation> edges = new Vector<Correlation>( graph.getEdges( ));
+					int [] dist = new int[ 40 ];
+					for( Correlation c : edges ) {
+						dist[ (int)(( c.getValue( ) + 1 ) * 20 )]++;
+					}
+					correlationDistributionData.clear( );
+					Range correlationRange = correlationFilterPanel.getRange( );
+					for ( int i=0; i < 40; i++ ) {
+						double value = ( i < 20 ) ? ( i - 19 ) * 0.05 : ( i - 20 ) * 0.05;
+						if ( correlationRange.isInside( Math.abs( value ) ) 
+							|| correlationRange.isMin( Math.abs( value )))
+							correlationDistributionData.addValue( dist[ i ], "", 
+								String.format( "%.2f", value ));
+					}
+					g.drawImage( 
+						correlationDistributionChart.createBufferedImage( getWidth( ), getHeight( )), 
+						0, 0, Color.WHITE, this );
+				}
+			};
 
 			public TopologyPanel( ) {
 				super( );
 				graph.addVertexChangeListener( this );
 				graph.addEdgeChangeListener( this );
+				this.setLayout( null );
+				tabPane = new JTabbedPane( );
+				tabPane.setBounds( GRAPH_LEFT_MARGIN, 0, 0, 0 );
+				this.add( tabPane );
+				tabPane.add( "Node degree distribution", degreeDistributionPanel );
+				tabPane.add( "Correlation distribution", correlationDistributionPanel );
+				degreeDistributionData = new DefaultCategoryDataset( );
+				correlationDistributionData = new DefaultCategoryDataset( );
+
+				degreeDistributionChart = ChartFactory.createBarChart( 
+					null, //title
+					"Neighbor Count", // category axis label
+					"Nodes", // value axis label
+					degreeDistributionData, // plot data
+					PlotOrientation.VERTICAL, // Plot Orientation
+					false, // show legend
+					false, // use tooltips
+					false // configure chart to generate URLs
+				);
+				CategoryPlot plot = degreeDistributionChart.getCategoryPlot( );
+				plot.setBackgroundPaint( Color.WHITE );
+				plot.setRangeGridlinePaint( Color.GRAY );
+				plot.setDomainGridlinePaint( Color.GRAY );
+				
+				correlationDistributionChart = ChartFactory.createBarChart( 
+					null, //title
+					"Correlation Value", // category axis label
+					"Edges", // value axis label
+					correlationDistributionData, // plot data
+					PlotOrientation.VERTICAL, // Plot Orientation
+					false, // show legend
+					false, // use tooltips
+					false // configure chart to generate URLs
+				);
+				plot = correlationDistributionChart.getCategoryPlot( );
+				plot.setBackgroundPaint( Color.WHITE );
+				plot.setRangeGridlinePaint( Color.GRAY );
+				plot.setDomainGridlinePaint( Color.GRAY );
 			}
 
 			public void paintComponent( Graphics g ) {
@@ -1168,6 +1266,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				Vector <Correlation> correlations = new Vector<Correlation>( graph.getEdges( ));
 //				g.setFont( new Font( "Sans Serif", Font.BOLD, 18 ));
 				String text;
+				tabPane.setSize( new Dimension( getWidth( ) - GRAPH_LEFT_MARGIN,  getHeight( )));
 				
 				text = String.format( "Number of Nodes: %d", molecules.size( ));
 				g.drawString( text, 20, 16 );
@@ -1186,6 +1285,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 				text = String.format( "Characteristic path length: %.2f", getCharacteristicPathLength( molecules ));
 				g.drawString( text, 20, 102 );
+
 
 			}
 
@@ -1207,11 +1307,36 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			}
 
 			public int getNetworkDiameter( Collection <Molecule> molecules ) {
-				return -1;
+				int returnValue = 0;
+				int currentValue;
+				List<Correlation> path;
+				for ( Molecule m : molecules ) {
+					for ( Molecule n : molecules ) {
+						path = graph.getShortestPath( m, n );
+						if ( path != null ) {
+							currentValue = path.size( );
+							if ( currentValue > returnValue )
+								returnValue = currentValue;
+						}
+					}
+				}
+				return returnValue;
 			}
 
 			public double getCharacteristicPathLength( Collection <Molecule> molecules ) {
-				return Double.NaN;
+				double returnValue = 0.0;
+				int count = 0;
+				List<Correlation> path;
+				for ( Molecule m : molecules ) {
+					for ( Molecule n : molecules ) {
+						path = graph.getShortestPath( m, n );
+						if ( path != null ) {
+							returnValue += path.size( );
+							count++;
+						}
+					}
+				}
+				return returnValue / count;
 			}
 
 			public void stateChanged( GraphItemChangeEvent event ) {

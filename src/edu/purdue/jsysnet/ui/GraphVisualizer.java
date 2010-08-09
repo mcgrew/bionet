@@ -22,9 +22,10 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.ui.layout.*;
 
 import java.util.Collection;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Vector;
 import java.util.HashMap;
+import java.util.List;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.event.MouseWheelEvent;
@@ -59,13 +60,14 @@ import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 import edu.uci.ics.jung.visualization.layout.ObservableCachingLayout;
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.visualization.renderers.DefaultVertexLabelRenderer;
+import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 
 import org.apache.commons.collections15.Transformer;
 
 /**
  * A class for visualizing a network graph. 
  */
-public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, MouseListener, Scalable {
+	public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, MouseListener, Scalable {
 	protected Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
@@ -74,15 +76,16 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	private JScrollPane scrollPane;
 	private float currentZoom = 1.0f;
 	private static float minimumZoom = 0.99f;
+	private DijkstraShortestPath<V,E> dijkstra;
 
-	private ArrayList <PickedStateChangeListener<V>> pickedVertexStateChangeListeners =
-		new ArrayList<PickedStateChangeListener<V>>( );
-	private ArrayList <PickedStateChangeListener<E>> pickedEdgeStateChangeListeners =
-		new ArrayList<PickedStateChangeListener<E>>( );
-	private ArrayList<GraphItemChangeListener<V>> vertexChangeListeners = new ArrayList<GraphItemChangeListener<V>>( );
-	private ArrayList<GraphItemChangeListener<E>> edgeChangeListeners = new ArrayList<GraphItemChangeListener<E>>( );
-	private ArrayList<ChangeListener> animationListeners = new ArrayList<ChangeListener>( );
-	private ArrayList<GraphMouseListener<E>> graphMouseEdgeListeners = new ArrayList<GraphMouseListener<E>>( );
+	private LinkedList <PickedStateChangeListener<V>> pickedVertexStateChangeListeners =
+		new LinkedList<PickedStateChangeListener<V>>( );
+	private LinkedList <PickedStateChangeListener<E>> pickedEdgeStateChangeListeners =
+		new LinkedList<PickedStateChangeListener<E>>( );
+	private LinkedList<GraphItemChangeListener<V>> vertexChangeListeners = new LinkedList<GraphItemChangeListener<V>>( );
+	private LinkedList<GraphItemChangeListener<E>> edgeChangeListeners = new LinkedList<GraphItemChangeListener<E>>( );
+	private LinkedList<ChangeListener> animationListeners = new LinkedList<ChangeListener>( );
+	private LinkedList<GraphMouseListener<E>> graphMouseEdgeListeners = new LinkedList<GraphMouseListener<E>>( );
 	protected Paint vertexPaint = Color.ORANGE;
 	protected Paint pickedVertexPaint = Color.YELLOW;
 	protected Paint edgePaint = Color.GREEN;
@@ -708,6 +711,25 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 
 	public void mouseEntered( MouseEvent event ) { }
 	public void mouseExited( MouseEvent event ) { }
+	
+	public List<E> getShortestPath( V v1, V v2 ) {
+		if ( dijkstra == null ) {
+			// create a new DijkstraShortestPath
+			dijkstra = new DijkstraShortestPath<V,E>( this );
+			// listen for edge changes and reset DijkstraShortestPath
+			this.addEdgeChangeListener( new GraphItemChangeListener<E>( ) {
+				public void stateChanged( GraphItemChangeEvent e ) {
+					dijkstra.reset( );
+			
+				}
+			});
+		}
+		try { 
+			return dijkstra.getPath( v1, v2 );
+		} catch ( NullPointerException e ) {
+			return null;
+		}
+	}
 
 	// Graph interface Methods
 	public boolean addEdge( E e, V v1, V v2 ) {
@@ -790,12 +812,14 @@ public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Gr
 	public boolean addEdge( E edge, Collection<? extends V> vertices ) {
 		boolean returnValue = this.graph.addEdge( edge, vertices );
 		this.repaint( );
+		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.ADDED );
 		return returnValue;
 	}
 
 	public boolean addEdge( E edge, Collection<? extends V> vertices, EdgeType edge_type ) {
 		boolean returnValue = this.graph.addEdge( edge, vertices, edge_type );
 		this.repaint( );
+		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.ADDED );
 		return returnValue;
 	}
 

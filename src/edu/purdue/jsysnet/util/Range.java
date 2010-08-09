@@ -242,6 +242,66 @@ public class Range implements Cloneable {
 	}
 
 	/**
+	 * Compares the passed in value to the minimum of this Range.
+	 * 
+	 * @param the value to be compared to the minimum.
+	 * @return true if the passed in value is numerically equal to the minimum.
+	 */
+	public boolean isMin( int value ) {
+		return Double.compare( this.min, (double)value ) == 0;
+	}
+
+	/**
+	 * Compares the passed in value to the minimum of this Range.
+	 * 
+	 * @param the value to be compared to the minimum.
+	 * @return true if the passed in value is numerically equal to the minimum.
+	 */
+	public boolean isMin( float value ) {
+		return Double.compare( this.min, (double)value ) == 0;
+	}
+
+	/**
+	 * Compares the passed in value to the minimum of this Range.
+	 * 
+	 * @param the value to be compared to the minimum.
+	 * @return true if the passed in value is numerically equal to the minimum.
+	 */
+	public boolean isMin( double value ) {
+		return Double.compare( this.min, value ) == 0;
+	}
+
+	/**
+	 * Compares the passed in value to the maximum of this Range.
+	 * 
+	 * @param the value to be compared to the maximum.
+	 * @return true if the passed in value is numerically equal to the maximum.
+	 */
+	public boolean isMax( int value ) {
+		return Double.compare( this.max, (double)value ) == 0;
+	}
+
+	/**
+	 * Compares the passed in value to the maximum of this Range.
+	 * 
+	 * @param the value to be compared to the maximum.
+	 * @return true if the passed in value is numerically equal to the maximum.
+	 */
+	public boolean isMax( float value ) {
+		return Double.compare( this.max, (double)value ) == 0;
+	}
+
+	/**
+	 * Compares the passed in value to the maximum of this Range.
+	 * 
+	 * @param the value to be compared to the maximum.
+	 * @return true if the passed in value is numerically equal to the maximum.
+	 */
+	public boolean isMax( double value ) {
+		return Double.compare( this.max, value ) == 0;
+	}
+
+	/**
 	 * Creates a copy of this range
 	 * 
 	 * @return a A new Range that is a copy of this range.
