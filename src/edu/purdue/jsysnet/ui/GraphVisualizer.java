@@ -73,7 +73,7 @@ import org.apache.commons.collections15.Transformer;
 	private Thread AnimThread;
 	private AbsoluteCrossoverScalingControl absoluteViewScaler = 
 		new AbsoluteCrossoverScalingControl( );
-	private JScrollPane scrollPane;
+	protected JScrollPane scrollPane;
 	private float currentZoom = 1.0f;
 	private static float minimumZoom = 0.99f;
 	private DijkstraShortestPath<V,E> dijkstra;
@@ -386,16 +386,24 @@ import org.apache.commons.collections15.Transformer;
 	 * @return The new zoom level.
 	 */
 	public float scaleTo( float level, Point2D center ) {
+		if ( this.scrollPane == null )
+			return 1.0f;
 		float oldZoom = this.currentZoom;
 		this.currentZoom = Math.max( minimumZoom, level );
 //		this.absoluteViewScaler.scale( this, level, center );
+		Dimension viewSize;
+		if ( level < 1.0f ) {
+			viewSize = this.scrollPane.getSize( );
+		} else {
+			viewSize = this.scrollPane.getViewport( ).getExtentSize( );
+		}
 		Dimension newSize = new Dimension( 
-			(int)( this.scrollPane.getWidth( ) * currentZoom ),
-			(int)( this.scrollPane.getHeight( ) * currentZoom ));
+			(int)( viewSize.width * currentZoom ),
+			(int)( viewSize.height * currentZoom ));
 		this.setPreferredSize( newSize );
 		this.setSize( newSize );
 		new LayoutScaler( this.getGraphLayout( )).setSize( newSize );
-		if ( Float.compare( level, 1.0f ) == 0 )
+		if ( Float.compare( level, 1.0f ) <= 0 )
 			this.center( );
 
 		// translate the new view position so the mouse is in the same place

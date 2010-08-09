@@ -273,6 +273,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.animatedLayoutMenuItem.addActionListener( lcl );
 
 		//VIEW MENU
+		this.viewMenu.add( this.colorMenu );
+		this.viewMenu.addSeparator( );
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
 		this.viewMenu.getAccessibleContext( ).setAccessibleDescription(
 			"Change the data view settings" );
@@ -329,7 +331,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.menuBar.add( this.calculationMenu );
 		this.menuBar.add( this.layoutMenu );
 		this.menuBar.add( this.viewMenu );
-		this.menuBar.add( this.colorMenu );
 
 
 		// Add the panels to the main panel

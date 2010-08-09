@@ -22,6 +22,7 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.MonitorableRange;
+import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.util.Experiment;
 import edu.purdue.jsysnet.util.Spectrum;
 import edu.purdue.jsysnet.util.SplitSpectrum;
@@ -35,15 +36,20 @@ import org.apache.commons.collections15.Transformer;
 
 import java.awt.Paint;
 import java.awt.Color;
+import java.awt.Rectangle;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.JScrollPane;
 
 public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,GraphMouseListener<Correlation> {
 	public MonitorableRange range;
 	public Experiment experiment;
 	protected Spectrum spectrum;
+	private SpectrumLegend spectrumLegend;
 
 	public CorrelationGraphVisualizer( Experiment experiment, MonitorableRange range ) {
 		super( );
@@ -53,6 +59,7 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 
 		this.spectrum = new SplitSpectrum( range );
 		this.spectrum.setOutOfRangePaint( Color.WHITE );
+		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
 		Transformer e = new Transformer<Correlation,Paint>( ) {
 			public Paint transform( Correlation e ) {
 				if ( getPickedEdgeState( ).isPicked( e )) {
@@ -155,8 +162,29 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 			state.pick( m[1], true );
 		}
 	}
+
+	public void paintComponent( Graphics g ) {
+		super.paintComponent( g );
+		int h, w;
+		if ( this.scrollPane  != null ) {
+			Rectangle view = this.scrollPane.getViewport( ).getViewRect( );
+			w = view.x;
+			h = view.y + view.height;
+		} else {
+			w = 0;
+			h = this.getHeight( );
+		}
+		Rectangle legendRect = new Rectangle( 
+			w + 20,
+			h - 35,
+			150,
+			20
+		);
+		spectrumLegend.stamp( g, legendRect );
+	}
 	
 	public void graphPressed( Correlation edge, MouseEvent event ) { }
 	public void graphReleased( Correlation edge, MouseEvent event ) { }
+
 
 }

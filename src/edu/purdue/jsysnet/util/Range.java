@@ -319,6 +319,42 @@ public class Range implements Cloneable {
 	public boolean equals( Range r ) {
 		return ( this.min == r.getMin( ) && this.max == r.getMax( ));
 	}
+
+	/**
+	 * Returns a sequence within the range separated by increment.
+	 * 
+	 * @param increment the difference between each element in the sequence.
+	 * @return a double array containing a sequence of numbers contained in this
+	 *	Range.
+	 */
+	public double[] getSequence( double increment ) {
+		int count = (int)(( max - min ) / increment ) + 1;
+		return getSequence( count, increment );
+	}
+
+	/**
+	 * Returns a sequence within the range separated by increment.
+	 * 
+	 * @param count The number of elements for the sequence to contain.
+	 * @return a double array containing a sequence of numbers contained in this
+	 *	Range.
+	 */
+	public double[] getSequence( int count ) {
+		double increment = ( max - min ) / ( count - 1 );
+		return this.getSequence( count, increment );
+	}
+
+	private double[] getSequence( int count, double increment ) {
+		if ( sequence != null && sequence.length == count )
+			return sequence;
+		sequence = new double[ count ];
+		for( int i=0; i < count; i++ ) {
+			sequence[ i ] = min + i * increment;
+		}
+		return sequence;
+
+	}
+	private double[] sequence;
 }
 
 

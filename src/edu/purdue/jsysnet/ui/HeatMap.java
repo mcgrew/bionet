@@ -19,6 +19,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet.ui;
 
+import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.util.Spectrum;
 import edu.purdue.jsysnet.util.SplitSpectrum;
 import edu.purdue.jsysnet.util.Correlation;
@@ -69,6 +70,8 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	private MonitorableRange range;
 	private JScrollPane scrollPane;
 	private float currentZoom = 1.0f;
+	private Spectrum spectrum;
+	private SpectrumLegend spectrumLegend;
 
 	public HeatMap ( Collection <Molecule> molecules ) {
 		this( "", molecules, new MonitorableRange( 0.0, 1.0 ));
@@ -84,6 +87,9 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 		this.addMouseWheelListener( this );
 		this.addGraphMouseListener( this );
 		this.moleculeList = new Vector( molecules );
+		this.spectrum = new SplitSpectrum( range, this.getBackground( ));
+		this.spectrum.setOutOfRangePaint( Color.WHITE );
+		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
 	}
 
 	private DefaultHeatMapDataset getDataset( ) {
@@ -155,9 +161,15 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	public float scaleTo( float level, Point2D center ) {
 		float oldZoom = this.currentZoom;
 		this.currentZoom = Math.max( level, 0.99f );
+		Dimension viewSize;
+		if ( level < 1.0f ) {
+			viewSize = this.scrollPane.getSize( );
+		} else {
+			viewSize = this.scrollPane.getViewport( ).getExtentSize( );
+		}
 		Dimension newSize = new Dimension( 
-			(int)( this.scrollPane.getWidth( )  * currentZoom ),
-			(int)( this.scrollPane.getHeight( ) * currentZoom ));
+			(int)( viewSize.width  * currentZoom ),
+			(int)( viewSize.height * currentZoom ));
 		this.setPreferredSize( newSize );
 		this.setSize( newSize );
 
@@ -195,52 +207,73 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	 */
 	public void paintComponent( Graphics g ) {
 		super.paintComponent( g );
-		if ( moleculeList.size( ) == 0 )
-			return;
-		float tickStep;
-		BufferedImage drawing = HeatMapUtilities.createHeatMapImage( 
-			this.getDataset( ), new SplitSpectrum( range, this.getBackground( )));
-		int leftEdge = this.getWidth( ) / 8;
-		int topEdge = this.getHeight( ) / 32;
-		int bottomEdge = this.getHeight( ) * 7 / 8;
-		int rightEdge = this.getWidth( ) * 31 / 32;
-		mapPosition = new Rectangle( leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge );
-		g.drawImage( drawing, leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge, Color.WHITE, this );
-		// y-axis
-		int yAxisPos = leftEdge - 1;
-//		g.drawLine( yAxisPos, topEdge, yAxisPos, bottomEdge );
-		tickStep = ( bottomEdge - topEdge ) / (float)moleculeList.size( );
-		for ( int i=0; i <= moleculeList.size( ); i++ ) {
-			int tickY = Math.round( topEdge + i * tickStep );
-			g.drawLine( rightEdge, tickY, yAxisPos - tickSize, tickY );
-			if ( i < moleculeList.size( )) {
-				String name = this.moleculeList.get( this.moleculeList.size( ) - 1 - i ).toString( );
-				g.drawString( name,
-					yAxisPos - 4 - g.getFontMetrics( ).stringWidth( name ),
-					(int)( tickY + tickStep ));
+		
+		if ( moleculeList.size( ) > 0 ) {
+			float tickStep;
+			BufferedImage drawing = HeatMapUtilities.createHeatMapImage( 
+				this.getDataset( ), this.spectrum );
+			int leftEdge = this.getWidth( ) / 8;
+			int topEdge = this.getHeight( ) / 32;
+			int bottomEdge = this.getHeight( ) * 7 / 8;
+			int rightEdge = this.getWidth( ) * 31 / 32;
+			mapPosition = new Rectangle( leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge );
+			g.drawImage( drawing, leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge, Color.WHITE, this );
+			// y-axis
+			int yAxisPos = leftEdge - 1;
+	//		g.drawLine( yAxisPos, topEdge, yAxisPos, bottomEdge );
+			tickStep = ( bottomEdge - topEdge ) / (float)moleculeList.size( );
+			for ( int i=0; i <= moleculeList.size( ); i++ ) {
+				int tickY = Math.round( topEdge + i * tickStep );
+				g.drawLine( rightEdge, tickY, yAxisPos - tickSize, tickY );
+				if ( i < moleculeList.size( )) {
+					String name = this.moleculeList.get( this.moleculeList.size( ) - 1 - i ).toString( );
+					g.drawString( name,
+						yAxisPos - 4 - g.getFontMetrics( ).stringWidth( name ),
+						(int)( tickY + tickStep ));
+				}
+			}
+					
+			// x-axis
+			int xAxisPos = bottomEdge;
+			tickStep = ( rightEdge - leftEdge ) / (float)moleculeList.size( );
+	//		g.drawLine( leftEdge, xAxisPos, rightEdge, xAxisPos );
+			for ( int i=0; i <= moleculeList.size( ); i++ ) {
+				int tickX = (int)( leftEdge + i * tickStep );
+				g.drawLine( tickX, topEdge, tickX, xAxisPos + tickSize );
+			}
+			// clockwise 90 degrees
+			AffineTransform at = new AffineTransform();
+			at.quadrantRotate( 3 );
+			Graphics2D g2d = (Graphics2D)g.create( );
+			g2d.transform(at);
+			for ( int i=0; i < moleculeList.size( ); i++ ) {
+				int tickX = Math.round( leftEdge + i * tickStep );
+				String name = this.moleculeList.get( i ).toString( );
+				g2d.drawString( name, 
+					-(int)(  xAxisPos + 4 + g.getFontMetrics( ).stringWidth( name )),
+					(int)( tickX + tickStep )
+				);
 			}
 		}
-		    
-		// x-axis
-		int xAxisPos = bottomEdge;
-		tickStep = ( rightEdge - leftEdge ) / (float)moleculeList.size( );
-//		g.drawLine( leftEdge, xAxisPos, rightEdge, xAxisPos );
-		for ( int i=0; i <= moleculeList.size( ); i++ ) {
-			int tickX = (int)( leftEdge + i * tickStep );
-			g.drawLine( tickX, topEdge, tickX, xAxisPos + tickSize );
+
+		// place a legend
+		int h, w;
+		if ( this.scrollPane  != null ) {
+			Rectangle view = this.scrollPane.getViewport( ).getViewRect( );
+			w = view.x;
+			h = view.y + view.height;
+		} else {
+			w = 0;
+			h = this.getHeight( );
 		}
-		// clockwise 90 degrees
-		AffineTransform at = new AffineTransform();
-		at.quadrantRotate( 3 );
-		((Graphics2D)g).transform(at);
-		for ( int i=0; i < moleculeList.size( ); i++ ) {
-			int tickX = Math.round( leftEdge + i * tickStep );
-			String name = this.moleculeList.get( i ).toString( );
-			g.drawString( name, 
-				-(int)(  xAxisPos + 4 + g.getFontMetrics( ).stringWidth( name )),
-				(int)( tickX + tickStep )
-			);
-		}
+		
+		Rectangle legendRect = new Rectangle( 
+			w + 20,
+			h - 35,
+			150,
+			20
+		);
+		spectrumLegend.stamp( g, legendRect );
 
 	}
 
