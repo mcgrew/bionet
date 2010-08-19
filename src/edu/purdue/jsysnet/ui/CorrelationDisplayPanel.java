@@ -73,8 +73,10 @@ import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
+import java.awt.geom.Rectangle2D;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
@@ -108,6 +110,9 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.data.statistics.SimpleHistogramDataset;
+import org.jfree.data.statistics.SimpleHistogramBin;
 
 /**
  * A class for displaying and interacting with Correlation data for a set of molecules.
@@ -912,6 +917,10 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		private final static String MOLECULE_INDEX = "id";
 		private JPanel conditionPanel = new ConditionPanel( );
 		private JPanel topologyPanel = new TopologyPanel( );
+		private JPanel degreeDistributionPanel = new DegreeDistributionPanel( );
+		private JPanel correlationDistributionPanel = new CorrelationDistributionPanel( );
+		private JPanel neighborhoodConnectivityPanel = 
+				new NeighborhoodConnectivityDistributionPanel( );
 		private JTable moleculeTable = new JTable(0,0) {
 			public boolean isCellEditable( int row, int col ) {
 				return false;
@@ -932,8 +941,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			this.correlationTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 			this.add( new JScrollPane( moleculeTable ), "Molecules" );
 			this.add( new JScrollPane( correlationTable ), "Correlations" );
-			this.add( new JScrollPane( conditionPanel ), "Display Conditions" );
-			this.add( new JScrollPane( topologyPanel ), "Topological Information" );
+			this.add( conditionPanel, "Display Conditions" );
+			this.add( topologyPanel, "Topological Information" );
+			this.add( degreeDistributionPanel, "Node Degree Distribution" );
+			this.add( correlationDistributionPanel, "Correlation Distribution" );
+			this.add( neighborhoodConnectivityPanel, "Neighborhood Connectivity" );
 		}
 
 		/**
@@ -1166,99 +1178,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		}
 
 		private class TopologyPanel extends JPanel implements GraphItemChangeListener {
-			private static final int GRAPH_LEFT_MARGIN = 250;
-			private JFreeChart degreeDistributionChart;
-			private JFreeChart correlationDistributionChart;
-			private DefaultCategoryDataset degreeDistributionData;
-			private DefaultCategoryDataset correlationDistributionData;
-			private JTabbedPane tabPane;
-
-			private JPanel degreeDistributionPanel = new JPanel( ) {
-				public void paintComponent( Graphics g ) {
-					super.paintComponent( g );
-					Vector<Molecule> molecules = new Vector<Molecule>( graph.getVertices( ));
-					int max = -1;
-					int [] dist = new int[ molecules.size( ) ];
-					for( Molecule m : molecules ) {
-						int currentDeg = graph.getNeighborCount( m );
-						max = Math.max( max, currentDeg );
-						dist[ currentDeg ]++;
-					}
-					degreeDistributionData.clear( );
-					for ( int i=0; i <= max; i++ ) {
-						degreeDistributionData.addValue( dist[ i ], "", new Integer( i ));
-					}
-					g.drawImage( 
-						degreeDistributionChart.createBufferedImage( getWidth( ), getHeight( )), 
-						0, 0, Color.WHITE, this );
-				}
-			};
-
-			private JPanel correlationDistributionPanel = new JPanel( ) {
-				public void paintComponent( Graphics g ) {
-					super.paintComponent( g );
-					Vector <Correlation> edges = new Vector<Correlation>( graph.getEdges( ));
-					int [] dist = new int[ 40 ];
-					for( Correlation c : edges ) {
-						dist[ (int)(( c.getValue( ) + 1 ) * 20 )]++;
-					}
-					correlationDistributionData.clear( );
-					Range correlationRange = correlationFilterPanel.getRange( );
-					for ( int i=0; i < 40; i++ ) {
-						double value = ( i < 20 ) ? ( i - 19 ) * 0.05 : ( i - 20 ) * 0.05;
-						if ( correlationRange.isInside( Math.abs( value ) ) 
-							|| correlationRange.isMin( Math.abs( value )))
-							correlationDistributionData.addValue( dist[ i ], "", 
-								String.format( "%.2f", value ));
-					}
-					g.drawImage( 
-						correlationDistributionChart.createBufferedImage( getWidth( ), getHeight( )), 
-						0, 0, Color.WHITE, this );
-				}
-			};
 
 			public TopologyPanel( ) {
 				super( );
 				graph.addVertexChangeListener( this );
 				graph.addEdgeChangeListener( this );
-				this.setLayout( null );
-				tabPane = new JTabbedPane( );
-				tabPane.setBounds( GRAPH_LEFT_MARGIN, 0, 0, 0 );
-				this.add( tabPane );
-				tabPane.add( "Node degree distribution", degreeDistributionPanel );
-				tabPane.add( "Correlation distribution", correlationDistributionPanel );
-				degreeDistributionData = new DefaultCategoryDataset( );
-				correlationDistributionData = new DefaultCategoryDataset( );
-
-				degreeDistributionChart = ChartFactory.createBarChart( 
-					null, //title
-					"Neighbor Count", // category axis label
-					"Nodes", // value axis label
-					degreeDistributionData, // plot data
-					PlotOrientation.VERTICAL, // Plot Orientation
-					false, // show legend
-					false, // use tooltips
-					false // configure chart to generate URLs
-				);
-				CategoryPlot plot = degreeDistributionChart.getCategoryPlot( );
-				plot.setBackgroundPaint( Color.WHITE );
-				plot.setRangeGridlinePaint( Color.GRAY );
-				plot.setDomainGridlinePaint( Color.GRAY );
-				
-				correlationDistributionChart = ChartFactory.createBarChart( 
-					null, //title
-					"Correlation Value", // category axis label
-					"Edges", // value axis label
-					correlationDistributionData, // plot data
-					PlotOrientation.VERTICAL, // Plot Orientation
-					false, // show legend
-					false, // use tooltips
-					false // configure chart to generate URLs
-				);
-				plot = correlationDistributionChart.getCategoryPlot( );
-				plot.setBackgroundPaint( Color.WHITE );
-				plot.setRangeGridlinePaint( Color.GRAY );
-				plot.setDomainGridlinePaint( Color.GRAY );
 			}
 
 			public void paintComponent( Graphics g ) {
@@ -1267,7 +1191,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				Vector <Correlation> correlations = new Vector<Correlation>( graph.getEdges( ));
 //				g.setFont( new Font( "Sans Serif", Font.BOLD, 18 ));
 				String text;
-				tabPane.setSize( new Dimension( getWidth( ) - GRAPH_LEFT_MARGIN,  getHeight( )));
 				
 				text = String.format( "Number of Nodes: %d", molecules.size( ));
 				g.drawString( text, 20, 16 );
@@ -1346,6 +1269,176 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			}
 		}
 
+		private abstract class DistributionPanel extends JPanel implements GraphItemChangeListener {
+			protected JFreeChart distributionChart;
+			protected DefaultCategoryDataset distributionData;
+
+			protected DistributionPanel( String categoryAxisLabel, String valueAxisLabel ) {
+				super( );
+				graph.addVertexChangeListener( this );
+				graph.addEdgeChangeListener( this );
+				distributionData = new DefaultCategoryDataset( );
+				distributionChart = ChartFactory.createBarChart( 
+					null, //title
+					categoryAxisLabel, // category axis label
+					valueAxisLabel, // value axis label
+					distributionData, // plot data
+					PlotOrientation.VERTICAL, // Plot Orientation
+					false, // show legend
+					false, // use tooltips
+					false // configure chart to generate URLs
+				);
+				CategoryPlot plot = distributionChart.getCategoryPlot( );
+				plot.setBackgroundPaint( Color.WHITE );
+				plot.setRangeGridlinePaint( Color.GRAY );
+				plot.setDomainGridlinePaint( Color.GRAY );
+
+			}
+
+			public abstract void getDistributionData ( DefaultCategoryDataset distributionData );
+
+			public void paintComponent( Graphics g ) {
+				super.paintComponent( g );
+				getDistributionData( distributionData );
+				g.drawImage( 
+					distributionChart.createBufferedImage( getWidth( ), getHeight( )), 
+					0, 0, Color.WHITE, this );
+			}
+
+			public void stateChanged( GraphItemChangeEvent event ) {
+				if ( this.isVisible( ))
+					this.repaint( );
+			}
+		}
+		private class DegreeDistributionPanel extends DistributionPanel {
+
+			public DegreeDistributionPanel( ) {
+				super( "Neighbor Count", "Nodes" );
+				distributionChart.getCategoryPlot( ).getRangeAxis( )
+					.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			}
+
+			public void getDistributionData( DefaultCategoryDataset distributionData ) {
+				Vector<Molecule> molecules = new Vector<Molecule>( graph.getVertices( ));
+				int max = -1;
+				int [] dist = new int[ molecules.size( ) ];
+				for( Molecule m : molecules ) {
+					int currentDeg = graph.getNeighborCount( m );
+					max = Math.max( max, currentDeg );
+					dist[ currentDeg ]++;
+				}
+				distributionData.clear( );
+				for ( int i=0; i <= max; i++ ) {
+					distributionData.addValue( dist[ i ], "", new Integer( i ));
+				}
+			}
+
+		}
+
+		private class CorrelationDistributionPanel extends JPanel implements ItemListener,GraphItemChangeListener {
+			protected SimpleHistogramDataset distributionData;
+			protected JFreeChart distributionChart;
+
+
+			public CorrelationDistributionPanel( ) {
+				super( );
+//				graph.addVertexChangeListener( this );
+//				graph.addEdgeChangeListener( this );
+				pearsonCalculationMenuItem.addItemListener( this );
+				spearmanCalculationMenuItem.addItemListener( this ); 
+				kendallCalculationMenuItem.addItemListener( this );
+				this.distributionData = new SimpleHistogramDataset( "Correlation Distribution"  );
+				distributionChart = ChartFactory.createHistogram(
+					null, //title
+					"", // category axis label
+					"", // value axis label
+					distributionData, // plot data
+					PlotOrientation.VERTICAL, // Plot Orientation
+					false, // show legend
+					false, // use tooltips
+					false // configure chart to generate URLs
+				);
+				boolean includeLower = false, includeUpper = true;
+				for( int i=-100; i < 100; i++ ) {
+					if ( i == -1 )
+						includeUpper = false;
+					else if ( i == 0 )
+						includeLower = true; 
+					SimpleHistogramBin s = new SimpleHistogramBin( i * 0.01, (i+1) * 0.01, 
+						includeLower, includeUpper );
+					distributionData.addBin( s );
+				}
+				XYPlot plot = distributionChart.getXYPlot( );
+				plot.setBackgroundPaint( Color.WHITE );
+				plot.setRangeGridlinePaint( Color.GRAY );
+				plot.setDomainGridlinePaint( Color.GRAY );
+			}
+
+			public void paintComponent( Graphics g ) {
+				super.paintComponent( g );
+				getDistributionData( distributionData );
+				g.drawImage( 
+					distributionChart.createBufferedImage( getWidth( ), getHeight( )),
+					0, 0, Color.WHITE, this );
+			}
+
+			public void getDistributionData( SimpleHistogramDataset distributionData ) {
+				Collection <Correlation> edges = experiment.getCorrelations( );
+				Range correlationRange = correlationFilterPanel.getRange( );
+				distributionData.clearObservations( );
+				for( Correlation c : edges ) {
+					double value = c.getValue( );
+//					if ( correlationRange.contains( Math.abs( value ))) {
+						distributionData.addObservation( value );
+//					}
+				}
+			}
+
+			public void stateChanged( GraphItemChangeEvent event ) {
+				if ( this.isVisible( ))
+					this.repaint( );
+			}
+			public void itemStateChanged( ItemEvent e ) {
+				if ( this.isVisible( ))
+					this.repaint( );
+			}
+
+		}
+
+		private class NeighborhoodConnectivityDistributionPanel extends DistributionPanel {
+
+			public NeighborhoodConnectivityDistributionPanel( ) {
+				super( "Neighbor Count", "Average Neighbor Degree" );
+			}
+
+			public void getDistributionData( DefaultCategoryDataset distributionData ) {
+				Vector <Molecule> nodes = new Vector<Molecule>( graph.getVertices( ));
+				int [] neighborCount = new int[ nodes.size( )];
+				int [] nodeCount = new int[ nodes.size( )];
+				int maxNeighborCount = 0;
+				// First, go through all of the nodes, finding how many neighbors they
+				// have and add the neighbors' degrees to the appropriate "bucket".
+				// also increment the "buckets" to keep track of how many nodes have which
+				// degree.
+				for( int i=0; i < nodes.size( ); i++ ) {
+					Molecule m = nodes.get( i );
+					Collection<Molecule> neighbors = graph.getNeighbors( m );
+					nodeCount[ neighbors.size( )]++;
+					if ( neighbors.size( ) > maxNeighborCount )
+						maxNeighborCount = neighbors.size( );
+					for ( Molecule n : neighbors ) {
+						neighborCount[ neighbors.size( ) ] += graph.getNeighborCount( n );
+					}
+				}
+				// Now add the data we collected to the chart.
+				distributionData.clear( );
+				for( int i=1; i <= maxNeighborCount; i++ ) {
+					distributionData.addValue( 
+						(double)neighborCount[ i ] / ( nodeCount[ i ] * i ), "",
+						String.format( "%d", i ));
+				}
+			}
+		}
 	}
 
 	/**
