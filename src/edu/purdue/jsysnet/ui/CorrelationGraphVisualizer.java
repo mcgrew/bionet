@@ -45,12 +45,21 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.JScrollPane;
 
+/**
+ * A class for displaying a JUNG graph tailored for JSysNet
+ */
 public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,GraphMouseListener<Correlation> {
 	public MonitorableRange range;
 	public Experiment experiment;
 	protected Spectrum spectrum;
 	private SpectrumLegend spectrumLegend;
 
+	/**
+	 * Creates a new CorrelationGraphVisualizer.
+	 * 
+	 * @param experiment The experiment to be associated with this CorrelationGraphVisualizer.
+	 * @param range A MonitorableRange object used to determine which Correlations to show on the graph.
+	 */
 	public CorrelationGraphVisualizer( Experiment experiment, MonitorableRange range ) {
 		super( );
 		this.setRange( range );
@@ -72,16 +81,37 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
 	}
 
+	/**
+	 * Used to change the experiment which is displayed in this graph.
+	 * 
+	 * @param experiment The new experiment.
+	 */
 	public void setExperiment( Experiment experiment ) {
+		// remove all edges and vertices.
+		for ( Molecule v : this.getVertices( ))
+			this.removeVertex( v );
+		for ( Correlation e : this.getEdges( ))
+			this.removeEdge( e );
+		// add the new data.
 		this.experiment = experiment;
 		this.addVertices( );
 		this.addEdges( );
 	}
 
+	/**
+	 * Returns the current Experiment associated with this graph.
+	 * 
+	 * @return The Experiment associated with this graph.
+	 */
 	public Experiment getExperiment( ) {
 		return this.experiment;
 	}
 	
+	/**
+	 * Sets a new range to be used for filtering.
+	 * 
+	 * @param range The new MonitorableRange object to use.
+	 */
 	public void setRange( MonitorableRange range ) {
 		if ( this.range != null )
 			this.range.removeChangeListener( this );
@@ -89,6 +119,11 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		range.addChangeListener( this );
 	}
 
+	/**
+	 * Gets the current MOnitorableRange object being used.
+	 * 
+	 * @return The current MonitorableRange.
+	 */
 	public MonitorableRange getRange( ) {
 		return this.range;
 	}
@@ -115,6 +150,12 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		}
 	}
 
+	/**
+	 * Filters the edges displayed in the graph based on the MonitorableRange
+	 * associated with this graph.
+	 * 
+	 * @return The new number of edges contained in the graph.
+	 */
 	public int filterEdges( ) {
 		
 		int returnValue = 0;
@@ -140,6 +181,12 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		return returnValue;
 	}
 
+	/**
+	 * Checks to see if an edge is valid and belongs in the graph.
+	 * 
+	 * @param correlation The edge to check.
+	 * @return true If the correlation should be shown, false otherwise.
+	 */
 	public boolean isValidEdge( Correlation correlation ) {
 		Molecule [] molecules = correlation.getMolecules( );
 		return ( this.containsVertex( molecules[ 0 ] ) &&
@@ -148,10 +195,23 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 							 Math.abs( correlation.getValue( ))));
 	}
 
+	/**
+	 * The stateChanged method of the ChangeListener interface.
+	 * @see java.awt.event.ChangeListener#stateChanged(java.awt.event.ChangeEvent)
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void stateChanged( ChangeEvent event ) {
 		this.filterEdges( );
 	}
 
+	/**
+	 * The graphClicked method of the GraphMouseListener interface.
+	 * @see edu.uci.ics.jung.visualization.control.GraphMouseListener#graphClicked(V,java.awt.MouseEvent)
+	 * 
+	 * @param edge The edge which was clicked on to trigger the event.
+	 * @param event The event which triggered this action.
+	 */
 	public void graphClicked( Correlation edge, MouseEvent event ) {
 		if ( event.getButton( ) == MouseEvent.BUTTON1 ) {
 			Molecule [] m = edge.getMolecules( );
@@ -163,6 +223,12 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		}
 	}
 
+	/**
+	 * Called when the component is repainted.
+	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+	 * 
+	 * @param g The Graphics object associated with this Component.
+	 */
 	public void paintComponent( Graphics g ) {
 		super.paintComponent( g );
 		int h, w;
@@ -183,7 +249,20 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		spectrumLegend.stamp( g, legendRect );
 	}
 	
+	/**
+	 * The graphPressed method of the GraphMouseListener interface. Not implemented.
+	 * 
+	 * @param edge The edge which was clicked on to trigger the event.
+	 * @param event The event which triggered this action.
+	 */
 	public void graphPressed( Correlation edge, MouseEvent event ) { }
+
+	/**
+	 * The graphReleased method of the GraphMouseListener interface. Not implemented.
+	 * 
+	 * @param edge The edge which was clicked on to trigger the event.
+	 * @param event The event which triggered this action.
+	 */
 	public void graphReleased( Correlation edge, MouseEvent event ) { }
 
 

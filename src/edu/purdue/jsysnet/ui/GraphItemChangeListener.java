@@ -21,8 +21,16 @@ package edu.purdue.jsysnet.ui;
 
 import java.util.EventListener;
 
+/**
+ * An interface for listening for changes to the elements contained in a graph.
+ */
 public interface GraphItemChangeListener<T> extends EventListener {
 
+	/**
+	 * Called when the elements of type T contained in a GraphVisualizer change.
+	 * 
+	 * @param e The GraphItemChangeEvent which triggered this action.
+	 */
 	public void stateChanged( GraphItemChangeEvent<T> e );
 
 }

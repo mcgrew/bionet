@@ -368,10 +368,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		if ( this.experiment == null ) {
 			return false;
 		}
-		this.title = this.experiment.getAttribute( "description" );
+		this.title = "Correlation - " + this.experiment.getAttribute( "description" );
 
 		this.graph = new CorrelationGraphVisualizer( 
 			this.experiment, this.correlationFilterPanel.getMonitorableRange( ));
+		this.graph.setIndicateCommonNeighbors( true );
 		this.infoPanel = new InfoPanel( );
 		this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
 
@@ -437,6 +438,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.graph.setGraphLayout( layout );
 	}
 
+	/**
+	 * Switches the view layout to heat map.
+	 */
 	private void heatMap( ) {
 		this.selectAllViewMenuItem.setEnabled( false );
 		this.clearSelectionViewMenuItem.setEnabled( false );
@@ -488,6 +492,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 	}
 	
+	/**
+	 * Returns the Experiment associated with this CorrelationDisplayPanel.
+	 * 
+	 * @return The associated Experiment.
+	 */
 	public Experiment getExperiment( ) {
 		return experiment;
 	}
@@ -501,7 +510,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	 * @return The experiment you selected, or null if you pressed cancel, or
 	 *	if no experiments are available
 	 */
-	public Experiment experimentSelection( ArrayList <Experiment> experiments ) {
+	public Experiment experimentSelection( List <Experiment> experiments ) {
 		if ( experiments.size( ) < 1 ) {
 			System.err.println( "These files do not appear to contain any data!" );
 			return null;
@@ -560,7 +569,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	}
 
 	/**
-	 * The stateChanged method of the ChangeListener interface
+	 * The stateChanged method of the ChangeListener interface.
+	 * @see java.awt.event.ChangeListener#stateChanged(java.awt.event.ChangeEvent)
 	 * 
 	 * @param event The event which triggered this action.
 	 */
@@ -570,6 +580,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			this.animatedLayoutMenuItem.setState( false );
 	}
 
+	/**
+	 * The itemStateChanged method of the ItemListener interface.
+	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+	 * 
+	 * @param e The event which triggered this action.
+	 */
 	public void itemStateChanged( ItemEvent e ) {
 		if ( e.getStateChange( ) == ItemEvent.SELECTED ) {
 			Object item = e.getSource( );
@@ -672,6 +688,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 	// ******************* PRIVATE/PROTECTED CLASSES **************************
 
+	/**
+	 * A UI class for hiding/showing moledules (nodes)
+	 */
 	private class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener,GraphItemChangeListener<Molecule>,KeyListener {
 		private JButton noneButton = new JButton( "None" );
 		private JButton allButton = new JButton( "All" );
@@ -705,6 +724,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		};
 		private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
 
+		/**
+		 * Creates a new instance of MoleculeFilterPanel.
+		 */
 		public MoleculeFilterPanel( ) {
 			super( new BorderLayout( ));
 			JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
@@ -770,6 +792,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		//for the checkboxes
 		/**
 		 * The itemStateChanged method of the ItemListener interface.
+		 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
 		 * 
 		 * @param event the event which triggered this action.
 		 */
@@ -793,9 +816,10 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			graph.repaint( );
 		}
 
-		// for the select buttons
+		// for the select all/none buttons
 		/**
 		 * The actionPerformed method of the ActionListener interface.
+		 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 		 * 
 		 * @param e The event which triggered this action.
 		 */
@@ -807,6 +831,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				this.setAllVisible( false );
 			else if ( source == this.clearButton ) {
 				this.filterBox.setText( "" );
+				// simulate a key press of backspace.
 				KeyEvent keyEvent = new KeyEvent( this.filterBox, -1,
 					System.currentTimeMillis( ), 0, KeyEvent.VK_BACK_SPACE, '\b' );
 				for ( KeyListener k : this.filterBox.getKeyListeners( )) {
@@ -817,6 +842,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			}
 		}
 
+		/**
+		 * The keyReleased method of the KeyListener interface.
+		 * @see java.awt.event.KeyListener#keyReleased(java.awt.event.KeyEvent)
+		 * 
+		 * @param e The event which triggered this action.
+		 */
 		public void keyReleased( KeyEvent e ) {
 			Object source = e.getSource( );
 			if ( source == this.filterBox ) {
@@ -824,7 +855,18 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				this.filter( text );
 			}
 		}
+		/**
+		 * The keyPressed method of the KeyListener interface. Not implemented.
+		 * 
+		 * @param e The event which triggered this action.
+		 */
 		public void keyPressed( KeyEvent e ) { }
+
+		/**
+		 * The keyTyped method of the KeyListener interface. Not implemented.
+		 * 
+		 * @param e The event which triggered this action.
+		 */
 		public void keyTyped( KeyEvent e ) { }
 
 		/**
@@ -851,6 +893,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			}
 		}
 
+		/**
+		 * Sets a checkbox to the desired state.
+		 * 
+		 * @param m The Molecule corresponding to the checkbox to be changed.
+		 * @param state The new state for the checkbox.
+		 */
 		private void set( Molecule m, boolean state ) {
 			JCheckBox cb = this.checkBoxMap.get( m );
 			cb.setSelected( state );
@@ -863,10 +911,18 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			}
 		}
 
+		/**
+		 * Filters the molecule list based on the passed in string.
+		 * 
+		 * @param filter The string to filter on.
+		 */
 		public void filter( String filter ) {
 			// try the string as a regular Pattern, if that fails then try a literal string 
 			// match. If all of that fails, just print the stack trace and show all.
 			Pattern p;
+			// this will cause the string to emulate shell style pattern matching, since most users
+			// will not be expecting regular expression ability. This may be changed later.
+			// some RegEx characters will still work, however.
 			filter = String.format( ".*%s.*", filter.replace( "*", ".*" ).replace( "?", "." ));
 			try { 
 				p = Pattern.compile( filter, Pattern.CASE_INSENSITIVE );
@@ -896,6 +952,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 		/**
 		 * The stateChanged method of the GraphItemChangeListener interface.
+		 * @see edu.purdue.jsysnet.ui.GraphItemChangeListener#stateChanged(edu.purdue.jsysnet.ui.GraphItemChangeEvent)
 		 * 
 		 * @param event The GraphItemChangeEvent which triggered this action.
 		 */
@@ -1049,7 +1106,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		}
 
 		/**
-		 * Clears tht Correlation Table.
+		 * Clears the Correlation Table.
 		 */
 		public void clearCorrelations( ) {
 			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
@@ -1112,7 +1169,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		 */
 		private class PickedColumnRenderer extends DefaultTableCellRenderer {
 			private AbstractButton pickedIndicator;
-			private Color backgroundColor = Color.WHITE;
 			private Color pickedColor = Color.YELLOW;
 
 			public PickedColumnRenderer( AbstractButton indicator ) {
@@ -1126,18 +1182,26 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 				Component cell = super.getTableCellRendererComponent( 
 					table, value, isSelected, hasFocus, row, column );
-				if ( pickedIndicator.isSelected( )) {
-					cell.setBackground( this.pickedColor );
-				} else {
-				 cell.setBackground( null );
+				if ( !isSelected ) {
+					if ( pickedIndicator.isSelected( )) {
+						cell.setBackground( this.pickedColor );
+					} else {
+					 cell.setBackground( null );
+					}
 				}
 				return cell;
 
 			}
 		}
 
+		/**
+		 * A UI class for displaying the current graph conditions.
+		 */
 		private class ConditionPanel extends JPanel implements ActionListener {
 
+			/**
+			 * Creates a new ConditionPanel
+			 */
 			public ConditionPanel( ) {
 				super( );
 				// listen for changes to layout/calculation
@@ -1153,6 +1217,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				kendallCalculationMenuItem.addActionListener( this );
 			}
 
+			/**
+			 * Called when the Panel is repainted.
+			 * @see java.awt.Component#paintComponent(java.awt.Graphics)
+			 * 
+			 * @param g The graphics component associated with this panel
+			 */
 			public void paintComponent( Graphics g ) {
 				super.paintComponent( g );
 				String text;
@@ -1171,20 +1241,38 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				g.drawString( text, 20, 70 );
 			}
 
+			/**
+			 * The actionPerformed method of the ActionListener interface.
+			 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+			 * 
+			 * @param e The event which triggered this action.
+			 */
 			public void actionPerformed( ActionEvent e ) {
 				if ( this.isVisible( ))
 					this.repaint( );
 			}
 		}
 
+		/**
+		 * A UI class for displaying the graph Topology.
+		 */
 		private class TopologyPanel extends JPanel implements GraphItemChangeListener {
 
+			/**
+			 * Creates a new TopologyPanel.
+			 */
 			public TopologyPanel( ) {
 				super( );
 				graph.addVertexChangeListener( this );
 				graph.addEdgeChangeListener( this );
 			}
 
+			/**
+			 * Called when the panel is repainted.
+			 * @see java.awt.Component#PaintComponent(java.awt.Graphics)
+			 * 
+			 * @param g The Graphics for this Component.
+			 */
 			public void paintComponent( Graphics g ) {
 				super.paintComponent( g );
 				Vector <Molecule> molecules = new Vector<Molecule>( graph.getVertices( ));
@@ -1213,6 +1301,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 			}
 
+			/**
+			 * Returns the number of nodes which are connected to at least one other node.
+			 */
 			public int getCorrelatedCount( Collection <Molecule> molecules ) {
 				int returnValue = 0;
 				for ( Molecule m : molecules ) {
@@ -1222,6 +1313,13 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				return returnValue;
 			}
 
+			/**
+			 * Returns the average number of neighbors (connections) for all nodes in
+			 * the network.
+			 * 
+			 * @param molecules A Collection of nodes to check.
+			 * @return The average connection count.
+			 */
 			public double getAverageNeighbors( Collection <Molecule> molecules ) {
 				int neighbors = 0;
 				for ( Molecule m : molecules ) {
@@ -1230,6 +1328,14 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				return (double)neighbors / molecules.size( );
 			}
 
+			/**
+			 * Returns the network diameter, or the longest shortest path from one
+			 * node to any other. Nodes which do not have a path to one another are
+			 * ignored.
+			 * 
+			 * @param molecule The Collection of molecules to check.
+			 * @return The longest shortest path.
+			 */
 			public int getNetworkDiameter( Collection <Molecule> molecules ) {
 				int returnValue = 0;
 				int currentValue;
@@ -1247,6 +1353,14 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				return returnValue;
 			}
 
+			/**
+			 * Returns the characteristic path length for the network, or the average
+			 * shortest path length from one node to another. Nodes which do not have a path
+			 * to one another are ignored.
+			 * 
+			 * @param molecules The collection of molecules to check.
+			 * @return The characteristic path length.
+			 */
 			public double getCharacteristicPathLength( Collection <Molecule> molecules ) {
 				double returnValue = 0.0;
 				int count = 0;
@@ -1263,6 +1377,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				return returnValue / count;
 			}
 
+			/**
+			 * The stateChanged method of the GraphItemChangeListener interface.
+			 * @see edu.purdue.jsysnet.ui.GraphItemChangeListener#stateChanged(edu.purdue.jsysnet.ui.GraphItemChangeEvent)
+			 * 
+			 * @param event The event which triggered this action.
+			 */
 			public void stateChanged( GraphItemChangeEvent event ) {
 				if ( this.isVisible( ))
 					this.repaint( );
@@ -1449,6 +1569,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 		/**
 		 * The itemStateChanged method of the ItemListener interface.
+		 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
 		 * 
 		 * @param event The event which triggered this action.
 		 */
@@ -1475,6 +1596,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 		/**
 		 * The actionPerformed method of the ActionListener interface.
+		 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 		 * 
 		 * @param event The event which triggered this action.
 		 */
@@ -1498,6 +1620,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 			/**
 			 * The actionPerformed method of the ActionListener interface.
+			 # @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 			 * 
 			 * @param event The event which triggered this action.
 			 */

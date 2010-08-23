@@ -137,6 +137,7 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 
 	/**
 	 * The mouseClicked method of the MouseListener interface.
+	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
 	 * 
 	 * @param event The event which triggered this action.
 	 */
@@ -158,33 +159,38 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	}
 
 	/**
-	 * The mouseEntered method of the MouseListener interface.
+	 * The mouseEntered method of the MouseListener interface. Not implemented.
 	 * 
 	 * @param event The event which triggered this action.
 	 */
 	public void mouseEntered( MouseEvent event ) { }
 
 	/**
-	 * The mouseExited method of the MouseListener interface.
+	 * The mouseExited method of the MouseListener interface. Not implemented.
 	 * 
 	 * @param event The event which triggered this action.
 	 */
 	public void mouseExited( MouseEvent event ) { }
 
 	/**
-	 * The mousePressed method of the MouseListener interface.
+	 * The mousePressed method of the MouseListener interface. Not implemented.
 	 * 
 	 * @param event The event which triggered this action.
 	 */
 	public void mousePressed( MouseEvent event ) { }
 	
 	/**
-	 * The mouseReleased method of the MouseListener interface.
+	 * The mouseReleased method of the MouseListener interface. Not implemented. 
 	 * 
 	 * @param event The event which triggered this action.
 	 */
 	public void mouseReleased( MouseEvent event ) { }
 
+	/**
+	 * Enables or disables the "tearing off" of tabs into new windows.
+	 * 
+	 * @param enable True to enable, false to disable.
+	 */
 	public void setTearOff( boolean enable ) {
 		this.tearOffEnabled = enable;
 	}

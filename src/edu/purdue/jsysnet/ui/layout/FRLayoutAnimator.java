@@ -33,6 +33,8 @@ import java.awt.Dimension;
 /**
  * A class for Animating Laoyouts which will Cluster correlated molecules together
  * based on the Fruchterman Reingold algorithm.
+ *
+ * @author Thomas McGrew
  * 
  */
 public class FRLayoutAnimator<V,E> extends LayoutAnimator<V,E> {
@@ -40,7 +42,7 @@ public class FRLayoutAnimator<V,E> extends LayoutAnimator<V,E> {
 	protected double t;
 
 	/**
-	 * Constructs a ClusterLayoutAnimator object
+	 * Constructs a FRLayoutAnimator object
 	 * 
 	 */
 	public FRLayoutAnimator( Layout<V,E> layout ) {
@@ -50,7 +52,7 @@ public class FRLayoutAnimator<V,E> extends LayoutAnimator<V,E> {
 
 	/**
 	 * Returns the attraction force between two vertices.
-	 * (V<sub>c</sub>*d<sup>2</sup>)/k
+	 * ( V<sub>c</sub> &middot; d<sup>2</sup> ) / k
 	 * 
 	 * @param v1 The first vertex.
 	 * @param v2 The second vertex. 
@@ -63,7 +65,7 @@ public class FRLayoutAnimator<V,E> extends LayoutAnimator<V,E> {
 
 	/**
 	 * Returns the repulsion force between 2 vertices.
-	 * k<sup>2</sup>/(V<sub>c</sub>*d)
+	 * k<sup>2</sup> / ( V<sub>c</sub> &middot; d )
 	 * 
 	 * @param v1 The first vertex.
 	 * @param v2 The second vertex. 
@@ -78,12 +80,24 @@ public class FRLayoutAnimator<V,E> extends LayoutAnimator<V,E> {
 		return returnValue;
 	}
 
+	/**
+	 * Gets the distance &Delta; between two nodes.
+	 * 
+	 * @param v1 The first node.
+	 * @param v2 The second node.
+	 * @return The distance between two nodes as a double.
+	 */
 	private double getDelta( V v1, V v2 ) {
 		double deltaX = Math.abs( layout.getX( v1 ) - layout.getX( v2 ));
 		double deltaY = Math.abs( layout.getY( v1 ) - layout.getY( v2 ));
 		return Math.sqrt( deltaX * deltaX + deltaY * deltaY );
 	}
 
+	/**
+	 * Gets the k value for the algorithm.
+	 * 
+	 * @return The k value based on the graph size and number of vertices.
+	 */
 	private double getK( ) {
 		Dimension size = this.layout.getSize( );
 		int vertexCount = this.graph.getVertexCount( );

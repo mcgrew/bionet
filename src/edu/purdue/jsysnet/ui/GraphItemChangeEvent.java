@@ -21,22 +21,45 @@ package edu.purdue.jsysnet.ui;
 
 import java.util.EventObject;
 
+/**
+ * A class used to notify GraphItemChangeListeners that there has been
+ * a change in the elements contained in a graph.
+ */
 public class GraphItemChangeEvent<T> extends EventObject {
 	public static final int REMOVED = 0;
 	public static final int ADDED = 1;
 	private T item;
 	private int action;
 
+	/**
+	 * Creates a new GraphItemChangeEvent
+	 * 
+	 * @param source The Graph which triggered the event.
+	 * @param item the item which was added or removed.
+	 * @param action The action which occurred. One of 
+	 * GraphItemChangeEvent.REMOVED or GraphItemChangeEvent.ADDED
+	 */
 	public GraphItemChangeEvent( Object source, T item, int action ) {
 		super( source );
 		this.item = item;
 		this.action = action;
 	}
 
+	/**
+	 * Returns The item associated with this event.
+	 * 
+	 * @return The item associated with this event.
+	 */
 	public T getItem( ) {
 		return item;
 	}
 
+	/**
+	 * Returns the action type which occurred. Should be one of 
+	 *	GraphItemChangeEvent.REMOVED or GraphItemChangeEvent.ADDED
+	 * 
+	 * @return The action type which occurred.
+	 */
 	public int getAction( ) {
 		return action;
 	}

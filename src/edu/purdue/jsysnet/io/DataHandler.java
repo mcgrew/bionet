@@ -19,24 +19,75 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet.io;
 
+import java.util.List;
 import java.util.ArrayList;
 import edu.purdue.jsysnet.util.*;
 
+/**
+ * An abstract clas for handling data input to JSysNet
+ */
 public abstract class DataHandler {
 
 	protected ArrayList <Experiment> experiments;
+	protected String resource;
 
-	public abstract void load( String resource );
+	/**
+	 * Creates a new DataHandler.
+	 */
+	protected DataHandler( ) { }
 
+	/**
+	 * Creates a new DataHandler.
+	 * 
+	 * @param resource A string specifying the resource to load.
+	 */
+	protected DataHandler( String resource ) {
+		this.resource = resource;
+	}
+
+	/**
+	 * Loads the data.
+	 *
+	 * @param resource A string indicating the resource to be loaded.
+	 */
+	public void load( String resource ){
+		this.resource = resource;
+		this.load( );
+	}
+
+	/**
+	 * Loads the data.
+	 */
+	public abstract void load( );
+
+	/**
+	 * Writes the data to disk.
+	 *
+	 * @return true if the write was successful.
+	 */
 	public abstract boolean write( );
 
+	/**
+	 * Writes the data to disk using the specified resource.
+	 * 
+	 * @param resource The resource to be written to.
+	 * @return true if the write was successful.
+	 */
 	public abstract boolean write( String resource );
 
-	public ArrayList <Experiment> getExperiments( ) {
+	/**
+	 * Returns the Experiments read from the data.
+	 * 
+	 * @return A List of the experiments.
+	 */
+	public List <Experiment> getExperiments( ) {
 		return this.experiments;
 	}
 
-	public ArrayList <Molecule>getMolecules( ){
+	/**
+	 * Returns the Molecules read from the data.
+	 */
+	public List <Molecule>getMolecules( ){
 		ArrayList <Molecule> returnValue = new ArrayList<Molecule>( );
 		for ( Experiment e : this.getExperiments( )) {
 			returnValue.addAll( e.getMolecules( ));
@@ -44,14 +95,31 @@ public abstract class DataHandler {
 		return returnValue;
 	}
 
+	/**
+	 * Adds an Experiment to the data set.
+	 * 
+	 * @param experiment The Experiment to add.
+	 */
 	public void addExperiment( Experiment experiment ) {
 		this.experiments.add( experiment );
 	}
 
+	/**
+	 * Removes an Experiment from the data set.
+	 * 
+	 * @param index The index of the Experiment to remove.
+	 * @return The Experiment which was removed.
+	 */
 	public Experiment removeExperiment( int index ) {
 		return this.experiments.remove( index );
 	}
 
+	/**
+	 * Removes an Experiment from the data set.
+	 * 
+	 * @param experiment The experiment to remove, if present.
+	 * @return true if the Experiment was found and removed.
+	 */
 	public boolean removeExperiment( Experiment experiment ){
 		return this.experiments.remove( experiment );
 	}

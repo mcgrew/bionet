@@ -118,6 +118,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 
 	/**
 	 * The actionPerformed method of the ActionListener interface.
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 * 
 	 * @param event The event which triggered this action.
 	 */

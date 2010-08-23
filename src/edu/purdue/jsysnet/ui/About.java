@@ -33,10 +33,16 @@ import javax.imageio.ImageIO;
 import java.io.IOException;
 
 
+/**
+ * A class for displaying an "about" dialog
+ */
 public class About extends JFrame {
 	private JPanel panel = new AboutPanel( );
 	private BufferedImage logo;
 
+	/**
+	 * Creates an instance of an about dialog.
+	 */
 	public About( ) {
 		super( );
 		int x = Settings.getSettings( ).getInt( "windowXPosition" );

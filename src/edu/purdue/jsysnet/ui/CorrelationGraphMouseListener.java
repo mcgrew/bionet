@@ -38,9 +38,18 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 import edu.uci.ics.jung.visualization.picking.PickedState;
 
+/**
+ * A class for implementing a context menu on network nodes.
+ */
 public class CorrelationGraphMouseListener implements GraphMouseListener<Molecule> {
 	MoleculePopup popup = new MoleculePopup( );
 
+	/**
+	 * The graphClicked method of the GraphMouseListener class
+	 * 
+	 * @param m The Molecule (node) which was clicked on.
+	 * @param e The event which triggered this action.
+	 */
 	public void graphClicked( Molecule m, MouseEvent e ) {
 		if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
 			popup.show( e.getComponent( ), e.getX( ), e.getY( ), m );
@@ -50,9 +59,24 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 					m, graph.getRange( ));
 		}
 	}
+	/**
+	 * The graphPressed method of the GraphMouseListener class. Not implemented.
+	 * 
+	 * @param m The Molecule (node) which was clicked on.
+	 * @param e The event which triggered this action.
+	 */
 	public void graphPressed(  Molecule m, MouseEvent e ) { } 
+	/**
+	 * The graphPressed method of the GraphMouseListener class. Not implemented.
+	 * 
+	 * @param m The Molecule (node) which was clicked on.
+	 * @param e The event which triggered this action.
+	 */
 	public void graphReleased( Molecule m, MouseEvent e ) { }
 
+	/**
+	 * A class for implementing the context menu.
+	 */
 	protected class MoleculePopup extends JPopupMenu implements ActionListener {
 		protected JMenuItem hideMenuItem = new JMenuItem( "Hide" );
 		protected JMenuItem detailsMenuItem = new JMenuItem( "Details" );
@@ -63,6 +87,9 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 		protected HashMap <JMenuItem,Correlation> correlationMap = 
 			new HashMap <JMenuItem,Correlation>( );
 		
+		/**
+		 * Creates a new instance of the PopupMenu
+		 */
 		public MoleculePopup ( ) {
 			this.add( this.hideMenuItem );
 			this.add( this.detailsMenuItem );
@@ -76,6 +103,15 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			
 		}
 
+		/**
+		 * Causes the JPopupMenu to be displayed at the given coordinates.
+		 * @see javax.swing.JPopupMenu#show(Component,int,int)
+		 * 
+		 * @param invoker The component which invoked this menu.
+		 * @param x The x position to display this menu.
+		 * @param y The y position to display this menu.
+		 * @param m The molecule which was clicked on to trigger this popup.
+		 */
 		public void show( Component invoker, int x, int y, Molecule m ) {
 			this.exploreCorrelationsMenu.removeAll( );
 			this.correlationMap.clear( );
@@ -94,6 +130,12 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 		}
 
 
+		/**
+		 * The actionPerformed method of the ActionListener interface.
+		 * @see java.awt.event.ActionListner#actionPerformed(java.awt.event.ActionEvent)
+		 * 
+		 * @param e the event which triggered this action.
+		 */
 		public void actionPerformed ( ActionEvent e ) {
 			CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer)this.getInvoker( );
 			Range range = graph.getRange( );

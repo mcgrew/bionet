@@ -244,7 +244,7 @@ public class Range implements Cloneable {
 	/**
 	 * Compares the passed in value to the minimum of this Range.
 	 * 
-	 * @param the value to be compared to the minimum.
+	 * @param value the value to be compared to the minimum.
 	 * @return true if the passed in value is numerically equal to the minimum.
 	 */
 	public boolean isMin( int value ) {
@@ -254,7 +254,7 @@ public class Range implements Cloneable {
 	/**
 	 * Compares the passed in value to the minimum of this Range.
 	 * 
-	 * @param the value to be compared to the minimum.
+	 * @param value the value to be compared to the minimum.
 	 * @return true if the passed in value is numerically equal to the minimum.
 	 */
 	public boolean isMin( float value ) {
@@ -264,7 +264,7 @@ public class Range implements Cloneable {
 	/**
 	 * Compares the passed in value to the minimum of this Range.
 	 * 
-	 * @param the value to be compared to the minimum.
+	 * @param value the value to be compared to the minimum.
 	 * @return true if the passed in value is numerically equal to the minimum.
 	 */
 	public boolean isMin( double value ) {
@@ -274,7 +274,7 @@ public class Range implements Cloneable {
 	/**
 	 * Compares the passed in value to the maximum of this Range.
 	 * 
-	 * @param the value to be compared to the maximum.
+	 * @param value the value to be compared to the maximum.
 	 * @return true if the passed in value is numerically equal to the maximum.
 	 */
 	public boolean isMax( int value ) {
@@ -284,7 +284,7 @@ public class Range implements Cloneable {
 	/**
 	 * Compares the passed in value to the maximum of this Range.
 	 * 
-	 * @param the value to be compared to the maximum.
+	 * @param value the value to be compared to the maximum.
 	 * @return true if the passed in value is numerically equal to the maximum.
 	 */
 	public boolean isMax( float value ) {
@@ -294,7 +294,7 @@ public class Range implements Cloneable {
 	/**
 	 * Compares the passed in value to the maximum of this Range.
 	 * 
-	 * @param the value to be compared to the maximum.
+	 * @param value the value to be compared to the maximum.
 	 * @return true if the passed in value is numerically equal to the maximum.
 	 */
 	public boolean isMax( double value ) {

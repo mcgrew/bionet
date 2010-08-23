@@ -59,7 +59,7 @@ public class Correlation {
 	}
 
 	/**
-	 * Constructor.
+	 * Constructor which accepts an array of 2 Molecules.
 	 * 
 	 * @param molecules A Molecule array of length 2. Any extra values are
 	 *	ignored.

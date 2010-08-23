@@ -35,6 +35,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.SwingConstants;
 import javax.swing.SpinnerNumberModel;
 
+/**
+ * A UI class which shows a set of Spinners for adjusting the visible correlation range.
+ */
 public class CorrelationFilterPanel extends JPanel implements ChangeListener {
 
 	private JLabel minCorrelationLabel = new JLabel( "Higher Than: ", SwingConstants.RIGHT );
@@ -45,14 +48,34 @@ public class CorrelationFilterPanel extends JPanel implements ChangeListener {
 	private JSpinner maxCorrelationSpinner;
 	private MonitorableRange range; 
 
+	/**
+	 * Creates a new CorrelationFilterPanel with the default correlation range (0.6-1.0)
+	 * a step of 0.5, min of 0.0 and max of 1.0
+	 */
 	public CorrelationFilterPanel( ) {
 		this( 0.6, 1.0 );
 	}
 
+	/**
+	 * Creates a new CorrelationFilterPanel with the the specified correlation range, a step
+	 * of 0.05, and min of 0.0, max of 1.0.
+	 * 
+	 * @param low The initial low setting for the filter.
+	 * @param high The initial high setting for the filter.
+	 */
 	public CorrelationFilterPanel( double low, double high ) {
 		this( 0.0, 1.0, 0.05, low, high );
 	}
 
+	/**
+	 * Creates a new Correlation filter with the passed in values.
+	 * 
+	 * @param min The minimum allowed value in the spinners.
+	 * @param max The maximum allowed value in the spinners.
+	 * @param step The step amount for each spinner click.
+	 * @param low The initial low setting for the filter.
+	 * @param high The initial high setting for the filter.
+	 */
 	public CorrelationFilterPanel( double min, double max, double step, double low, double high ) {
 		this.range = new MonitorableRange( low, high );
 		this.setLayout( new BorderLayout( ));
@@ -85,14 +108,31 @@ public class CorrelationFilterPanel extends JPanel implements ChangeListener {
 	}
 
 
+	/**
+	 * Returns the current range setting of the filter.
+	 * 
+	 * @return The current range setting of the filter.
+	 */
 	public Range getRange( ) {
 		return range;
 	}
 
+	/**
+	 * Returns the current range setting of the filter as a MonitorableRange
+	 * which will accept a listener.
+	 * 
+	 * @return The current range setting as a MonitorableRange object.
+	 */
 	public MonitorableRange getMonitorableRange( ) {
 		return range;
 	}
 
+	/**
+	 * The stateChanged method of the ChangeListener interface.
+	 * @see javax.swing.event.ChangeListener#stateChanged(ChangeEvent)
+	 * 
+	 * @param e The event which triggered this action.
+	 */
 	public void stateChanged( ChangeEvent e ) {
 		range.setRange((( Double )this.minCorrelationSpinner.getValue( )).doubleValue( ),
 										 (( Double )this.maxCorrelationSpinner.getValue( )).doubleValue( ));

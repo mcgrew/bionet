@@ -195,6 +195,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 				selected = selected.getParentFile( );
 			settings.setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
 			DataHandler data = new CSVDataHandler( selected.getAbsolutePath( ));
+			data.load( );
 			return data;
 		}
 		return null;

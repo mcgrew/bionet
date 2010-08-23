@@ -63,6 +63,7 @@ import edu.uci.ics.jung.visualization.renderers.DefaultVertexLabelRenderer;
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 
 import org.apache.commons.collections15.Transformer;
+import org.apache.commons.collections15.CollectionUtils;
 
 /**
  * A class for visualizing a network graph. 
@@ -91,6 +92,9 @@ import org.apache.commons.collections15.Transformer;
 	protected Paint edgePaint = Color.GREEN;
 	protected Paint pickedEdgePaint = Color.BLACK;
 	protected Color pickedLabelColor = Color.BLUE;
+	protected Paint commonNeighborPaint = new Color( 1.0f, 0.3f, 0.3f );
+	protected boolean commonNeighborIndicator;
+	protected NeighborCollection<V,E> commonNeighbors;
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -223,7 +227,11 @@ import org.apache.commons.collections15.Transformer;
 				if ( getPickedVertexState( ).isPicked( v )) {
 					return pickedVertexPaint;
 				} else {
-					return vertexPaint;
+					if ( commonNeighborIndicator && isCommonNeighbor( v )) {
+						return commonNeighborPaint;
+					} else {
+						return vertexPaint;
+					}
 				}
 			}
 		};
@@ -240,8 +248,8 @@ import org.apache.commons.collections15.Transformer;
 			}
 		};
 		this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
-
 		this.setPickedLabelColor( this.pickedLabelColor );
+		this.commonNeighbors = new NeighborCollection<V,E>( this );
 	}
 
 	/**
@@ -298,6 +306,12 @@ import org.apache.commons.collections15.Transformer;
 		}
 	}
 
+	/**
+	 * Adds a listener to the graph to listen for starts/stops of animation.
+	 * 
+	 * @param c The ChangeListener to be notified when animation is 
+	 *	started/stopped.
+	 */
 	public void addAnimationListener( ChangeListener c ) {
 		this.animationListeners.add( c );
 		if ( this.layoutAnimator != null ) {
@@ -461,6 +475,7 @@ import org.apache.commons.collections15.Transformer;
 						this.layout.getY( v ) * hScale ));
 				}
 			}
+			// alert the ObservableLayout that things have changed.
 			this.observableLayout.fireStateChanged( );
 		}
 
@@ -530,36 +545,123 @@ import org.apache.commons.collections15.Transformer;
 		return this.vertexPaint;
 	}
 
+	/**
+	 * Sets the paint to use on picked vertices.
+	 * 
+	 * @param p The Paint to use.
+	 */
 	public void setPickedVertexPaint( Paint p ) {
 		this.pickedVertexPaint = p;
 	}
 
+	/**
+	 * Gets the Paint being used on picked vertices.
+	 * 
+	 * @return The Paint being used.
+	 */
 	public Paint getPickedVertexPaint( ) {
 		return this.pickedVertexPaint;
 	}
 
+	protected Collection<V> getCommonNeighbors( ) {
+		return commonNeighbors;
+	}
+
+	protected boolean isCommonNeighbor( V v ) {
+		return this.commonNeighbors.contains( v );
+	}
+
+	/**
+	 * Sets the flag of whether to indicate common neighbors or not.
+	 * 
+	 * @param state The new state of the flag.
+	 */
+	public void setIndicateCommonNeighbors( boolean state ) {
+		this.commonNeighbors.setEnabled( state );
+		this.commonNeighborIndicator = state;
+	}
+
+	/**
+	 * Gets the flag of whether common neighbors are currently being indicated
+	 * on the graph.
+	 * 
+	 * @return true or false.
+	 */
+	public boolean getIndicateCommonNeighbors( ) {
+		return this.commonNeighborIndicator;
+	}
+
+	/**
+	 * Sets the paint to use on nodes that are neighbors of all selected nodes.
+	 * 
+	 * @param p The Paint to use.
+	 */
+	public void setCommonNeighborPaint( Paint p ) {
+		this.commonNeighborPaint = p;
+	}
+
+	/**
+	 * Gets the Paint being used to indicate commone neighbors of all selected
+	 * nodes.
+	 * 
+	 * @return The Paint being used.
+	 */
+	public Paint getCommonNeighborPaint( ) {
+		return this.commonNeighborPaint;
+	}
+
+	/**
+	 * Sets the paint to use on edges.
+	 * 
+	 * @param p The Paint to use.
+	 */
 	public void setEdgePaint( Paint p ) {
 		this.edgePaint = p;
 	}
 
+	/**
+	 * Gets the Paint being used on edges.
+	 * 
+	 * @return The Paint being used.
+	 */
 	public Paint getEdgePaint( ) {
 		return this.edgePaint;
 	}
 
+	/**
+	 * Sets the Paint to be used on picked edges.
+	 * 
+	 * @param p The Paint to use.
+	 */
 	public void setPickedEdgePaint( Paint p ) {
 		this.pickedEdgePaint = p;
 	}
 
+	/**
+	 * Gets the Paint being used on picked edges.
+	 * 
+	 * @return The Paint being used.
+	 */
 	public Paint getPickedEdgePaint( ) {
 		return this.pickedEdgePaint;
 	}
 
+	/**
+	 * Sets the Color to be used on picked vertex labels.
+	 * 
+	 * @param c The color to use.
+	 */
 	public void setPickedLabelColor( Color c ) {
 		this.pickedLabelColor = c;
 		this.getRenderContext( ).setVertexLabelRenderer( 
 			new DefaultVertexLabelRenderer( c ));
 	}
 
+	/**
+	 * Gets the Color being used on picked vertex labels.
+	 * 
+	 * @return The Color being used.
+	 */
 	public Color getPickedLabelColor( ) {
 		return this.pickedLabelColor;
 	}
@@ -656,14 +758,32 @@ import org.apache.commons.collections15.Transformer;
 		}
 	}
 
+	/**
+	 * Adds a listener to listen for the adding or removal of vertices.
+	 * 
+	 * @param g The GraphItemChangeListener to add.
+	 */
 	public void addVertexChangeListener( GraphItemChangeListener <V> g ) {
 		this.vertexChangeListeners.add( g );
 	}
 
+	/**
+	 * Adds a listener to listen for the adding or removal of edges.
+	 * 
+	 * @param g the GraphItemChangeListener to add.
+	 */
 	public void addEdgeChangeListener( GraphItemChangeListener <E> g ) {
 		this.edgeChangeListeners.add( g );
 	}
 
+	/**
+	 * Fires an event to notify GraphItemChangeListeners of the adding/removal of
+	 * a vertex.
+	 * 
+	 * @param item The vertex which was added or removed.
+	 * @param action The action which was performed. One of 
+	 *	GraphItemChangeEvent.ADDED or GraphItemChangeEvent.REMOVED
+	 */
 	private void fireVertexChangeEvent( V item, int action ) {
 		GraphItemChangeEvent <V> event = new GraphItemChangeEvent<V>( this, item, action );
 		for ( GraphItemChangeListener <V> v : vertexChangeListeners ) {
@@ -671,6 +791,14 @@ import org.apache.commons.collections15.Transformer;
 		}
 	}
 
+	/**
+	 * Fires an event to notify GraphItemChangeListeners of the adding/removal of
+	 * an edge.
+	 * 
+	 * @param item The edge which was added or removed.
+	 * @param action The action which was performed. One of 
+	 *	GraphItemChangeEvent.ADDED or GraphItemChangeEvent.REMOVED
+	 */
 	private void fireEdgeChangeEvent( E item, int action ) {
 		GraphItemChangeEvent <E> event = new GraphItemChangeEvent<E>( this, item, action );
 		for ( GraphItemChangeListener <E> e : edgeChangeListeners )
@@ -692,7 +820,14 @@ import org.apache.commons.collections15.Transformer;
 
 	}
 
-	// MouseListener interface methods
+	// ** MouseListener interface methods **
+
+	/**
+	 * The mouseClicked method of the MouseListener interface.
+	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mouseClicked( MouseEvent event ) {
 		E edge = this.getPickSupport( ).getEdge( this.getGraphLayout( ), event.getX( ), event.getY( ));
 		V vertex = this.getPickSupport( ).getVertex( this.getGraphLayout( ), event.getX( ), event.getY( ));
@@ -701,6 +836,12 @@ import org.apache.commons.collections15.Transformer;
 		}
 	}
 
+	/**
+	 * The mousePressed method of the MouseListener interface.
+	 * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mousePressed( MouseEvent event ) {
 		E edge = this.getPickSupport( ).getEdge( this.getGraphLayout( ), event.getX( ), event.getY( ));
 		V vertex = this.getPickSupport( ).getVertex( this.getGraphLayout( ), event.getX( ), event.getY( ));
@@ -709,6 +850,12 @@ import org.apache.commons.collections15.Transformer;
 		}
 	}
 
+	/**
+	 * The mouseReleased method of the MouseListener interface.
+	 * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mouseReleased( MouseEvent event ) {
 		E edge = this.getPickSupport( ).getEdge( this.getGraphLayout( ), event.getX( ), event.getY( ));
 		V vertex = this.getPickSupport( ).getVertex( this.getGraphLayout( ), event.getX( ), event.getY( ));
@@ -717,9 +864,27 @@ import org.apache.commons.collections15.Transformer;
 		}
 	}
 
+	/**
+	 * The mouseEntered method of the MouseListener interface. Not implemented.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mouseEntered( MouseEvent event ) { }
+	/**
+	 * The mouseExited method of the MouseListener interface. Not implemented.
+	 * 
+	 * @param event The event which triggered this action.
+	 */
 	public void mouseExited( MouseEvent event ) { }
 	
+	/**
+	 * Returns a List containing the nodes of the shortest path between v1 and v2,
+	 * not including v1. The size of this List will be the length of the path.
+	 * 
+	 * @param v1 The node to start at.
+	 * @param v2 The node to end with.
+	 * @return A List containing the shortest path, or null if no such path exists.
+	 */
 	public List<E> getShortestPath( V v1, V v2 ) {
 		if ( dijkstra == null ) {
 			// create a new DijkstraShortestPath
@@ -940,6 +1105,88 @@ import org.apache.commons.collections15.Transformer;
 		this.repaint( );
 		return returnValue;
 	}
+
+	private class NeighborCollection<V,E> extends LinkedList<V> implements 
+		PickedStateChangeListener<V>,GraphItemChangeListener<E> {
+		GraphVisualizer graph;
+		private boolean enabled;
+		
+		public NeighborCollection( GraphVisualizer graph ) {
+			this.graph = graph;
+			graph.addPickedVertexStateChangeListener( this );
+			graph.addEdgeChangeListener( this );
+		}
+
+		public void setEnabled( boolean state ) {
+			if ( state ) {
+				this.update( );
+			} else {
+			 this.clear( );
+			}
+			this.enabled = state;
+		}
+
+		public void stateChanged( GraphItemChangeEvent<E> event ) {
+			if ( !this.enabled )
+				return;
+			this.update( );
+		}
+
+		public void stateChanged( PickedStateChangeEvent<V> event ) {
+			if ( !this.enabled )
+				return;
+			// check to see if a vertex was added to or taken away from the selection.
+			// if one was added, we can improve performance by simply removing nodes 
+			// from the NeighborCollection which are not neighbors of the new node.
+			if ( event.getStateChange( )) {
+				if ( graph.getPickedVertexState( ).getPicked( ).size( ) == 1 ) {
+					Collection newNeighbors = graph.getNeighbors( event.getItem( ));
+					if( newNeighbors != null )
+						this.addAll( newNeighbors );
+				} else {
+					for( V v : new Vector<V>( this )) {
+						this.remove( event.getItem( ));
+						if( !graph.isNeighbor( event.getItem( ), v ))
+							this.remove( v );
+					}
+				}
+			} else {
+				this.update( );
+			}
+		}
+
+		private void update( ) {
+			if ( !this.enabled )
+				return;
+			Collection<V> selected = new Vector<V>( this.graph.getPickedVertexState( ).getPicked( ));
+			// if nothing is selected, this Collection should also contain nothing.
+			if ( selected.size( ) == 0 ) {
+				this.clear( );
+				return;
+			}
+			// Basically here we add all neighbors of the first selected node, then
+			// remove any nodes which are not neighbors of each selected node until
+			// we have gone through the entire selection.
+			Collection<V> neighbors;
+			boolean firstPass = true;
+			for( V v : selected ) {
+				if ( firstPass ) {
+					if ( !this.contains( v )) {
+						this.addAll( graph.getNeighbors( v ));
+					}
+					firstPass = false;
+				}
+				this.remove( v );
+				neighbors = graph.getNeighbors( v );
+				for( V u : new Vector<V>( this )) {
+					if( !neighbors.contains( u )){
+						this.remove( u );
+					}
+				}
+			}
+		}
+	}
+		
 
 }
 

@@ -28,7 +28,6 @@ import java.util.ListIterator;
  * A class for holding data about a particular experiment.
  * 
  * @author Thomas McGrew
- * @version 1.0
  */
 public class Experiment {
 

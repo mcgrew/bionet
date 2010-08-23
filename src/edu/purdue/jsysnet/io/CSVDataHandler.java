@@ -29,21 +29,38 @@ import edu.purdue.jsysnet.util.*;
 import edu.purdue.jsysnet.JSysNet;
 
 /**
- * A class for reading CSV Data for SysNet.
+ * A class for reading CSV Data for JSysNet.
  * 
  * @author Thomas McGrew
- * version 1.0
  */
 public class CSVDataHandler extends DataHandler {
 
 	private Scanner file;
 	ArrayList <HashMap<String,String>> moleculeArrayList, dataArrayList, sampleArrayList;
 
+
+	/**
+	 * Creates a new CSVDataHandler.
+	 */
+	public CSVDataHandler( ) {
+		super( );
+	}
+
+	/**
+	 * Creates a new CSVDataHandler.
+	 * 
+	 * @param resource The name of the directory containing the files to be used.
+	 */
 	public CSVDataHandler( String resource ){
-		this.load( resource );
+		super( resource );
 	}
 		
-	public void load( String resource ){
+	/**
+	 * Loads the data
+	 */
+	public void load( ) {
+		if ( this.resource == null )
+			throw new NullPointerException( "The resource to load from was not specified" );
 		HashMap <String,String> moleculeData = new HashMap <String,String> ( );
 		HashMap <String,String> sampleData = new HashMap <String,String> ( );
 		String [ ] headings;
@@ -53,9 +70,9 @@ public class CSVDataHandler extends DataHandler {
 
 		// *********************** load Experiment.txt *************************
 		try{ 
-			this.file = new Scanner( new File( resource+File.separator+"Experiment.txt" ));
+			this.file = new Scanner( new File( this.resource+File.separator+"Experiment.txt" ));
 		} catch( FileNotFoundException e ) {
-			JSysNet.message( "Unable to load "+resource+File.separator+"Experiment.txt. No Data has been imported" );
+			JSysNet.message( "Unable to load "+this.resource+File.separator+"Experiment.txt. No Data has been imported" );
 			this.experiments = new ArrayList <Experiment>( );
 		}
 		if ( ! file.hasNext( ) )
@@ -199,10 +216,18 @@ public class CSVDataHandler extends DataHandler {
 
 	}
 
+	/**
+	 * For writing new data back to disk; Currently not implemented.
+	 */
 	public boolean write( ){
 		return false;
 	}
 
+	/**
+	 * For writing a copy of the data to disk; Currently not implemented.
+	 * 
+	 * @param resource The directory to write the files to.
+	 */
 	public boolean write( String resource ){
 		return false;
 	}
