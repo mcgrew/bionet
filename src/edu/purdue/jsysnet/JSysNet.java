@@ -21,6 +21,7 @@ package edu.purdue.jsysnet;
 
 import edu.purdue.jsysnet.ui.*;
 import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
 
 import gnu.getopt.Getopt;
 
@@ -30,15 +31,14 @@ import java.util.Properties;
 
 
 public class JSysNet {
-	public static final Object dummyObject = new Object( ); // used for synchronizing threads
 
 	public static void main ( String [ ] args ) {
 		// read the command line options
 		Getopt g = new Getopt( "JSysNet", args, "dg:hv" );
 		String arg;
 		int c;
-
 		Settings settings = Settings.getSettings( );
+		Language language = Settings.getLanguage( );
 
 		while (( c = g.getopt( )) != -1 ) {
 			switch( c ) {
@@ -51,20 +51,23 @@ public class JSysNet {
 						settings.setInt( "windowWidth", Integer.parseInt( size[ 0 ] ));
 						settings.setInt( "windowHeight", Integer.parseInt( size[ 1 ] ));
 					} catch( NumberFormatException e ) {
-						System.out.println( "You specified an invalid value for -g.\n"+
-							"Values should be in the format WxH in pixels, such as 1024x768." );
+						System.out.println( language.get( "You specified an invalid value for" ) +
+							" -g.\n"+ 
+							language.get( "Values should be in the format WxH in pixels, such as" ) + 
+							" 1024x768." );
 						System.exit( -1 );
 					}
 					break;
 				case 'h':
 					System.out.println( );
-					System.out.println( "Usage:" );
+					System.out.println( language.get( "Usage" ) + ":" );
 					System.out.println( "java JSysNet [-d|h] [-g geometry]" );
-					System.out.println( "-d          Runs JSysnet in debug mode" );
-					System.out.printf ( "-g          Overrides the default window size of %dx%d\n",
-						settings.getDefaults( ).getProperty( "windowWidth" ), 
-						settings.getDefaults( ).getProperty( "windowHeight" ));
-					System.out.println( "-h          Prints this message and exits" );
+					System.out.println( "-d          "+ language.get( "Runs JSysnet in debug mode" ));
+					System.out.printf ( "-g          "+ language.get( "Overrides the default window size of" ) 
+						+ " %dx%d\n",
+						settings.getInt( "windowWidth" ), 
+						settings.getInt( "windowHeight" ));
+					System.out.println( "-h          "+ language.get( "Prints this message and exits" ));
 					System.exit( 0 );
 				case 'v':
 					settings.getDefaults( ).setProperty( "verbose", "true" );
@@ -72,7 +75,7 @@ public class JSysNet {
 				case '?':
 					break;
 				default:
-					System.out.printf ( "You specified an unrecognized option '%s'", c );
+					System.out.printf ( language.get( "You specified an unrecognized option" ) + " '%s'", c );
 					System.exit( -1 );
 			}
 		}
@@ -81,11 +84,12 @@ public class JSysNet {
 			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName());
 		} catch ( Exception e ) {
 			if ( settings.getBoolean( "VERBOSE" )) {
-				System.err.println( "Attemping to load the system look and feel resulted "+
-					"in the following error:" );
+				System.err.println( 
+					language.get( "Attemping to load the system look and feel resulted in the following error" )
+					+ ":" );
 				System.err.println( "\t" + e.getMessage( ));
 			} else {
-				System.err.println( "Unable to load system look and feel, switching to default" );
+				System.err.println( language.get( "Unable to load system look and feel, switching to default" ));
 			}
 		}
 		

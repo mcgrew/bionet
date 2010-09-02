@@ -50,7 +50,7 @@ public class About extends JFrame {
 		this.setBounds( x, y, 400, 250 );
 		this.add( this.panel );
 		try { 
-			this.logo = ImageIO.read( getClass( ).getResourceAsStream( "/resources/logo.png" ));
+			this.logo = ImageIO.read( getClass( ).getResourceAsStream( "/resources/images/logo.png" ));
 		} catch ( IOException e ) {
 		}
 	}

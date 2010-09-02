@@ -240,13 +240,13 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 			w = 0;
 			h = this.getHeight( );
 		}
-		Rectangle legendRect = new Rectangle( 
+		Rectangle legendArea = new Rectangle( 
 			w + 20,
 			h - 35,
 			150,
 			20
 		);
-		spectrumLegend.stamp( g, legendRect );
+		spectrumLegend.stamp( g, legendArea );
 	}
 	
 	/**

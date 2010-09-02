@@ -20,16 +20,33 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import java.io.File;
-import javax.swing.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Collection;
+import javax.swing.JFrame;
 import javax.swing.filechooser.FileFilter;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JTabbedPane;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import java.awt.event.KeyEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.Window;
+import java.awt.Component;
+import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import edu.purdue.jsysnet.util.*;
-import edu.purdue.jsysnet.io.*;
+import edu.purdue.jsysnet.util.Experiment;
+import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
+import edu.purdue.jsysnet.io.DataHandler;
+import edu.purdue.jsysnet.io.CSVDataHandler;
 
 import net.sourceforge.helpgui.gui.MainFrame;
 
@@ -38,23 +55,23 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	private JTabbedPane tabPane = new ClosableTabbedPane( );
 	
 	// Menu elements
-	private JMenuBar menuBar = new JMenuBar( );
-	private JMenu fileMenu = new JMenu( "File" );
-	private JMenuItem newWindowFileMenuItem = new JMenuItem( "New Window", KeyEvent.VK_N );
-	private JMenuItem openFileMenuItem = new JMenuItem( "Open...", KeyEvent.VK_O );
-	private JMenuItem saveFileMenuItem = new JMenuItem( "Save...", KeyEvent.VK_S );
-	private JMenuItem printFileMenuItem = new JMenuItem( "Print...", KeyEvent.VK_P );
-	private JMenuItem exitFileMenuItem = new JMenuItem( "Close", KeyEvent.VK_C );
-//	private JMenu databaseMenu = new JMenu( "Database" );
-//	private JMenu setupDatabaseMenu = new JMenu( "Setup" );
-//	private JMenuItem addSetupDatabaseMenuItem = new JMenuItem( "Add...", KeyEvent.VK_A );
-//	private JMenuItem removeSetupDatabaseMenuItem = new JMenuItem( "Remove...", KeyEvent.VK_R );
-//	private JMenuItem connectDatabaseMenuItem = new JMenuItem( "Connect...", KeyEvent.VK_C );
-//	private JMenu clusteringMenu = new JMenu( "Clustering" );
-//	private JMenuItem ldaClusteringMenuItem = new JMenuItem( "LDA", KeyEvent.VK_L );
-	private JMenu helpMenu = new JMenu( "Help" );
-	private JMenuItem contentsHelpMenuItem = new JMenuItem( "Contents", KeyEvent.VK_C );
-	private JMenuItem aboutHelpMenuItem = new JMenuItem( "About", KeyEvent.VK_A );
+	private JMenuBar menuBar;
+	private JMenu fileMenu;
+	private JMenuItem newWindowFileMenuItem;
+	private JMenuItem openFileMenuItem;
+	private JMenuItem saveFileMenuItem;
+	private JMenuItem printFileMenuItem;
+	private JMenuItem exitFileMenuItem;
+//	private JMenu databaseMenu;
+//	private JMenu setupDatabaseMenu;
+//	private JMenuItem addSetupDatabaseMenuItem;
+//	private JMenuItem removeSetupDatabaseMenuItem;
+//	private JMenuItem connectDatabaseMenuItem;
+//	private JMenu clusteringMenu;
+//	private JMenuItem ldaClusteringMenuItem;
+	private JMenu helpMenu;
+	private JMenuItem contentsHelpMenuItem;
+	private JMenuItem aboutHelpMenuItem;
 
 	public JSysNetWindow( ) {
 		this( "JSysNet" );
@@ -63,8 +80,8 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	public JSysNetWindow ( String title ) {
 
 		super( title );
-		Settings settings = Settings.getSettings( );
 		this.setLayout( new BorderLayout( ));
+		Settings settings = Settings.getSettings( );
 		int width = settings.getInt( "windowWidth" );
 		int height = settings.getInt( "windowHeight" );
 		int x = Math.max( 0, Math.min( 
@@ -86,8 +103,8 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 
 		this.addWindowListener(new WindowAdapter() {
 		  public void windowClosing(WindowEvent e) {
-				Settings settings = Settings.getSettings( );
 				JFrame f = (JFrame)e.getSource( );
+				Settings settings = Settings.getSettings( );
 				settings.setInt( "windowXPosition", f.getX( ));
 				settings.setInt( "windowYPosition", f.getY( ));
 				settings.setInt( "windowWidth", f.getWidth( ));
@@ -116,15 +133,34 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	private void setupMenu( ) {
-	
+		Language language = Settings.getLanguage( );
+
+		this.menuBar = new JMenuBar( );
+		this.fileMenu = new JMenu( language.get( "File" ));
+		this.newWindowFileMenuItem = new JMenuItem( language.get( "New Window" ), KeyEvent.VK_N );
+		this.openFileMenuItem = new JMenuItem( language.get( "Open" ) + "...", KeyEvent.VK_O );
+		this.saveFileMenuItem = new JMenuItem( language.get( "Save" ) + "...", KeyEvent.VK_S );
+		this.printFileMenuItem = new JMenuItem( language.get( "Print" ) + "...", KeyEvent.VK_P );
+		this.exitFileMenuItem = new JMenuItem( language.get( "Close" ), KeyEvent.VK_C );
+//	this.databaseMenu = new JMenu( "Database" );
+//	this.setupDatabaseMenu = new JMenu( "Setup" );
+//	this.addSetupDatabaseMenuItem = new JMenuItem( "Add...", KeyEvent.VK_A );
+//	this.removeSetupDatabaseMenuItem = new JMenuItem( "Remove...", KeyEvent.VK_R );
+//	this.connectDatabaseMenuItem = new JMenuItem( "Connect...", KeyEvent.VK_C );
+//	this.clusteringMenu = new JMenu( "Clustering" );
+//	this.ldaClusteringMenuItem = new JMenuItem( "LDA", KeyEvent.VK_L );
+		this.helpMenu = new JMenu( language.get( "Help" ));
+		this.contentsHelpMenuItem = new JMenuItem( language.get( "Contents" ), KeyEvent.VK_C );
+		this.aboutHelpMenuItem = new JMenuItem( language.get( "About" ), KeyEvent.VK_A );
+
 		// FILE MENU
 		this.fileMenu.setMnemonic( KeyEvent.VK_F );
 		this.fileMenu.getAccessibleContext( ).setAccessibleDescription(
-			"Perform file operations" );
+			language.get( "Perform file operations" ));
 		this.fileMenu.add( this.newWindowFileMenuItem );
 		this.fileMenu.add( this.openFileMenuItem );
 		this.fileMenu.add( this.saveFileMenuItem );
-		this.fileMenu.add( this.printFileMenuItem );
+//		this.fileMenu.add( this.printFileMenuItem );
 		this.fileMenu.add( this.exitFileMenuItem );
 		this.newWindowFileMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK ));
@@ -154,7 +190,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		//HELP MENU
 		this.helpMenu.setMnemonic( KeyEvent.VK_H );
 		this.helpMenu.getAccessibleContext( ).setAccessibleDescription(
-			"JSysNet Help" );
+			language.get( "JSysNet Help" ));
 		this.helpMenu.add( this.contentsHelpMenuItem );
 		this.helpMenu.add( this.aboutHelpMenuItem );
 
@@ -184,8 +220,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	public DataHandler openCSV( ) {
-		Settings settings = Settings.getSettings( );
-		JFileChooser fc = new JFileChooser( settings.getProperty( "lastOpenCSV" ));
+		JFileChooser fc = new JFileChooser( Settings.getSettings( ).getProperty( "lastOpenCSV" ));
 		fc.setFileFilter( new CSVFileFilter( ));
 		fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );	
 		int options = fc.showOpenDialog( this );
@@ -193,7 +228,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			File selected = fc.getSelectedFile( );
 			if ( !selected.isDirectory( ))
 				selected = selected.getParentFile( );
-			settings.setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
+			Settings.getSettings( ).setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
 			DataHandler data = new CSVDataHandler( selected.getAbsolutePath( ));
 			data.load( );
 			return data;
@@ -229,15 +264,22 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			if ( data == null ) {
 				return;
 			}
-			CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
-			if( cdp.createGraph( data ))
-				this.tabPane.addTab( cdp.getTitle( ), cdp );
+			Map.Entry<Integer,List> choice = experimentSelection( data.getExperiments( ));
+			if ( choice == null )
+				return;
+
+			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
+				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
+				if( cdp.createGraph( (Experiment)choice.getValue( ).get( 0 )))
+					this.tabPane.addTab( cdp.getTitle( ), cdp );
+			}
 
 		} else if ( item == this.exitFileMenuItem ) {
 			this.dispose( );
 
 		} else if ( item == this.contentsHelpMenuItem ) {
 			new MainFrame( "/docs/help/", "plastic" ).setVisible( true );
+
 		} else if ( item == this.aboutHelpMenuItem ) {
 			new About( ).setVisible( true );
 		}
@@ -245,6 +287,27 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 
 	}
 
+	/**
+	 * Brings up a dialog to allow you to select the appropriate experiment. If
+	 *	only one experiment is available, no dialog is shown an this method simply
+	 *	returns that experiment.
+	 * 
+	 * @param experiments An ArrayList containing the possible Experiments
+	 * @return The experiment you selected, or null if you pressed cancel, or
+	 *	if no experiments are available
+	 */
+	public Map.Entry<Integer,List> experimentSelection( List <Experiment> experiments ) {
+		if ( experiments.size( ) < 1 ) {
+			System.err.println( 
+				Settings.getLanguage( ).get( "These files do not appear to contain any data!" ));
+			return null;
+		}
+//		if ( experiments.size( ) == 1 ) {
+//			return experiments.get( 0 );
+//		}
+		return ExperimentSelectionDialog.showInputDialog( 
+			this, Settings.getLanguage( ).get( "Experiment Selection" ), (List)experiments );
+	}
 	
 }
 

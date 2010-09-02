@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<!-- Menu items -->
+<entry key="New Window">New Window</entry>
+<entry key="File">File</entry>
+<entry key="Open">Open</entry>
+<entry key="Save">Save</entry>
+<entry key="Print">Print</entry>
+<entry key="Close">Close</entry>
+<entry key="Help">Help</entry>
+<entry key="Contents">Contents</entry>
+<entry key="About">About</entry>
+
+<entry key="Calculation">Calculation</entry>
+<entry key="Layout">Layout</entry>
+<entry key="Multiple Circles">Multiple Circles</entry>
+<entry key="Single Circle">Single Circle</entry>
+<entry key="Random">Random</entry>
+<entry key="Heat Map">Heat Map</entry>
+<entry key="Spring Layout">Spring Layout</entry>
+<entry key="Spring Embedding">Spring Embedding</entry>
+<entry key="Zoom In">Zoom In</entry>
+<entry key="Zoom Out">Zoom Out</entry>
+<entry key="Fit to Window">Fit to Window</entry>
+<entry key="Select All">Select All</entry>
+<entry key="Clear Selection">Clear Selection</entry>
+<entry key="Invert Selection">Invert Selection</entry>
+<entry key="Select Correlated to Selection">Select Correlated to Selection</entry>
+<entry key="Hide Selected">Hide Selected</entry>
+<entry key="Hide Unselected">Hide Unselected</entry>
+<entry key="Hide Uncorrelated to Selection">Hide Uncorrelated to Selection</entry>
+<entry key="Hide Orphans">Hide Orphans</entry>
+<entry key="Show All Correlated to Visible">Show All Correlated to Visible</entry>
+<entry key="Color">Color</entry>
+<entry key="Normal Color">Normal Color</entry>
+<entry key="High Contrast Color">High Contrast Color</entry>
+
+<!-- various dialog strings -->
+<entry key="Experiment Selection">Experiment Selection</entry>
+<entry key="Choose an Experiment">Choose an Experiement</entry>
+<entry key="Time Course Study">Time Course Study</entry>
+<entry key="Comparative Analysis">Comparative Analysis</entry>
+<entry key="OK">OK</entry>
+<entry key="Select">Select</entry>
+<entry key="Cancel">Cancel</entry>
+<entry key="Search">Search</entry>
+<entry key="Clear">Clear</entry>
+<entry key="Molecules">Molecules</entry>
+<entry key="Correlations">Correlations</entry>
+<entry key="Display Conditions">Display Conditions</entry>
+<entry key="Topological Information">Topological Information</entry>
+<entry key="Node Degree Distribution">Node Degree Distribution</entry>
+<entry key="Correlation Distrubution">Correlation Distrubution</entry>
+<entry key="Neightborhood Connectivity">Neightborhood Connectivity</entry>
+<entry key="Molecule 1">Molecule 1</entry>
+<entry key="Molecule 2">Molecule 2</entry>
+<entry key="Pearson Value">Pearson Value</entry>
+<entry key="Spearman Rank Value">Spearman Rank Value</entry>
+<entry key="Kendall Tau-b Rank Value">Kendall Tau-b Rank Value</entry>
+<entry key="Number of Nodes">Number of Nodes</entry>
+<entry key="Number of Edges">Number of Edges</entry>
+<entry key="Number of Correlated Molecules">Number of Correlated Molecules</entry>
+<entry key="Number of Neighbors">Number of Neighbors</entry>
+<entry key="Network Diameter">Network Diameter</entry>
+<entry key="Characteristic Path Length">Characteristic Path Length</entry>
+<entry key="Neighbor Count">Neighbor Count</entry>
+<entry key="Nodes">Nodes</entry>
+<entry key="Correlation Distribution">Correlation Distribution</entry>
+<entry key="Neighbor Count">Neighbor Count</entry>
+<entry key="Average Neighbor Degree">Average Neighbor Degree</entry>
+<entry key="Perform file operations">Perform file operations</entry>
+<entry key="JSysNet Help">JSysNet Help</entry>
+<entry key="Correlation">Correlation</entry>
+
+<!-- messages -->
+<entry key="These files do not appear to contain any data!">These files do not appear to contain any data!</entry>
+<entry key="Runs JSysnet in debug mode">Runs JSysnet in debug mode</entry>
+<entry key="Overrides the default window size of">Overrides the default window size of</entry>
+<entry key="Prints this message and exits">Prints this message and exits</entry>
+<entry key="Usage">Usage</entry>
+<entry key="These files do not appear to contain any data!">These files do not appear to contain any data!</entry>
+<entry key="You must select at least one item">You must select at least one item</entry>
+</properties>

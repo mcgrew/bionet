@@ -164,6 +164,17 @@ public class Experiment {
 		return this.correlations;
 	}
 
+	/**
+	 * Returns the description of this Experiment, if any.
+	 * 
+	 * @return The description attribute.
+	 */
+	public String toString( ) {
+		return String.format( "%s - %s", 
+			this.getAttribute( "exp_id" ),
+			this.getAttribute( "description" ));
+	}
+
 }
 
 

@@ -125,8 +125,8 @@
 	</target>
 
 	<!-- ============ TARGET: CLEAN-BUILD ============== -->
-	<target name="clean-build" depends="clean,jar"/>
+	<target name="clean-build" depends="clean,dist"/>
 	<!-- ============ TARGET: DEFAULT ================== -->
-	<target name="default" depends="clean,jar"/>
+	<target name="default" depends="clean,dist"/>
 </project>
 

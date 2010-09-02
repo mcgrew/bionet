@@ -22,6 +22,7 @@ package edu.purdue.jsysnet.util;
 import java.awt.Toolkit;
 import java.awt.Dimension;
 import java.util.Properties;
+import java.util.Locale;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
@@ -32,10 +33,7 @@ import javax.swing.filechooser.FileSystemView;
 
 public class Settings extends Properties {
 	private static Settings settings = new Settings( );
-
-	public static Settings getSettings( ) {
-		return settings;
-	}
+	private static Language language = new Language( );
 
 	public Settings( ) {
 		super( );
@@ -43,43 +41,57 @@ public class Settings extends Properties {
 		this.load( );
 	}
 
-	public boolean getBoolean( String property ) {
-		return Boolean.parseBoolean( this.getProperty( property ));
-	}
-
-	public int getInt( String property ) {
-		return Integer.parseInt( this.getProperty( property ));
-	}
-
-	public double getDouble( String property ) {
-		return Double.parseDouble( this.getProperty( property ));
-	}
-
-	public Properties getDefaults( ) {
-		return this.defaults;
-	}
-
 	public Object setProperty( String property, String value ) {
 		Object returnValue = super.setProperty( property, value );
+		if ( "locale".equals( property ))
+			language.setLocale( value );
 		this.save( );
 		return returnValue;
 	}
 
+	public static Settings getSettings( ) {
+		return settings;
+	}
+
+	public static Language getLanguage( ) {
+		return language;
+	}
+
+	public Properties getDefaults( ){
+		return this.defaults;
+	}
+
+	public boolean getBoolean( String property ) {
+		return Boolean.parseBoolean( get( property ));
+	}
+
+	public int getInt( String property ) {
+		return Integer.parseInt( get( property ));
+	}
+
+	public double getDouble( String property ) {
+		return Double.parseDouble( get( property ));
+	}
+
+	public String get( String property ) {
+		return getProperty( property );
+	}
+
 	public void setBoolean( String property, boolean value ) {
-		this.setProperty( property, Boolean.toString( value ));
+		setProperty( property, Boolean.toString( value ));
 	}
 
 	public void setInt( String property, int value ) throws NumberFormatException {
-		this.setProperty( property, Integer.toString( value ));
+		setProperty( property, Integer.toString( value ));
 	}
 
 	public void setDouble( String property, double value ) throws NumberFormatException {
-		this.setProperty( property, Double.toString( value ));
+		setProperty( property, Double.toString( value ));
 	}
 
 	public void save( ) {
 		try {
-			if ( this.getBoolean( "debug" ) ){
+			if ( getBoolean( "debug" ) ){
 				System.err.println( "Saving settings..." );
 			}
 			File settingsFile = new File( this.getProperty( "settingsFile" ));
@@ -100,19 +112,20 @@ public class Settings extends Properties {
 	
 	public void load( ) {
 		try {
-			if ( this.getBoolean( "debug" ) ){
+			if ( Boolean.parseBoolean( this.getProperty( "debug" ))){
 				System.err.println( "Loading settings..." );
 			}
 			this.loadFromXML( new BufferedInputStream( 
 				new FileInputStream( new File( this.getProperty( "settingsFile" )))));
 		} catch ( IOException e ) {
-			if ( this.getBoolean( "debug" )) {
+			if ( Boolean.parseBoolean( this.getProperty( "debug" ))) {
 				System.err.println( String.format(
 				  "Unable to read program settings. File %s is not readable",
 					this.getProperty( "settingsFile" )));
 			}
-
 		}
+		if ( language != null && this.getProperty( "locale" ) != null )
+			language.setLocale( get( "locale" ));
 	}
 	
 	private class DefaultSettings extends Properties {

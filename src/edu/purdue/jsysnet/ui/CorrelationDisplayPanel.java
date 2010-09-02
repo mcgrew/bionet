@@ -171,7 +171,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	private JSplitPane graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
 	private HeatMap  heatMapPanel;
 
-	private DataHandler data = null;
 	private Experiment experiment = null;
 	private String title;
 	private Scalable visibleGraph;
@@ -190,10 +189,10 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	 * 
 	 * @param data The data to be used in this Panel
 	 */
-	public CorrelationDisplayPanel ( DataHandler data ) {
+	public CorrelationDisplayPanel ( Experiment experiment ) {
 		super( new BorderLayout( ));
 		this.buildPanel( );
-		this.createGraph( data );
+		this.createGraph( experiment );
 	}
 
 	/**
@@ -349,8 +348,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	 * Creates a Graph using the data supplied in the constructor.
 	 */
 	public boolean createGraph( ) {
-			if ( this.data != null ) {
-				return this.createGraph( this.data );
+			if ( this.experiment != null ) {
+				return this.createGraph( this.experiment );
 			}
 			return false;
 	}
@@ -360,11 +359,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	 * 
 	 * @param data A Datahandler Object containing the data to be used.
 	 */
-	public boolean createGraph( DataHandler data ) {
-		this.data = data;
+	public boolean createGraph( Experiment experiment ) {
 		this.setVisible( true );
-		
-		this.experiment = experimentSelection( data.getExperiments( ));
+		this.experiment = experiment;
 		if ( this.experiment == null ) {
 			return false;
 		}
@@ -501,45 +498,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		return experiment;
 	}
 
-	/**
-	 * Brings up a dialog to allow you to select the appropriate experiment. If
-	 *	only one experiment is available, no dialog is shown an this method simply
-	 *	returns that experiment.
-	 * 
-	 * @param experiments An ArrayList containing the possible Experiments
-	 * @return The experiment you selected, or null if you pressed cancel, or
-	 *	if no experiments are available
-	 */
-	public Experiment experimentSelection( List <Experiment> experiments ) {
-		if ( experiments.size( ) < 1 ) {
-			System.err.println( "These files do not appear to contain any data!" );
-			return null;
-		}
-		if ( experiments.size( ) == 1 ) {
-			return experiments.get( 0 );
-		}
-		// bring up a dialog to choose the experiment
-		String [] options = new String[ experiments.size( )];
-		for ( int i=0; i < experiments.size( ); i++ ) {
-			options[ i ] = String.format( "%s - %s",
-			                 experiments.get( i ).getAttribute( "exp_id" ) ,
-			                 experiments.get( i ).getAttribute( "description" )
-											);
-		}
-		Object selectedValue = JOptionPane.showInputDialog(
-		                          null,
-		                          "Choose An Experiment", "Experiment Selection",
-															JOptionPane.INFORMATION_MESSAGE, 
-															null,
-															options, options[ 0 ]);
-		for( int counter = 0, maxCounter = options.length;
-			 counter < maxCounter; counter++ ) {
-			 if(options[ counter ].equals( selectedValue ))
-				return experiments.get( counter );
-		}
-		return null;
-
-	}
 
 	/**
 	 * Returns the range setting of the Correlation Filter

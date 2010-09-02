@@ -72,7 +72,7 @@ public class CSVDataHandler extends DataHandler {
 		try{ 
 			this.file = new Scanner( new File( this.resource+File.separator+"Experiment.txt" ));
 		} catch( FileNotFoundException e ) {
-			JSysNet.message( "Unable to load "+this.resource+File.separator+"Experiment.txt. No Data has been imported" );
+			JSysNet.message( "Unable to load "+this.resource+File.separator+"Experiment.txt. The file was not found. No Data has been imported" );
 			this.experiments = new ArrayList <Experiment>( );
 		}
 		if ( ! file.hasNext( ) )
@@ -151,8 +151,7 @@ public class CSVDataHandler extends DataHandler {
 		try {
 			this.file = new Scanner( new File( resource+File.separator+"Data.txt" ));
 		} catch( FileNotFoundException e ) {
-			JSysNet.message( "Unable to load "+resource+File.separator+
-				"Data.txt. The file was not found. No Data has been imported" );
+			JSysNet.message( "Unable to load "+resource+File.separator+"Data.txt. The file was not found. No Data has been imported" );
 			this.experiments = new ArrayList <Experiment>( );
 			return;
 		}
@@ -185,7 +184,7 @@ public class CSVDataHandler extends DataHandler {
 			HashMap <String,String>extraMoleculeData = null; 
 			ListIterator <HashMap<String,String>>moleculeArrayListIterator = moleculeArrayList.listIterator( );
 
-			// See if threre is more informationfor this molecule in molecule.txt
+			// See if threre is more information for this molecule in molecule.txt
 			while ( moleculeArrayListIterator.hasNext( ) ) {
 				extraMoleculeData = moleculeArrayListIterator.next( );
 				if ( mol.getAttribute( "id" ).equals( extraMoleculeData.get( "id" )) &&
