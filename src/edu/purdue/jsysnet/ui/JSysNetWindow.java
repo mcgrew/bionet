@@ -37,6 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.Window;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
@@ -80,6 +81,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	public JSysNetWindow ( String title ) {
 
 		super( title );
+		this.setBackground( Color.WHITE );
 		this.setLayout( new BorderLayout( ));
 		Settings settings = Settings.getSettings( );
 		int width = settings.getInt( "windowWidth" );
@@ -272,6 +274,13 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
 				if( cdp.createGraph( (Experiment)choice.getValue( ).get( 0 )))
 					this.tabPane.addTab( cdp.getTitle( ), cdp );
+			}
+			else if ( choice.getKey( ).intValue( ) == 
+				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
+				ComparativeAnalysisDisplayPanel cadp = new ComparativeAnalysisDisplayPanel( );
+				if ( cadp.createGraph( choice.getValue( ))) {
+					this.tabPane.addTab( cadp.getTitle( ), cadp );
+				}
 			}
 
 		} else if ( item == this.exitFileMenuItem ) {

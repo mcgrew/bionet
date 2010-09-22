@@ -35,6 +35,7 @@
 <entry key="Color">Color</entry>
 <entry key="Normal Color">Normal Color</entry>
 <entry key="High Contrast Color">High Contrast Color</entry>
+<entry key="All Experiments">All Experiments</entry>
 
 <!-- various dialog strings -->
 <entry key="Experiment Selection">Experiment Selection</entry>
@@ -81,4 +82,5 @@
 <entry key="Usage">Usage</entry>
 <entry key="These files do not appear to contain any data!">These files do not appear to contain any data!</entry>
 <entry key="You must select at least one item">You must select at least one item</entry>
+<entry key="Unrecognized object in tree">Unrecognized object in tree</entry>
 </properties>

@@ -50,7 +50,7 @@ import edu.uci.ics.jung.algorithms.layout.*;
  * A {@code Layout} implementation that positions vertices equally spaced on a regular circle.
  *
  */
-public class MultipleCirclesLayout<V, E> extends AbstractLayout<V,E> {
+public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 
 	private double radius;
 	
@@ -89,7 +89,7 @@ public class MultipleCirclesLayout<V, E> extends AbstractLayout<V,E> {
 	public void initialize() {
 
 		Dimension d = this.getSize();
-		HashMap <String,ArrayList<V>> groups = new HashMap<String,ArrayList<V>>( );
+		HashMap <String,List<V>> groups = new HashMap<String,List<V>>( );
 		
 		if (d != null) {
 			double height = d.getHeight();
@@ -112,7 +112,7 @@ public class MultipleCirclesLayout<V, E> extends AbstractLayout<V,E> {
 			Point2D.Double graphCenter = new Point2D.Double( width/2.0, height/2.0 );
 			PolarPoint2D center = new PolarPoint2D( 0, 0, graphCenter );
 			PolarPoint2D coord = new PolarPoint2D( 0, 0, center );
-			ArrayList<V> group;
+			List<V> group;
 			double theta;
 
 			for ( String key : groups.keySet( )) {

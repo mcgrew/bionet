@@ -87,7 +87,6 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 		this.visualizationTypeSelection = new ButtonGroup( );
 		this.instructionLabel = new JLabel( chooseText );
 		this.experimentList = new JList( experiments.toArray( new Object[ experiments.size( )]));
-		this.experimentList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 
 		this.okButton.addActionListener( this );
 		this.cancelButton.addActionListener( this );
@@ -107,7 +106,6 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 		this.visualizationTypeSelection.add( this.comparativeAnalysisButton );
 		this.visualizationTypeSelection.add( this.timeCourseStudyButton );
 		this.correlationButton.setSelected( true );
-		this.comparativeAnalysisButton.setEnabled( false );
 		this.timeCourseStudyButton.setEnabled( false );
 
 		this.setVisible( true );
@@ -117,6 +115,7 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 		this.okButton.setBounds( 30, 130, 100, 20 );
 		this.cancelButton.setBounds( 170, 130, 100, 20 );
 		this.experimentList.setBounds( 30, 40, 240, 80 );
+		this.experimentList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 
 		this.correlationButton.setBounds( 290, 40, 200, 20 );
 		this.comparativeAnalysisButton.setBounds( 290, 70, 200, 20 );

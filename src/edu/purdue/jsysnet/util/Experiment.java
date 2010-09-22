@@ -19,8 +19,11 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet.util;
 
+import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Collection;
 import java.util.Arrays;
 import java.util.ListIterator;
 
@@ -33,8 +36,8 @@ public class Experiment {
 
 	private HashMap <String,String> attributes;
 	private HashMap <String,MoleculeGroup> moleculeGroups;
-	private ArrayList <Molecule> molecules;
-	private ArrayList <Correlation> correlations;
+	private List <Molecule> molecules;
+	private List <Correlation> correlations;
 
 	/**
 	 * Constructor.
@@ -51,9 +54,9 @@ public class Experiment {
 	/**
 	 * Gets the molecules associated with this Experiment.
 	 * 
-	 * @return An ArrayList of Molecules.
+	 * @return A List of Molecules.
 	 */
-	public ArrayList <Molecule> getMolecules( ) {
+	public List <Molecule> getMolecules( ) {
 		return this.molecules;
 	}
 
@@ -88,11 +91,20 @@ public class Experiment {
 	/**
 	 * The MoleculeGroups for this experiement.
 	 * 
-	 * @return A HashMap containing the MoleculeGroups in this Experiment,
+	 * @return A Map containing the MoleculeGroups in this Experiment,
 	 *	indexed by group name.
 	 */
-	public HashMap <String,MoleculeGroup> getMoleculeGroups( ) {
+	public Map <String,MoleculeGroup> getMoleculeGroupMap( ) {
 		return this.moleculeGroups;
+	}
+
+	/**
+	 * The MoleculeGroups for this experiement.
+	 * 
+	 * @return A Collection containing the MoleculeGroups in this Experiment.
+	 */
+	public Collection <MoleculeGroup> getMoleculeGroups( ) {
+		return this.moleculeGroups.values( );
 	}
 
 	/**
@@ -158,9 +170,9 @@ public class Experiment {
 	/**
 	 * Gets all Molecule Correlations present in this experiment. 
 	 * 
-	 * @return An ArrayList containing all of the Correlations.
+	 * @return A List containing all of the Correlations.
 	 */
-	public ArrayList <Correlation> getCorrelations( ) {
+	public List <Correlation> getCorrelations( ) {
 		return this.correlations;
 	}
 

@@ -19,6 +19,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet.util;
 
+import java.util.List;
 import java.util.ArrayList;
 
 /**
@@ -30,7 +31,7 @@ import java.util.ArrayList;
 public class MoleculeGroup {
 
 	private String name;
-	private ArrayList <Molecule> molecules;
+	private List <Molecule> molecules;
 
 	/**
 	 * Constructor.
@@ -54,10 +55,24 @@ public class MoleculeGroup {
 	/**
 	 * Gets all of the Molecules in this group.
 	 * 
-	 * @return An ArrayList containing all of the molecules.
+	 * @return A List containing all of the molecules.
 	 */
-	public ArrayList <Molecule> getMolecules( ) {
+	public List <Molecule> getMolecules( ) {
 		return this.molecules;
+	}
+
+	/**
+	 * Gets a molecule by its id attribute.
+	 * 
+	 * @param id The id of the Molecule to be retrieved.
+	 * @return The requested Molecule.
+	 */
+	public Molecule getMolecule( String id ) {
+		for ( Molecule m : molecules ) {
+			if ( id.equals( m.getAttribute( "id" )))
+				return m;
+		}
+		return null;
 	}
 
 	/**
@@ -75,6 +90,15 @@ public class MoleculeGroup {
 	 * @return A String containing the name of this group.
 	 */
 	public String getName( ) {
+		return this.name;
+	}
+
+	/**
+	 * Gets the name for this group.
+	 * 
+	 * @return A String containing the name of this group.
+	 */
+	public String toString( ) {
 		return this.name;
 	}
 

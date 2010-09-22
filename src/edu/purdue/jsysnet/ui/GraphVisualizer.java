@@ -33,6 +33,8 @@ import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.ComponentEvent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.InputEvent;
@@ -68,7 +70,7 @@ import org.apache.commons.collections15.CollectionUtils;
 /**
  * A class for visualizing a network graph. 
  */
-	public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, MouseListener, Scalable {
+	public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, MouseListener, Scalable, ComponentListener {
 	protected Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
@@ -95,6 +97,7 @@ import org.apache.commons.collections15.CollectionUtils;
 	protected Paint commonNeighborPaint = new Color( 1.0f, 0.3f, 0.3f );
 	protected boolean commonNeighborIndicator;
 	protected NeighborCollection<V,E> commonNeighbors;
+	protected boolean layoutInitialized = false;
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -220,6 +223,7 @@ import org.apache.commons.collections15.CollectionUtils;
 		this.getPickedVertexState( ).addItemListener( this );
 		this.getPickedEdgeState( ).addItemListener( this );
 		this.addMouseListener( this );
+		this.addComponentListener( this );
 
 		// set up coloring
 		Transformer v = new Transformer<V,Paint>( ) {
@@ -903,6 +907,18 @@ import org.apache.commons.collections15.CollectionUtils;
 			return null;
 		}
 	}
+
+	// ComponentListener interface methods
+	public void componentHidden( ComponentEvent e ) { }
+	public void componentMoved( ComponentEvent e ) { }
+	public void componentResized( ComponentEvent e ){ 
+		if ( !this.layoutInitialized ) {
+			this.getGraphLayout( ).getSize( ).setSize( this.getScrollPane( ).getSize( ));
+			this.getGraphLayout( ).reset( );
+			this.layoutInitialized = true;
+		}
+	}
+	public void componentShown( ComponentEvent e ) { }
 
 	// Graph interface Methods
 	public boolean addEdge( E e, V v1, V v2 ) {
