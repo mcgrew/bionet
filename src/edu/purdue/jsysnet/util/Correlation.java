@@ -255,7 +255,7 @@ public class Correlation {
 	 * @return    The Pearson correlation value. 
 	 */
 	public static double getPearsonCorrelation( Molecule molecule0, Molecule molecule1 ) {
-		return Statistics.getPearsonCorrelation( molecule0.getSamples( ), molecule1.getSamples( ));
+		return Statistics.getPearsonCorrelation( molecule0.getSamples( ).asDoubleArray( ), molecule1.getSamples( ).asDoubleArray( ));
 	}
 
 	/**
@@ -289,7 +289,7 @@ public class Correlation {
 	 * @return       The Spearman correlation value.
 	 */
 	public static double getSpearmanCorrelation( Molecule molecule0, Molecule molecule1 ) {
-		return Statistics.getSpearmanCorrelation( molecule0.getSamples( ), molecule1.getSamples( ));
+		return Statistics.getSpearmanCorrelation( molecule0.getSamples( ).asDoubleArray( ), molecule1.getSamples( ).asDoubleArray( ));
 	}
 
 	/**
@@ -323,7 +323,7 @@ public class Correlation {
 	 * @return The Kendall tau correlation value.
 	 */
 	public static double getKendallCorrelation( Molecule molecule0, Molecule molecule1 ) {
-		return Statistics.getKendallCorrelation( molecule0.getSamples( ), molecule1.getSamples( ));
+		return Statistics.getKendallCorrelation( molecule0.getSamples( ).asDoubleArray( ), molecule1.getSamples( ).asDoubleArray( ));
 	}
 	
 	/**

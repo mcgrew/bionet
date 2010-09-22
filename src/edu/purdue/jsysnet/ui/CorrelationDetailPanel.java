@@ -62,8 +62,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	private JTable molecule1Table;
 	JButton molecule0Button = new JButton( "Show Correlated" );
 	JButton molecule1Button = new JButton( "Show Correlated" );
-	List molecule0Samples;
-	List molecule1Samples;
+	List <Number> molecule0Samples;
+	List <Number> molecule1Samples;
 
 	/**
 	 * Constructs a new CorrelationDetailPanel
@@ -145,14 +145,14 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		 */
 		public ScatterPlot ( Molecule [] molecules ) {
 			super( );
-			List <Double> mol0Samples = molecules[ 0 ].getSamples( );
-			List <Double> mol1Samples = molecules[ 1 ].getSamples( );
+			List <Number> mol0Samples = molecules[ 0 ].getSamples( );
+			List <Number> mol1Samples = molecules[ 1 ].getSamples( );
 			XYSeries data = new XYSeries( "Sample Data" );
-			Iterator <Double> mol0Iterator = mol0Samples.iterator( );
-			Iterator <Double> mol1Iterator = mol1Samples.iterator( );
+			Iterator <Number> mol0Iterator = mol0Samples.iterator( );
+			Iterator <Number> mol1Iterator = mol1Samples.iterator( );
 			while ( mol0Iterator.hasNext( )) {
-				data.add( mol0Iterator.next( ).doubleValue( ),
-				          mol1Iterator.next( ).doubleValue( ));
+				data.add( mol0Iterator.next( ),
+				          mol1Iterator.next( ));
 			}
 			XYSeriesCollection dataset = new XYSeriesCollection( );
 			dataset.addSeries( data );

@@ -18,7 +18,6 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 */
 package edu.purdue.jsysnet.util;
 
-import java.util.List;
 import java.util.Arrays;
 
 /**
@@ -55,25 +54,25 @@ public class Statistics {
 	 * @param y The second set of values to use for the calculation.
 	 * @return    The Pearson correlation value. 
 	 */
-	public static double getPearsonCorrelation( List<Double> x, List<Double> y ) {
-		if ( x.size( ) != y.size( ))
+	public static double getPearsonCorrelation( double[] x, double[] y ) {
+		if ( x.length != y.length )
 			return Double.NaN;
 
 		double Sx=0, Sy=0, meanX=0, meanY=0, thisX, thisY, numerator=0;
 		double sumX=0, sumY=0, sumXSq=0, sumYSq=0;
 
-		for( Double currentX : x ){
-			meanX += currentX.doubleValue( );
+		for( double currentX : x ){
+			meanX += currentX;
 		}
-		for ( Double currentY : y ) {
-			meanY += currentY.doubleValue( );
+		for ( double currentY : y ) {
+			meanY += currentY;
 		}
-		int n = x.size( );
+		int n = x.length;
 		meanX /= n;
 		meanY /= n;
 		for( int i=0; i < n; i++ ) {
-			thisX = x.get( i ).doubleValue( );
-			thisY = y.get( i ).doubleValue( );
+			thisX = x[ i ];
+			thisY = y[ i ];
 			numerator += ( thisX - meanX ) * ( thisY - meanY );
 			sumX   += thisX;
 			sumY   += thisY;
@@ -112,11 +111,11 @@ public class Statistics {
 	 * @param y The second set of data to use for the calculation.
 	 * @return       The Spearman correlation value.
 	 */
-	public static double getSpearmanCorrelation( List<Double> x, List<Double> y ){
-		if ( x.size( ) != y.size( ) )
+	public static double getSpearmanCorrelation( double[] x, double[] y ){
+		if ( x.length != y.length )
 			return Double.NaN;
 
-		int n = x.size( );
+		int n = x.length;
 		double [] Rx = getRank( x );
 		double [] Ry = getRank( y );
 
@@ -157,8 +156,11 @@ public class Statistics {
 	 * @param y The second set of data to use for the calculation.
 	 * @return The Kendall tau correlation value.
 	 */
-	public static double getKendallCorrelation( List<Double> x, List<Double> y ) {
-		int n = x.size( );
+	public static double getKendallCorrelation( double[] x, double[] y ) {
+		if ( x.length != y.length )
+			return Double.NaN;
+
+		int n = x.length;
 		double [] Rx = getRank( x );
 		double [] Ry = getRank( y );
 
@@ -194,12 +196,12 @@ public class Statistics {
 	 * @param list The arrayList to get the rank of.
 	 * @return An array containing the rank order of each element.
 	 */
-	public static double [] getRank( List<Double> list ) {
-		int size = list.size( );
+	public static double [] getRank( double[] list ) {
+		int size = list.length;
 		double [] returnValue = new double[ size ];
 		RankTriplet [] rankedArray = new RankTriplet[size];
 		int i=0;
-		for ( Double d : list ) {
+		for ( double d : list ) {
 			rankedArray[ i ] = new RankTriplet( d, i++ );
 		}
 		Arrays.sort( rankedArray );
@@ -230,7 +232,7 @@ public class Statistics {
 	}
 
 	/**
-	 * A class for holding a value along with it's original order and rank
+	 * A class for holding a value along with its original order and rank
 	 */
 	private static class RankTriplet implements Comparable<RankTriplet> {
 		public double value;
@@ -264,6 +266,64 @@ public class Statistics {
 		}
 	}
 
+	/**
+	 * Returns the standard deviation of a set of values.
+	 * 
+	 * @param values The set to find the standard deviation of.
+	 * @return The standard deviation as a double.
+	 */
+	public double standardDeviation( double [] values ) {
+		double sum = 0, sumSq = 0;
+		for ( double d : values ) {
+			sum += d;
+			sumSq += d*d;
+		}
+		return Math.sqrt(( sumSq - sum * sum / values.length ) / ( values.length - 1 ));
+	}
+
+	/**
+	 * Finds the median of a set of values.
+	 * 
+	 * @param values The values to find the median of.
+	 * @return The median of those values.
+	 */
+	public double median( double [] values ) {
+		double [] sorted = Arrays.copyOf( values, values.length );
+		Arrays.sort( sorted );
+		if (( values.length & 1 ) == 0 ) {
+			return ( values[ values.length / 2 ] + values[ values.length / 2 + 1 ]) / 2;
+		} else {
+			return values[ values.length / 2 ];
+		}
+	}
+
+	/**
+	 * Finds the mean of a set of values.
+	 * 
+	 * @param values The set of values.
+	 * @return The mean of those values.
+	 */
+	public double mean( double [] values ) {
+		double sum = 0.0;
+		for ( double d : values ) {
+			sum += d;
+		}
+		return sum / values.length;
+	}
+
+	/**
+	 * Finds the sum of a set of values.
+	 * 
+	 * @param values The set of values.
+	 * @return The sum of those values.
+	 */
+	public double sum( double [] values ) {
+		double sum = 0.0;
+		for ( double d : values ) {
+			sum += d;
+		}
+		return sum;
+	}
 
 }
 

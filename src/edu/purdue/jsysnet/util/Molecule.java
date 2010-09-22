@@ -34,6 +34,7 @@ public class Molecule {
 	protected HashMap <String,String> attributes;
 	protected ArrayList<Correlation> correlations;
 	protected Experiment experiment;
+	protected NumberList sampleValues;
 
 	/**
 	 * Constructor.
@@ -50,7 +51,9 @@ public class Molecule {
 	 * @param value The value for the Attribute. 
 	 */
 	public void setAttribute( String attribute, String value ) {
-		// to do: fix this so it checks for an attribute before adding it.
+		// if this may be a new Sample, clear the cache.
+		if ( value.startsWith( "S" ))
+			this.sampleValues = null;
 		this.attributes.put( attribute.toLowerCase( ).trim( ), value );
 	}
 
@@ -157,13 +160,15 @@ public class Molecule {
 	 * 
 	 * @return An ArrayList containing a Double for each sample value
 	 */
-	public ArrayList<Double> getSamples( ){
-		int count=1;
-		ArrayList <Double> returnValue = new ArrayList( );
-		String current;
-		while (( current = this.getAttribute( "S" + count++ )) != null )
-			returnValue.add( new Double( current )); 
-		return returnValue;
+	public NumberList getSamples( ){
+		if ( this.sampleValues == null ) {
+			int count=1;
+			this.sampleValues = new NumberList( );
+			String current;
+			while (( current = this.getAttribute( "S" + count++ )) != null )
+				sampleValues.add( new Double( current )); 
+		}
+		return sampleValues;
 	}
 
 	/**
