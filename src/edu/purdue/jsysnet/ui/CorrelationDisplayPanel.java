@@ -131,8 +131,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	// layout menu itmes
 	private JMenu layoutMenu = new JMenu( "Layout" );
 	private ButtonGroup layoutMenuButtonGroup = new ButtonGroup( );
-	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem = new JRadioButtonMenuItem( "Multiple Circles" );
-	private JRadioButtonMenuItem singleCircleLayoutMenuItem = new JRadioButtonMenuItem( "Single Circle", true );
+	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem = new JRadioButtonMenuItem( "Multiple Circles", true );
+	private JRadioButtonMenuItem singleCircleLayoutMenuItem = new JRadioButtonMenuItem( "Single Circle" );
 	private JRadioButtonMenuItem randomLayoutMenuItem = new JRadioButtonMenuItem( "Random" );
 	private JRadioButtonMenuItem heatMapLayoutMenuItem = new JRadioButtonMenuItem( "Heat Map" );
 	private JRadioButtonMenuItem kkLayoutMenuItem = new JRadioButtonMenuItem( "Kamada-Kawai" );
@@ -319,6 +319,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			KeyStroke.getKeyStroke( KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK ));
 		this.fitToWindowViewMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK ));
+		this.hideSelectedViewMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_DELETE, 0 ));
 
 		//COLOR MENU
 		this.colorMenu.setMnemonic( KeyEvent.VK_R );
@@ -393,7 +395,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.graphSplitPane.setDividerLocation( 
 			Settings.getSettings( ).getInt( "windowHeight" ) - 400 );
 		this.setGraphVisualizer( this.graph );
-		this.setGraphLayout( CircleLayout.class );
+		this.setGraphLayout( MultipleCirclesLayout.class );
 
 		this.heatMapPanel = new HeatMap( this.getTitle( ), this.graph.getVertices( ), this.getCorrelationRange( ));
 		this.graph.addVertexChangeListener( this.heatMapPanel );

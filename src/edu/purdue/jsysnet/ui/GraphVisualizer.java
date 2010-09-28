@@ -70,14 +70,14 @@ import org.apache.commons.collections15.CollectionUtils;
 /**
  * A class for visualizing a network graph. 
  */
-	public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, MouseListener, Scalable, ComponentListener {
+	public class GraphVisualizer<V,E> extends VisualizationViewer<V,E> implements Graph<V,E>,ItemListener, MouseListener, Scalable {
 	protected Graph<V,E> graph = new UndirectedSparseGraph<V,E>( );
 	private LayoutAnimator layoutAnimator;
 	private Thread AnimThread;
 	private AbsoluteCrossoverScalingControl absoluteViewScaler = 
 		new AbsoluteCrossoverScalingControl( );
 	protected JScrollPane scrollPane;
-	private float currentZoom = 1.0f;
+	private float currentZoom = 0.99f;
 	private static float minimumZoom = 0.99f;
 	private DijkstraShortestPath<V,E> dijkstra;
 
@@ -97,7 +97,6 @@ import org.apache.commons.collections15.CollectionUtils;
 	protected Paint commonNeighborPaint = new Color( 1.0f, 0.3f, 0.3f );
 	protected boolean commonNeighborIndicator;
 	protected NeighborCollection<V,E> commonNeighbors;
-	protected boolean layoutInitialized = false;
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -223,7 +222,7 @@ import org.apache.commons.collections15.CollectionUtils;
 		this.getPickedVertexState( ).addItemListener( this );
 		this.getPickedEdgeState( ).addItemListener( this );
 		this.addMouseListener( this );
-		this.addComponentListener( this );
+		this.addComponentListener( new LayoutScaler( ));
 
 		// set up coloring
 		Transformer v = new Transformer<V,Paint>( ) {
@@ -420,7 +419,7 @@ import org.apache.commons.collections15.CollectionUtils;
 			(int)( viewSize.height * currentZoom ));
 		this.setPreferredSize( newSize );
 		this.setSize( newSize );
-		new LayoutScaler( this.getGraphLayout( )).setSize( newSize );
+//		new LayoutScaler( this.getGraphLayout( )).setSize( newSize );
 		if ( Float.compare( level, 1.0f ) <= 0 )
 			this.center( );
 
@@ -445,20 +444,18 @@ import org.apache.commons.collections15.CollectionUtils;
 	/**
 	 * A class for scaling a Layout externally.
 	 */
-	private class LayoutScaler {
+	private class LayoutScaler implements ComponentListener {
 		private AbstractLayout<V,E> layout;
 		private ObservableCachingLayout<V,E> observableLayout;
+		private int layoutInitialized = 0;
 
 		/**
 		 * Creates a new LayoutScaler
 		 * 
 		 * @param layout The layout to be manipulated.
 		 */
-		public LayoutScaler( Layout layout ) {
-			this.observableLayout = (ObservableCachingLayout)layout;
-			while ( !AbstractLayout.class.isAssignableFrom( layout.getClass( ))) 
-				layout = ((LayoutDecorator<V,E>)layout).getDelegate( );
-			this.layout = ( AbstractLayout )layout;
+		public LayoutScaler( ) {
+			super( );
 		}
 
 		/**
@@ -467,23 +464,53 @@ import org.apache.commons.collections15.CollectionUtils;
 		 * @param size The new size for the layout.
 		 */
 		private void setSize( Dimension size ) {
+			ObservableCachingLayout<V,E> observableLayout = (ObservableCachingLayout)getGraphLayout( );
+			Layout<V,E> tmpLayout = observableLayout;
+			while ( !AbstractLayout.class.isAssignableFrom( tmpLayout.getClass( ))) 
+				tmpLayout = ((LayoutDecorator<V,E>)tmpLayout).getDelegate( );
+			AbstractLayout<V,E> layout = (AbstractLayout<V,E>)tmpLayout;
+			
+			// the first time the graph is resized, re-initialize the layout to make sure it gets
+			// the right size.  Any other time, just scale it. The first resize should be when the 
+			// graph is made visible and laid out.
+			// this is kind of a hack; there may be a better way to handle this.
+			// I tried listening for componentShown, but it didn't work properly.
+			if ( layoutInitialized < 1 ) {
+				layout.getSize( ).setSize( size );
+				layout.initialize( );
+				layoutInitialized++;
+				return;
+			}
+
 			// change the size of the layout without triggering the automatic resizing.
-			double wScale = size.getWidth( ) / this.layout.getSize( ).getWidth( );
-			double hScale = size.getHeight( ) / this.layout.getSize( ).getHeight( );
-			this.layout.getSize( ).setSize( size );
-			Collection<V> vertices = new Vector( this.layout.getGraph( ).getVertices( ));
+			double wScale = size.getWidth( ) / layout.getSize( ).getWidth( );
+			double hScale = size.getHeight( ) / layout.getSize( ).getHeight( );
+			double scale = Math.min( wScale, hScale );
+			layout.getSize( ).setSize( size );
+			Collection<V> vertices = new Vector( getVertices( ));
 			synchronized( graph ) {
 				for ( V v : vertices ) {
-					this.layout.setLocation( v, new Point2D.Double( 
-						this.layout.getX( v ) * wScale,
-						this.layout.getY( v ) * hScale ));
+					double x = layout.getX( v ) * scale; //Math.min( size.getWidth( ) - 10, Math.max( 10, layout.getX( v ) * scale ));
+					double y = layout.getY( v ) * scale; //Math.min( size.getHeight( ) - 10, Math.max( 10, layout.getY( v ) * scale ));
+					layout.setLocation( v, new Point2D.Double( x, y ));
 				}
 			}
 			// alert the ObservableLayout that things have changed.
-			this.observableLayout.fireStateChanged( );
+			observableLayout.fireStateChanged( );
 		}
 
-	}
+		// ComponentListener interface methods
+		public void componentHidden( ComponentEvent e ) { }
+		public void componentMoved( ComponentEvent e ) { }
+		public void componentResized( ComponentEvent e ){ 
+			Dimension newSize = ((Scalable)e.getComponent( )).getScrollPane( ).getSize( );
+			newSize.width *= currentZoom;
+			newSize.height *= currentZoom;
+			this.setSize( newSize );
+		}
+		public void componentShown( ComponentEvent e ) { 
+		}
+		}
 
 	/**
 	 * Centers the graph in the display.
@@ -908,17 +935,6 @@ import org.apache.commons.collections15.CollectionUtils;
 		}
 	}
 
-	// ComponentListener interface methods
-	public void componentHidden( ComponentEvent e ) { }
-	public void componentMoved( ComponentEvent e ) { }
-	public void componentResized( ComponentEvent e ){ 
-		if ( !this.layoutInitialized ) {
-			this.getGraphLayout( ).getSize( ).setSize( this.getScrollPane( ).getSize( ));
-			this.getGraphLayout( ).reset( );
-			this.layoutInitialized = true;
-		}
-	}
-	public void componentShown( ComponentEvent e ) { }
 
 	// Graph interface Methods
 	public boolean addEdge( E e, V v1, V v2 ) {
