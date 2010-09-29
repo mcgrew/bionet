@@ -29,8 +29,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 import java.text.DecimalFormat;
+import javax.swing.JPanel;
 
-public class SpectrumLegend {
+public class SpectrumLegend extends JPanel {
 	private Spectrum spectrum;
 	private Range range;
 	private int scaleSpace = 13;
@@ -45,8 +46,14 @@ public class SpectrumLegend {
 	 * @param range The range of values to show on the legend.
 	 */
 	public SpectrumLegend ( Spectrum spectrum, Range range ) {
+		super( );
 		this.spectrum = spectrum;
 		this.range = range;
+	}
+
+	protected void paintComponent( Graphics g ) {
+		super.paintComponent( g );
+		stamp( g, new Rectangle( 0, 0, this.getWidth( ), this.getHeight( )));
 	}
 
 	/**
@@ -117,5 +124,14 @@ public class SpectrumLegend {
 
 	public int getTickSpacing( ) {
 		return this.tickSpacing;
+	}
+
+	public void setBounds( Rectangle rect ) {
+		Graphics g = this.getGraphics( );
+		if ( g != null ) {
+			g.setColor( this.getParent( ).getBackground( ));
+			g.fillRect( 0, 0, this.getWidth( ), this.getHeight( ));
+		}
+		super.setBounds( rect );
 	}
 }

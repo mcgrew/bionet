@@ -41,6 +41,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.JScrollPane;
@@ -48,7 +50,7 @@ import javax.swing.JScrollPane;
 /**
  * A class for displaying a JUNG graph tailored for JSysNet
  */
-public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,GraphMouseListener<Correlation> {
+public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,GraphMouseListener<Correlation>, ComponentListener {
 	public MonitorableRange range;
 	public Experiment experiment;
 	protected Spectrum spectrum;
@@ -65,10 +67,13 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		this.setRange( range );
 		this.setExperiment( experiment );
 		this.addGraphMouseEdgeListener( this );
+		this.addComponentListener( this );
 
 		this.spectrum = new SplitSpectrum( range );
 		this.spectrum.setOutOfRangePaint( Color.WHITE );
 		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
+		this.setLayout( null );
+		this.add( this.spectrumLegend );
 		Transformer e = new Transformer<Correlation,Paint>( ) {
 			public Paint transform( Correlation e ) {
 				if ( getPickedEdgeState( ).isPicked( e )) {
@@ -231,22 +236,6 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 	 */
 	public void paintComponent( Graphics g ) {
 		super.paintComponent( g );
-		int h, w;
-		if ( this.scrollPane  != null ) {
-			Rectangle view = this.scrollPane.getViewport( ).getViewRect( );
-			w = view.x;
-			h = view.y + view.height;
-		} else {
-			w = 0;
-			h = this.getHeight( );
-		}
-		Rectangle legendArea = new Rectangle( 
-			w + 20,
-			h - 35,
-			150,
-			20
-		);
-		spectrumLegend.stamp( g, legendArea );
 	}
 	
 	/**
@@ -265,5 +254,25 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 	 */
 	public void graphReleased( Correlation edge, MouseEvent event ) { }
 
+	// ComponentListener Methods
+	public void componentHidden( ComponentEvent e ) { }
+	public void componentMoved( ComponentEvent e ) {
+		int h, w;
+		if ( this.scrollPane != null ) {
+			Rectangle view = this.scrollPane.getViewport( ).getViewRect( );
+			w = view.x;
+			h = view.y + view.height;
+		} else {
+			w = 0;
+			h = this.getHeight( );
+		}
+		Rectangle legendArea = new Rectangle( w + 20, h - 35, 150, 20);
+		this.spectrumLegend.setBounds( legendArea );
+		this.spectrumLegend.repaint( );
+	}
+	public void componentResized( ComponentEvent e ) { 
+		componentMoved( e );
+	}
+	public void componentShown( ComponentEvent e ) { }
 
 }

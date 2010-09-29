@@ -37,6 +37,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.ComponentEvent;
 import javax.swing.JPanel;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
@@ -60,7 +62,7 @@ import org.jfree.chart.axis.AxisState;
 
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 
-public class HeatMap extends JPanel implements MouseListener, GraphMouseListener<Correlation>, ChangeListener, GraphItemChangeListener<Molecule>, Scalable, MouseWheelListener {
+public class HeatMap extends JPanel implements MouseListener, GraphMouseListener<Correlation>, ChangeListener, GraphItemChangeListener<Molecule>, Scalable, MouseWheelListener, ComponentListener {
 	private List <Molecule> moleculeList;
 	private int tickSize = 0;
 	private ArrayList<GraphMouseListener> graphMouseListeners = 
@@ -86,10 +88,13 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 		this.addMouseListener( this );
 		this.addMouseWheelListener( this );
 		this.addGraphMouseListener( this );
+		this.addComponentListener( this );
 		this.moleculeList = new Vector( molecules );
 		this.spectrum = new SplitSpectrum( range, this.getBackground( ));
 		this.spectrum.setOutOfRangePaint( Color.WHITE );
 		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
+		this.setLayout( null );
+		this.add( this.spectrumLegend );
 	}
 
 	private DefaultHeatMapDataset getDataset( ) {
@@ -241,7 +246,7 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 				int tickX = (int)( leftEdge + i * tickStep );
 				g.drawLine( tickX, topEdge, tickX, xAxisPos + tickSize );
 			}
-			// clockwise 90 degrees
+			// transform clockwise 90 degrees for the vertical text
 			AffineTransform at = new AffineTransform();
 			at.quadrantRotate( 3 );
 			Graphics2D g2d = (Graphics2D)g.create( );
@@ -255,26 +260,6 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 				);
 			}
 		}
-
-		// place a legend
-		int h, w;
-		if ( this.scrollPane  != null ) {
-			Rectangle view = this.scrollPane.getViewport( ).getViewRect( );
-			w = view.x;
-			h = view.y + view.height;
-		} else {
-			w = 0;
-			h = this.getHeight( );
-		}
-		
-		Rectangle legendRect = new Rectangle( 
-			w + 20,
-			h - 35,
-			150,
-			20
-		);
-		spectrumLegend.stamp( g, legendRect );
-
 	}
 
 	/**
@@ -410,6 +395,35 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	public void mouseWheelMoved( MouseWheelEvent e ) {
 		this.scale((float)Math.pow( 1.25, -e.getWheelRotation( )), e.getPoint( ));
 	}
+
+	public void componentHidden( ComponentEvent e ) { }
+	public void componentMoved( ComponentEvent e ) {
+		// place the legend
+		int h, w;
+		if ( this.scrollPane  != null ) {
+			Rectangle view = this.scrollPane.getViewport( ).getViewRect( );
+			w = view.x;
+			h = view.y + view.height;
+		} else {
+			w = 0;
+			h = this.getHeight( );
+		}
+		
+		Rectangle legendRect = new Rectangle( 
+			w + 20,
+			h - 35,
+			150,
+			20
+		);
+		this.spectrumLegend.setBounds( legendRect );
+		this.spectrumLegend.repaint( );
+	}
+
+	public void componentResized( ComponentEvent e ) { 
+		componentMoved( e );
+	}
+
+	public void componentShown( ComponentEvent e ) { }
 
 }
 
