@@ -77,8 +77,8 @@ import org.apache.commons.collections15.CollectionUtils;
 	private AbsoluteCrossoverScalingControl absoluteViewScaler = 
 		new AbsoluteCrossoverScalingControl( );
 	protected JScrollPane scrollPane;
-	private float currentZoom = 0.99f;
-	private static float minimumZoom = 0.99f;
+	protected float currentZoom = 0.99f;
+	protected static float minimumZoom = 0.99f;
 	private DijkstraShortestPath<V,E> dijkstra;
 
 	private LinkedList <PickedStateChangeListener<V>> pickedVertexStateChangeListeners =

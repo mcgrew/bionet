@@ -29,7 +29,7 @@ import java.util.Arrays;
  * @author Thomas McGrew
  * @version 1.0
  */
-public class Molecule {
+public class Molecule implements Comparable<Molecule> {
 	
 	protected HashMap <String,String> attributes;
 	protected ArrayList<Correlation> correlations;
@@ -209,6 +209,20 @@ public class Molecule {
 	}
 
 	/**
+	 * Returns the MoleculeGroup this Molecule belongs to.
+	 * 
+	 * @return The MoleculeGroup which contains this Molecule, or null if no
+	 *	such group exists.
+	 */
+	public MoleculeGroup getMoleculeGroup( ) {
+		for ( MoleculeGroup m : this.experiment.getMoleculeGroups( )) {
+			if ( m.contains( this ))
+				return m;
+		}
+		return null;
+	}
+
+	/**
 	 * Adds a Correlation to this Molecule
 	 * 
 	 * @param correlation The new correlation to add to this Molecule.
@@ -274,6 +288,23 @@ public class Molecule {
 
 	public String toString( ) {
 		return this.getAttribute( "id" );
+	}
+
+	public int compareTo( Molecule m ) {
+		int returnValue = 0;
+		if ( returnValue == 0 ) {
+			returnValue = this.getMoleculeGroup( ).compareTo( 
+				m.getMoleculeGroup( ));
+		}
+		if ( returnValue == 0 ) {
+			returnValue = this.getAttribute( "id" ).compareTo( 
+				m.getAttribute( "id" ));
+		}
+		if ( returnValue == 0 ) {
+			returnValue = this.getExperiment( ).compareTo( 
+					m.getExperiment( ));
+		}
+		return returnValue;
 	}
 		
 

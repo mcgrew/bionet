@@ -28,10 +28,9 @@ import java.util.ArrayList;
  * @author Thomas McGrew
  * @version 1.0
  */
-public class MoleculeGroup {
+public class MoleculeGroup extends ArrayList<Molecule> implements Comparable<MoleculeGroup> {
 
 	private String name;
-	private List <Molecule> molecules;
 
 	/**
 	 * Constructor.
@@ -40,25 +39,30 @@ public class MoleculeGroup {
 	 */
 	public MoleculeGroup( String name ) {
 		this.name = name;
-		this.molecules = new ArrayList <Molecule>( );
 	}
 
 	/**
 	 * Adds a Molecule to this MoleculeGroup.
 	 * 
 	 * @param molecule The molecule to be added.
+	 *
+	 * @deprecated This type now implements List&lt;Molecule&gt;. Use add( Molecule ) instead.
 	 */
+	@Deprecated
 	public void addMolecule( Molecule molecule ) {
-		this.molecules.add( molecule );
+		this.add( molecule );
 	}
 
 	/**
 	 * Gets all of the Molecules in this group.
 	 * 
 	 * @return A List containing all of the molecules.
+	 *
+	 * @deprecated This type now implements List, so this method simply returns itelf.
 	 */
+	@Deprecated
 	public List <Molecule> getMolecules( ) {
-		return this.molecules;
+		return this;
 	}
 
 	/**
@@ -68,7 +72,7 @@ public class MoleculeGroup {
 	 * @return The requested Molecule.
 	 */
 	public Molecule getMolecule( String id ) {
-		for ( Molecule m : molecules ) {
+		for ( Molecule m : this ) {
 			if ( id.equals( m.getAttribute( "id" )))
 				return m;
 		}
@@ -100,6 +104,18 @@ public class MoleculeGroup {
 	 */
 	public String toString( ) {
 		return this.name;
+	}
+
+	/**
+	 * The compareTo method of the Comparable interface.
+	 * @see java.lang.Comparable#compareTo(T)
+	 * 
+	 * @param mg Compares this object with the specified object for order. 
+	 * @return a negative integer, zero, or a positive integer as this MoleculeGroup is
+	 *	less than, equal to, or greater than the specified MoleculeGroup.
+	 */
+	public int compareTo( MoleculeGroup mg ) {
+		return this.getName( ).compareTo( mg.getName( ));
 	}
 
 }

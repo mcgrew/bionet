@@ -25,19 +25,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Collection;
 import java.util.Arrays;
-import java.util.ListIterator;
 
 /**
  * A class for holding data about a particular experiment.
  * 
  * @author Thomas McGrew
  */
-public class Experiment {
+public class Experiment implements Comparable<Experiment> {
 
 	private HashMap <String,String> attributes;
 	private HashMap <String,MoleculeGroup> moleculeGroups;
-	private List <Molecule> molecules;
-	private List <Correlation> correlations;
+	private Collection <Molecule> molecules;
+	private Collection <Correlation> correlations;
 
 	/**
 	 * Constructor.
@@ -54,9 +53,9 @@ public class Experiment {
 	/**
 	 * Gets the molecules associated with this Experiment.
 	 * 
-	 * @return A List of Molecules.
+	 * @return A Colelction of Molecules.
 	 */
-	public List <Molecule> getMolecules( ) {
+	public Collection <Molecule> getMolecules( ) {
 		return this.molecules;
 	}
 
@@ -71,9 +70,8 @@ public class Experiment {
 			this.addMoleculeGroup( group );
 		}
 		this.moleculeGroups.get( group ).addMolecule( molecule );
-		ListIterator <Molecule> iter = this.molecules.listIterator( );
-		while ( iter.hasNext( )) {
-			this.correlations.add( new Correlation( iter.next( ), molecule ));
+		for ( Molecule m : this.molecules ) {
+			this.correlations.add( new Correlation( m, molecule ));
 		}
 		this.molecules.add( molecule );
 	}
@@ -170,9 +168,9 @@ public class Experiment {
 	/**
 	 * Gets all Molecule Correlations present in this experiment. 
 	 * 
-	 * @return A List containing all of the Correlations.
+	 * @return A Collection containing all of the Correlations.
 	 */
-	public List <Correlation> getCorrelations( ) {
+	public Collection <Correlation> getCorrelations( ) {
 		return this.correlations;
 	}
 
@@ -185,6 +183,17 @@ public class Experiment {
 		return String.format( "%s - %s", 
 			this.getAttribute( "exp_id" ),
 			this.getAttribute( "description" ));
+	}
+
+	/**
+	 * The compareTo method of the Comparable interface.
+	 * 
+	 * @param The Experiment to compare this Experiment to
+	 * @return Negative if the
+	 */
+	public int compareTo( Experiment e ) {
+		return this.getAttribute( "exp_id" ).compareTo( 
+			e.getAttribute( "exp_id" ));
 	}
 
 }

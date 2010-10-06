@@ -23,24 +23,32 @@ package edu.purdue.jsysnet.ui.layout;
 import edu.purdue.jsysnet.util.PolarPoint2D;
 import edu.purdue.jsysnet.util.Experiment;
 import edu.purdue.jsysnet.util.Molecule;
+import edu.purdue.jsysnet.util.MoleculeGroup;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Vector;
+import java.util.ListIterator;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
+import java.awt.Shape;
 
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class ComparativeAnalysisLayout extends AbstractLayout<Molecule,Object> {
-
+	private List<Molecule> arcPath;
 	private double radius;
-	private List <Experiment> experiments;
+	private Collection <Experiment> experiments;
+	List<String> moleculeIds; 
 
 	/**
 	 * Creates an instance for the specified graph.
@@ -79,23 +87,24 @@ public class ComparativeAnalysisLayout extends AbstractLayout<Molecule,Object> {
 		Dimension d = this.getSize();
 		
 		if (d != null) {
-			for ( Object edge : new Vector<Object>( this.graph.getEdges( ))) {
-				this.graph.removeEdge( edge );
-			}
-			Collection <String> groups = new HashSet <String>( );
-			HashMap<String,Collection<String>> moleculeIds = 
+			arcPath = new ArrayList<Molecule>( );
+
+			// build a list of the valid MoleculeGroups and Molecule ids
+			Collection <String> groups = new TreeSet <String>( );
+			HashMap<String,Collection<String>> moleculeMap = 
 				new HashMap<String,Collection<String>>( );
-			Collection<Experiment> experiments = new HashSet<Experiment>( );
+			experiments = new TreeSet<Experiment>( );
 			double height = d.getHeight();
 			double width = d.getWidth();
+			// initialize the base radius if it isn't already set.
 			if ( Double.compare( this.radius, 0.0 ) <= 0 )
-				this.radius = Math.min( height, width ) * 0.2;
+				this.radius = Math.min( height, width ) * 0.4;
 
 			for ( Molecule m : this.getGraph( ).getVertices( )) {
 				groups.add(( m.getGroup( )));
-				if ( !moleculeIds.containsKey( m.getGroup( )))
-					moleculeIds.put( m.getGroup( ), new HashSet<String>( ));
-				moleculeIds.get( m.getGroup( )).add( m.getAttribute( "id" ));
+				if ( !moleculeMap.containsKey( m.getGroup( )))
+					moleculeMap.put( m.getGroup( ), new TreeSet<String>( ));
+				moleculeMap.get( m.getGroup( )).add( m.getAttribute( "id" ));
 				experiments.add( m.getExperiment( ));
 			}
 			
@@ -104,24 +113,24 @@ public class ComparativeAnalysisLayout extends AbstractLayout<Molecule,Object> {
 			Molecule vertex;
 			Point2D.Double center = new Point2D.Double( width/2.0, height/2.0 );
 			PolarPoint2D coord = new PolarPoint2D( 0, 0, center );
-			List<Molecule> group;
 			double theta;
 			double sectionTheta = ( 2 * Math.PI / groups.size( ));
-			for ( String key : groups ) {
-				Molecule [] last = new Molecule[ experiments.size( )];
+			this.arcPath = new ArrayList<Molecule>( );
+			for ( Experiment exp : experiments ) {
+				thisRadius = ( Math.min( height, width )) * ( 0.04 * i ) + this.radius;
 				j=0;
-				Collection<String> idList = moleculeIds.get( key );
-				for ( String id : idList ) {
-					theta = ( sectionTheta * i ) + ( sectionTheta * (j+1) /( idList.size( ) + 2 ));
+				for ( String key : groups ) {
 					k=0;
-					for ( Experiment exp : experiments ) {
-						if (( vertex = exp.getMoleculeGroup( key ).getMolecule( id )) != null ) {
-							thisRadius = ( Math.min( height, width )) * ( 0.075 * k ) + this.radius;
-							coord.setLocation( thisRadius, theta, PolarPoint2D.POLAR );
+					Collection<String> idList = moleculeMap.get( key );
+					for ( String id : idList ) {
+						theta = ( sectionTheta * j ) + ( sectionTheta * (k+1) /( idList.size( ) + 2 ));
+						MoleculeGroup mg = exp.getMoleculeGroup( key );
+						coord.setLocation( thisRadius, theta, PolarPoint2D.POLAR );
+						if (( vertex = mg.getMolecule( id )) != null ) {
 							this.setLocation( vertex, coord );
-							if ( last[ k ] != null )
-								this.graph.addEdge( new Object( ), last[k], vertex, EdgeType.UNDIRECTED );
-							last[ k ] = vertex;
+
+							// Add this vertex as the next in the arc trace.
+							arcPath.add( vertex );
 						}
 						k++;
 					}
@@ -129,6 +138,81 @@ public class ComparativeAnalysisLayout extends AbstractLayout<Molecule,Object> {
 				}
 				i++;
 			}
+		}
+	}
+
+	public PathIterator getLabelPath( ) {
+		Path2D labelPath = new Path2D.Double( );
+		Collection<String> ids = new TreeSet<String>( );
+		Dimension d = this.getSize( );
+		double width = d.getWidth( );
+		double height = d.getHeight( );
+		PolarPoint2D coords = new PolarPoint2D( 0, 0, width/2, height/2 );
+		Collection<Molecule> moleculeSet = new TreeSet<Molecule>( );
+		moleculeSet.addAll( this.getGraph( ).getVertices( ));
+		Collection<String> labelled = new HashSet<String>( );
+		boolean pathStarted = false;
+		for ( Molecule m : moleculeSet ) {
+			if ( labelled.add( m.getAttribute( "id" ))) {
+				coords.setLocation( locations.get( m ).getX( ), locations.get( m ).getY( ));
+				coords.setLocation( 
+					Math.min( width, height ) * ( 0.04 * this.experiments.size( ) - 0.02 ) + this.radius,
+					coords.theta, PolarPoint2D.POLAR );
+				if ( pathStarted ) {
+					labelPath.lineTo( coords.x, coords.y );
+				} else {
+					pathStarted = true;
+					labelPath.moveTo( coords.x, coords.y );
+				}
+			}
+		}
+		return labelPath.getPathIterator( null, Integer.MAX_VALUE );
+	}
+
+	public PathIterator getArcs( ) {
+		return new ArcIterator( );
+	}
+
+	private class ArcIterator implements PathIterator {
+		private ListIterator <Molecule> iterator;
+		private MoleculeGroup lastMoleculeGroup = null;
+		private Molecule currentMolecule = null;
+
+		public ArcIterator( ) {
+			this.iterator = arcPath.listIterator( );
+			if ( iterator.hasNext( ));
+				this.currentMolecule = this.iterator.next( );
+		}
+
+		public int currentSegment( double [] coords ) {
+			coords[0] = locations.get( this.currentMolecule ).getX( );
+			coords[1] = locations.get( this.currentMolecule ).getY( );
+			if ( this.lastMoleculeGroup == this.currentMolecule.getMoleculeGroup( ))
+				return PathIterator.SEG_LINETO;
+			else
+				return PathIterator.SEG_MOVETO;
+		}
+	
+		public int currentSegment( float [] coords ) {
+			coords[0] = (float)locations.get( this.currentMolecule ).getX( );
+			coords[1] = (float)locations.get( this.currentMolecule ).getY( );
+			if ( this.lastMoleculeGroup == this.currentMolecule.getMoleculeGroup( ))
+				return PathIterator.SEG_LINETO;
+			else
+				return PathIterator.SEG_MOVETO;
+		}
+	
+		public int getWindingRule( ) {
+			return PathIterator.WIND_EVEN_ODD;	
+		}
+	
+		public boolean isDone( ) {
+			return !this.iterator.hasNext( );
+		}
+	
+		public void next( ) {
+			this.lastMoleculeGroup = this.currentMolecule.getMoleculeGroup( );
+			this.currentMolecule = this.iterator.next( );
 		}
 	}
 }

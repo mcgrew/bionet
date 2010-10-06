@@ -133,6 +133,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 */
 	public void addTab( String title, Component c ) {
 		this.tabPane.addTab( title, c );
+		this.tabPane.setSelectedComponent( c );
 	}
 
 	/**

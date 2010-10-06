@@ -128,6 +128,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 
 	public void addTab( String title, Component c ) {
 		this.tabPane.addTab( title, c );
+		this.tabPane.setSelectedComponent( c );
 	}
 	
 	public TabbedWindow newWindow( ) {
@@ -272,14 +273,17 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 
 			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
 				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
-				if( cdp.createGraph( (Experiment)choice.getValue( ).get( 0 )))
+				if( cdp.createGraph( (Experiment)choice.getValue( ).get( 0 ))) {
 					this.tabPane.addTab( cdp.getTitle( ), cdp );
+					this.tabPane.setSelectedComponent( cdp );
+				}
 			}
 			else if ( choice.getKey( ).intValue( ) == 
 				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
 				ComparativeAnalysisDisplayPanel cadp = new ComparativeAnalysisDisplayPanel( );
 				if ( cadp.createGraph( choice.getValue( ))) {
 					this.tabPane.addTab( cadp.getTitle( ), cadp );
+					this.tabPane.setSelectedComponent( cadp );
 				}
 			}
 
