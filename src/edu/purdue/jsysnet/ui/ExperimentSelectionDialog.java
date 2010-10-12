@@ -25,6 +25,7 @@ import edu.purdue.jsysnet.util.Language;
 import edu.purdue.jsysnet.JSysNet;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Arrays;
 import java.awt.Frame;
@@ -63,7 +64,7 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 	protected final String okButtonText;
 	protected final String cancelButtonText;
 
-	public ExperimentSelectionDialog( Frame owner, String title, List experiments ) {
+	public ExperimentSelectionDialog( Frame owner, String title, Collection experiments ) {
 		super( owner, title );
 		this.getContentPane( ).setLayout( null );
 		this.setBounds( 
@@ -129,7 +130,7 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 		this.setVisible( true );
 	}
 
-	public static Map.Entry<Integer,List> showInputDialog( Frame owner, String title, List experiments ) {
+	public static Map.Entry<Integer,List> showInputDialog( Frame owner, String title, Collection experiments ) {
 		ExperimentSelectionDialog dialog = new ExperimentSelectionDialog( owner, title, experiments );
 		return dialog.getReturnValue( );
 	}

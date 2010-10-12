@@ -20,11 +20,15 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Collection;
+import java.util.Arrays;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileView;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -32,6 +36,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.imageio.ImageIO;
+import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -223,9 +231,12 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	public DataHandler openCSV( ) {
-		JFileChooser fc = new JFileChooser( Settings.getSettings( ).getProperty( "lastOpenCSV" ));
+		JFileChooser fc = new JFileChooser( 
+			new File( Settings.getSettings( ).getProperty( "lastOpenCSV" ))
+			.getParentFile( ));
+		fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
 		fc.setFileFilter( new CSVFileFilter( ));
-		fc.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );	
+		fc.setFileView( new CSVFileView( ));
 		int options = fc.showOpenDialog( this );
 		if ( options == JFileChooser.APPROVE_OPTION ) {
 			File selected = fc.getSelectedFile( );
@@ -240,16 +251,93 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	
 	}
 
+	/**
+	 * A class for filtering out improper file types from the FileChooser.
+	 */
 	private class CSVFileFilter extends FileFilter {
+		private CSVFileView fileView = new CSVFileView( );
 
 		public boolean accept( File f ) {
-			return ( f.isDirectory( ));
+			return ( 
+				f.isDirectory( ) && 
+				( fileView.hasSubdirectories( f ) || fileView.isValidProject( f ))
+			);
 		}
 
 		public String getDescription( ) {
-			return "JSysNet data folder";
+			return "JSysNet project folder";
 		}
 
+	}
+
+	/**
+	 * A class for indicating to the FileChooser if the directory is a project folder or not.
+	 */
+	private class CSVFileView extends FileView {
+		Icon projectIcon;
+		
+		public CSVFileView( ) {
+			super( );
+			InputStream logo = 
+				getClass( ).getResourceAsStream( "/resources/images/icon.png" );
+			if ( logo == null ) {
+				projectIcon = new javax.swing.plaf.metal.MetalIconFactory.FileIcon16( ); 
+			} else {
+				try {
+					projectIcon = new ImageIcon( ImageIO.read( logo )
+						.getScaledInstance( 16, 16, Image.SCALE_SMOOTH ));
+				} catch ( IOException e ) {
+					// insert log message here.
+					projectIcon = new javax.swing.plaf.metal.MetalIconFactory.FileIcon16( ); 
+				}
+			}
+		}
+
+		public String getDescription( File f ) {
+			if ( isValidProject( f ))
+				return "JSysNet project folder";
+			return super.getDescription( f );
+		}
+
+		public Icon getIcon( File f ) {
+			if ( projectIcon != null && isValidProject( f )) {
+					return projectIcon;
+			}
+			return super.getIcon( f );
+		}
+
+		public String getName( File f ) {
+			return super.getName( f );
+		}
+
+		public String getTypeDescription( File f ) {
+			if ( isValidProject( f ))
+				return "JSysNet project folder";
+			return super.getTypeDescription( f );
+		}
+
+		public Boolean isTraversable( File f ) {
+			return new Boolean( hasSubdirectories( f ));
+		}
+
+		public boolean isValidProject( File f ) {
+			if ( !f.isDirectory( ))
+				return false;
+			List<String> list = Arrays.asList( f.list( ));
+			return ( list.contains( "Data.txt" ) &&
+			         list.contains( "Experiment.txt" ) &&
+					     list.contains( "Sample.txt" ));
+		}
+
+		public boolean hasSubdirectories( File f ) {
+			if ( !f.isDirectory( ))
+				return false;
+			for ( File file : f.listFiles( )) {
+				if ( file.isDirectory( ))
+					return true;
+			}
+			return false;
+		}
 	}
 
 	public void actionPerformed( ActionEvent e ) {
@@ -301,25 +389,20 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	/**
-	 * Brings up a dialog to allow you to select the appropriate experiment. If
-	 *	only one experiment is available, no dialog is shown an this method simply
-	 *	returns that experiment.
+	 * Brings up a dialog to allow you to select the appropriate experiment. 
 	 * 
 	 * @param experiments An ArrayList containing the possible Experiments
 	 * @return The experiment you selected, or null if you pressed cancel, or
 	 *	if no experiments are available
 	 */
-	public Map.Entry<Integer,List> experimentSelection( List <Experiment> experiments ) {
+	public Map.Entry<Integer,List> experimentSelection( Collection <Experiment> experiments ) {
 		if ( experiments.size( ) < 1 ) {
 			System.err.println( 
 				Settings.getLanguage( ).get( "These files do not appear to contain any data!" ));
 			return null;
 		}
-//		if ( experiments.size( ) == 1 ) {
-//			return experiments.get( 0 );
-//		}
 		return ExperimentSelectionDialog.showInputDialog( 
-			this, Settings.getLanguage( ).get( "Experiment Selection" ), (List)experiments );
+			this, Settings.getLanguage( ).get( "Experiment Selection" ), experiments );
 	}
 	
 }

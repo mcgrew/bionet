@@ -21,6 +21,7 @@ package edu.purdue.jsysnet.io;
 
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.io.File;
@@ -36,7 +37,7 @@ import edu.purdue.jsysnet.JSysNet;
 public class CSVDataHandler extends DataHandler {
 
 	private Scanner file;
-	ArrayList <HashMap<String,String>> moleculeArrayList, dataArrayList, sampleArrayList;
+	List <HashMap<String,String>> moleculeList, dataList, sampleList;
 
 
 	/**
@@ -74,53 +75,56 @@ public class CSVDataHandler extends DataHandler {
 		} catch( FileNotFoundException e ) {
 			JSysNet.message( "Unable to load "+this.resource+File.separator+"Experiment.txt. The file was not found. No Data has been imported" );
 			this.experiments = new ArrayList <Experiment>( );
+			return;
 		}
-		if ( ! file.hasNext( ) )
-		{
+		if ( ! file.hasNext( ) ) {
 			JSysNet.message(resource+File.pathSeparator+"Experiment.txt does not appear to be a valid file. "
 				+ "No Data has been imported.");
 			return;
 		}
 		line = file.nextLine( );
 		headings = line.split( "," );
-		HashMap <String,String> columnsHashMap;
+		HashMap <String,String> columnsMap;
 		while ( file.hasNextLine( )) {
 			line = file.nextLine( );
 			columns = line.split( "," );
 			int columnLength = columns.length;
-			columnsHashMap = new HashMap <String,String>( );
+			columnsMap = new HashMap <String,String>( );
 			for ( int i=headings.length-1; i >= 0;  i-- ) {
-				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
+				columnsMap.put( headings[ i ].trim( ).toLowerCase( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
-			this.addExperiment( new Experiment( columnsHashMap ));
+			this.addExperiment( new Experiment( columnsMap ));
 		}
 		this.file.close( );
 
 		// *********************** load Molecule.txt ***************************
-		try {
-			this.file = new Scanner( new File( resource+File.separator+"Molecule.txt" ));
-		} catch( FileNotFoundException e ) {
-			JSysNet.message( "Unable to load "+resource+File.separator+"Molecule.txt. The file was not found. No Data has been imported" );
-			this.experiments = new ArrayList <Experiment>( );
-			return;
-		}
-		line = file.nextLine( );
-		headings = line.split( "," );
-		moleculeArrayList = new ArrayList <HashMap<String,String>>( );
-		while( file.hasNextLine( )) {
-			line = file.nextLine( );
-			columns = line.split( "," );
-			int columnLength = columns.length;
-			columnsHashMap = new HashMap <String,String>( );
-			for ( int i=headings.length-1; i >= 0; i-- ) {
-				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
-					( columnLength > i ) ? columns[ i ].trim( ) : "" );
+		File moleculeFile = new File( resource+File.separator+"Molecule.txt" );
+		if ( moleculeFile.isFile( )) {
+			try {
+				this.file = new Scanner( moleculeFile );
+			} catch( FileNotFoundException e ) {
+//				JSysNet.message( "Unable to load "+resource+File.separator+"Molecule.txt. The file was not found. No Data has been imported" );
+//				this.experiments = new ArrayList <Experiment>( );
+//				return;
 			}
-			moleculeArrayList.add( columnsHashMap );
-
+			line = file.nextLine( );
+			headings = line.split( "," );
+			moleculeList = new ArrayList <HashMap<String,String>>( );
+			while( file.hasNextLine( )) {
+				line = file.nextLine( );
+				columns = line.split( "," );
+				int columnLength = columns.length;
+				columnsMap = new HashMap <String,String>( );
+				for ( int i=headings.length-1; i >= 0; i-- ) {
+					columnsMap.put( headings[ i ].trim( ).toLowerCase( ), 
+						( columnLength > i ) ? columns[ i ].trim( ) : "" );
+				}
+				moleculeList.add( columnsMap );
+	
+			}
+			this.file.close( );
 		}
-		this.file.close( );
 
 		// *********************** load Sample.txt ***************************
 		try {
@@ -132,17 +136,17 @@ public class CSVDataHandler extends DataHandler {
 		}
 		line = file.nextLine( );
 		headings = line.split( "," );
-		sampleArrayList = new ArrayList <HashMap<String,String>>( );
+		sampleList = new ArrayList <HashMap<String,String>>( );
 		while( file.hasNextLine( )) {
 			line = file.nextLine( );
 			columns = line.split( "," );
 			int columnLength = columns.length;
-			columnsHashMap = new HashMap <String,String>( );
+			columnsMap = new HashMap <String,String>( );
 			for ( int i=headings.length-1; i >= 0; i-- ) {
-				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
+				columnsMap.put( headings[ i ].trim( ).toLowerCase( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
-			sampleArrayList.add( columnsHashMap );
+			sampleList.add( columnsMap );
 
 		}
 		this.file.close( );
@@ -157,23 +161,23 @@ public class CSVDataHandler extends DataHandler {
 		}
 		line = file.nextLine( );
 		headings = line.split( "," );
-		dataArrayList = new ArrayList <HashMap<String,String>>( );
+		dataList = new ArrayList <HashMap<String,String>>( );
 		while( file.hasNextLine( )) {
 			line = file.nextLine( );
 			columns = line.split( "," );
 			int columnLength = columns.length;
-			columnsHashMap = new HashMap <String,String>( );
+			columnsMap = new HashMap <String,String>( );
 			for ( int i=headings.length-1; i >= 0; i-- ) {
-				columnsHashMap.put( headings[ i ].trim( ).toLowerCase( ), 
+				columnsMap.put( headings[ i ].trim( ).toLowerCase( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
-			dataArrayList.add( columnsHashMap );
+			dataList.add( columnsMap );
 
 		}
 
-		for( int i=0,l=dataArrayList.size( ); i < l; i++ ) {
+		for( int i=0,l=dataList.size( ); i < l; i++ ) {
 			// Create the Molecule Objects
-			HashMap <String,String> moleculeDataHashMap = dataArrayList.get( i );
+			HashMap <String,String> moleculeDataHashMap = dataList.get( i );
 			Molecule mol = new Molecule( );
 			String [ ] molAttr = moleculeDataHashMap.keySet( ).toArray( new String[ 0 ] );
 
@@ -182,23 +186,25 @@ public class CSVDataHandler extends DataHandler {
 				mol.setAttribute( molAttr[ j ], moleculeDataHashMap.get( molAttr[ j ]));
 			}
 			HashMap <String,String>extraMoleculeData = null; 
-			ListIterator <HashMap<String,String>>moleculeArrayListIterator = moleculeArrayList.listIterator( );
-
-			// See if threre is more information for this molecule in molecule.txt
-			while ( moleculeArrayListIterator.hasNext( ) ) {
-				extraMoleculeData = moleculeArrayListIterator.next( );
-				if ( mol.getAttribute( "id" ).equals( extraMoleculeData.get( "id" )) &&
-					mol.getAttribute( "group_name" ).equals( extraMoleculeData.get( "group_name" )) &&
-					mol.getAttribute( "exp_id" ).equals( extraMoleculeData.get( "exp_id" )))
-					break;
-				extraMoleculeData = null;
-			}
-			
-			// Add the second set of attributes to the Molecule Objects
-			if ( extraMoleculeData != null ) {
-				String [] extraMolAttr = extraMoleculeData.keySet( ).toArray( new String[ 0 ] );
-				for( int j=0,m=extraMolAttr.length; j < m; j++ ) {
-					mol.setAttribute( extraMolAttr[ j ], extraMoleculeData.get( extraMolAttr[ j ] ));
+			if ( moleculeList != null ) {
+				ListIterator <HashMap<String,String>>moleculeListIterator = moleculeList.listIterator( );
+	
+				// See if threre is more information for this molecule in molecule.txt
+				while ( moleculeListIterator.hasNext( ) ) {
+					extraMoleculeData = moleculeListIterator.next( );
+					if ( mol.getAttribute( "id" ).equals( extraMoleculeData.get( "id" )) &&
+						mol.getAttribute( "group_name" ).equals( extraMoleculeData.get( "group_name" )) &&
+						mol.getAttribute( "exp_id" ).equals( extraMoleculeData.get( "exp_id" )))
+						break;
+					extraMoleculeData = null;
+				}
+				
+				// Add the second set of attributes to the Molecule Objects
+				if ( extraMoleculeData != null ) {
+					String [] extraMolAttr = extraMoleculeData.keySet( ).toArray( new String[ 0 ] );
+					for( int j=0,m=extraMolAttr.length; j < m; j++ ) {
+						mol.setAttribute( extraMolAttr[ j ], extraMoleculeData.get( extraMolAttr[ j ] ));
+					}
 				}
 			}
 			// Add the Molecules to their appropriate experiment
