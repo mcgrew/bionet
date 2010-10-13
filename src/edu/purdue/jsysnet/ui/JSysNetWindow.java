@@ -54,8 +54,8 @@ import java.awt.event.WindowEvent;
 import edu.purdue.jsysnet.util.Experiment;
 import edu.purdue.jsysnet.util.Settings;
 import edu.purdue.jsysnet.util.Language;
-import edu.purdue.jsysnet.io.DataHandler;
-import edu.purdue.jsysnet.io.CSVDataHandler;
+import edu.purdue.jsysnet.io.DataReader;
+import edu.purdue.jsysnet.io.CSVDataReader;
 
 import net.sourceforge.helpgui.gui.MainFrame;
 
@@ -230,7 +230,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		this.aboutHelpMenuItem.addActionListener( this );
 	}
 
-	public DataHandler openCSV( ) {
+	public DataReader openCSV( ) {
 		JFileChooser fc = new JFileChooser( 
 			new File( Settings.getSettings( ).getProperty( "lastOpenCSV" ))
 			.getParentFile( ));
@@ -243,7 +243,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			if ( !selected.isDirectory( ))
 				selected = selected.getParentFile( );
 			Settings.getSettings( ).setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
-			DataHandler data = new CSVDataHandler( selected.getAbsolutePath( ));
+			DataReader data = new CSVDataReader( selected.getAbsolutePath( ));
 			data.load( );
 			return data;
 		}
@@ -351,7 +351,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		if ( item == this.newWindowFileMenuItem ) {
 			this.newWindow( );
 		} else if ( item == this.openFileMenuItem ) {
-			DataHandler data = this.openCSV( );
+			DataReader data = this.openCSV( );
 			if ( data == null ) {
 				return;
 			}

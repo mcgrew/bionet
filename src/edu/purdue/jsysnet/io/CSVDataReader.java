@@ -34,25 +34,25 @@ import edu.purdue.jsysnet.JSysNet;
  * 
  * @author Thomas McGrew
  */
-public class CSVDataHandler extends DataHandler {
+public class CSVDataReader extends DataReader {
 
 	private Scanner file;
 	List <HashMap<String,String>> moleculeList, dataList, sampleList;
 
 
 	/**
-	 * Creates a new CSVDataHandler.
+	 * Creates a new CSVDataReader.
 	 */
-	public CSVDataHandler( ) {
+	public CSVDataReader( ) {
 		super( );
 	}
 
 	/**
-	 * Creates a new CSVDataHandler.
+	 * Creates a new CSVDataReader.
 	 * 
 	 * @param resource The name of the directory containing the files to be used.
 	 */
-	public CSVDataHandler( String resource ){
+	public CSVDataReader( String resource ){
 		super( resource );
 	}
 		
@@ -219,21 +219,5 @@ public class CSVDataHandler extends DataHandler {
 		}
 		this.file.close( );
 
-	}
-
-	/**
-	 * For writing new data back to disk; Currently not implemented.
-	 */
-	public boolean write( ){
-		return false;
-	}
-
-	/**
-	 * For writing a copy of the data to disk; Currently not implemented.
-	 * 
-	 * @param resource The directory to write the files to.
-	 */
-	public boolean write( String resource ){
-		return false;
 	}
 }

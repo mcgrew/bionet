@@ -28,7 +28,7 @@ import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.util.MonitorableRange;
 import edu.purdue.jsysnet.util.Settings;
-import edu.purdue.jsysnet.io.DataHandler;
+import edu.purdue.jsysnet.io.DataReader;
 
 import javax.swing.JPanel;
 import javax.swing.JMenuBar;
@@ -177,7 +177,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 	/**
 	 * Creates a new CorrelationDisplayPanel. When this constructor is used,
-	 *	you must specify a DataHandler object when you call createGraph.
+	 *	you must specify a DataReader object when you call createGraph.
 	 */
 	public CorrelationDisplayPanel ( ) {
 		super( new BorderLayout( ) );

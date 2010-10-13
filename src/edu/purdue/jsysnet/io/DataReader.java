@@ -26,22 +26,22 @@ import edu.purdue.jsysnet.util.*;
 /**
  * An abstract clas for handling data input to JSysNet
  */
-public abstract class DataHandler {
+public abstract class DataReader {
 
 	protected ArrayList <Experiment> experiments;
 	protected String resource;
 
 	/**
-	 * Creates a new DataHandler.
+	 * Creates a new DataReader.
 	 */
-	protected DataHandler( ) { }
+	protected DataReader( ) { }
 
 	/**
-	 * Creates a new DataHandler.
+	 * Creates a new DataReader.
 	 * 
 	 * @param resource A string specifying the resource to load.
 	 */
-	protected DataHandler( String resource ) {
+	protected DataReader( String resource ) {
 		this.resource = resource;
 	}
 
@@ -59,21 +59,6 @@ public abstract class DataHandler {
 	 * Loads the data.
 	 */
 	public abstract void load( );
-
-	/**
-	 * Writes the data to disk.
-	 *
-	 * @return true if the write was successful.
-	 */
-	public abstract boolean write( );
-
-	/**
-	 * Writes the data to disk using the specified resource.
-	 * 
-	 * @param resource The resource to be written to.
-	 * @return true if the write was successful.
-	 */
-	public abstract boolean write( String resource );
 
 	/**
 	 * Returns the Experiments read from the data.
