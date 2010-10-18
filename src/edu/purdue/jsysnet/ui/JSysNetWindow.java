@@ -323,10 +323,14 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		public boolean isValidProject( File f ) {
 			if ( !f.isDirectory( ))
 				return false;
-			List<String> list = Arrays.asList( f.list( ));
-			return ( list.contains( "Data.txt" ) &&
-			         list.contains( "Experiment.txt" ) &&
-					     list.contains( "Sample.txt" ));
+			try {
+				List<String> list = Arrays.asList( f.list( ));
+				return ( list.contains( "Data.txt" ) &&
+				         list.contains( "Experiment.txt" ) &&
+						     list.contains( "Sample.txt" ));
+			} catch ( NullPointerException e ) {
+				return false;
+			}
 		}
 
 		public boolean hasSubdirectories( File f ) {
