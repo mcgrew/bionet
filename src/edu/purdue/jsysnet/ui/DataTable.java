@@ -22,6 +22,8 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
 
 import java.util.ArrayList;
 import javax.swing.JSplitPane;
@@ -52,7 +54,11 @@ class DataTable extends JTable {
 			values[ i ][ 0 ] = attributes[ i ];
 			values[ i ][ 1 ] = molecule.getAttribute( attributes[ i ]);
 		}
-		return new DataTable( values, new String[]{ "Attribute", "Value" });
+		Language language = Settings.getLanguage( );
+		return new DataTable( values, new String[]{ 
+			language.get( "Attribute" ),
+			language.get( "Value" )
+		});
 	}
 
 	/**
@@ -77,7 +83,12 @@ class DataTable extends JTable {
 				data.add( row );
 			}
 		}
-		return new DataTable( data.toArray( new String[ 0 ][ 0 ]), new String[]{ "Correlation", "Group", "Molecule" });
+		Language language = Settings.getLanguage( );
+		return new DataTable( data.toArray( new String[ 0 ][ 0 ]), new String[]{ 
+			language.get( "Correlation" ), 
+			language.get( "Group" ), 
+			language.get( "Molecule" ) 
+		});
 	}
 }
 

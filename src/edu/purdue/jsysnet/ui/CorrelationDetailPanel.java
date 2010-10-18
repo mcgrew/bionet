@@ -50,6 +50,8 @@ import org.jfree.chart.plot.XYPlot;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
 
 /**
  * A panel for displaying detailed information about a correlation.
@@ -60,8 +62,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	private DetailWindow detailWindow;
 	private JTable molecule0Table;
 	private JTable molecule1Table;
-	JButton molecule0Button = new JButton( "Show Correlated" );
-	JButton molecule1Button = new JButton( "Show Correlated" );
+	JButton molecule0Button;
+	JButton molecule1Button;
 	List <Number> molecule0Samples;
 	List <Number> molecule1Samples;
 
@@ -77,6 +79,10 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		this.correlation = correlation;
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
+
+		String buttonText = Settings.getLanguage( ).get( "Show Correlated" );
+		this.molecule0Button = new JButton( buttonText );
+		this.molecule1Button = new JButton( buttonText );
 
 		molecule0Samples = correlation.getMolecules( )[ 0 ].getSamples( );
 		molecule1Samples = correlation.getMolecules( )[ 1 ].getSamples( );
@@ -147,7 +153,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			super( );
 			List <Number> mol0Samples = molecules[ 0 ].getSamples( );
 			List <Number> mol1Samples = molecules[ 1 ].getSamples( );
-			XYSeries data = new XYSeries( "Sample Data" );
+			XYSeries data = new XYSeries( Settings.getLanguage( ).get( "Sample Data" ));
 			Iterator <Number> mol0Iterator = mol0Samples.iterator( );
 			Iterator <Number> mol1Iterator = mol1Samples.iterator( );
 			while ( mol0Iterator.hasNext( )) {
@@ -231,6 +237,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		 * @param g The Graphics object corresponding to this component.
 		 */
 		public void paintComponent( Graphics g ) {
+			Language language = Settings.getLanguage( );
 			int [] xpos = { 20, 90, 150, 220 };
 
 			g.setColor( Color.WHITE );
@@ -240,8 +247,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 
 			g.setColor( Color.BLACK );
 			g.setFont( new Font( "SansSerif", Font.PLAIN, 14 ));
-			g.drawString( "Current correlation coefficient:", 10, 40 );
-			g.drawString( "Sample Volume N:", 10, 70 );
+			g.drawString( language.get( "Current correlation coefficient" )+":", 10, 40 );
+			g.drawString( language.get( "Sample Volume N" )+":" , 10, 70 );
 			g.drawString( "0.05",   xpos[0], 180 );
 			g.drawString( "0.025",  xpos[1], 180 );
 			g.drawString( "0.05",   xpos[2], 180 );
@@ -252,10 +259,10 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			g.drawString( "0.01",  xpos[3], 220 );
 
 			g.setFont( new Font( "SansSerif", Font.BOLD, 14 ));
-			g.drawString( "Table of critical values for", 10, 100 );
-			g.drawString( "correlation test", 10, 120 );
-			g.drawString( "One-tailed level of significance", 10, 160 );
-			g.drawString( "Two-tailed levelof significance", 10, 200 );
+			g.drawString( language.get( "Table of critical values for" ), 10, 100 );
+			g.drawString( language.get( "Correlation test" ), 10, 120 );
+			g.drawString( language.get( "One-tailed level of significance" ), 10, 160 );
+			g.drawString( language.get( "Two-tailed levelof significance" ), 10, 200 );
 			for( int i=0; i < 4; i++ ) {
 				if ( this.criticalValues[ i ] < 0 )
 					g.drawString( "-", xpos[ i ], 260 );

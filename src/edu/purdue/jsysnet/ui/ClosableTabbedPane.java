@@ -42,6 +42,9 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 
+import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
+
 /**
  * A class for adding the ability to close tabs and move tabs to a new window.
  */
@@ -199,7 +202,8 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	 * The popup menu for the tabs.
 	 */
 	protected class TabPopup extends JPopupMenu implements ActionListener {
-		private JMenuItem tearOffMenuItem = new JMenuItem( "Open in  new window" );
+		private JMenuItem tearOffMenuItem = new JMenuItem( 
+			Settings.getLanguage( ).get( "Open in a new window" ));
 		private String tabTitle;
 		private Component tabComponent;
 
@@ -257,7 +261,7 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 		 */
 		public TabCloseButton ( ) {
 			this.setPreferredSize( new Dimension( this.size, this.size ));
-			this.setToolTipText( "Close" );
+			this.setToolTipText( Settings.getLanguage( ).get( "Close" ));
 			this.setUI( new BasicButtonUI( ));
 //				this.setContentAreaFilled( false );
 			this.setFocusable( false );

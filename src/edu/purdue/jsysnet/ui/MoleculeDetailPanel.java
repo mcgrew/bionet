@@ -36,6 +36,8 @@ import javax.swing.JOptionPane;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
 import edu.purdue.jsysnet.JSysNet;
 
 public class MoleculeDetailPanel extends JPanel implements ActionListener {
@@ -44,10 +46,10 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private DetailWindow detailWindow;
 	private JTable moleculeDetailTable;
 	private JTable correlationsTable;
-	private JLabel selectedMoleculeLabel = new JLabel( "Selected Molecule" );
+	private JLabel selectedMoleculeLabel;
 	private JLabel coefLabel;
-	private JButton showElementButton = new JButton( "Show Element" );
-	private JButton showCorrelationButton = new JButton( "Show Correlation" );
+	private JButton showElementButton;
+	private JButton showCorrelationButton;
 
 	public MoleculeDetailPanel ( Molecule molecule, Range range, DetailWindow detailWindow ) {
 		super( new BorderLayout( ));
@@ -55,10 +57,14 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 
+		Language language = Settings.getLanguage( );
 		this.moleculeDetailTable = DataTable.getMoleculeTable( this.molecule );
 		this.correlationsTable = DataTable.getCorrelatedTable( this.molecule, this.correlationRange );
+		this.selectedMoleculeLabel = new JLabel( language.get( "Selected Molecule" ));
+		this.showElementButton = new JButton( language.get( "Show Element" ));
+		this.showCorrelationButton = new JButton( language.get( "Show Correlation" ));
 		this.coefLabel = new JLabel( String.format( 
-			"Correlation coefficient between %.3f and %.3f",
+			language.get( "Correlation coefficient between %.3f and %.3f" ),
 			this.correlationRange.getMin( ),
 			this.correlationRange.getMax( )));
 		JPanel leftPanel = new JPanel( new BorderLayout( ));
@@ -94,7 +100,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			}
 		} else {
 			JOptionPane.showMessageDialog( this, 
-				"You must select a molecule from the table to view its details" );
+				Settings.getLanguage( ).get( "You must select a molecule from the table to view its details" ));
 		}
 
 	}

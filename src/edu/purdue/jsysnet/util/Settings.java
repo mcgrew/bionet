@@ -33,7 +33,7 @@ import javax.swing.filechooser.FileSystemView;
 
 public class Settings extends Properties {
 	private static Settings settings = new Settings( );
-	private static Language language = new Language( );
+	private static Language language;
 
 	public Settings( ) {
 		super( );
@@ -44,7 +44,10 @@ public class Settings extends Properties {
 	public Object setProperty( String property, String value ) {
 		Object returnValue = super.setProperty( property, value );
 		if ( "locale".equals( property ))
-			language.setLocale( value );
+			if ( language == null )
+				language = new Language( value );
+			else
+				language.setLocale( value );
 		this.save( );
 		return returnValue;
 	}
@@ -54,6 +57,8 @@ public class Settings extends Properties {
 	}
 
 	public static Language getLanguage( ) {
+		if ( language == null )
+			language = new Language( );
 		return language;
 	}
 
@@ -124,8 +129,11 @@ public class Settings extends Properties {
 					this.getProperty( "settingsFile" )));
 			}
 		}
-		if ( language != null && this.getProperty( "locale" ) != null )
-			language.setLocale( get( "locale" ));
+		if ( this.getProperty( "locale" ) != null )
+			if ( language != null )
+				language.setLocale( get( "locale" ));
+			else
+				language = new Language( get( "locale" ));
 	}
 	
 	private class DefaultSettings extends Properties {

@@ -19,6 +19,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.jsysnet.ui;
 
+import edu.purdue.jsysnet.util.Settings;
 import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.util.MonitorableRange;
 
@@ -101,7 +102,7 @@ public class CorrelationFilterPanel extends JPanel implements ChangeListener {
 		this.setBorder( 
 			BorderFactory.createTitledBorder( 
 				BorderFactory.createLineBorder( Color.BLACK, 1 ),
-				"Correlation Filter",
+				Settings.getLanguage( ).get( "Correlation Filter" ),
 				TitledBorder.CENTER,
 				TitledBorder.TOP
 		));

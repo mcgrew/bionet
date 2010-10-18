@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -60,14 +61,15 @@ public class About extends JFrame {
 		public void paintComponent( Graphics g ) {
 			String text;
 			FontMetrics f = g.getFontMetrics( );
+			Language language = Settings.getLanguage( );
 
-			text = "Copyright \u00A92010 Purdue University."; 
+			text = language.get( "Copyright 2010 Purdue University" ); 
 			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 130 );
 
-			text = "JSysNet is distributed under the GNU GPL license.";
+			text = language.get( "JSysNet is distributed under the GNU GPL license" );
 			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 150 );
 
-			text = "This project is funded by NIH Grant 5R01GM087735";
+			text = language.get( "This project is funded by NIH Grant 5R01GM087735" );
 			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 170 );
 
 			g.setFont( new Font( "Serif", Font.BOLD, 42 ));

@@ -22,6 +22,8 @@ package edu.purdue.jsysnet.ui;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Correlation;
 import edu.purdue.jsysnet.util.Range;
+import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
 
 import java.util.HashMap;
 import java.util.Collection;
@@ -78,11 +80,11 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 	 * A class for implementing the context menu.
 	 */
 	protected class MoleculePopup extends JPopupMenu implements ActionListener {
-		protected JMenuItem hideMenuItem = new JMenuItem( "Hide" );
-		protected JMenuItem detailsMenuItem = new JMenuItem( "Details" );
-		protected JMenuItem selectCorrelatedMenuItem = new JMenuItem( "Select Correlated" );
-		protected JMenuItem selectSubnetworkMenuItem = new JMenuItem( "Select Subnetwork" );
-		protected JMenuItem exploreCorrelationsMenu = new JMenu( "Explore Correlations" );
+		protected JMenuItem hideMenuItem;
+		protected JMenuItem detailsMenuItem;
+		protected JMenuItem selectCorrelatedMenuItem;
+		protected JMenuItem selectSubnetworkMenuItem;
+		protected JMenuItem exploreCorrelationsMenu;
 		protected Molecule molecule;
 		protected HashMap <JMenuItem,Correlation> correlationMap = 
 			new HashMap <JMenuItem,Correlation>( );
@@ -91,6 +93,12 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 		 * Creates a new instance of the PopupMenu
 		 */
 		public MoleculePopup ( ) {
+			Language language = Settings.getLanguage( );
+			this.hideMenuItem = new JMenuItem( language.get( "Hide" ) );
+			this.detailsMenuItem = new JMenuItem( language.get( "Details" ) );
+			this.selectCorrelatedMenuItem = new JMenuItem( language.get( "Select Correlated" ) );
+			this.selectSubnetworkMenuItem = new JMenuItem( language.get( "Select Subnetwork" ) );
+			this.exploreCorrelationsMenu = new JMenu( language.get( "Explore Correlations" ) );
 			this.add( this.hideMenuItem );
 			this.add( this.detailsMenuItem );
 			this.add( this.selectCorrelatedMenuItem );
