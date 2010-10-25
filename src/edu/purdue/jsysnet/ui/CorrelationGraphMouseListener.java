@@ -96,7 +96,7 @@ public class CorrelationGraphMouseListener implements GraphMouseListener<Molecul
 			Language language = Settings.getLanguage( );
 			this.hideMenuItem = new JMenuItem( language.get( "Hide" ) );
 			this.detailsMenuItem = new JMenuItem( language.get( "Details" ) );
-			this.selectCorrelatedMenuItem = new JMenuItem( language.get( "Select Correlated" ) );
+			this.selectCorrelatedMenuItem = new JMenuItem( language.get( "Select Directly Correlated" ) );
 			this.selectSubnetworkMenuItem = new JMenuItem( language.get( "Select Subnetwork" ) );
 			this.exploreCorrelationsMenu = new JMenu( language.get( "Explore Correlations" ) );
 			this.add( this.hideMenuItem );

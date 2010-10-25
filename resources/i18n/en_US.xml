@@ -20,7 +20,7 @@
 <entry key="Random">Random</entry>
 <entry key="Heat Map">Heat Map</entry>
 <entry key="Spring Layout">Spring Layout</entry>
-<entry key="Spring Embedding">Spring Embedding</entry>
+<entry key="Fruchterman-Reingold Spring Embedding">Fruchterman-Reingold Spring Embedding</entry>
 <entry key="Zoom In">Zoom In</entry>
 <entry key="Zoom Out">Zoom Out</entry>
 <entry key="Fit to Window">Fit to Window</entry>
@@ -43,7 +43,7 @@
 <entry key="All">All</entry>
 <entry key="Hide">Hide</entry>
 <entry key="Details">Details</entry>
-<entry key="Select Correlated">Select Correlated</entry>
+<entry key="Select Directly Correlated">Select Directly Correlated</entry>
 <entry key="Select Subnetwork">Select Subnetwork</entry>
 <entry key="Explore Correlations">Explore Correlations</entry>
 

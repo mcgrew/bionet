@@ -235,9 +235,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.randomLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Random" ));
 		this.heatMapLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Heat Map" ));
 		this.kkLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Kamada-Kawai" ));
-		this.frLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Fruchterman-Reingold" ));
-		this.springLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Spring Layout" ));
-		this.animatedLayoutMenuItem = new JCheckBoxMenuItem( language.get( "Spring Embedding" ));
+//		this.frLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Fruchterman-Reingold" ));
+//		this.springLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Spring Layout" ));
+		this.animatedLayoutMenuItem = new JCheckBoxMenuItem( language.get( "Fruchterman-Reingold Spring Embedding" ));
 
 		// view menu items
 		this.viewMenu = new JMenu( language.get( "View" ));
@@ -295,8 +295,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.randomLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.kkLayoutMenuItem );
-		this.layoutMenuButtonGroup.add( this.frLayoutMenuItem );
-		this.layoutMenuButtonGroup.add( this.springLayoutMenuItem );
+//		this.layoutMenuButtonGroup.add( this.frLayoutMenuItem );
+//		this.layoutMenuButtonGroup.add( this.springLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		
 		Enumeration<AbstractButton> e = this.layoutMenuButtonGroup.getElements( );
@@ -304,8 +304,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenu.add( this.randomLayoutMenuItem );
 		this.layoutMenu.add( this.kkLayoutMenuItem );
-		this.layoutMenu.add( this.frLayoutMenuItem );
-		this.layoutMenu.add( this.springLayoutMenuItem );
+//		this.layoutMenu.add( this.frLayoutMenuItem );
+//		this.layoutMenu.add( this.springLayoutMenuItem );
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.addSeparator( );
 		this.layoutMenu.add( this.animatedLayoutMenuItem );
@@ -313,8 +313,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.singleCircleLayoutMenuItem.addActionListener( lcl );
 		this.randomLayoutMenuItem.addActionListener( lcl );
 		this.kkLayoutMenuItem.addActionListener( lcl );
-		this.frLayoutMenuItem.addActionListener( lcl );
-		this.springLayoutMenuItem.addActionListener( lcl );
+//		this.frLayoutMenuItem.addActionListener( lcl );
+//		this.springLayoutMenuItem.addActionListener( lcl );
 		this.heatMapLayoutMenuItem.addActionListener( lcl );
 		this.animatedLayoutMenuItem.addActionListener( lcl );
 
@@ -1225,8 +1225,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				singleCircleLayoutMenuItem.addActionListener( this );
 				randomLayoutMenuItem.addActionListener( this );
 				kkLayoutMenuItem.addActionListener( this );
-				frLayoutMenuItem.addActionListener( this );
-				springLayoutMenuItem.addActionListener( this );
+//				frLayoutMenuItem.addActionListener( this );
+//				springLayoutMenuItem.addActionListener( this );
 				pearsonCalculationMenuItem.addActionListener( this );
 				spearmanCalculationMenuItem.addActionListener( this ); 
 				kendallCalculationMenuItem.addActionListener( this );
@@ -1658,10 +1658,10 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 						setGraphLayout( RandomLayout.class );
 					else if ( item == kkLayoutMenuItem )
 						setGraphLayout( KKLayout.class );
-					else if ( item == frLayoutMenuItem )
-						setGraphLayout( FRLayout.class );
-					else if ( item == springLayoutMenuItem )
-						setGraphLayout( SpringLayout2.class );
+//					else if ( item == frLayoutMenuItem )
+//						setGraphLayout( FRLayout.class );
+//					else if ( item == springLayoutMenuItem )
+//						setGraphLayout( SpringLayout2.class );
 					else if ( item == heatMapLayoutMenuItem )
 						heatMap( );
 

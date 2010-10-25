@@ -16,11 +16,11 @@
 <entry key="Calculation">Cálculo</entry>
 <entry key="Layout">Disposición</entry>
 <entry key="Multiple Circles">Círculos Múltiples</entry>
-<entry key="Single Circle">Solo Círculo</entry>
+<entry key="Single Circle">Círculo Solo</entry>
 <entry key="Random">Aleatorio</entry>
 <entry key="Heat Map">Mapa De Calor</entry>
 <entry key="Spring Layout">Disposición del Resorte</entry>
-<entry key="Spring Embedding">Incorporación del Resorte</entry>
+<entry key="Fruchterman-Reingold Spring Embedding">Incorporación del Resorte de Fruchterman-Reingold</entry>
 <entry key="Zoom In">Aumentar</entry>
 <entry key="Zoom Out">Reducir</entry>
 <entry key="Fit to Window">Fit to Window</entry>
@@ -43,7 +43,7 @@
 <entry key="All">Todos</entry>
 <entry key="Hide">Ocultar</entry>
 <entry key="Details">Detalles</entry>
-<entry key="Select Correlated">Seleccionar Correlacionados</entry>
+<entry key="Select Directly Correlated">Seleccionar Correlacionados</entry>
 <entry key="Select Subnetwork">Seleccionar Subred</entry>
 <entry key="Explore Correlations">Explorar Correlaciones</entry>
 
