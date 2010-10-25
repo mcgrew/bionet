@@ -255,7 +255,10 @@ public class Correlation {
 	 * @return    The Pearson correlation value. 
 	 */
 	public static double getPearsonCorrelation( Molecule molecule0, Molecule molecule1 ) {
-		return Statistics.getPearsonCorrelation( molecule0.getSamples( ).asDoubleArray( ), molecule1.getSamples( ).asDoubleArray( ));
+		NumberList mol0Samples = new NumberList( molecule0.getSamples( ));
+		NumberList mol1Samples = new NumberList( molecule1.getSamples( ));
+		filterZeros( mol0Samples, mol1Samples );
+		return Statistics.getPearsonCorrelation( mol0Samples.asDoubleArray( ), mol1Samples.asDoubleArray( ));
 	}
 
 	/**
@@ -289,7 +292,10 @@ public class Correlation {
 	 * @return       The Spearman correlation value.
 	 */
 	public static double getSpearmanCorrelation( Molecule molecule0, Molecule molecule1 ) {
-		return Statistics.getSpearmanCorrelation( molecule0.getSamples( ).asDoubleArray( ), molecule1.getSamples( ).asDoubleArray( ));
+		NumberList mol0Samples = new NumberList( molecule0.getSamples( ));
+		NumberList mol1Samples = new NumberList( molecule1.getSamples( ));
+		filterZeros( mol0Samples, mol1Samples );
+		return Statistics.getSpearmanCorrelation( mol0Samples.asDoubleArray( ), mol1Samples.asDoubleArray( ));
 	}
 
 	/**
@@ -323,7 +329,30 @@ public class Correlation {
 	 * @return The Kendall tau correlation value.
 	 */
 	public static double getKendallCorrelation( Molecule molecule0, Molecule molecule1 ) {
-		return Statistics.getKendallCorrelation( molecule0.getSamples( ).asDoubleArray( ), molecule1.getSamples( ).asDoubleArray( ));
+		NumberList mol0Samples = new NumberList( molecule0.getSamples( ));
+		NumberList mol1Samples = new NumberList( molecule1.getSamples( ));
+		filterZeros( mol0Samples, mol1Samples );
+		return Statistics.getKendallCorrelation( mol0Samples.asDoubleArray( ), mol1Samples.asDoubleArray( ));
+	}
+
+	/**
+	 * Removes an element from both lists when the element in either is equal to 0.
+	 * Double.compare( ) is used to determine this. This operation is destructive and
+	 * therefore you should pass a copy of the List if you do not want the original to
+	 * be modified.
+	 * 
+	 * @param list0 The first list to be filtered.
+	 * @param list1 The second list to be filtered.
+	 */
+	public static void filterZeros ( List<Number> list0, List<Number> list1 ) {
+		int size = Math.min( list0.size( ), list1.size( ));
+		for ( int i=size - 1; i >= 0;  i-- ) {
+			if ( Double.compare( list0.get( i ).doubleValue( ), 0.0 ) == 0 ||
+			     Double.compare( list1.get( i ).doubleValue( ), 0.0 ) == 0 ) {
+				list0.remove( i );
+				list1.remove( i );
+			}
+		}
 	}
 	
 	/**
