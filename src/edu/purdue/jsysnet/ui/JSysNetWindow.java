@@ -378,6 +378,14 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 					this.tabPane.setSelectedComponent( cadp );
 				}
 			}
+			else if ( choice.getKey( ).intValue( ) == 
+				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
+				TimeCourseStudyDisplayPanel tcdp = new TimeCourseStudyDisplayPanel( );
+				if ( tcdp.createGraph( choice.getValue( ))) {
+					this.tabPane.addTab( tcdp.getTitle( ), tcdp );
+					this.tabPane.setSelectedComponent( tcdp );
+				}
+			}
 
 		} else if ( item == this.exitFileMenuItem ) {
 			this.dispose( );

@@ -43,6 +43,7 @@ import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.SwingUtilities;
 
 public class ExperimentSelectionDialog extends JDialog implements ActionListener,ChangeListener {
 	public static final int CORRELATION_VIEW = 0;
@@ -117,6 +118,8 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 		this.cancelButton.setBounds( 170, 130, 100, 20 );
 		this.experimentList.setBounds( 30, 40, 240, 80 );
 		this.experimentList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+		if ( experiments.size( ) > 0 )
+			this.experimentList.setSelectedIndex( 0 );
 
 		this.correlationButton.setBounds( 290, 40, 200, 20 );
 		this.comparativeAnalysisButton.setBounds( 290, 70, 200, 20 );
@@ -206,7 +209,7 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 		}
 
 		public int hashCode( ) {
-			return  (( this.getKey( ) == null   ? 0 : this.getKey( ).hashCode( )) ^
+			return  (( this.getKey( )   == null ? 0 : this.getKey( ).hashCode( )) ^
 			         ( this.getValue( ) == null ? 0 : this.getValue( ).hashCode( )));
 		}
 	}

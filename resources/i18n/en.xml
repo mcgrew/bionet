@@ -105,6 +105,15 @@
 <entry key="Show Element">Show Element</entry>
 <entry key="Show Correlation">Show Correlation</entry>
 <entry key="Correlation coefficient between %.3f and %.3f">Correlation coefficient between %.3f and %.3f</entry>
+<entry key="Number of correlated molecules">Number of correlated molecules</entry>
+<entry key="Average number of neighbors">Average number of neighbours</entry>
+<entry key="Network diameter">Network diameter</entry>
+<entry key="Characteristic path length">Characteristic path length</entry>
+<entry key="Number of correlated molecules">Number of correlated molecules</entry>
+<entry key="Average number of neighbors">Average number of neighbours</entry>
+<entry key="Network diameter">Network diameter</entry>
+<entry key="Characteristic path length">Characteristic path length</entry>
+<entry key="Correlation Method">Correlation Method</entry>
 
 <!-- messages -->
 <entry key="These files do not appear to contain any data!">These files do not appear to contain any data!</entry>
