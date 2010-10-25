@@ -474,7 +474,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			this.hideUncorrelatedViewMenuItem.setEnabled( true );
 			this.animatedLayoutMenuItem.setEnabled( true );
 			this.validate( );
-			this.graph.getScrollPane( ).repaint( );
+			this.graphSplitPane.repaint( );
 		}
 		this.graph.setGraphLayout( layout );
 	}
