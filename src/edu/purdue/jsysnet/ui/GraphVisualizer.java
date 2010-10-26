@@ -90,11 +90,14 @@ import org.apache.commons.collections15.CollectionUtils;
 	private LinkedList<ChangeListener> animationListeners = new LinkedList<ChangeListener>( );
 	private LinkedList<GraphMouseListener<E>> graphMouseEdgeListeners = new LinkedList<GraphMouseListener<E>>( );
 	protected Paint vertexPaint = Color.ORANGE;
+	protected Paint vertexOutline = Color.ORANGE;
 	protected Paint pickedVertexPaint = Color.YELLOW;
+	protected Paint pickedVertexOutline = Color.YELLOW;
 	protected Paint edgePaint = Color.GREEN;
 	protected Paint pickedEdgePaint = Color.BLACK;
 	protected Color pickedLabelColor = Color.BLUE;
 	protected Paint commonNeighborPaint = new Color( 1.0f, 0.3f, 0.3f );
+	protected Paint commonNeighborOutline = new Color( 1.0f, 0.3f, 0.3f );
 	protected boolean commonNeighborIndicator;
 	protected NeighborCollection<V,E> commonNeighbors;
 
@@ -238,8 +241,22 @@ import org.apache.commons.collections15.CollectionUtils;
 				}
 			}
 		};
+		Transformer vo = new Transformer<V,Paint>( ) {
+			public Paint transform( V v ) {
+				if ( getPickedVertexState( ).isPicked( v )) {
+					return pickedVertexOutline;
+				} else {
+					if ( commonNeighborIndicator && isCommonNeighbor( v )) {
+						return commonNeighborOutline;
+					} else {
+						return vertexOutline;
+					}
+				}
+			}
+		};
+
 		this.getRenderContext( ).setVertexFillPaintTransformer( v );
-		this.getRenderContext( ).setVertexDrawPaintTransformer( v );
+		this.getRenderContext( ).setVertexDrawPaintTransformer( vo );
 
 		Transformer e = new Transformer<E,Paint>( ) {
 			public Paint transform( E e ) {
@@ -270,7 +287,7 @@ import org.apache.commons.collections15.CollectionUtils;
 	 * @param layout A Class object containing the Layout to be used.
 	 */
 	public void setGraphLayout( Class <? extends AbstractLayout> layout ){
-			this.setGraphLayout(( Layout<V,E> )GraphVisualizer.getLayoutInstance( layout, this.graph ));
+		this.setGraphLayout(( Layout<V,E> )GraphVisualizer.getLayoutInstance( layout, this.graph ));
 	}
 
 	/**
@@ -279,8 +296,8 @@ import org.apache.commons.collections15.CollectionUtils;
 	 * @param layout The Layout instance to use for the new Graph Layout.
 	 */
 	public void setGraphLayout( Layout <V,E> layout ){
-		Layout<V,E> l = ( Layout<V,E> )this.getGraphLayout( );
 		super.setGraphLayout( layout );
+		layout.initialize( );
 		this.graph = ( UndirectedSparseGraph<V,E> )this.getGraphLayout( ).getGraph( );
 	}
 
@@ -528,14 +545,6 @@ import org.apache.commons.collections15.CollectionUtils;
 	}
 	
 	/**
-	 * Resets the zoom level to 100% and centers the viewport.
-	 */
-	public void resetView( ) {
-		this.scaleTo( 1.0f );
-		this.center( );
-	}
-
-	/**
 	 * Gets the ScrollPane associated with this viewer.
 	 * 
 	 * @return A ScrollPane which contains this GraphVisualizer.
@@ -577,6 +586,24 @@ import org.apache.commons.collections15.CollectionUtils;
 	}
 
 	/**
+	 * Sets the Paint to be used for outlining vertices on the graph.
+	 * 
+	 * @param p The new Paint to use.
+	 */
+	public void setVertexOutline( Paint p ) {
+		this.vertexOutline = p;
+	}
+
+	/**
+	 * Gets the current paint that is being used to render vertices.
+	 * 
+	 * @return The Paint currently being used to render vertices.
+	 */
+	public Paint getVertexOutline( ) {
+		return this.vertexOutline;
+	}
+
+	/**
 	 * Sets the paint to use on picked vertices.
 	 * 
 	 * @param p The Paint to use.
@@ -594,11 +621,42 @@ import org.apache.commons.collections15.CollectionUtils;
 		return this.pickedVertexPaint;
 	}
 
-	protected Collection<V> getCommonNeighbors( ) {
+	/**
+	 * Sets the paint to use to outline picked vertices.
+	 * 
+	 * @param p The Paint to use.
+	 */
+	public void setPickedVertexOutline( Paint p ) {
+		this.pickedVertexOutline = p;
+	}
+
+	/**
+	 * Gest the paint being used to outline picked vertices.
+	 * 
+	 * @return The Paint being used.
+	 */
+	public Paint getPickedVertexOutline( ) {
+		return this.pickedVertexOutline;
+	}
+
+	/**
+	 * Returns a Collection of vertices which are common neighbors to
+	 * the entire selection.
+	 * 
+	 * @return The common neighbors.
+	 */
+	public Collection<V> getCommonNeighbors( ) {
 		return commonNeighbors;
 	}
 
-	protected boolean isCommonNeighbor( V v ) {
+	/**
+	 * Tells whether a given vertex is a common neighbor of the entire selection.
+	 * 
+	 * @param v The vertex to check.
+	 * @return true if the vertex has a connection to each node in the selection, 
+	 * false if not.
+	 */
+	public boolean isCommonNeighbor( V v ) {
 		return this.commonNeighbors.contains( v );
 	}
 
@@ -608,7 +666,6 @@ import org.apache.commons.collections15.CollectionUtils;
 	 * @param state The new state of the flag.
 	 */
 	public void setIndicateCommonNeighbors( boolean state ) {
-		this.commonNeighbors.setEnabled( state );
 		this.commonNeighborIndicator = state;
 	}
 
@@ -1141,7 +1198,6 @@ import org.apache.commons.collections15.CollectionUtils;
 	private class NeighborCollection<V,E> extends LinkedList<V> implements 
 		PickedStateChangeListener<V>,GraphItemChangeListener<E> {
 		GraphVisualizer graph;
-		private boolean enabled;
 		
 		public NeighborCollection( GraphVisualizer graph ) {
 			this.graph = graph;
@@ -1149,24 +1205,11 @@ import org.apache.commons.collections15.CollectionUtils;
 			graph.addEdgeChangeListener( this );
 		}
 
-		public void setEnabled( boolean state ) {
-			if ( state ) {
-				this.update( );
-			} else {
-			 this.clear( );
-			}
-			this.enabled = state;
-		}
-
 		public void stateChanged( GraphItemChangeEvent<E> event ) {
-			if ( !this.enabled )
-				return;
 			this.update( );
 		}
 
 		public void stateChanged( PickedStateChangeEvent<V> event ) {
-			if ( !this.enabled )
-				return;
 			// check to see if a vertex was added to or taken away from the selection.
 			// if one was added, we can improve performance by simply removing nodes 
 			// from the NeighborCollection which are not neighbors of the new node.
@@ -1188,8 +1231,6 @@ import org.apache.commons.collections15.CollectionUtils;
 		}
 
 		private void update( ) {
-			if ( !this.enabled )
-				return;
 			Collection<V> selected = new Vector<V>( this.graph.getPickedVertexState( ).getPicked( ));
 			// if nothing is selected, this Collection should also contain nothing.
 			if ( selected.size( ) == 0 ) {

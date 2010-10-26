@@ -188,7 +188,7 @@ public class Experiment implements Comparable<Experiment> {
 	/**
 	 * The compareTo method of the Comparable interface.
 	 * 
-	 * @param The Experiment to compare this Experiment to
+	 * @param e The Experiment to compare this Experiment to
 	 * @return Negative if the
 	 */
 	public int compareTo( Experiment e ) {

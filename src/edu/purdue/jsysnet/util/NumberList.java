@@ -312,7 +312,7 @@ public class NumberList extends ArrayList<Number> {
 
 	/**
 	 * Removes the object at the specified position in the List.
-	 * @see java.util.ArrayList.remove( int )
+	 * @see java.util.ArrayList#remove(int)
 	 * 
 	 * @param index The index of the object to be removed.
 	 * @return The Number which was removed from the List.
@@ -325,7 +325,7 @@ public class NumberList extends ArrayList<Number> {
 	/**
 	 * Removes the first occurrence of the specified element from this List, if 
 	 * it is present.
-	 * @see java.util.ArrayList.remove( java.lang.Object )
+	 * @see java.util.ArrayList#remove(java.lang.Object)
 	 * 
 	 * @param o The object to be removed.
 	 * @return true if the object was found and removed.
@@ -337,7 +337,7 @@ public class NumberList extends ArrayList<Number> {
 
 	/**
 	 * Removes all elements in the specified range.
-	 * @see java.util.ArrayList.removeRange( int, int )
+	 * @see java.util.ArrayList#removeRange(int, int)
 	 * 
 	 * @param fromIndex The index of the first element to remove (inclusive)
 	 * @param toIndex The index after the last element to remove (non-inclusive)
@@ -350,7 +350,7 @@ public class NumberList extends ArrayList<Number> {
 	/**
 	 * Replaces the element at the specified position in this List with the
 	 * specified value.
-	 * @see java.util.ArrayList.set( int, E )
+	 * @see java.util.ArrayList#set(int,E)
 	 * 
 	 * @param index The index of the value to be replaced.
 	 * @param element The new value for the index.

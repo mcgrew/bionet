@@ -105,7 +105,7 @@ public abstract class LayoutAnimator<V,E> implements Runnable {
 				}
 			}
 		}
-		for ( E edge : this.getEdges( )) {
+		for ( E edge : new Vector<E>( this.getEdges( ))) {
 			// do something.
 			V [] pair = (V[])this.graph.getIncidentVertices( edge ).toArray( );
 			if ( this.isAttractedBy( pair[ 0 ], pair[ 1 ])) {

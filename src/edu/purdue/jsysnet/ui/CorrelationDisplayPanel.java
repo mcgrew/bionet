@@ -188,7 +188,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	/**
 	 * Creates a CorrelationDisplayPanel object using the supplied data.
 	 * 
-	 * @param data The data to be used in this Panel
+	 * @param experiment The data to be used in this Panel
 	 */
 	public CorrelationDisplayPanel ( Experiment experiment ) {
 		super( new BorderLayout( ));
@@ -401,7 +401,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	/**
 	 * Creates a Correlation Graph.
 	 * 
-	 * @param data A Datahandler Object containing the data to be used.
+	 * @param experiment An Experiment Object containing the data to be used.
 	 */
 	public boolean createGraph( Experiment experiment ) {
 		this.setVisible( true );
@@ -1649,7 +1649,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 					graph.animate( animatedLayoutMenuItem.getState( ));
 				} else {
 					graph.animate( false );
-					graph.resetView( );
 					if ( item == multipleCirclesLayoutMenuItem )
 						setGraphLayout( MultipleCirclesLayout.class );
 					else if ( item == singleCircleLayoutMenuItem )

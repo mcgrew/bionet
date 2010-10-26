@@ -173,8 +173,6 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 				false  // configure chart to generate URLs (?!)
 			);
 
-			this.chart.setBackgroundPaint( new GradientPaint( 
-				0, 1000, Color.WHITE, 1000, 0, Color.GRAY ));
 			XYPlot plot = this.chart.getXYPlot( );
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
