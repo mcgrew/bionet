@@ -110,7 +110,7 @@
            windowtitle="${ant.project.name} API">
 			
 			<fileset dir="src" defaultexcludes="yes">
-				<include name="**"/>
+				<include name="**/*.java"/>
 	    </fileset>
 			<classpath>
 				<path refid="build_classpath"/>
