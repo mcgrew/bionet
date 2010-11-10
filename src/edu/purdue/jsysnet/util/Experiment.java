@@ -49,6 +49,22 @@ public class Experiment implements Comparable<Experiment> {
 		this.molecules = new ArrayList <Molecule>( );
 		this.correlations = new ArrayList <Correlation>( );
 	}
+
+	/**
+	 * Gets the Molecule with the given id.
+	 * 
+	 * @param id The id of the Molecule to get.
+	 * @return The requested Molecule, or null if it does not exist.
+	 */
+	public Molecule getMolecule( String id ) {
+		if ( id != null ) {
+			for ( Molecule m : this.getMolecules( )) {
+				if ( id.equals( m.getAttribute( "id" )))
+					return m;
+			}
+		}
+		return null;
+	}
 	
 	/**
 	 * Gets the molecules associated with this Experiment.

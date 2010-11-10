@@ -27,7 +27,6 @@ import java.util.Arrays;
  * Representation class for Molecule data
  * 
  * @author Thomas McGrew
- * @version 1.0
  */
 public class Molecule implements Comparable<Molecule> {
 	
@@ -306,6 +305,5 @@ public class Molecule implements Comparable<Molecule> {
 		}
 		return returnValue;
 	}
-		
-
 }
+

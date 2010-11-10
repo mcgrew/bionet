@@ -115,7 +115,11 @@ public class MoleculeGroup extends ArrayList<Molecule> implements Comparable<Mol
 	 *	less than, equal to, or greater than the specified MoleculeGroup.
 	 */
 	public int compareTo( MoleculeGroup mg ) {
-		return this.getName( ).compareTo( mg.getName( ));
+		int returnValue = this.getName( ).compareTo( mg.getName( ));
+		if ( returnValue == 0 ) {
+			returnValue = (int)Math.signum( this.size( ) -  mg.size( ));
+		}
+		return returnValue;
 	}
 
 }

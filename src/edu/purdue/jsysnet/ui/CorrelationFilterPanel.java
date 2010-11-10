@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.jsysnet.ui;
 
 import edu.purdue.jsysnet.util.Settings;
+import edu.purdue.jsysnet.util.Language;
 import edu.purdue.jsysnet.util.Range;
 import edu.purdue.jsysnet.util.MonitorableRange;
 
@@ -41,8 +42,8 @@ import javax.swing.SpinnerNumberModel;
  */
 public class CorrelationFilterPanel extends JPanel implements ChangeListener {
 
-	private JLabel minCorrelationLabel = new JLabel( "Higher Than: ", SwingConstants.RIGHT );
-	private JLabel maxCorrelationLabel = new JLabel( "Lower Than: ", SwingConstants.RIGHT );
+	private JLabel minCorrelationLabel;
+	private JLabel maxCorrelationLabel;
 	private JPanel minCorrelationFilterPanel = new JPanel( );
 	private JPanel maxCorrelationFilterPanel = new JPanel( );
 	private JSpinner minCorrelationSpinner;
@@ -78,8 +79,12 @@ public class CorrelationFilterPanel extends JPanel implements ChangeListener {
 	 * @param high The initial high setting for the filter.
 	 */
 	public CorrelationFilterPanel( double min, double max, double step, double low, double high ) {
+		super( new BorderLayout( ));
+		Language language = Settings.getLanguage( );
+		this.minCorrelationLabel = new JLabel( language.get( "Higher Than: " ), SwingConstants.RIGHT );
+		this.maxCorrelationLabel = new JLabel( language.get( "Lower Than: " ), SwingConstants.RIGHT );
+
 		this.range = new MonitorableRange( low, high );
-		this.setLayout( new BorderLayout( ));
 		this.minCorrelationSpinner = new JSpinner( new SpinnerNumberModel( low, min, max, step ));
 		this.maxCorrelationSpinner = new JSpinner( new SpinnerNumberModel( high, min, max, step ));
 

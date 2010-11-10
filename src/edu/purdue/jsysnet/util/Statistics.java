@@ -272,7 +272,7 @@ public class Statistics {
 	 * @param values The set to find the standard deviation of.
 	 * @return The standard deviation as a double.
 	 */
-	public double standardDeviation( double [] values ) {
+	public static double standardDeviation( double [] values ) {
 		double sum = 0, sumSq = 0;
 		for ( double d : values ) {
 			sum += d;
@@ -287,7 +287,7 @@ public class Statistics {
 	 * @param values The values to find the median of.
 	 * @return The median of those values.
 	 */
-	public double median( double [] values ) {
+	public static double median( double [] values ) {
 		double [] sorted = Arrays.copyOf( values, values.length );
 		Arrays.sort( sorted );
 		if (( values.length & 1 ) == 0 ) {
@@ -303,7 +303,7 @@ public class Statistics {
 	 * @param values The set of values.
 	 * @return The mean of those values.
 	 */
-	public double mean( double [] values ) {
+	public static double mean( double [] values ) {
 		double sum = 0.0;
 		for ( double d : values ) {
 			sum += d;
@@ -317,12 +317,42 @@ public class Statistics {
 	 * @param values The set of values.
 	 * @return The sum of those values.
 	 */
-	public double sum( double [] values ) {
+	public static double sum( double [] values ) {
 		double sum = 0.0;
 		for ( double d : values ) {
 			sum += d;
 		}
 		return sum;
+	}
+
+	/**
+	 * Returns the minimum of a set of values.
+	 * 
+	 * @param values The set of values to find the minimum for.
+	 * @return The minimum value in the array.
+	 */
+	public static double min( double [] values ) {
+		double returnValue = Double.MAX_VALUE;
+		for ( double d : values ) {
+			if ( Double.compare( returnValue, d ) < 0 )
+				returnValue = d;
+		}
+		return returnValue;
+	}
+
+	/**
+	 * Returns the maximum of a set of values.
+	 * 
+	 * @param values the set of values to find the maximum for.
+	 * @return The maximum value in the array.
+	 */
+	public static double max( double [] values ) {
+		double returnValue = Double.MIN_VALUE;
+		for ( double d : values ) {
+			if ( Double.compare( returnValue, d ) > 0 )
+				returnValue = d;
+		}
+		return returnValue;
 	}
 
 }

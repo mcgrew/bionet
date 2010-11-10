@@ -202,7 +202,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		public void paintComponent ( Graphics g ) {
 			super.paintComponent( g );
 			Dimension size = this.getSize( null );
-			BufferedImage drawing = chart.createBufferedImage( size.width, size.height );
+			BufferedImage drawing = this.chart.createBufferedImage( size.width, size.height );
 			g.drawImage( drawing, 0, 0, Color.WHITE, this );
 		}
 	}

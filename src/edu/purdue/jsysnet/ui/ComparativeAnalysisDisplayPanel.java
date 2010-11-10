@@ -23,24 +23,25 @@ import edu.purdue.jsysnet.util.Experiment;
 import edu.purdue.jsysnet.util.MoleculeGroup;
 import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Settings;
-import edu.purdue.jsysnet.util.PolarPoint2D;
+import edu.purdue.jsysnet.util.Language;
+import edu.purdue.jsysnet.util.Statistics;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.Set;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Collection;
+import java.util.Map;
+import java.util.Date;
+import java.util.Arrays;
 import java.awt.Dimension;
 import java.awt.BorderLayout;
-import java.awt.geom.Point2D;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Path2D;
-import java.awt.Shape;
-import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.FontMetrics;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
@@ -48,26 +49,50 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JRadioButton;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
+import org.jfree.data.statistics.DefaultBoxAndWhiskerXYDataset;
+import org.jfree.data.statistics.BoxAndWhiskerCalculator;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingEvent;
 
-import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
-import edu.uci.ics.jung.graph.Graph;
-
-import org.apache.commons.collections15.Transformer;
-
-import edu.uci.ics.jung.algorithms.layout.*; //testing
-import edu.purdue.jsysnet.ui.layout.*; //testing
-
 public class ComparativeAnalysisDisplayPanel extends JPanel {
 	private List <Experiment> experiments;
-	private JSplitPane splitPane;
+	private Set <Molecule> molecules;
+	private JSplitPane mainSplitPane;
+	private JSplitPane leftSplitPane;
+	private JSplitPane graphSplitPane;
 	private SelectorTreePanel selectorTree;
-	private GraphVisualizer<Molecule,Object> graph;
+	private JPanel topPanel;
+	private JPanel bottomPanel;
+	private ExperimentGraph experimentGraph;
+	private SampleGraph sampleGraph;
+	private JPanel fitSelectorPanel;
+	private JRadioButton noFitButton;
+	private JRadioButton robustFitButton;
+	private JRadioButton chiSquareFitButton;
 
+	private static final int MOLECULEGROUP = 1;
+	private static final int MOLECULE      = 2;
+	private static final int EXPERIMENT    = 3;
+	private static final int SAMPLE        = 4;
 
 	public ComparativeAnalysisDisplayPanel ( ) {
 		super( new BorderLayout( ));
@@ -75,27 +100,54 @@ public class ComparativeAnalysisDisplayPanel extends JPanel {
 
 	public boolean createGraph( List <Experiment> experiments ) {
 		this.experiments = experiments;
-		graph = new ComparativeAnalysisGraphVisualizer( ComparativeAnalysisLayout.class ); 
+		this.molecules = new TreeSet<Molecule>( );
 		for ( Experiment e : experiments ) {
-			for ( Molecule m : e.getMolecules( )) {
-				graph.addVertex( m );
-			}
+			molecules.addAll( e.getMolecules( ));
 		}
-		graph.resetLayout( );
-		selectorTree = new SelectorTreePanel( experiments );
-		splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
-		this.add( splitPane, BorderLayout.CENTER );
-		this.splitPane.setLeftComponent( selectorTree );
-		this.splitPane.setRightComponent( graph.getScrollPane( )); 
-		this.splitPane.setDividerLocation( 200 );
+		Language language = Settings.getLanguage( );
+
+		this.topPanel = new JPanel( new BorderLayout( ));
+		this.bottomPanel = new JPanel( new BorderLayout( ));
+		this.experimentGraph = new ExperimentGraph( experiments );
+		this.sampleGraph = new SampleGraph( experiments );
+		this.fitSelectorPanel = new JPanel( new GridLayout( 3, 1 ));
+		this.noFitButton = new JRadioButton( language.get( "No Fit" ));
+		this.robustFitButton = new JRadioButton( language.get( "Robust Fit" ));
+		this.chiSquareFitButton = new JRadioButton( language.get( "Chi Square Fit" ));
+
+		this.selectorTree = new SelectorTreePanel( experiments );
+		this.mainSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
+		this.leftSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+		this.graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+
+		this.fitSelectorPanel.add( this.noFitButton );
+		this.fitSelectorPanel.add( this.robustFitButton );
+		this.fitSelectorPanel.add( this.chiSquareFitButton );
+		this.topPanel.add( this.experimentGraph, BorderLayout.CENTER );
+		this.topPanel.add( this.fitSelectorPanel, BorderLayout.EAST );
+		this.bottomPanel.add( this.sampleGraph );
+
+		this.add( mainSplitPane, BorderLayout.CENTER );
+		this.mainSplitPane.setLeftComponent( leftSplitPane );
+		this.leftSplitPane.setTopComponent( selectorTree );
+		this.mainSplitPane.setRightComponent( graphSplitPane ); 
+		this.mainSplitPane.setDividerLocation( 200 );
+		this.graphSplitPane.setTopComponent( this.topPanel );
+		this.graphSplitPane.setBottomComponent( this.bottomPanel );
+
+		this.selectorTree.getTree( ).addTreeSelectionListener( this.experimentGraph );
+		this.selectorTree.getTree( ).addTreeSelectionListener( this.sampleGraph );
+
 		return true;
 	}
 
 	public boolean addExperiment( Experiment experiment ) {
+		this.molecules.addAll( experiment.getMolecules( ));
 		return experiments.add( experiment );
 	}
 
 	public boolean removeExperiment( Experiment experiment ) {
+
 		return experiments.remove( experiment );
 	}
 
@@ -103,29 +155,65 @@ public class ComparativeAnalysisDisplayPanel extends JPanel {
 		return Settings.getLanguage( ).get( "Comparative Analysis" );
 	}
 
-	private class SelectorTreePanel extends JPanel implements TreeCheckingListener {
+	/**
+	 * A class for displaying the selector tree
+	 */
+	private class SelectorTreePanel extends JPanel {
 		private CheckboxTree tree;
 
 		public SelectorTreePanel( List <Experiment> experiments ) {
 			super( new BorderLayout( ));
 			DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(	
 				Settings.getLanguage( ).get( "All Experiments" ));
+
+			// first get all possible group names
+			Set <String> groups = new TreeSet<String>( );
 			for ( Experiment e : experiments ) {
-				DefaultMutableTreeNode experimentNode = new DefaultMutableTreeNode( e );
-				for ( MoleculeGroup mg : e.getMoleculeGroups( )) {
-					DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode( mg );
-					for ( Molecule m : mg.getMolecules( )) {
-						DefaultMutableTreeNode moleculeNode = new DefaultMutableTreeNode( m );
-						groupNode.add( moleculeNode );
-					}
-					experimentNode.add( groupNode );
+				groups.addAll( Arrays.asList( e.getMoleculeGroupNames( )));
+			}
+			// now get all possible molecule ids
+			HashMap<String,Set<String>> moleculeIds = new HashMap <String,Set<String>>( );
+			for ( String group : groups ) {
+				Set set = moleculeIds.get( group );
+				if ( set == null ) {
+					set = new TreeSet<String>( );
+					moleculeIds.put( group, set );
 				}
-				rootNode.add( experimentNode );
+				for ( Experiment e : experiments ) {
+					for ( Molecule m : molecules ) {
+						set.add( m.getAttribute( "id" ));
+					}
+				}
+			}
+
+			for ( String groupName : groups ) {
+				DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode( groupName );
+				for ( String molId : moleculeIds.get( groupName )) {
+					DefaultMutableTreeNode moleculeNode = new DefaultMutableTreeNode( molId );
+					for ( Experiment e : experiments ) {
+						Molecule molecule = e.getMolecule( molId );
+						if ( molecule != null ) {
+							DefaultMutableTreeNode experimentNode = new DefaultMutableTreeNode( e.toString( ));
+							int sample = 1;
+							for ( Number value : molecule.getSamples( )) {
+								DefaultMutableTreeNode sampleNode = new DefaultMutableTreeNode( "S" + sample++ );	
+								experimentNode.add( sampleNode );
+							}
+							moleculeNode.add( experimentNode );
+						}
+					}
+					groupNode.add( moleculeNode );
+				}
+				rootNode.add( groupNode );
 			}
 			this.tree = new CheckboxTree( rootNode );
+			this.tree.setRootVisible( false );
 			this.tree.setCheckingPath( new TreePath( rootNode ));
-			this.tree.addTreeCheckingListener( this );
-			this.add( new JScrollPane( tree ), BorderLayout.CENTER);
+			this.add( new JScrollPane( tree ), BorderLayout.CENTER );
+		}
+
+		public JTree getTree( ) {
+			return this.tree;
 		}
 
 		public void addExperiment( Experiment experiment ) {
@@ -133,77 +221,205 @@ public class ComparativeAnalysisDisplayPanel extends JPanel {
 
 		public void removeExperiment( Experiment experiment ) {
 		}
-
-		public void valueChanged ( TreeCheckingEvent e ) {
-			Object obj = ((DefaultMutableTreeNode)e.getPath( ).getLastPathComponent( ))
-					.getUserObject( );
-			boolean checked = e.isCheckedPath( );
-			List <Molecule> molecules = new ArrayList <Molecule>( );
-
-			if ( Settings.getLanguage( ).get( "All Experiments" ).equals( obj )) {
-				for( Experiment exp : experiments )
-					molecules.addAll( exp.getMolecules( ));
-			} else if ( Experiment.class.isInstance( obj )) {
-				molecules.addAll( ((Experiment)obj).getMolecules( ));
-			} else if ( MoleculeGroup.class.isInstance( obj )) {
-				molecules.addAll(((MoleculeGroup)obj).getMolecules( ));
-			} else if ( Molecule.class.isInstance( obj )) {
-				molecules.add( (Molecule)obj );
-			} else {
-				System.out.println( Settings.getLanguage( ).get( "UnrecognizedL: object in tree" )
-				 + ": " + obj.getClass( ).toString( ));
-			}
-
-			for ( Molecule m : molecules )
-				if ( checked )
-					graph.addVertex( m );
-				else
-					graph.removeVertex( m );
-		}
 	}
 
-	private class ComparativeAnalysisGraphVisualizer extends GraphVisualizer<Molecule,Object> {
+	/**
+	 * A class for displaying molecular data across experiments
+	 */
+	private class ExperimentGraph extends JPanel implements TreeSelectionListener {
+		private JFreeChart chart;
+		private SortedSet <Experiment> experiments;
 		
-		public ComparativeAnalysisGraphVisualizer ( Class <? extends AbstractLayout> layout ) {
-			super( layout );
-			this.setEdgePaint( Color.BLACK );
-			this.getRenderContext( ).setVertexShapeTransformer( new Transformer<Molecule,Shape>( ) {
-				Shape shape = new Ellipse2D.Double( -5.0, -5.0, 10.0, 10.0 );
-				public Shape transform( Molecule v ) {
-					return shape;
-				}
-			});
-			this.getRenderContext( ).setVertexLabelTransformer( new Transformer<Molecule,String>( ) {
-				public String transform( Molecule v ) {
-					return "";
-				}
-			});
-			this.setGraphMouse( null );
+		public ExperimentGraph( Collection <Experiment> experiments ) {
+			super( );
+			this.experiments = new TreeSet( experiments );
 		}
 
-		protected void paintComponent( Graphics g ) {
-			super.paintComponent( g );
-			Layout layout = ((LayoutDecorator)this.getGraphLayout( )).getDelegate( );
-			if ( layout instanceof ComparativeAnalysisLayout ) {
-				Graphics2D g2d = (Graphics2D)g;
-				g2d.setColor( Color.BLACK );
-				Path2D arcs = new Path2D.Double( );
-				arcs.append( ((ComparativeAnalysisLayout)layout).getArcs( ), false );
-				g2d.draw( arcs ); 
-				PathIterator labelPath = ((ComparativeAnalysisLayout)layout).getLabelPath( );
-				int count = 1;
-				FontMetrics f = g.getFontMetrics( );
-				double[] coords = new double[ 2 ];
-				for( ; !labelPath.isDone( ); labelPath.next( )) {
-					labelPath.currentSegment( coords );
-					String label = Integer.toString( count++ );
-					g.drawString( label, 
-						(int)( coords[0] - f.stringWidth( label )/2 ), 
-						(int)( coords[1] ));
+		public void setGraph( Object molecule ) {
+			Language language = Settings.getLanguage( ); 
+			String id = molecule.toString( );
+			DefaultBoxAndWhiskerXYDataset dataSet = new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
+			int expIndex = 1;
+			for ( Experiment e : this.experiments ) {
+				double mean = 0.0, median = 0.0, min = 0.0, max = 0.0;
+				Molecule mol = e.getMolecule( id );
+				if ( mol != null ) {
+					dataSet.add( 
+						new Date((long)expIndex),
+						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( mol.getSamples( ))
+					);
 				}
+				expIndex++;
+			}
+			this.chart = ChartFactory.createBoxAndWhiskerChart (
+				String.format( language.get( "%s across experiments" ), 
+					molecule.toString( )), //title
+				"Experiment", // x axis label
+				"Concentration", // y axis label
+				dataSet, // plot data
+				false // show legend
+			);
+			XYPlot plot = this.chart.getXYPlot( );
+			plot.setBackgroundPaint( Color.WHITE );
+			plot.setRangeGridlinePaint( Color.GRAY );
+			plot.setDomainGridlinePaint( Color.GRAY );
+			plot.setDomainAxis( new NumberAxis( ));
+			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+//			XYItemRenderer = plot.getRenderer( );
+		}
+
+		/**
+		 * Draws the graph.
+		 * 
+		 * @param g The Graphics object of this component.
+		 */
+		public void paintComponent ( Graphics g ) {
+			super.paintComponent( g );
+			if ( chart != null ) {
+				Dimension size = this.getSize( null );
+				BufferedImage drawing = this.chart.createBufferedImage( size.width, size.height );
+				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}
+
+		/**
+		 * The valueChanged method of the TreeSelectionListener interface
+		 * 
+		 * @param e The event which triggered this action.
+		 */
+		public void valueChanged( TreeSelectionEvent e ) {
+			TreePath path = e.getPath( );
+			int level = path.getPathCount( );
+			if ( level > MOLECULE ) {
+				this.setGraph( path.getPathComponent( MOLECULE ));
+			} else {
+				this.chart = null;
+			}
+			this.repaint( );
+		}
 	}
+
+	/**
+	 * A class for showing sample concentrations in a graph.
+	 */
+	private class SampleGraph extends JPanel implements TreeSelectionListener {
+		private SortedSet <Experiment> experiments;
+		private JFreeChart chart;
+
+		public SampleGraph( Collection <Experiment> experiments ) {
+			super( );
+			this.experiments = new TreeSet<Experiment>( experiments );
+		}
+
+		public boolean setGraph( Object moleculeId ) {
+			Language language = Settings.getLanguage( );
+			XYSeriesCollection dataset = new XYSeriesCollection( );
+			for ( Experiment experiment : this.experiments ) {
+				Molecule molecule = experiment.getMolecule( moleculeId.toString( ));
+				if ( molecule != null ) {
+					XYSeries data = new XYSeries( String.format( "%s - %s %s",
+						language.get( "Sample Data" ),
+						language.get( "Experiment" ),
+						experiment.getAttribute( "exp_id" )
+					));
+					List<Number> samples = molecule.getSamples( );
+					int index = 1;
+					for ( Number value : samples )	{
+						data.add( index++, value );
+					}
+					dataset.addSeries( data );
+				}
+			}
+			this.chart = ChartFactory.createXYLineChart(
+				null, //title
+				language.get( "Sample" ), // x axis label
+				language.get( "Concentration" ), // y axis label
+				dataset, // plot data
+				PlotOrientation.VERTICAL, // Plot Orientation
+				false, // show legend
+				false, // use tooltips
+				false  // configure chart to generate URLs (?!)
+			);
+
+			XYPlot plot = this.chart.getXYPlot( );
+			plot.setBackgroundPaint( Color.WHITE );
+			plot.setRangeGridlinePaint( Color.GRAY );
+			plot.setDomainGridlinePaint( Color.GRAY );
+			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			return true;
+		}
+
+		public boolean setGraph( Molecule molecule ) {
+			Language language = Settings.getLanguage( );
+			XYSeries data = new XYSeries( language.get( "Sample Data" ));
+			List<Number> samples = molecule.getSamples( );
+			int index = 1;
+			for ( Number value : samples )	{
+				data.add( index++, value );
+			}
+			XYSeriesCollection dataset = new XYSeriesCollection( );
+			dataset.addSeries( data );
+			this.chart = ChartFactory.createXYLineChart(
+				null, //title
+				language.get( "Sample" ), // x axis label
+				language.get( "Concentration" ), // y axis label
+				dataset, // plot data
+				PlotOrientation.VERTICAL, // Plot Orientation
+				false, // show legend
+				false, // use tooltips
+				false  // configure chart to generate URLs (?!)
+			);
+
+			XYPlot plot = this.chart.getXYPlot( );
+			plot.setBackgroundPaint( Color.WHITE );
+			plot.setRangeGridlinePaint( Color.GRAY );
+			plot.setDomainGridlinePaint( Color.GRAY );
+			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+
+			return true;
+		}
+
+		/**
+		 * The valueChanged method of the TreeSelectionListener interface
+		 * 
+		 * @param e The event which triggered this action.
+		 */
+		public void valueChanged( TreeSelectionEvent e ) {
+			TreePath path = e.getPath( );
+			int level = path.getPathCount( );
+			if ( level > EXPERIMENT ) {
+				String selectedExperiment = path.getPathComponent( EXPERIMENT ).toString( );
+				for ( Experiment experiment : experiments ) {
+					if ( experiment.toString( ).equals( selectedExperiment )) {
+						this.setGraph( experiment.getMolecule( 
+							path.getPathComponent( MOLECULE ).toString( )));
+						break;
+					}
+				}
+			} else if ( level > MOLECULE ) { 
+				this.setGraph( path.getPathComponent( MOLECULE ));
+			} else {
+				this.chart = null;
+			}
+			this.repaint( );
+		}
+
+		/**
+		 * Draws the graph.
+		 * 
+		 * @param g The Graphics object of this component.
+		 */
+		public void paintComponent ( Graphics g ) {
+			super.paintComponent( g );
+			if ( chart != null ) {
+				Dimension size = this.getSize( null );
+				BufferedImage drawing = this.chart.createBufferedImage( size.width, size.height );
+				g.drawImage( drawing, 0, 0, Color.WHITE, this );
+			}
+		}
+
+	}
+
 }
 
 

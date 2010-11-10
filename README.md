@@ -14,7 +14,7 @@ veiw is mostly complete, and initial work on Comparative Analysis has been done,
 functional. Time course study is not yet implemented.
 
 
-Getting and Running JsysNet
+Getting and Running JSysNet
 ---------------------------
 
 As JSysNet is currently alpha level software, there are no releases as of yet. To obtain a copy of JSysNet, you must
