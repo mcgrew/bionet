@@ -184,6 +184,8 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		this.exitFileMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK ));
 
+		this.saveFileMenuItem.setEnabled( false );
+
 		// DATABASE MENU
 //		this.databaseMenu.setMnemonic( KeyEvent.VK_D );
 //		this.databaseMenu.getAccessibleContext( ).setAccessibleDescription(

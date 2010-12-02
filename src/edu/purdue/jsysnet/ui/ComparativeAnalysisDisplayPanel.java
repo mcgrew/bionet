@@ -46,6 +46,8 @@ import java.awt.BasicStroke;
 import java.awt.image.BufferedImage;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 import java.awt.geom.Ellipse2D;
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -59,8 +61,6 @@ import javax.swing.JRadioButton;
 import javax.swing.ButtonGroup;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYSeries;
@@ -74,6 +74,8 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerXYDataset;
+import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
+import org.jfree.data.statistics.BoxAndWhiskerItem;
 import org.jfree.data.statistics.BoxAndWhiskerCalculator;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -131,9 +133,6 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		this.fitButtonGroup.add( this.robustFitButton );
 		this.fitButtonGroup.add( this.chiSquareFitButton );
 		this.noFitButton.setSelected( true );
-		this.noFitButton.addChangeListener( this.experimentGraph );
-		this.robustFitButton.addChangeListener( this.experimentGraph );
-		this.chiSquareFitButton.addChangeListener( this.experimentGraph );
 
 		this.selectorTree = new SelectorTreePanel( experiments );
 		this.mainSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
@@ -157,6 +156,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		this.graphSplitPane.setTopComponent( this.topPanel );
 		this.graphSplitPane.setBottomComponent( this.bottomPanel );
 
+		this.noFitButton.addItemListener( this.experimentGraph );
+		this.robustFitButton.addItemListener( this.experimentGraph );
+		this.chiSquareFitButton.addItemListener( this.experimentGraph );
 		this.selectorTree.getTree( ).addTreeSelectionListener( this.experimentGraph );
 		this.selectorTree.getTree( ).addTreeSelectionListener( this.sampleGraph );
 		this.selectorTree.getTree( ).addTreeCheckingListener( this.experimentGraph );
@@ -301,11 +303,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 	 * A class for displaying molecular data across experiments
 	 */
 	private class ExperimentGraph extends JPanel 
-		implements TreeSelectionListener,TreeCheckingListener,ChangeListener {
+		implements TreeSelectionListener,TreeCheckingListener,ItemListener {
 		private JFreeChart chart;
 		private SortedSet <Experiment> experiments;
 		private XYDataset fitDataset;
-		
+
 		/**
 		 * Creates a new ExperimentGraph panel to show data from the passed in Experiments.
 		 * 
@@ -326,36 +328,67 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		public void setGraph( Object molecule ) {
 			Language language = Settings.getLanguage( ); 
 			String id = molecule.toString( );
-			DefaultBoxAndWhiskerXYDataset dataSet = new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
+			DefaultBoxAndWhiskerXYDataset boxDataSet = new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
+			double [] fitValues = new double[ this.experiments.size( )];
 			int expIndex = 1;
 			for ( Experiment e : this.experiments ) {
 				Molecule mol = e.getMolecule( id );
+				fitValues[ expIndex - 1 ] = Double.NaN;
 				if ( mol != null && selectorTree.isChecked( mol )) {
 					try {
-						dataSet.add( 
-							new Date((long)expIndex),
-							BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-								selectorTree.getSamplesFiltered( mol ))
-						);
-					} catch ( IllegalArgumentException exc ) { }
+						BoxAndWhiskerItem item = BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
+								selectorTree.getSamplesFiltered( mol ));
+						boxDataSet.add( new Date((long)expIndex), item );
+
+						// robust fit uses the median instead of the mean.
+						if ( robustFitButton.isSelected( )) { 
+							fitValues[ expIndex - 1 ] = item.getMedian( ).doubleValue( );
+						} else {
+							fitValues[ expIndex - 1 ] = item.getMean( ).doubleValue( );
+						}
+					} catch ( IllegalArgumentException exc ) { 
+					}
 				}
 				expIndex++;
+			}
+			// filter the fit values here...
+			if ( robustFitButton.isSelected( )) {
+				fitValues = Statistics.linearRegression( fitValues );
+			}
+			if ( chiSquareFitButton.isSelected( )) {
+				fitValues = Statistics.chiSquareFit( fitValues );
+			}
+			XYSeries fitSeries = new XYSeries( language.get( "Fit Line" ));
+			for ( int i=0; i < this.experiments.size( ); i++ ) {
+				if ( !Double.isNaN( fitValues[ i ] ))
+					fitSeries.add( i+1, fitValues[ i ]);
 			}
 			this.chart = ChartFactory.createBoxAndWhiskerChart (
 				String.format( language.get( "%s across experiments" ), 
 					molecule.toString( )), //title
 				language.get( "Experiment" ), // x axis label
 				language.get( "Concentration" ), // y axis label
-				dataSet, // plot data
+				boxDataSet, // plot data
 				false // show legend
 			);
-			XYPlot boxPlot = this.chart.getXYPlot( );
-			boxPlot.setBackgroundPaint( Color.WHITE );
-			boxPlot.setRangeGridlinePaint( Color.GRAY );
-			boxPlot.setDomainGridlinePaint( Color.GRAY );
-			boxPlot.setDomainAxis( new NumberAxis( ));
-			boxPlot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
-//			XYItemRenderer = boxPlot.getRenderer( );
+			XYSeriesCollection fitDataset = new XYSeriesCollection( );
+			fitDataset.addSeries( fitSeries );
+			XYPlot plot = this.chart.getXYPlot( );
+			plot.setBackgroundPaint( Color.WHITE );
+			plot.setRangeGridlinePaint( Color.GRAY );
+			plot.setDomainGridlinePaint( Color.GRAY );
+			plot.setDomainAxis( new NumberAxis( ));
+			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			XYItemRenderer boxRenderer = plot.getRenderer( );
+			boxRenderer.setSeriesStroke( 0, new BasicStroke( 2 ));
+			boxRenderer.setSeriesOutlineStroke( 0, new BasicStroke( 2 ));
+
+			plot.setDataset( 1, fitDataset );
+			XYLineAndShapeRenderer lineRenderer = new XYLineAndShapeRenderer( );
+			lineRenderer.setSeriesShapesVisible( 0, false );
+			lineRenderer.setSeriesStroke( 0, new BasicStroke( 2 ));
+			plot.setRenderer( 1, lineRenderer );
+			
 		}
 
 		/**
@@ -394,20 +427,32 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 * @param e The event which triggered this action.
 		 */
 		public void valueChanged( TreeCheckingEvent e ) {
-			this.valueChanged( new TreeSelectionEvent( 
-				e.getSource( ),
-				selectorTree.getTree( ).getSelectionPath( ),
-				false, null, null 
-			));
+			TreePath path = selectorTree.getTree( ).getSelectionPath( );
+			int level = path.getPathCount( );
+			if ( level > MOLECULE ) {
+				this.setGraph( path.getPathComponent( MOLECULE ));
+			} else {
+				this.chart = null;
+			}
+			this.repaint( );
 		}
 
 		/**
-		 * The stateChanged method of the ChangeListener interface
+		 * The itemStateChanged method of the ItemListener interface
 		 * 
 		 * @param e The event which triggered this action.
 		 */
-		public void stateChanged( ChangeEvent e ) {
-			Object item = e.getSource( );
+		public void itemStateChanged( ItemEvent e ) {
+			if ( e.getStateChange( ) == ItemEvent.SELECTED ) {
+				TreePath path = selectorTree.getTree( ).getSelectionPath( );
+				int level = path.getPathCount( );
+				if ( level > MOLECULE ) {
+					this.setGraph( path.getPathComponent( MOLECULE ));
+				} else {
+					this.chart = null;
+				}
+				this.repaint( );
+			}
 		}
 	}
 
@@ -498,7 +543,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			dataset.addSeries( data );
 			this.chart = ChartFactory.createXYLineChart( 
 				String.format( language.get( "%s sample concentrations" ), 
-				molecule.toString( )), //title
+					molecule.toString( )) + " " +
+					language.get( "Experiment" ) + " " +
+					molecule.getExperiment( ).getAttribute( "exp_id" ), //title
 				language.get( "Sample" ), // x axis label
 				language.get( "Concentration" ), // y axis label
 				dataset, // plot data
