@@ -364,8 +364,18 @@ public class Statistics {
 		return returnValue;
 	}
 
-	public static double [] linearRegression( double [] values ) {
-		double [] returnValue = new double[ values.length ];
+	/**
+	 * Reduces a set of values to a linear regression, using the array indices
+	 * as the x values.
+	 *
+	 * References:
+	 * <CITE> Fry, John M. (2010). Regression: Linear Models in Statistics
+	 * (pp 3-6) Springer.</CITE>
+	 * 
+	 * @param values The y values of the points on a graph.
+	 * @return A Polynomial object which can be used to find the regression line.
+	 */
+	public static Polynomial linearRegression( double [] values ) {
 		double meanX = 0.0;
 		double meanY = 0.0;
 		double meanXY = 0;
@@ -388,22 +398,11 @@ public class Statistics {
 		double b = ( meanXY - ( meanX * meanY )) / 
 			( meanXsq - ( meanX * meanX ));
 		double a = meanY - b * meanX;
-		for ( int x=0; x < values.length; x++ ) {
-			if ( !Double.isNaN( values[ x ]))
-				returnValue[ x ] = a + b * x;
-			else
-				returnValue[ x ] = Double.NaN;
-		}
-		return returnValue;
+		return new Polynomial( a, b );
 	}
 
-	public static double [] chiSquareFit( double [] values ) {
-		double [] returnValue = new double[ values.length ];
-		double expected = mean( values );
-		for ( int i=0; i < values.length; i++ ) {
-			returnValue[ i ] = values[ i ];
-		}
-		return returnValue;
+	public static Polynomial chiSquareFit( double [] values ) {
+		return null;
 	}
 }
 

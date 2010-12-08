@@ -25,6 +25,7 @@ import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Settings;
 import edu.purdue.jsysnet.util.Language;
 import edu.purdue.jsysnet.util.Statistics;
+import edu.purdue.jsysnet.util.Polynomial;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,12 +38,17 @@ import java.util.Map;
 import java.util.Date;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.text.AttributedString;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Graphics;
 import java.awt.Color;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 import java.awt.BasicStroke;
+import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
@@ -63,6 +69,8 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.plot.CategoryPlot;
@@ -126,7 +134,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		this.sampleGraph = new SampleGraph( experiments );
 		this.fitSelectorPanel = new JPanel( new GridLayout( 4, 1 ));
 		this.noFitButton = new JRadioButton( language.get( "No Fit" ));
-		this.robustFitButton = new JRadioButton( language.get( "Robust Fit" ));
+		this.robustFitButton = new JRadioButton( language.get( "Robust Linear Fit" ));
 		this.chiSquareFitButton = new JRadioButton( language.get( "Chi Square Fit" ));
 		this.fitButtonGroup = new ButtonGroup( );
 		this.fitButtonGroup.add( this.noFitButton );
@@ -307,6 +315,10 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		private JFreeChart chart;
 		private SortedSet <Experiment> experiments;
 		private XYDataset fitDataset;
+		private Polynomial fitEquation;
+		private LegendItemCollection legendItems;
+		private Stroke stroke;
+
 
 		/**
 		 * Creates a new ExperimentGraph panel to show data from the passed in Experiments.
@@ -317,6 +329,23 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			super( );
 			this.experiments = new TreeSet( experiments );
 			//this.fitDataset = new XYDataset( );
+			this.stroke = new BasicStroke( 2 );
+			this.legendItems = new LegendItemCollection( );
+			this.legendItems.add( new LegendItem( "Mean", null, null, null,
+			                                      new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
+			                                      Color.BLACK, 
+			                                      this.stroke, Color.BLACK));
+			this.legendItems.add( new LegendItem( "Median", null, null, null,
+			                                      new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
+			                                      this.stroke, Color.BLACK ));
+			this.legendItems.add( new LegendItem( "Min/Max without Outliers", null, null, null,
+			                                      new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
+			                                      this.stroke, Color.BLUE ));
+			this.legendItems.add( new LegendItem( "Outlier", null, null, null,
+			                                      new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
+			                                      Color.WHITE, 
+			                                      this.stroke, Color.BLACK));
+
 		}
 
 		/**
@@ -351,17 +380,22 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				}
 				expIndex++;
 			}
-			// filter the fit values here...
+			// find the equation for the fitting curve
+			this.fitEquation = null;
 			if ( robustFitButton.isSelected( )) {
-				fitValues = Statistics.linearRegression( fitValues );
+				this.fitEquation = Statistics.linearRegression( fitValues );
 			}
 			if ( chiSquareFitButton.isSelected( )) {
-				fitValues = Statistics.chiSquareFit( fitValues );
+				this.fitEquation = Statistics.chiSquareFit( fitValues );
 			}
 			XYSeries fitSeries = new XYSeries( language.get( "Fit Line" ));
 			for ( int i=0; i < this.experiments.size( ); i++ ) {
 				if ( !Double.isNaN( fitValues[ i ] ))
-					fitSeries.add( i+1, fitValues[ i ]);
+					if ( fitEquation != null ) {
+						fitSeries.add( i+1, fitEquation.solve( i ));
+					} else {
+						fitSeries.add( i+1, fitValues[ i ]);
+					}
 			}
 			this.chart = ChartFactory.createBoxAndWhiskerChart (
 				String.format( language.get( "%s across experiments" ), 
@@ -369,7 +403,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				language.get( "Experiment" ), // x axis label
 				language.get( "Concentration" ), // y axis label
 				boxDataSet, // plot data
-				false // show legend
+				true // show legend
 			);
 			XYSeriesCollection fitDataset = new XYSeriesCollection( );
 			fitDataset.addSeries( fitSeries );
@@ -380,14 +414,17 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			plot.setDomainAxis( new NumberAxis( ));
 			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
 			XYItemRenderer boxRenderer = plot.getRenderer( );
-			boxRenderer.setSeriesStroke( 0, new BasicStroke( 2 ));
-			boxRenderer.setSeriesOutlineStroke( 0, new BasicStroke( 2 ));
+			boxRenderer.setSeriesStroke( 0, this.stroke );
+			boxRenderer.setSeriesOutlineStroke( 0, this.stroke );
 
 			plot.setDataset( 1, fitDataset );
 			XYLineAndShapeRenderer lineRenderer = new XYLineAndShapeRenderer( );
 			lineRenderer.setSeriesShapesVisible( 0, false );
-			lineRenderer.setSeriesStroke( 0, new BasicStroke( 2 ));
+			lineRenderer.setSeriesStroke( 0, this.stroke );
 			plot.setRenderer( 1, lineRenderer );
+
+			plot.setFixedLegendItems( this.legendItems );
+
 			
 		}
 
@@ -402,6 +439,13 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				Dimension size = this.getSize( null );
 				BufferedImage drawing = this.chart.createBufferedImage( size.width, size.height );
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
+				if ( this.fitEquation != null ) {
+					FontMetrics f = g.getFontMetrics( );
+					g.drawString( "slope = " + this.fitEquation.getCoefficient( 1 ),
+						size.width * 3 / 4,
+						20
+					);
+				}
 			}
 		}
 

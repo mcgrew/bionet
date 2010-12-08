@@ -1,22 +1,31 @@
 /*
 
-This file is part of JSysNet.
+Copyright: 2010 Purdue University
 
-JSysNet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+This file is distributed under the following terms (MIT/X11 License):
 
-JSysNet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+	Permission is hereby granted, free of charge, to any person
+	obtaining a copy of this file and associated documentation
+	files (the "Software"), to deal in the Software without
+	restriction, including without limitation the rights to use,
+	copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the
+	Software is furnished to do so, subject to the following
+	conditions:
 
-You should have received a copy of the GNU General Public License
-along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+	OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+	HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+	OTHER DEALINGS IN THE SOFTWARE.
 
 */
-
 package edu.purdue.jsysnet.util;
 
 import java.util.ArrayList;
@@ -49,6 +58,58 @@ public class NumberList extends ArrayList<Number> {
 	 */
 	public NumberList( Collection<Number> c ) {
 		super( c );
+	}
+	
+	/**
+	 * Creates a new NumberList which contains the values from the passed
+	 * in array.
+	 * 
+	 * @param values The values to initialize the NumberList with.
+	 */
+	public NumberList( byte [] values ) {
+		super( );
+		this.addAll( values );
+	}
+
+	/**
+	 * Creates a new NumberList which contains the values from the passed
+	 * in array.
+	 * 
+	 * @param values The values to initialize the NumberList with.
+	 */
+	public NumberList( double [] values ) {
+		super( );
+		this.addAll( values );
+	}
+	/**
+	 * Creates a new NumberList which contains the values from the passed
+	 * in array.
+	 * 
+	 * @param values The values to initialize the NumberList with.
+	 */
+	public NumberList( float [] values ) {
+		super( );
+		this.addAll( values );
+	}
+	/**
+	 * Creates a new NumberList which contains the values from the passed
+	 * in array.
+	 * 
+	 * @param values The values to initialize the NumberList with.
+	 */
+	public NumberList( int [] values ) {
+		super( );
+		this.addAll( values );
+	}
+	/**
+	 * Creates a new NumberList which contains the values from the passed
+	 * in array.
+	 * 
+	 * @param values The values to initialize the NumberList with.
+	 */
+	public NumberList( long [] values ) {
+		super( );
+		this.addAll( values );
 	}
 
 	/**
@@ -194,6 +255,61 @@ public class NumberList extends ArrayList<Number> {
 	 */
 	public void add( int index, short value ) {
 		this.add( index, new Short( value ));
+	}
+
+	/**
+	 * Adds all values in the array to this list
+	 * 
+	 * @param values An array containing the values to be added.
+	 */
+	public void addAll( byte[] values ) {
+		for ( byte value : values ) {
+			this.add( value );
+		}
+	}
+
+	/**
+	 * Adds all values in the array to this list
+	 * 
+	 * @param values An array containing the values to be added.
+	 */
+	public void addAll( double[] values ) {
+		for ( double value : values ) {
+			this.add( value );
+		}
+	}
+
+	/**
+	 * Adds all values in the array to this list
+	 * 
+	 * @param values An array containing the values to be added.
+	 */
+	public void addAll( float[] values ) {
+		for ( float value : values ) {
+			this.add( value );
+		}
+	}
+
+	/**
+	 * Adds all values in the array to this list
+	 * 
+	 * @param values An array containing the values to be added.
+	 */
+	public void addAll( int[] values ) {
+		for ( int value : values ) {
+			this.add( value );
+		}
+	}
+
+	/**
+	 * Adds all values in the array to this list
+	 * 
+	 * @param values An array containing the values to be added.
+	 */
+	public void addAll( long[] values ) {
+		for ( long value : values ) {
+			this.add( value );
+		}
 	}
 
 	public boolean addAll( Collection<? extends Number> c ) {
