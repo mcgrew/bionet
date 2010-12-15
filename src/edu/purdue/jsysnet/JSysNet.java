@@ -29,6 +29,11 @@ import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.ConsoleAppender;
+
 
 public class JSysNet {
 
@@ -39,10 +44,16 @@ public class JSysNet {
 		int c;
 		Settings settings = Settings.getSettings( );
 		Language language = Settings.getLanguage( );
+		Logger rootLogger = Logger.getRootLogger( );
+		rootLogger.setLevel( Level.DEBUG );
+		rootLogger.addAppender( new ConsoleAppender( 
+			new PatternLayout( PatternLayout.TTCC_CONVERSION_PATTERN ),
+			ConsoleAppender.SYSTEM_ERR ));
 
 		while (( c = g.getopt( )) != -1 ) {
 			switch( c ) {
 				case 'd':
+					rootLogger.setLevel( Level.DEBUG );
 					settings.getDefaults( ).setProperty( "debug", "true" );
 					break;
 				case 'g':
@@ -70,6 +81,7 @@ public class JSysNet {
 					System.out.println( "-h          "+ language.get( "Prints this message and exits" ));
 					System.exit( 0 );
 				case 'v':
+					rootLogger.setLevel( Level.INFO );
 					settings.getDefaults( ).setProperty( "verbose", "true" );
 					break;
 				case '?':

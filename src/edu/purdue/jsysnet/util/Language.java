@@ -24,6 +24,8 @@ import java.util.Locale;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.log4j.Logger;
+
 public class Language {
 	private Locale locale = Locale.getDefault( );
 	private Properties strings = new Properties( );
@@ -63,13 +65,15 @@ public class Language {
 				"/resources/i18n/" + locale.getLanguage( ) + ".xml" );
 		}
 		if ( resource /*still*/ == null ) {
-			System.err.println( get( "Unable to read language file for " ) + 
+			Logger.getLogger( getClass( )).debug( 
+				get( "Unable to read language file for " ) + 
 				locale.toString( ) + ". " );
 		} else {
 			try {
 				strings.loadFromXML( resource ); 
 			} catch ( IOException e ) {
-				System.err.println( get( "Unable to read language file for " ) + 
+				Logger.getLogger( getClass( )).debug( 
+					get( "Unable to read language file for " ) + 
 					locale.toString( ) + ". " );
 			}
 		}
@@ -89,7 +93,8 @@ public class Language {
 		}
 
 		if ( true )
-			System.err.println( String.format( "'%s' not in language file", s ));
+			Logger.getLogger( getClass( )).debug( 
+				String.format( "'%s' not in language file", s ));
 		return s;
 	}
 }

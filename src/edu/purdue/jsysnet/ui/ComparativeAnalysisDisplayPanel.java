@@ -25,7 +25,8 @@ import edu.purdue.jsysnet.util.Molecule;
 import edu.purdue.jsysnet.util.Settings;
 import edu.purdue.jsysnet.util.Language;
 import edu.purdue.jsysnet.util.Statistics;
-import edu.purdue.jsysnet.util.Polynomial;
+import edu.purdue.jsysnet.util.equation.Equation;
+import edu.purdue.jsysnet.util.equation.Polynomial;
 
 import java.util.Collection;
 import java.util.List;
@@ -93,6 +94,8 @@ import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingEvent;
+
+import org.apache.log4j.Logger;
 
 public class ComparativeAnalysisDisplayPanel extends JPanel implements ComponentListener {
 	private List <Experiment> experiments;
@@ -315,7 +318,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		private JFreeChart chart;
 		private SortedSet <Experiment> experiments;
 		private XYDataset fitDataset;
-		private Polynomial fitEquation;
+		private Equation fitEquation;
 		private LegendItemCollection legendItems;
 		private Stroke stroke;
 
@@ -358,11 +361,12 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			Language language = Settings.getLanguage( ); 
 			String id = molecule.toString( );
 			DefaultBoxAndWhiskerXYDataset boxDataSet = new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
-			double [] fitValues = new double[ this.experiments.size( )];
+			double [] fitValues = new double[ this.experiments.size( ) + 1];
+			fitValues[ 0 ] = Double.NaN;
 			int expIndex = 1;
 			for ( Experiment e : this.experiments ) {
 				Molecule mol = e.getMolecule( id );
-				fitValues[ expIndex - 1 ] = Double.NaN;
+				fitValues[ expIndex ] = Double.NaN;
 				if ( mol != null && selectorTree.isChecked( mol )) {
 					try {
 						BoxAndWhiskerItem item = BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
@@ -371,9 +375,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 
 						// robust fit uses the median instead of the mean.
 						if ( robustFitButton.isSelected( )) { 
-							fitValues[ expIndex - 1 ] = item.getMedian( ).doubleValue( );
+							fitValues[ expIndex ] = item.getMedian( ).doubleValue( );
 						} else {
-							fitValues[ expIndex - 1 ] = item.getMean( ).doubleValue( );
+							fitValues[ expIndex ] = item.getMean( ).doubleValue( );
 						}
 					} catch ( IllegalArgumentException exc ) { 
 					}
@@ -383,19 +387,27 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			// find the equation for the fitting curve
 			this.fitEquation = null;
 			if ( robustFitButton.isSelected( )) {
-				this.fitEquation = Statistics.linearRegression( fitValues );
+				this.fitEquation = Statistics.linearFit( fitValues );
 			}
 			if ( chiSquareFitButton.isSelected( )) {
 				this.fitEquation = Statistics.chiSquareFit( fitValues );
 			}
 			XYSeries fitSeries = new XYSeries( language.get( "Fit Line" ));
-			for ( int i=0; i < this.experiments.size( ); i++ ) {
-				if ( !Double.isNaN( fitValues[ i ] ))
-					if ( fitEquation != null ) {
-						fitSeries.add( i+1, fitEquation.solve( i ));
-					} else {
-						fitSeries.add( i+1, fitValues[ i ]);
+			int xMax = this.experiments.size( );
+			if ( fitEquation == null ) {
+				for ( int i=1; i <= xMax; i++ ) {
+					if ( !Double.isNaN( fitValues[ i ] ))
+						fitSeries.add( i, fitValues[ i ]);
 					}
+			} else {
+				for ( double i=1; i <= xMax; i+= 0.01 ) {
+					try {
+						fitSeries.add( i, fitEquation.solve( i ));
+					} catch ( IllegalArgumentException exc ) {
+						Logger.getLogger( getClass( )).debug( 
+							"Unable to find solution for x=" + i, exc );
+					}
+				}
 			}
 			this.chart = ChartFactory.createBoxAndWhiskerChart (
 				String.format( language.get( "%s across experiments" ), 
@@ -441,10 +453,10 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 				if ( this.fitEquation != null ) {
 					FontMetrics f = g.getFontMetrics( );
-					g.drawString( "slope = " + this.fitEquation.getCoefficient( 1 ),
-						size.width * 3 / 4,
-						20
-					);
+					String notation = "y="+this.fitEquation.toString( );
+					g.drawString( notation, 
+					              size.width - f.stringWidth( notation ) - 20,
+												20 );
 				}
 			}
 		}
@@ -489,13 +501,15 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		public void itemStateChanged( ItemEvent e ) {
 			if ( e.getStateChange( ) == ItemEvent.SELECTED ) {
 				TreePath path = selectorTree.getTree( ).getSelectionPath( );
-				int level = path.getPathCount( );
-				if ( level > MOLECULE ) {
-					this.setGraph( path.getPathComponent( MOLECULE ));
-				} else {
-					this.chart = null;
+				if ( path != null ) {
+					int level = path.getPathCount( );
+					if ( level > MOLECULE ) {
+						this.setGraph( path.getPathComponent( MOLECULE ));
+					} else {
+						this.chart = null;
+					}
+					this.repaint( );
 				}
-				this.repaint( );
 			}
 		}
 	}
