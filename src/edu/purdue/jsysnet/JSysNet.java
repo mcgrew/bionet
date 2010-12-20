@@ -33,6 +33,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.spi.LoggingEvent;
 
 
 public class JSysNet {
@@ -42,13 +44,16 @@ public class JSysNet {
 		Getopt g = new Getopt( "JSysNet", args, "dg:hv" );
 		String arg;
 		int c;
-		Settings settings = Settings.getSettings( );
-		Language language = Settings.getLanguage( );
+
 		Logger rootLogger = Logger.getRootLogger( );
-		rootLogger.setLevel( Level.DEBUG );
+		rootLogger.setLevel( Level.ERROR );
 		rootLogger.addAppender( new ConsoleAppender( 
 			new PatternLayout( PatternLayout.TTCC_CONVERSION_PATTERN ),
 			ConsoleAppender.SYSTEM_ERR ));
+		rootLogger.addAppender( new DialogAppender( Level.ERROR ));
+
+		Settings settings = Settings.getSettings( );
+		Language language = Settings.getLanguage( );
 
 		while (( c = g.getopt( )) != -1 ) {
 			switch( c ) {
@@ -95,14 +100,11 @@ public class JSysNet {
 		try {
 			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName());
 		} catch ( Exception e ) {
-			if ( settings.getBoolean( "VERBOSE" )) {
-				System.err.println( 
-					language.get( "Attemping to load the system look and feel resulted in the following error" )
-					+ ":" );
-				System.err.println( "\t" + e.getMessage( ));
-			} else {
-				System.err.println( language.get( "Unable to load system look and feel, switching to default" ));
-			}
+			Logger logger = Logger.getLogger( JSysNet.class );
+			logger.debug( 
+				language.get( "Attemping to load the system look and feel resulted in the following error" )
+				+ ":" , e );
+			logger.info( language.get( "Unable to load system look and feel, switching to default" ));
 		}
 		
 		JSysNet.newWindow( );
@@ -112,11 +114,30 @@ public class JSysNet {
 		JSysNetWindow s = new JSysNetWindow( "JSysNet" );
 	}
 
-	public static void message( String text ){
-		System.err.println( text );
-		JOptionPane.showMessageDialog( null, text );
-	}
+	private static class DialogAppender extends AppenderSkeleton {
+		private Level minimumLevel;
 
+		public DialogAppender( Level minimumLevel ) {
+			super( );
+			this.setMinimumLevel( minimumLevel );
+		}
+
+		public void setMinimumLevel( Level minimumLevel ) {
+			this.minimumLevel = minimumLevel;
+		}
+
+		public void append( LoggingEvent event ) {
+			if ( event.getLevel( ).isGreaterOrEqual( this.minimumLevel )) {
+				JOptionPane.showMessageDialog( null, event.getMessage( ));
+			}
+		}
+
+		public boolean requiresLayout( ) {
+			return false;
+		}
+
+		public void close( ) { }
+	}
 
 }
 

@@ -48,6 +48,15 @@
 <entry key="Explore Correlations">Explorar Correlaciones</entry>
 
 <!-- various dialog strings -->
+<entry key="Experiment">Experiment</entry>
+<entry key="Sample">Sample</entry>
+<entry key="%s across experiments">%s across experiments</entry>
+<entry key="%s sample concentrations">%s sample concentrations</entry>
+<entry key="Concentration">Concentration</entry>
+<entry key="Fit Line">Fit Line</entry>
+<entry key="No Fit">No Fit</entry>
+<entry key="Robust Linear Fit">Robust Linear Fit</entry>
+<entry key="Chi Square Fit">Chi Square Fit</entry>
 <entry key="Experiment Selection">Selección de Experimento</entry>
 <entry key="Choose an Experiment">Seleccionar un Experiemento</entry>
 <entry key="Time Course Study">Tiempo de Estudio del Curso</entry>

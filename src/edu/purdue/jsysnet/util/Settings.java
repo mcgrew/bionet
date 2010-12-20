@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import javax.swing.filechooser.FileSystemView;
 
+import org.apache.log4j.Logger;
+
 public class Settings extends Properties {
 	private static Settings settings = new Settings( );
 	private static Language language;
@@ -95,39 +97,34 @@ public class Settings extends Properties {
 	}
 
 	public void save( ) {
+		Logger logger = Logger.getLogger( getClass( ));
 		try {
-			if ( getBoolean( "debug" ) ){
-				System.err.println( "Saving settings..." );
-			}
+			logger.debug( "Saving settings..." );
 			File settingsFile = new File( this.getProperty( "settingsFile" ));
 			if( !settingsFile.getParentFile( ).exists( ) && !settingsFile.getParentFile( ).mkdirs( )) {
-				System.err.println( String.format(
+				logger.error( String.format(
 				  "Unable to create directory '%s' for saving program settings.",
 					settingsFile.getParent( )));
 			}
 			this.storeToXML( new BufferedOutputStream( 
 				new FileOutputStream( settingsFile )), null );
 		} catch ( IOException e ) {
-			System.err.println( String.format( 
+			logger.error( String.format( 
 				"Unable to save program settings. File '%s' is not writeable", 
-				this.getProperty( "settingsFile" )));
-			System.err.println( e.getMessage( ));
+				this.getProperty( "settingsFile" )), e );
 		}
 	}
 	
 	public void load( ) {
+		Logger logger = Logger.getLogger( getClass( ));
 		try {
-			if ( Boolean.parseBoolean( this.getProperty( "debug" ))){
-				System.err.println( "Loading settings..." );
-			}
+			logger.debug( "Loading settings..." );
 			this.loadFromXML( new BufferedInputStream( 
 				new FileInputStream( new File( this.getProperty( "settingsFile" )))));
 		} catch ( IOException e ) {
-			if ( Boolean.parseBoolean( this.getProperty( "debug" ))) {
-				System.err.println( String.format(
-				  "Unable to read program settings. File %s is not readable",
-					this.getProperty( "settingsFile" )));
-			}
+			logger.debug( String.format(
+			  "Unable to read program settings. File %s is not readable",
+				this.getProperty( "settingsFile" )));
 		}
 		if ( this.getProperty( "locale" ) != null )
 			if ( language != null )

@@ -35,6 +35,8 @@ import java.awt.geom.Point2D;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.apache.log4j.Logger;
+
 
 /**
  * An abstract class for animating the JUNG layouts.
@@ -78,7 +80,7 @@ public abstract class LayoutAnimator<V,E> implements Runnable {
 			try {
 				Thread.sleep( 20 );
 			} catch ( Exception e ) {
-				e.printStackTrace( System.err );
+				Logger.getLogger( getClass( )).error( e );
 			}
 		}
 		this.fireChangeListeners( );

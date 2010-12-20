@@ -59,6 +59,8 @@ import edu.purdue.jsysnet.io.CSVDataReader;
 
 import net.sourceforge.helpgui.gui.MainFrame;
 
+import org.apache.log4j.Logger;
+
 public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow {
 
 	private JTabbedPane tabPane = new ClosableTabbedPane( );
@@ -347,11 +349,10 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	public void actionPerformed( ActionEvent e ) {
-		if ( Settings.getSettings( ).getBoolean( "debug" )) {
-			System.err.println( String.format( "ActionEvent fired:" ));
-			System.err.println( "\tactionCommand: "+e.getActionCommand( ));
-			System.err.println( "\t  paramString: "+e.paramString( ));
-		}
+		Logger logger = Logger.getLogger( getClass( ));
+		logger.debug( String.format( "ActionEvent fired:" ));
+		logger.debug( "\tactionCommand: "+e.getActionCommand( ));
+		logger.debug( "\t  paramString: "+e.paramString( ));
 
 		Object item = e.getSource( );
 		if ( item == this.newWindowFileMenuItem ) {
@@ -411,7 +412,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	 */
 	public Map.Entry<Integer,List> experimentSelection( Collection <Experiment> experiments ) {
 		if ( experiments.size( ) < 1 ) {
-			System.err.println( 
+			Logger.getLogger( getClass( )).error( 
 				Settings.getLanguage( ).get( "These files do not appear to contain any data!" ));
 			return null;
 		}

@@ -30,6 +30,8 @@ import java.io.FileNotFoundException;
 import edu.purdue.jsysnet.util.*;
 import edu.purdue.jsysnet.JSysNet;
 
+import org.apache.log4j.Logger;
+
 /**
  * A class for reading CSV Data for JSysNet.
  * 
@@ -37,7 +39,6 @@ import edu.purdue.jsysnet.JSysNet;
  */
 public class CSVDataReader extends DataReader {
 
-	private Scanner file;
 	List <HashMap<String,String>> moleculeList, dataList, sampleList;
 
 
@@ -63,6 +64,7 @@ public class CSVDataReader extends DataReader {
 	public void load( ) {
 		if ( this.resource == null )
 			throw new NullPointerException( Settings.getLanguage( ).get( "The resource to load from was not specified" ));
+		Logger logger = Logger.getLogger( getClass( ));
 		HashMap <String,String> moleculeData = new HashMap <String,String> ( );
 		HashMap <String,String> sampleData = new HashMap <String,String> ( );
 		String [ ] headings;
@@ -70,23 +72,24 @@ public class CSVDataReader extends DataReader {
 		this.experiments = new ArrayList <Experiment>( );
 		String line = new String( );
 		Language language = Settings.getLanguage( );
+		Scanner file;
 
 		// *********************** load Experiment.txt *************************
 		try{ 
-			this.file = new Scanner( new File( this.resource+File.separator+"Experiment.txt" ));
+			file = new Scanner( new File( this.resource+File.separator+"Experiment.txt" ));
 		} catch( FileNotFoundException e ) {
-			JSysNet.message( String.format( 
-				language.get( "Unable to load '%s'. The file was not found." ), 
-					this.resource + File.separator + "Experiment.txt" ) + 
-				language.get( "No Data has been imported" ));
+			logger.fatal( 
+				String.format( language.get( "Unable to load '%s'. The file was not found." ), 
+				               this.resource + File.separator + "Experiment.txt" ) + 
+				               language.get( "No Data has been imported" ));
 			this.experiments = new ArrayList <Experiment>( );
 			return;
 		}
 		if ( ! file.hasNext( ) ) {
-			JSysNet.message(
-			String.format( language.get( "'%s' does not appear to be a valid file." ),
-				resource+File.separator+ " Experiment.txt" ) +
-			language.get( "No Data has been imported." ));
+			logger.fatal(
+				String.format( language.get( "'%s' does not appear to be a valid file." ),
+				               resource+File.separator+ " Experiment.txt" ) +
+				               language.get( "No Data has been imported." ));
 			return;
 		}
 		line = file.nextLine( );
@@ -103,13 +106,13 @@ public class CSVDataReader extends DataReader {
 			}
 			this.addExperiment( new Experiment( columnsMap ));
 		}
-		this.file.close( );
+		file.close( );
 
 		// *********************** load Molecule.txt ***************************
 		File moleculeFile = new File( resource+File.separator+"Molecule.txt" );
 		if ( moleculeFile.isFile( )) {
 			try {
-				this.file = new Scanner( moleculeFile );
+				file = new Scanner( moleculeFile );
 			} catch( FileNotFoundException e ) { }
 			line = file.nextLine( );
 			headings = line.split( "," );
@@ -126,14 +129,14 @@ public class CSVDataReader extends DataReader {
 				moleculeList.add( columnsMap );
 	
 			}
-			this.file.close( );
+			file.close( );
 		}
 
 		// *********************** load Sample.txt ***************************
 		try {
-			this.file = new Scanner( new File( resource+File.separator+"Sample.txt" ));
+			file = new Scanner( new File( resource+File.separator+"Sample.txt" ));
 		} catch( FileNotFoundException e ) {
-			JSysNet.message( String.format( 
+			logger.fatal( String.format( 
 				language.get( "Unable to load '%s'. The file was not found." ), 
 					this.resource + File.separator + "Sample.txt" ) + 
 				language.get( "No Data has been imported" ));
@@ -155,16 +158,16 @@ public class CSVDataReader extends DataReader {
 			sampleList.add( columnsMap );
 
 		}
-		this.file.close( );
+		file.close( );
 
 		// *********************** load Data.txt ***************************
 		try {
-			this.file = new Scanner( new File( resource+File.separator+"Data.txt" ));
+			file = new Scanner( new File( resource+File.separator+"Data.txt" ));
 		} catch( FileNotFoundException e ) {
-			JSysNet.message( String.format( 
-				language.get( "Unable to load '%s'. The file was not found." ), 
-					this.resource + File.separator + "Data.txt" ) + 
-				language.get( "No Data has been imported" ));
+			logger.fatal(
+				String.format( language.get( "Unable to load '%s'. The file was not found." ), 
+				               this.resource + File.separator + "Data.txt" ) + 
+				               language.get( "No Data has been imported" ));
 			this.experiments = new ArrayList <Experiment>( );
 			return;
 		}
@@ -226,7 +229,7 @@ public class CSVDataReader extends DataReader {
 			}
 				
 		}
-		this.file.close( );
+		file.close( );
 
 	}
 }

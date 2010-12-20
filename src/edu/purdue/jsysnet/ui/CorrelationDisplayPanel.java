@@ -115,6 +115,8 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.statistics.SimpleHistogramDataset;
 import org.jfree.data.statistics.SimpleHistogramBin;
 
+import org.apache.log4j.Logger;
+
 /**
  * A class for displaying and interacting with Correlation data for a set of molecules.
  */
@@ -940,7 +942,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 						p = Pattern.compile( filter, Pattern.CASE_INSENSITIVE | Pattern.LITERAL );
 
 					} catch ( PatternSyntaxException exc ) {
-						e.printStackTrace( System.err );
+						Logger.getLogger( getClass( )).debug( e );
 						p = Pattern.compile( ".*", Pattern.CASE_INSENSITIVE );
 					}
 				}

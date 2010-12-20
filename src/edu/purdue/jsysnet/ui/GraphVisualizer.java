@@ -66,6 +66,7 @@ import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.CollectionUtils;
+import org.apache.log4j.Logger;
 
 /**
  * A class for visualizing a network graph. 
@@ -194,13 +195,13 @@ import org.apache.commons.collections15.CollectionUtils;
 			return layout.getConstructor( Graph.class ).newInstance( graph );
 
 		} catch ( NoSuchMethodException e ) { 
-			e.printStackTrace( System.err );
+			Logger.getLogger( GraphVisualizer.class ).error( e );
 		} catch ( InstantiationException e ) { 
-			e.printStackTrace( System.err );
+			Logger.getLogger( GraphVisualizer.class ).error( e );
 		} catch ( IllegalAccessException e ) { 
-			e.printStackTrace( System.err );
+			Logger.getLogger( GraphVisualizer.class ).error( e );
 		} catch ( java.lang.reflect.InvocationTargetException e ) { 
-			e.printStackTrace( System.err );
+			Logger.getLogger( GraphVisualizer.class ).error( e );
 		}
 		return null;
 	}

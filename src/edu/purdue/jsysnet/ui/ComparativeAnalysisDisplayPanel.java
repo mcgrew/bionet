@@ -45,11 +45,14 @@ import java.awt.FontMetrics;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.Paint;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.BasicStroke;
-import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
@@ -369,7 +372,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				fitValues[ expIndex ] = Double.NaN;
 				if ( mol != null && selectorTree.isChecked( mol )) {
 					try {
-						BoxAndWhiskerItem item = BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
+						BoxAndWhiskerItem item = 
+							BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
 								selectorTree.getSamplesFiltered( mol ));
 						boxDataSet.add( new Date((long)expIndex), item );
 
@@ -537,6 +541,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		public boolean setGraph( Object moleculeId ) {
 			Language language = Settings.getLanguage( );
 			XYSeriesCollection dataset = new XYSeriesCollection( );
+			CustomXYLineAndShapeRenderer renderer = 
+				new CustomXYLineAndShapeRenderer( true, true );
 			for ( Experiment experiment : this.experiments ) {
 				Molecule molecule = experiment.getMolecule( moleculeId.toString( ));
 				if ( molecule != null && selectorTree.isChecked( molecule )) {
@@ -551,6 +557,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 							data.add( index, value );
 						index++;
 					}
+					renderer.setSeriesOutlierInfo( dataset.getSeriesCount( ),
+						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
+							samples ));
 					dataset.addSeries( data );
 				}
 			}
@@ -567,7 +576,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			);
 
 			XYPlot plot = this.chart.getXYPlot( );
-			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( 0 );
+//			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( 0 );
+			plot.setRenderer( renderer );
 			for ( int i=0,c=plot.getSeriesCount( ); i < c; i++ ) {
 					renderer.setSeriesPaint( i, 
 						Color.getHSBColor( (float)i/c, 1.0f, 0.5f ));
@@ -589,8 +599,13 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 */
 		public boolean setGraph( Molecule molecule ) {
 			Language language = Settings.getLanguage( );
+			CustomXYLineAndShapeRenderer renderer = 
+				new CustomXYLineAndShapeRenderer( true, true );
 			XYSeries data = new XYSeries( language.get( "Sample Data" ));
 			List<Number> samples = selectorTree.getSamplesFiltered( molecule );
+			renderer.setSeriesOutlierInfo( 0,
+				BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
+					samples ));
 			int index = 1;
 			for ( Number value : samples )	{
 				if ( value != null )
@@ -614,9 +629,19 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			);
 
 			XYPlot plot = this.chart.getXYPlot( );
-			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( 0 );
+			plot.setRenderer( renderer );
 			renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
 			renderer.setSeriesShapesVisible( 0, true );
+			// find the index of this experiment for appropriate coloring.
+			int expIndex = 0;
+			for ( Experiment exp : this.experiments ) {
+				if ( exp == molecule.getExperiment( ))
+					break;
+				expIndex++;
+			}
+			renderer.setSeriesPaint( 0, 
+				Color.getHSBColor( (float)expIndex/this.experiments.size( ), 
+				1.0f, 0.5f ));
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
@@ -676,6 +701,69 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}
+
+	}
+
+	private class CustomXYLineAndShapeRenderer extends XYLineAndShapeRenderer {
+		List<BoxAndWhiskerItem> outlierInfo;
+		Paint outlierPaint;
+		XYDataset dataset;
+
+		public CustomXYLineAndShapeRenderer( ) {
+			super( );
+			this.outlierInfo = new ArrayList<BoxAndWhiskerItem>( );
+			this.outlierPaint = Color.GRAY;
+		}
+
+		public CustomXYLineAndShapeRenderer( boolean lines, boolean shapes ) {
+			super( lines, shapes );
+			this.outlierInfo = new ArrayList<BoxAndWhiskerItem>( );
+			this.outlierPaint = Color.GRAY;
+		}
+
+		public void setSeriesOutlierInfo( int index, BoxAndWhiskerItem item ) {
+			while ( index >= outlierInfo.size( )){
+				outlierInfo.add( null );
+			}
+			outlierInfo.set( index, item );
+		}
+
+		public BoxAndWhiskerItem getSeriesOutlierInfo( int index ) {
+			if ( index >= outlierInfo.size( ))
+				return null;
+			return outlierInfo.get( index );
+		}
+
+		private boolean isOutlier( int series, int item ) {
+			if ( this.dataset == null ) {
+				this.dataset = this.getPlot( ).getDataset( 0 ); 
+			}
+			BoxAndWhiskerItem stats = this.getSeriesOutlierInfo( series );
+			if ( stats == null )
+				return false;
+			double y = this.dataset.getYValue( series, item );
+			return ( Double.compare( y, stats.getMinRegularValue( ).doubleValue( )) < 0 || 
+			         Double.compare( y, stats.getMaxRegularValue( ).doubleValue( )) > 0 );
+		}
+
+		/**
+		 * Overrides XYLineAndShapeRenderer.getItemShape( ).
+		 * 
+		 * @param row The series to get the Shape for.
+		 * @param column The item to get the Shape for.
+		 * @return The appropriate Shape for this item.
+		 */
+		public boolean getItemShapeVisible( int row, int column ) {
+			return !this.isOutlier( row, column );
+		}
+
+//		public Shape getItemShape( int row, int column ) {
+//			if ( this.isOutlier( row, column )) {
+//				return super.getItemShape( row, column ).getBounds2D( );
+//			} else {
+//				return super.getItemShape( row, column );
+//			}
+//		}
 
 	}
 

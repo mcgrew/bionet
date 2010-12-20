@@ -45,6 +45,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.SwingUtilities;
 
+import org.apache.log4j.Logger;
+
 public class ExperimentSelectionDialog extends JDialog implements ActionListener,ChangeListener {
 	public static final int CORRELATION_VIEW = 0;
 	public static final int COMPARATIVE_ANALYSIS_VIEW = 1;
@@ -155,7 +157,7 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 
 			Object [] selectedItems = experimentList.getSelectedValues( );
 			if ( selectedItems.length < 1 ) {
-				JSysNet.message( Settings.getLanguage( ).get( "You must select at least one item" ));
+				Logger.getLogger( getClass( )).fatal( Settings.getLanguage( ).get( "You must select at least one item" ));
 				return;
 			}
 
