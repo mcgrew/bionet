@@ -50,6 +50,7 @@ import java.awt.Color;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.Paint;
+import java.awt.Polygon;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.BasicStroke;
@@ -59,6 +60,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.JLabel;
@@ -92,6 +94,10 @@ import org.jfree.data.statistics.BoxAndWhiskerCalculator;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
+import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CrosshairState;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
@@ -588,6 +594,12 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
 			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			LegendItemCollection legendItems = plot.getLegendItems( );
+			if ( legendItems == null ) {
+				legendItems = new LegendItemCollection( );
+			}
+			legendItems.add( renderer.getOutlierLegendItem( ));
+			plot.setFixedLegendItems( legendItems );
 			return true;
 		}
 
@@ -646,7 +658,6 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
 			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
-
 			return true;
 		}
 
@@ -705,9 +716,12 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 	}
 
 	private class CustomXYLineAndShapeRenderer extends XYLineAndShapeRenderer {
-		List<BoxAndWhiskerItem> outlierInfo;
-		Paint outlierPaint;
-		XYDataset dataset;
+		private List<BoxAndWhiskerItem> outlierInfo;
+		private Paint outlierPaint;
+		private Shape outlierShape;
+		private Stroke outlierStroke;
+		private XYDataset dataset;
+		private int currentPass;
 
 		public CustomXYLineAndShapeRenderer( ) {
 			super( );
@@ -718,7 +732,41 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		public CustomXYLineAndShapeRenderer( boolean lines, boolean shapes ) {
 			super( lines, shapes );
 			this.outlierInfo = new ArrayList<BoxAndWhiskerItem>( );
-			this.outlierPaint = Color.GRAY;
+			this.outlierPaint = Color.RED;
+			this.outlierStroke = new BasicStroke( 2 );
+			this.outlierShape = new Polygon(  // Star shape;
+					new int[]{ 4, 1, 0, -1, -4, -1,  0,  1 },
+					new int[]{ 0, 1, 4,  1,  0, -1, -4, -1 },
+					8 );
+
+		}
+
+		/**
+		 * Draws an item on the graph. This method is being overridden only to
+		 * keep track of which pass we are on, as there doesn't seem to be an
+		 * easy way to determine the current pass.
+		 * 
+		 * @param g2 - the graphics device.
+		 * @param state - the renderer state.
+		 * @param dataArea - the area within which the data is being drawn.
+		 * @param info - collects information about the drawing.
+		 * @param plot - the plot (can be used to obtain standard color information etc).
+		 * @param domainAxis - the domain axis.
+		 * @param rangeAxis - the range axis.
+		 * @param dataset - the dataset.
+		 * @param series - the series index (zero-based).
+		 * @param item - the item index (zero-based).
+		 * @param crosshairState - crosshair information for the plot (null permitted).
+		 * @param pass - the pass index.
+		 */
+		public void drawItem( Graphics2D g2, XYItemRendererState state, 
+		                      Rectangle2D dataArea, PlotRenderingInfo info, 
+													XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis, 
+													XYDataset dataset, int series, int item, 
+													CrosshairState crosshairState, int pass ) {
+			this.currentPass = pass;
+			super.drawItem( g2, state, dataArea, info, plot, domainAxis, rangeAxis, 
+			                dataset, series, item, crosshairState, pass );
 		}
 
 		public void setSeriesOutlierInfo( int index, BoxAndWhiskerItem item ) {
@@ -753,20 +801,38 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 * @param column The item to get the Shape for.
 		 * @return The appropriate Shape for this item.
 		 */
-		public boolean getItemShapeVisible( int row, int column ) {
-			return !this.isOutlier( row, column );
+		public Shape getItemShape( int row, int column ) {
+			if ( this.isOutlier( row, column )) {
+				return this.outlierShape;
+			} else {
+				return super.getItemShape( row, column );
+			}
 		}
 
-//		public Shape getItemShape( int row, int column ) {
-//			if ( this.isOutlier( row, column )) {
-//				return super.getItemShape( row, column ).getBounds2D( );
-//			} else {
-//				return super.getItemShape( row, column );
-//			}
-//		}
+		/**
+		 * Overrides XYLineAndShapeRenderer.getItemPaint( ). This method
+		 * returns a different paint for outliers.
+		 * 
+		 * @param row The series to get the Paint for.
+		 * @param column The item to get the Paint  for.
+		 * @return The appropriate Paint for this item.
+		 */
+		public Paint getItemPaint( int row, int column ) {
+			if ( this.isItemPass( this.currentPass ) && this.isOutlier( row, column )) {
+				return this.outlierPaint;
+			} else {
+				return super.getItemPaint( row, column );
+			}
+		}
 
+		public LegendItem getOutlierLegendItem( ) {
+			return new LegendItem( "Outlier", null, null, null,
+			                       this.outlierShape,
+														 this.outlierPaint,
+														 this.outlierStroke,
+														 this.outlierPaint );
+		}
 	}
-
 }
 
 
