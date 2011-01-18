@@ -276,6 +276,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			this.tree.setRootVisible( false );
 			this.tree.setCheckingPath( new TreePath( rootNode ));
 			this.tree.setSelectsByChecking( false );
+			this.tree.getCheckingModel( ).setCheckingMode( 
+				TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
 			this.add( new JScrollPane( tree ), BorderLayout.CENTER );
 		}
 
