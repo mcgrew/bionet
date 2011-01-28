@@ -3,7 +3,7 @@
 	<property name="author"     value="Thomas McGrew"                      />
 	<property name="vendor"     value="Purdue University"                  />
 	<property name="version"    value="pre-release"                        />
-	<property name="pkg_base"   value="edu.purdue.jsysnet"                 />
+	<property name="pkg_base"   value="edu.purdue.cc.jsysnet"              />
 	<property name="jar_dir"    value="."                                  />
 	<property name="src_dir"    value="src"                                />
 	<property name="build_dir"  value="build"                              />
