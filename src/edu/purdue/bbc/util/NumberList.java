@@ -335,13 +335,13 @@ public class NumberList extends ArrayList<Number> {
 	 * 
 	 * @return A byte array containing all values of this List.
 	 */
-	public byte[] asByteArray( ) {
+	public byte[] toByteArray( ) {
 		if ( byteArray == null || this.byteArray.length != this.size( )) {
 			byteArray = new byte[ this.size( )];
-			int i=0;
-			for( Number t : this ) {
-				byteArray[ i++ ]  = t.byteValue( );
-			}
+		}
+		int i=0;
+		for( Number t : this ) {
+			byteArray[ i++ ]  = t.byteValue( );
 		}
 		return this.byteArray;
 	}
@@ -351,13 +351,13 @@ public class NumberList extends ArrayList<Number> {
 	 * 
 	 * @return A double array containing all values of this List. 
 	 */
-	public double[] asDoubleArray( ) {
+	public double[] toDoubleArray( ) {
 		if ( this.doubleArray == null || this.doubleArray.length != this.size( )) {
 			this.doubleArray = new double[ this.size( )];
-			int i=0;
-			for( Number t : this ) {
-				this.doubleArray[ i++ ]  = t.doubleValue( );
-			}
+		}
+		int i=0;
+		for( Number t : this ) {
+			this.doubleArray[ i++ ]  = t.doubleValue( );
 		}
 		return this.doubleArray;
 	}
@@ -367,13 +367,13 @@ public class NumberList extends ArrayList<Number> {
 	 * 
 	 * @return A float array containing all values of this List.
 	 */
-	public float[] asFloatArray( ) {
+	public float[] toFloatArray( ) {
 		if ( this.floatArray == null || this.floatArray.length != this.size( )) {
 			this.floatArray = new float[ this.size( )];
-			int i=0;
-			for( Number t : this ) {
-				this.floatArray[ i++ ]  = t.floatValue( );
-			}
+		}
+		int i=0;
+		for( Number t : this ) {
+			this.floatArray[ i++ ]  = t.floatValue( );
 		}
 		return this.floatArray;
 	}
@@ -383,13 +383,13 @@ public class NumberList extends ArrayList<Number> {
 	 * 
 	 * @return An int array containing all values of this List.
 	 */
-	public int[] asIntArray( ) {
+	public int[] toIntArray( ) {
 		if ( this.intArray == null || this.intArray.length != this.size( )) {
 			this.intArray = new int[ this.size( )];
-			int i=0;
-			for( Number t : this ) {
-				this.intArray[ i++ ]  = t.intValue( );
-			}
+		}
+		int i=0;
+		for( Number t : this ) {
+			this.intArray[ i++ ]  = t.intValue( );
 		}
 		return this.intArray;
 	}
@@ -399,13 +399,13 @@ public class NumberList extends ArrayList<Number> {
 	 * 
 	 * @return A long array containing all values of this List.
 	 */
-	public long[] asLongArray( ) {
+	public long[] toLongArray( ) {
 		if ( this.longArray == null || this.longArray.length != this.size( )) {
 			this.longArray = new long[ this.size( )];
-			int i=0;
-			for( Number t : this ) {
-				this.longArray[ i++ ]  = t.longValue( );
-			}
+		}
+		int i=0;
+		for( Number t : this ) {
+			this.longArray[ i++ ]  = t.longValue( );
 		}
 		return this.longArray;
 	}
@@ -415,13 +415,13 @@ public class NumberList extends ArrayList<Number> {
 	 * 
 	 * @return A short array containing all values of this List.
 	 */
-	public short[] asShortArray( ) {
+	public short[] toShortArray( ) {
 		if ( this.shortArray == null || this.shortArray.length != this.size( )) {
 			this.shortArray = new short[ this.size( )];
-			int i=0;
-			for( Number t : this ) {
-				this.shortArray[ i++ ]  = t.shortValue( );
-			}
+		}
+		int i=0;
+		for( Number t : this ) {
+			this.shortArray[ i++ ]  = t.shortValue( );
 		}
 		return this.shortArray;
 	}

@@ -19,9 +19,16 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.util;
 
+import java.util.List;
+import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashMap;
+import java.util.SortedMap;
 import java.util.Arrays;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.Set;
 
 import edu.purdue.bbc.util.NumberList;
 
@@ -32,17 +39,20 @@ import edu.purdue.bbc.util.NumberList;
  */
 public class Molecule implements Comparable<Molecule> {
 	
-	protected HashMap <String,String> attributes;
-	protected ArrayList<Correlation> correlations;
+	protected Map <String,String> attributes;
+	protected SortedMap <Sample,Number> samples;
+	protected List <Correlation> correlations;
 	protected Experiment experiment;
-	protected NumberList sampleValues;
+	protected double molecularWeight;
 
 	/**
 	 * Constructor.
 	 */
 	public Molecule( ){
 		this.attributes = new HashMap <String,String>( );
+		this.samples = new TreeMap <Sample,Number>( );
 		this.correlations = new ArrayList <Correlation>( );
+		this.molecularWeight = Double.NaN;
 	}
 
 	/**
@@ -52,9 +62,6 @@ public class Molecule implements Comparable<Molecule> {
 	 * @param value The value for the Attribute. 
 	 */
 	public void setAttribute( String attribute, String value ) {
-		// if this may be a new Sample, clear the cache.
-		if ( value.startsWith( "S" ))
-			this.sampleValues = null;
 		this.attributes.put( attribute.toLowerCase( ).trim( ), value );
 	}
 
@@ -74,28 +81,11 @@ public class Molecule implements Comparable<Molecule> {
 	 * @return An array of Strings containing the names of all attributes.
 	 */
 	public String [] getAttributeNames( ){
-		String [ ] returnValue = this.attributes.keySet( ).toArray( new String[ 0 ] );
+		String [] returnValue = this.attributes.keySet( ).toArray( new String[ 0 ]);
 		Arrays.sort( returnValue );
 		return returnValue;
 	}
 	 
-	/**
-	 * Sets the &quot;index&quot; attribute for this Molecule.
-	 * 
-	 * @param index The index of this Molecule.
-	 */
-	public void setIndex( int index ) {
-		this.setAttribute( "index", Integer.toString( index ));
-	}
-	/**
-	 * Gets the &quot;index&quot; attribute for this Molecule.
-	 * 
-	 * @return An integer containing the index attribute.
-	 */
-	public int getIndex( ){
-		return Integer.parseInt( this.getAttribute( "index" ));
-	}
-
 	/**
 	 * Sets the &quot;name&quot; attribute for the Molecule.
 	 * This method is deprecated; use setAttribute( &quot;name&quot; ) instead.
@@ -111,7 +101,8 @@ public class Molecule implements Comparable<Molecule> {
 	 * Gets the &quot;name&quot; attribute for the Molecule.
 	 * This method is deprecated; use getAttribute( &quot;name&quot; ) instead.
 	 * 
-	 * @return A string containing the &quot;name&quot; attribute for the Molecule.
+	 * @return A string containing the &quot;name&quot; attribute for the 
+	 *	Molecule.
 	 */
 	@Deprecated
 	public String getName( ){
@@ -119,26 +110,28 @@ public class Molecule implements Comparable<Molecule> {
 	}
 
 	/**
-	 * Sets the &quot;molecularWeight&quot; attribute for the Molecule.
+	 * Sets the molecular weight of the molecule;
 	 * 
-	 * @param mw the &quot;molecularWeight&quot; for the Molecule.
+	 * @param mw The molecular weight of the molecule;
 	 */
-	public void setMolecularWeight( int mw ){
-		this.setAttribute( "molecularWeight", Integer.toString( mw ));
+	public void setMolecularWeight( double mw ) {
+		this.molecularWeight = mw;
 	}
+
 	/**
 	 * Gets the molecularWeight attribute for the Molecule.
 	 * 
 	 * @return An int containing the &quot;molecularWeight&quot; attribute.
 	 */
-	public int getMolecularWeight( ){
-		return Integer.parseInt( this.getAttribute( "molecularWeight" ));
+	public double getMolecularWeight( ){
+		return this.molecularWeight;
 	}
 
 	/**
 	 * Sets the &quot;Formula&quot; attribute for the Molecule.
-	 * This method is deprecated; use setAttribute( &quot;formula&quot; ) instead.
 	 * 
+	 * @deprecated This method is deprecated; use 
+	 *	setAttribute( &quot;formula&quot;, value ) instead.
 	 * @param formula A string containing the new &quot;formula&quot; attribute.
 	 */
 	@Deprecated
@@ -147,13 +140,37 @@ public class Molecule implements Comparable<Molecule> {
 	}
 	/**
 	 * Gets the &quot;formula&quot; attribute for the module.
-	 * This method is deprecated; use getAttribute( &quot;formula&quot; ) instead.
 	 * 
-	 * @return A string containing the &quot;formula&quot; attribute for the Molecule.
+	 * @deprecated This method is deprecated; use 
+	 *	getAttribute( &quot;formula&quot; ) instead.
+	 * @return A string containing the &quot;formula&quot; attribute for the 
+	 *	Molecule.
 	 */
 	@Deprecated
 	public String getFormula( ){
 		return this.getAttribute( "formula" );
+	}
+
+	/**
+	 * Adds a new sample value to this Molecule.
+	 * 
+	 * @param sample The Sample this value it associated with.
+	 * @param value The value of this sample;
+	 */
+	public void addSample( Sample sample, double value ) {
+		this.addSample( sample, new Double( value ));
+	}
+
+	/**
+	 * Adds a new sample value to this Molecule.
+	 * 
+	 * @param sample The Sample this value it associated with.
+	 * @param value The value of this sample;
+	 */
+	public void addSample( Sample sample, Number value ) {
+		if ( this.experiment != null )
+			this.experiment.addSample( sample );
+		this.samples.put( sample, value );
 	}
 
 	/**
@@ -162,14 +179,35 @@ public class Molecule implements Comparable<Molecule> {
 	 * @return An ArrayList containing a Double for each sample value
 	 */
 	public NumberList getSamples( ){
-		if ( this.sampleValues == null ) {
-			int count=1;
-			this.sampleValues = new NumberList( );
-			String current;
-			while (( current = this.getAttribute( "S" + count++ )) != null )
-				sampleValues.add( new Double( current )); 
+		return new NumberList( samples.values( ));
+	}
+
+	public NumberList getSamples( Collection<Sample> samples ) {
+		NumberList returnValue = new NumberList( samples.size( ));
+		for( Sample sample : samples ) {
+			returnValue.add( this.samples.get( sample ));
 		}
-		return sampleValues;
+		return returnValue;
+	}
+
+	public Map<Sample,Number> getSampleMap( ) {
+		return this.samples;
+	}
+
+	public Number getSample( Sample sample ) {
+		Number returnValue = this.samples.get( sample );
+		if ( returnValue == null )
+			return new Double( Double.NaN );
+		return returnValue;
+	}
+
+	public Number getSample( String sample ) {
+		for ( Map.Entry<Sample,Number> sampleEntry : this.samples.entrySet( )) {
+			if ( sampleEntry.getKey( ).toString( ).equals( sample )) {
+				return sampleEntry.getValue( );
+			}
+		}
+		return new Double( Double.NaN );
 	}
 
 	/**
@@ -178,14 +216,15 @@ public class Molecule implements Comparable<Molecule> {
 	 * @param experiment The experiment this Molecule belongs to.
 	 */
 	public void setExperiment( Experiment experiment ){
-		// ToDo: check that this Molecule actually has the group_name attribute first.
+		//ToDo: make sure this Molecule actually has the group_name attribute first.
 		experiment.addMolecule( this.getAttribute( "group_name" ), this );
 		this.experiment = experiment;
 	}
 	/**
 	 * Gets the Experiment this Molecule belongs to.
 	 * 
-	 * @return An Experiment object containing the experiment this Molecule belongs to.
+	 * @return An Experiment object containing the experiment this Molecule 
+	 *	belongs to.
 	 */
 	public Experiment getExperiment( ){
 		return this.experiment;
@@ -252,7 +291,7 @@ public class Molecule implements Comparable<Molecule> {
 		return false;
 	}
 
-	public ArrayList <Correlation> getCorrelations( ) {
+	public List <Correlation> getCorrelations( ) {
 		return this.correlations;
 	}
 
@@ -294,8 +333,8 @@ public class Molecule implements Comparable<Molecule> {
 	public int compareTo( Molecule m ) {
 		int returnValue = 0;
 		if ( returnValue == 0 ) {
-			returnValue = this.getMoleculeGroup( ).compareTo( 
-				m.getMoleculeGroup( ));
+			returnValue = this.getGroup( ).compareTo( 
+				m.getGroup( ));
 		}
 		if ( returnValue == 0 ) {
 			returnValue = this.getAttribute( "id" ).compareTo( 
@@ -306,6 +345,12 @@ public class Molecule implements Comparable<Molecule> {
 					m.getExperiment( ));
 		}
 		return returnValue;
+	}
+
+	public boolean equals( Object m ) {
+		if ( m instanceof Molecule )
+			return ( this.compareTo((Molecule)m ) == 0 );
+		return this.toString( ).equals( m.toString( ));
 	}
 }
 

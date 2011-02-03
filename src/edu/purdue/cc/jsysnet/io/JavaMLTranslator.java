@@ -21,43 +21,32 @@ package edu.purdue.cc.jsysnet.io;
 
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Experiment;
+import edu.purdue.cc.jsysnet.util.Sample;
 
-import java.util.Iterator;
-import java.util.Collection;
-import java.util.TreeSet;
-import java.util.ArrayList;
-import java.util.regex.Pattern;
-import java.util.Arrays;
-import java.nio.CharBuffer;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.TreeSet;
 
 public class JavaMLTranslator extends InputStream {
 	private Collection <Experiment> experiments;
 	private Collection <String> molecules;
 	private Iterator<String> moleculeIterator;
 	private StringBuilder buffer;
-	private Collection<String> attributes;
-	private Pattern samplePattern;
+	private Collection<Sample> samples;
 	private boolean numericOnly;
 
 	public JavaMLTranslator ( Collection <Experiment> experiments ) {
 		super( );
 		this.experiments = experiments;
 		this.molecules = new TreeSet<String>( );
+		this.samples = new TreeSet<Sample>( );
 		for ( Experiment e : experiments ) {
+			samples.addAll( e.getSamples( ));
 			for( Molecule m : e.getMolecules( )) {
 				molecules.add( m.getAttribute( "id" ));
-			}
-		}
-		this.moleculeIterator = molecules.iterator( );
-		Molecule m = 
-			experiments.iterator( ).next( ).getMolecules( ).iterator( ).next( );
-		samplePattern = Pattern.compile( "^[Ss][0-9]+$" );
-		if ( this.moleculeIterator.hasNext( )) {
-			this.attributes = new ArrayList<String>( );
-			for ( String att : m.getAttributeNames( )) {
-				if ( samplePattern.matcher( att ).matches( ))
-					this.attributes.add( att );
 			}
 		}
 		this.reset( );
@@ -140,9 +129,9 @@ public class JavaMLTranslator extends InputStream {
 		buffer.append( m.toString( ) + "," );
 		for( Experiment exp : this.experiments ) {
 			Molecule molecule = exp.getMolecule( m.toString( ));
-			for( String att : this.attributes ) {
+			for( Sample sample : this.samples ) {
 				if ( molecule != null ) {
-					buffer.append( molecule.getAttribute( att ) + "," );
+					buffer.append( molecule.getSample( sample ).toString( ) + "," );
 				} else {
 					buffer.append( "0," );
 				}

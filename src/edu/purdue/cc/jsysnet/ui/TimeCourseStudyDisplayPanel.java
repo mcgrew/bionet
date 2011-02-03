@@ -127,8 +127,6 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			for ( Dataset d : som.getResult( )) {
 				clusters.add( d );
 			}
-			System.out.println( );
-			System.out.println( );
 			int i=0;
 			this.splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 			this.selectorTree = new SelectorTreePanel( clusters );
@@ -251,6 +249,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 		 * @returns true if creating the graph was successful.
 		 */
 		public boolean setGraph( Dataset dataset ) {
+			Logger.getLogger( getClass( )).debug( dataset.toString( ));
 /*			Language language = Settings.getLanguage( );
 			XYSeriesCollection dataset = new XYSeriesCollection( );
 			for ( Experiment experiment : this.experiments ) {
@@ -311,6 +310,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 		 * @return true if creating the graph was successful.
 		 */
 		public boolean setGraph( Instance instance ) {
+			Logger.getLogger( getClass( )).debug( instance.toString( ));
 /*			Language language = Settings.getLanguage( );
 			XYSeries data = new XYSeries( language.get( "Sample Data" ));
 			List<Molecule> molecules = new ArrayList<Molecule>( experiments.size( ));

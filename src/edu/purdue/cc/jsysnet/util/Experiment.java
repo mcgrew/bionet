@@ -21,12 +21,15 @@ package edu.purdue.cc.jsysnet.util;
 
 import edu.purdue.bbc.util.Attributes;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Collection;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.SortedSet;
+import java.util.Set;
 
 /**
  * A class for holding data about a particular experiment.
@@ -39,6 +42,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	private HashMap <String,MoleculeGroup> moleculeGroups;
 	private Collection <Molecule> molecules;
 	private Collection <Correlation> correlations;
+	private SortedSet <Sample> sampleSet;
 
 	/**
 	 * Constructor.
@@ -50,6 +54,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 		this.moleculeGroups = new HashMap <String,MoleculeGroup>( );
 		this.molecules = new ArrayList <Molecule>( );
 		this.correlations = new ArrayList <Correlation>( );
+		this.sampleSet = new TreeSet<Sample>( );
 	}
 
 	/**
@@ -172,6 +177,12 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 		return this.attributes.get( attr );
 	}
 
+	/**
+	 * Sets a particular attribute for this Experiment.
+	 * 
+	 * @param attribute The name of the attribute to set.
+	 * @param value The value for this attribute.
+	 */
 	public void setAttribute( String attribute, String value ) {
 		this.attributes.put( attribute, value );
 	}
@@ -182,7 +193,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 * @return A String array containing the attribute names.
 	 */
 	public String [ ] getAttributeNames( ) {
-		String [ ] returnValue = this.attributes.keySet( ).toArray( new String[ 0 ]);
+		String [ ] returnValue = this.attributes.keySet( ).toArray( new String[0] );
 		Arrays.sort( returnValue );
 		return returnValue;
 	}
@@ -194,6 +205,36 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 */
 	public Collection <Correlation> getCorrelations( ) {
 		return this.correlations;
+	}
+
+	/**
+	 * Adds a sample to this experiment.
+	 * 
+	 * @param sample The sample to be added.
+	 * @return true if the Experiment did not already contain the specified
+	 * sample.
+	 */
+	public boolean addSample( Sample sample ) {
+		return this.sampleSet.add( sample );
+	}
+
+	/**
+	 * Removes a sample from this experiment.
+	 * 
+	 * @param sample The sample to remove from this Experiment.
+	 * @return true if the sample was removed.
+	 */
+	public boolean removeSample( Object sample ) {
+		return this.sampleSet.remove( sample );
+	}
+
+	/**
+	 * Gets the of samples for this experiment;
+	 * 
+	 * @return All samples associated with this experiment.
+	 */
+	public Set<Sample> getSamples( ) {
+		return this.sampleSet;
 	}
 
 	/**

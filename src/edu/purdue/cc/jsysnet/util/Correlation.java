@@ -244,6 +244,17 @@ public class Correlation {
 	public double getPearsonCorrelation( boolean recalculate ) {
 		//See if this value has already been calculated
 		if ( recalculate || Double.isNaN( this.pearsonCorrelation )) {
+			
+			
+//			org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(getClass());
+			
+//			logger.debug(this.toString());
+//			logger.debug(this.molecules[ 0 ].toString());
+//			logger.debug(this.molecules[ 0 ].getSamples().toString());
+//			logger.debug(this.molecules[ 1 ].toString());
+//			logger.debug(this.molecules[ 1 ].getSamples().toString());
+			
+			
 			this.pearsonCorrelation = 
 				Correlation.getPearsonCorrelation( this.molecules[ 0 ], this.molecules[ 1 ]);
 		}
@@ -261,7 +272,7 @@ public class Correlation {
 		NumberList mol0Samples = new NumberList( molecule0.getSamples( ));
 		NumberList mol1Samples = new NumberList( molecule1.getSamples( ));
 		filterZeros( mol0Samples, mol1Samples );
-		return Statistics.getPearsonCorrelation( mol0Samples.asDoubleArray( ), mol1Samples.asDoubleArray( ));
+		return Statistics.getPearsonCorrelation( mol0Samples.toDoubleArray( ), mol1Samples.toDoubleArray( ));
 	}
 
 	/**
@@ -298,7 +309,7 @@ public class Correlation {
 		NumberList mol0Samples = new NumberList( molecule0.getSamples( ));
 		NumberList mol1Samples = new NumberList( molecule1.getSamples( ));
 		filterZeros( mol0Samples, mol1Samples );
-		return Statistics.getSpearmanCorrelation( mol0Samples.asDoubleArray( ), mol1Samples.asDoubleArray( ));
+		return Statistics.getSpearmanCorrelation( mol0Samples.toDoubleArray( ), mol1Samples.toDoubleArray( ));
 	}
 
 	/**
@@ -335,7 +346,7 @@ public class Correlation {
 		NumberList mol0Samples = new NumberList( molecule0.getSamples( ));
 		NumberList mol1Samples = new NumberList( molecule1.getSamples( ));
 		filterZeros( mol0Samples, mol1Samples );
-		return Statistics.getKendallCorrelation( mol0Samples.asDoubleArray( ), mol1Samples.asDoubleArray( ));
+		return Statistics.getKendallCorrelation( mol0Samples.toDoubleArray( ), mol1Samples.toDoubleArray( ));
 	}
 
 	/**

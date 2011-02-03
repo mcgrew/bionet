@@ -19,13 +19,14 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
-import edu.purdue.cc.jsysnet.util.Molecule;
-import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
-import edu.purdue.bbc.util.Language;
+import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.Molecule;
 
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
@@ -70,8 +71,8 @@ class DataTable extends JTable {
 	 */
 	public static DataTable getCorrelatedTable( Molecule molecule, Range correlationRange ) {
 		DefaultTableModel returnValue = new DefaultTableModel( );
-	  ArrayList <Correlation> correlations = molecule.getCorrelations( );
-		ArrayList <String[ ]> data = new ArrayList<String[ ]>( );
+	  List <Correlation> correlations = molecule.getCorrelations( );
+		List <String[ ]> data = new ArrayList<String[ ]>( );
 		double value;
 		for ( Correlation c : correlations ) {
 			value = c.getValue( );
