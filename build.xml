@@ -29,6 +29,25 @@
 	</target>
 
 	<!-- ============ TARGET: COMPILE ================== -->
+	<target name="compile_deprecation" depends="clean">
+		<mkdir dir="${class_dir}"/>
+		<javac srcdir="${src_dir}" target="1.5" destdir="${class_dir}" debug="on" 
+			debuglevel="lines,vars,source" deprecation="true" 
+			includeantruntime="false">
+			<classpath>
+				<path refid="build_classpath"/>
+			</classpath>
+		</javac>
+		<mkdir dir="${class_dir}/docs/help"/>
+		<copy todir="${class_dir}/docs/help/">
+			<fileset dir="docs/help"/>
+		</copy>
+		<copy todir="${class_dir}/resources/">
+			<fileset dir="resources/"/>
+		</copy>
+	</target>
+
+	<!-- ============ TARGET: COMPILE ================== -->
 	<target name="compile">
 		<mkdir dir="${class_dir}"/>
 		<javac srcdir="${src_dir}" target="1.5" destdir="${class_dir}" debug="on" 

@@ -23,9 +23,11 @@ import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
@@ -48,7 +50,8 @@ class DataTable extends JTable {
 	 * @param molecule The molecule to get The attributes of.
 	 * @return A JTable instance containing the appropriate data.
 	 */
-	public static DataTable getMoleculeTable( Molecule molecule ) {
+	public static DataTable getMoleculeTable( Experiment experiment,
+	                                          Molecule molecule ) {
 		String [] attributes = molecule.getAttributeNames( );
 		String [][] values = new String[ attributes.length ][ 2 ];
 		for ( int i=0; i < attributes.length; i++ ) {
@@ -58,7 +61,7 @@ class DataTable extends JTable {
 		Language language = Settings.getLanguage( );
 		return new DataTable( values, new String[]{ 
 			language.get( "Attribute" ),
-			language.get( "Value" )
+			language.get( "Value" ),
 		});
 	}
 
@@ -69,9 +72,11 @@ class DataTable extends JTable {
 	 * @param correlationRange The range of the valid correlations to display.
 	 * @return 
 	 */
-	public static DataTable getCorrelatedTable( Molecule molecule, Range correlationRange ) {
+	public static DataTable getCorrelatedTable( Experiment experiment,
+	                                            Molecule molecule, 
+																							Range correlationRange ) {
 		DefaultTableModel returnValue = new DefaultTableModel( );
-	  List <Correlation> correlations = molecule.getCorrelations( );
+	  Collection<Correlation> correlations = experiment.getCorrelations( molecule );
 		List <String[ ]> data = new ArrayList<String[ ]>( );
 		double value;
 		for ( Correlation c : correlations ) {
@@ -85,11 +90,11 @@ class DataTable extends JTable {
 			}
 		}
 		Language language = Settings.getLanguage( );
-		return new DataTable( data.toArray( new String[ 0 ][ 0 ]), new String[]{ 
-			language.get( "Correlation" ), 
-			language.get( "Group" ), 
-			language.get( "Molecule" ) 
-		});
+		return new DataTable( data.toArray( new String[ data.size( ) ][ 3 ]), 
+			new String[]{ 
+				language.get( "Correlation" ), 
+				language.get( "Group" ), 
+				language.get( "Molecule" )});
 	}
 }
 

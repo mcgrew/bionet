@@ -19,39 +19,40 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
-import java.util.List;
-import java.util.Iterator;
-import java.awt.Graphics;
-import java.awt.Font;
-import java.awt.Color;
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
+import java.awt.Font;
 import java.awt.GradientPaint;
-import javax.swing.JPanel;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.JButton;
-import javax.swing.JTable;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.chart.labels.XYItemLabelGenerator;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.plot.XYPlot;
 
-import edu.purdue.cc.jsysnet.util.Molecule;
-import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
-import edu.purdue.bbc.util.Language;
+import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.Experiment;
+import edu.purdue.cc.jsysnet.util.Molecule;
 
 /**
  * A panel for displaying detailed information about a correlation.
@@ -62,6 +63,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	private DetailWindow detailWindow;
 	private JTable molecule0Table;
 	private JTable molecule1Table;
+	private Experiment experiment;
 	JButton molecule0Button;
 	JButton molecule1Button;
 	List <Number> molecule0Samples;
@@ -74,22 +76,28 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	 * @param range The valid range for correlations displayed in this window.
 	 * @param detailWindow The parent window of this panel.
 	 */
-	public CorrelationDetailPanel( Correlation correlation, Range range, DetailWindow detailWindow ) {
+	public CorrelationDetailPanel( Correlation correlation, Range range, 
+			DetailWindow detailWindow ) {
 		super( new BorderLayout( ));
 		this.correlation = correlation;
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
+		this.experiment = correlation.getExperiment( );
 
 		String buttonText = Settings.getLanguage( ).get( "Show Correlated" );
 		this.molecule0Button = new JButton( buttonText );
 		this.molecule1Button = new JButton( buttonText );
 
-		molecule0Samples = correlation.getMolecules( )[ 0 ].getSamples( );
-		molecule1Samples = correlation.getMolecules( )[ 1 ].getSamples( );
+		molecule0Samples = correlation.getMolecules( )[ 0 ].getValues(
+			this.experiment.getSamples( ));
+		molecule1Samples = correlation.getMolecules( )[ 1 ].getValues(
+			this.experiment.getSamples( ));
 
 		Molecule [] molecules = correlation.getMolecules( );
-		this.molecule0Table = DataTable.getMoleculeTable( molecules[ 0 ] );
-		this.molecule1Table = DataTable.getMoleculeTable( molecules[ 1 ] );
+		this.molecule0Table = DataTable.getMoleculeTable( 
+			correlation.getExperiment( ), molecules[ 0 ] ); 
+		this.molecule1Table = DataTable.getMoleculeTable( 
+			correlation.getExperiment( ), molecules[ 1 ] );
 		JPanel topMoleculePanel = new JPanel( new BorderLayout( ));
 		JPanel bottomMoleculePanel = new JPanel( new BorderLayout( ));
 		JScrollPane molecule0ScrollPane = new JScrollPane( this.molecule0Table );
@@ -151,9 +159,12 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		 */
 		public ScatterPlot ( Molecule [] molecules ) {
 			super( );
-			List <Number> mol0Samples = molecules[ 0 ].getSamples( );
-			List <Number> mol1Samples = molecules[ 1 ].getSamples( );
-			XYSeries data = new XYSeries( Settings.getLanguage( ).get( "Sample Data" ));
+			List <Number> mol0Samples = molecules[ 0 ].getValues( 
+				experiment.getSamples( ) );
+			List <Number> mol1Samples = molecules[ 1 ].getValues( 
+				experiment.getSamples( ));
+			XYSeries data = new XYSeries( 
+				Settings.getLanguage( ).get( "Sample Data" ));
 			Iterator <Number> mol0Iterator = mol0Samples.iterator( );
 			Iterator <Number> mol1Iterator = mol1Samples.iterator( );
 			while ( mol0Iterator.hasNext( )) {

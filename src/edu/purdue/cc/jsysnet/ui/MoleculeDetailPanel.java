@@ -35,6 +35,7 @@ import javax.swing.JOptionPane;
 
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.Language;
@@ -42,6 +43,7 @@ import edu.purdue.cc.jsysnet.JSysNet;
 
 public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private Molecule molecule;
+	private Experiment experiment;
 	private Range correlationRange;
 	private DetailWindow detailWindow;
 	private JTable moleculeDetailTable;
@@ -51,15 +53,20 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private JButton showElementButton;
 	private JButton showCorrelationButton;
 
-	public MoleculeDetailPanel ( Molecule molecule, Range range, DetailWindow detailWindow ) {
+	public MoleculeDetailPanel ( Molecule molecule, Range range, 
+	                             DetailWindow detailWindow ) {
 		super( new BorderLayout( ));
 		this.molecule = molecule;
+		this.experiment = detailWindow.getExperiment( );
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 
 		Language language = Settings.getLanguage( );
-		this.moleculeDetailTable = DataTable.getMoleculeTable( this.molecule );
-		this.correlationsTable = DataTable.getCorrelatedTable( this.molecule, this.correlationRange );
+		this.moleculeDetailTable = 
+			DataTable.getMoleculeTable( this.experiment, this.molecule );
+		this.correlationsTable = 
+			DataTable.getCorrelatedTable( this.experiment, this.molecule,
+			                              this.correlationRange );
 		this.selectedMoleculeLabel = new JLabel( language.get( "Selected Molecule" ));
 		this.showElementButton = new JButton( language.get( "Show Element" ));
 		this.showCorrelationButton = new JButton( language.get( "Show Correlation" ));
@@ -94,7 +101,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			}
 			if ( source == this.showCorrelationButton ) {
 				this.detailWindow.show( 
-					this.molecule.getCorrelation( 
+					this.experiment.getCorrelation( molecule, 
 						this.getMoleculesInRange( ).get( 
 							this.correlationsTable.getSelectedRow( ))));
 			}
@@ -107,7 +114,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 
 	private List <Molecule> getMoleculesInRange( ) {
 		List <Molecule> returnValue = new ArrayList( );
-		for ( Correlation c : this.molecule.getCorrelations( )) {
+		for ( Correlation c : this.experiment.getCorrelations( molecule )) {
 			if ( this.correlationRange.contains( Math.abs( c.getValue( )))) {
 					returnValue.add( c.getOpposite( this.molecule ));
 			}

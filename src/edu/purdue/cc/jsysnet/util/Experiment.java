@@ -38,23 +38,66 @@ import java.util.Set;
  */
 public class Experiment implements Comparable<Experiment>,Attributes<String> {
 
-	private HashMap <String,String> attributes;
-	private HashMap <String,MoleculeGroup> moleculeGroups;
+	private Map <String,String> attributes;
+	private Map <String,MoleculeGroup> moleculeGroups;
 	private Collection <Molecule> molecules;
 	private Collection <Correlation> correlations;
 	private SortedSet <Sample> sampleSet;
+	private String id;
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param attributes A HashMap containing this Experiment's attributes.
 	 */
-	public Experiment( HashMap <String,String> attributes ) {
+	@Deprecated
+	public Experiment( Map <String,String> attributes ) {
+		this( null, attributes );
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param id The id for this experiment.
+	 */
+	public Experiment( String id ) {
+		this( id, new HashMap<String,String>( ));
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param id The id for this experiment
+	 * @param attributes A Map containing this Experiment's attributes.
+	 * @return 
+	 */
+	public Experiment( String id, Map <String,String> attributes ) {
 		this.attributes = attributes;
 		this.moleculeGroups = new HashMap <String,MoleculeGroup>( );
 		this.molecules = new ArrayList <Molecule>( );
 		this.correlations = new ArrayList <Correlation>( );
 		this.sampleSet = new TreeSet<Sample>( );
+		this.id = id;
+	}
+
+	/**
+	 * Returns the id of this experiment.
+	 * 
+	 * @return The id as a String.
+	 */
+	public String getId( ) {
+		if ( this.id == null )
+			return this.getAttribute( "exp_id" );
+		return this.id;
+	}
+
+	/**
+	 * Sets the id of this expeiment.
+	 * 
+	 * @param id The id for the experiment.
+	 */
+	public void setId( String id ) {
+		this.id = id;
 	}
 
 	/**
@@ -66,7 +109,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	public Molecule getMolecule( Object id ) {
 		if ( id != null ) {
 			for ( Molecule m : this.getMolecules( )) {
-				if ( id.toString( ).equals( m.getAttribute( "id" )))
+				if ( id.toString( ).equals( m.getId( )))
 					return m;
 			}
 		}
@@ -85,16 +128,18 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	/**
 	 * Adds a Molecule to this Experiment.
 	 * 
+	 * @deprecated Molecule groups are being removed.
 	 * @param group A string containing the group this molecule belongs to.
 	 * @param molecule The molecule to be added.
 	 */
+	@Deprecated
 	public void addMolecule( String group, Molecule molecule ){
 		if ( !moleculeGroups.containsKey( group )) {
 			this.addMoleculeGroup( group );
 		}
 		this.moleculeGroups.get( group ).addMolecule( molecule );
 		for ( Molecule m : this.molecules ) {
-			this.correlations.add( new Correlation( m, molecule ));
+			this.correlations.add( new Correlation( m, molecule, this ));
 		}
 		this.molecules.add( molecule );
 	}
@@ -112,9 +157,11 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	/**
 	 * The MoleculeGroups for this experiement.
 	 * 
+	 * @deprecated MoleculeGroup is deprecated
 	 * @return A Map containing the MoleculeGroups in this Experiment,
 	 *	indexed by group name.
 	 */
+	@Deprecated
 	public Map <String,MoleculeGroup> getMoleculeGroupMap( ) {
 		return this.moleculeGroups;
 	}
@@ -122,8 +169,10 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	/**
 	 * The MoleculeGroups for this experiement.
 	 * 
+	 * @deprecated MoleculeGroup is deprecated
 	 * @return A Collection containing the MoleculeGroups in this Experiment.
 	 */
+	@Deprecated
 	public Collection <MoleculeGroup> getMoleculeGroups( ) {
 		return this.moleculeGroups.values( );
 	}
@@ -131,18 +180,23 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	/**
 	 * Gets a particular MoleculeGroup.
 	 * 
+	 * @deprecated MoleculeGroup is deprecated
 	 * @param group The name of the MoleculeGroup to be retrieved.
 	 * @return The MoleculeGroup requested.
 	 */
+	@Deprecated
 	public MoleculeGroup getMoleculeGroup( Object group ) {
+		org.apache.log4j.Logger.getLogger( getClass()).debug( "Group: "+group.toString());
 		return this.moleculeGroups.get( group.toString( ));
 	}
 
 	/**
 	 * Gets an array containing the molecule group names.
 	 * 
+	 * @deprecated MoleculeGroup is deprecated
 	 * @return a String array containing the names of the MoleculeGroups for this Experiment.
 	 */
+	@Deprecated
 	public String [ ] getMoleculeGroupNames( ) {
 		String [ ] returnValue = this.moleculeGroups.keySet( ).toArray( new String[ 0 ]);
 		Arrays.sort( returnValue );
@@ -152,8 +206,10 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	/**
 	 * Adds a MoleculeGroup to this Experiment.
 	 * 
+	 * @deprecated MoleculeGroup is deprecated
 	 * @param group The name of the group to be added.
 	 */
+	@Deprecated
 	public void addMoleculeGroup( String group ) {
 		this.moleculeGroups.put( group, new MoleculeGroup( group ));
 	}
@@ -163,7 +219,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 * 
 	 * @return A HashMap containing all of the attributes for this experiment indexed by
 	 */
-	public HashMap <String,String> getAttributes( ) {
+	public Map <String,String> getAttributes( ) {
 		return this.attributes;
 	}
 
@@ -190,8 +246,10 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	/**
 	 * Gets the names of all of the attributes for this Experiment.
 	 * 
+	 * @deprecated This method will be removed in a future version.
 	 * @return A String array containing the attribute names.
 	 */
+	@Deprecated
 	public String [ ] getAttributeNames( ) {
 		String [ ] returnValue = this.attributes.keySet( ).toArray( new String[0] );
 		Arrays.sort( returnValue );
@@ -205,6 +263,32 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 */
 	public Collection <Correlation> getCorrelations( ) {
 		return this.correlations;
+	}
+
+	/**
+	 * Returns the correlation object associated with the 2 passed in molecules.
+	 * 
+	 * @param molecule1 One molecule in the Correlation.
+	 * @param molecule2 The other molecule in the Correlation.
+	 * @return 
+	 */
+	public Correlation getCorrelation( Molecule molecule1, Molecule molecule2 ) {
+		for ( Correlation correlation : this.correlations ) {
+			if ( correlation.hasMolecule( molecule1 ) && 
+			     correlation.hasMolecule( molecule2 ))
+				return correlation;
+		}
+		return null;
+	}
+
+	public Collection<Correlation> getCorrelations( Molecule molecule ) {
+		Collection<Correlation> returnValue = new ArrayList<Correlation>( );
+		for ( Correlation correlation : this.correlations ) {
+			if ( correlation.hasMolecule( molecule )) {
+				returnValue.add( correlation );
+			}
+		}
+		return returnValue;
 	}
 
 	/**
@@ -238,13 +322,27 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	}
 
 	/**
+	 * Retrieves a sample by name.
+	 * 
+	 * @param name The name of the sample to be retrieved.
+	 * @return The requested sample.
+	 */
+	public Sample getSample( String name ) {
+		for ( Sample sample : this.sampleSet ) {
+			if ( sample.toString( ).equals( name ))
+				return sample;
+		}
+		return null;
+	}
+
+	/**
 	 * Returns the description of this Experiment, if any.
 	 * 
 	 * @return The description attribute.
 	 */
 	public String toString( ) {
 		return String.format( "%s - %s", 
-			this.getAttribute( "exp_id" ),
+			this.getId( ),
 			this.getAttribute( "description" ));
 	}
 
@@ -255,8 +353,8 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 * @return Negative if the
 	 */
 	public int compareTo( Experiment e ) {
-		return this.getAttribute( "exp_id" ).compareTo( 
-			e.getAttribute( "exp_id" ));
+		return this.getId( ).compareTo( 
+			e.getId( ));
 	}
 
 }

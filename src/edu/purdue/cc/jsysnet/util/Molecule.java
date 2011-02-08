@@ -41,18 +41,43 @@ public class Molecule implements Comparable<Molecule> {
 	
 	protected Map <String,String> attributes;
 	protected SortedMap <Sample,Number> samples;
-	protected List <Correlation> correlations;
 	protected Experiment experiment;
 	protected double molecularWeight;
+	protected String id;
 
 	/**
 	 * Constructor.
+	 * @deprecated This constructor will be removed in a future version.
 	 */
-	public Molecule( ){
+	@Deprecated
+	public Molecule( ) {
 		this.attributes = new HashMap <String,String>( );
 		this.samples = new TreeMap <Sample,Number>( );
-		this.correlations = new ArrayList <Correlation>( );
 		this.molecularWeight = Double.NaN;
+	}
+
+	/**
+	 * Constructs a new Molecule with the given id.
+	 * 
+	 * @param id The id of the new Molecule
+	 */
+	public  Molecule( String id ) {
+		this.attributes = new HashMap <String,String>( );
+		this.samples = new TreeMap <Sample,Number>( );
+		this.molecularWeight = Double.NaN;
+		this.id = id;
+	}
+
+	/**
+	 * Gets the id of this Molecule.
+	 * 
+	 * @return A String containing the Molecule's id.
+	 */
+	public String getId( ) {
+		if ( this.id == null ) {
+			return this.getAttribute( "id" );
+		}
+		return this.id;
 	}
 
 	/**
@@ -76,10 +101,22 @@ public class Molecule implements Comparable<Molecule> {
 	}
 
 	/**
+	 * Returns all attributes for this Molecule.
+	 * 
+	 * @return A Map containing all meta attributes.
+	 */
+	public Map <String,String> getAttributes( ) {
+		return this.attributes;
+	}
+
+	/**
 	 * Get the name of all attributes set for this Molecule.
 	 * 
+	 * @deprecated This method will be removed in a future version. Use
+	 * getAttributes( ) instead.
 	 * @return An array of Strings containing the names of all attributes.
 	 */
+	@Deprecated
 	public String [] getAttributeNames( ){
 		String [] returnValue = this.attributes.keySet( ).toArray( new String[ 0 ]);
 		Arrays.sort( returnValue );
@@ -154,9 +191,11 @@ public class Molecule implements Comparable<Molecule> {
 	/**
 	 * Adds a new sample value to this Molecule.
 	 * 
+	 * @deprecated This method is being replaced by setValue( Sample, double )
 	 * @param sample The Sample this value it associated with.
 	 * @param value The value of this sample;
 	 */
+	@Deprecated
 	public void addSample( Sample sample, double value ) {
 		this.addSample( sample, new Double( value ));
 	}
@@ -167,25 +206,53 @@ public class Molecule implements Comparable<Molecule> {
 	 * @param sample The Sample this value it associated with.
 	 * @param value The value of this sample;
 	 */
-	public void addSample( Sample sample, Number value ) {
-		if ( this.experiment != null )
-			this.experiment.addSample( sample );
-		this.samples.put( sample, value );
+	public void setValue( Sample sample, double value ) {
+		this.addSample( sample, new Double( value ));
 	}
 
 	/**
-	 * Returns the sample values for this Molecule as an ArrayList of Doubles
+	 * Adds a new sample value to this Molecule.
 	 * 
-	 * @return An ArrayList containing a Double for each sample value
+	 * @deprecated This method is being replaced by setValue( Sample, Number )
+	 * @param sample The Sample this value it associated with.
+	 * @param value The value of this sample;
 	 */
-	public NumberList getSamples( ){
-		return new NumberList( samples.values( ));
+	public void addSample( Sample sample, Number value ) {
+		this.setValue( sample, value );
 	}
 
+	/**
+	 * Adds a new sample value to this Molecule.
+	 * 
+	 * @param sample The Sample this value it associated with.
+	 * @param value The value of this sample;
+	 */
+	public void setValue( Sample sample, Number value ) {
+		sample.setValue( this, value );
+	}
+
+	/**
+	 * Returns the sample value for the appropriate Samples
+	 * 
+	 * deprecated This method is being replaced by getValues( Sample ).
+	 * @param samples The samples to get the values for.
+	 * @return The sample values.
+	 */
+	@Deprecated
 	public NumberList getSamples( Collection<Sample> samples ) {
+		return this.getValues( samples );
+	}
+
+	/**
+	 * Returns the sample value for the appropriate Samples
+	 * 
+	 * @param samples The samples to get the values for.
+	 * @return The sample values.
+	 */
+	public NumberList getValues ( Collection<Sample> samples ) {
 		NumberList returnValue = new NumberList( samples.size( ));
 		for( Sample sample : samples ) {
-			returnValue.add( this.samples.get( sample ));
+			returnValue.add( sample.getValue( this ));
 		}
 		return returnValue;
 	}
@@ -194,47 +261,22 @@ public class Molecule implements Comparable<Molecule> {
 		return this.samples;
 	}
 
+	@Deprecated
 	public Number getSample( Sample sample ) {
-		Number returnValue = this.samples.get( sample );
-		if ( returnValue == null )
-			return new Double( Double.NaN );
-		return returnValue;
+		return this.getValue( sample );
 	}
 
-	public Number getSample( String sample ) {
-		for ( Map.Entry<Sample,Number> sampleEntry : this.samples.entrySet( )) {
-			if ( sampleEntry.getKey( ).toString( ).equals( sample )) {
-				return sampleEntry.getValue( );
-			}
-		}
-		return new Double( Double.NaN );
-	}
-
-	/**
-	 * Sets the Experiement this Molecule belongs to.
-	 * 
-	 * @param experiment The experiment this Molecule belongs to.
-	 */
-	public void setExperiment( Experiment experiment ){
-		//ToDo: make sure this Molecule actually has the group_name attribute first.
-		experiment.addMolecule( this.getAttribute( "group_name" ), this );
-		this.experiment = experiment;
-	}
-	/**
-	 * Gets the Experiment this Molecule belongs to.
-	 * 
-	 * @return An Experiment object containing the experiment this Molecule 
-	 *	belongs to.
-	 */
-	public Experiment getExperiment( ){
-		return this.experiment;
+	public Number getValue( Sample sample ) {
+		return sample.getValue( this );
 	}
 
 	/**
 	 * Sets the group name this Molecule belongs to.
 	 * 
+	 * @deprecated Molecule groups will be removed from a future version.
 	 * @param group A string containing the group name for this Molecule.
 	 */
+	@Deprecated
 	public void setGroup( String group ) {
 		this.setAttribute( "group_name", group );
 	}
@@ -242,8 +284,10 @@ public class Molecule implements Comparable<Molecule> {
 	/**
 	 * Gets the group name this Molecule belongs to.
 	 * 
+	 * @deprecated Molecule groups will be removed from a future version.
 	 * @return A String containing the group name for this Molecule.
 	 */
+	@Deprecated
 	public String getGroup( ) {
 		return this.getAttribute( "group_name" );
 	}
@@ -251,9 +295,11 @@ public class Molecule implements Comparable<Molecule> {
 	/**
 	 * Returns the MoleculeGroup this Molecule belongs to.
 	 * 
+	 * @deprecated The MoleculeGroup class will be removed from a future version.
 	 * @return The MoleculeGroup which contains this Molecule, or null if no
 	 *	such group exists.
 	 */
+	@Deprecated
 	public MoleculeGroup getMoleculeGroup( ) {
 		for ( MoleculeGroup m : this.experiment.getMoleculeGroups( )) {
 			if ( m.contains( this ))
@@ -262,72 +308,8 @@ public class Molecule implements Comparable<Molecule> {
 		return null;
 	}
 
-	/**
-	 * Adds a Correlation to this Molecule
-	 * 
-	 * @param correlation The new correlation to add to this Molecule.
-	 * @return True if the operation is successful, false otherwise.
-	 */
-	public boolean addCorrelation( Correlation correlation ) {
-		this.correlations.add( correlation );
-		return true;
-	}
-	/**
-	 * Remove a correlation from this Molecule. 
-	 * 
-	 * @param index The index of the correlation to be removed.
-	 * @return True if the operation is successful, false otherwise.
-	 */
-	public boolean removeCorrelation( int index ) {
-		return false;
-	}
-	/**
-	 * Remove a correlation from this Molecule.
-	 * 
-	 * @param correlation The Correlation to be removed from this Molecule.
-	 * @return True if the operation is successful, false otherwise.
-	 */
-	public boolean removeCorrelation( Correlation correlation ) {
-		return false;
-	}
-
-	public List <Correlation> getCorrelations( ) {
-		return this.correlations;
-	}
-
-	/**
-	 * Gets a Correlation which is has the passed in Molecule as it's other
-	 * Molecule.
-	 * 
-	 * @param molecule The Molecule for which the appropriate Correlation is to
-	 *	be retrieved.
-	 * @return The Correlation if it is found, or null if not.
-	 */
-	public Correlation getCorrelation( Molecule molecule ) {
-		for( Correlation correlation : this.correlations ) {
-			if ( correlation.getOpposite( this ) == molecule )
-				return correlation;
-		}
-		return null;
-	}
-
-	/**
-	 * Gets all correlations attached to this Molecule.
-	 * 
-	 * @return An ArrayList containing all of the Correlations for this Molecule.
-	 */
-	public ArrayList <Molecule> getCorrelated( ) {
-		ArrayList <Molecule> returnValue = new ArrayList<Molecule>( );
-		for ( Correlation correlation : this.correlations ) {
-			Molecule[] molecules = correlation.getMolecules( );
-			returnValue.add(( molecules[ 1 ] == this ) ? 
-			                  molecules[ 0 ] : molecules[ 1 ]);
-		}
-		return returnValue;
-	}
-
 	public String toString( ) {
-		return this.getAttribute( "id" );
+		return this.getId( );
 	}
 
 	public int compareTo( Molecule m ) {
@@ -337,12 +319,8 @@ public class Molecule implements Comparable<Molecule> {
 				m.getGroup( ));
 		}
 		if ( returnValue == 0 ) {
-			returnValue = this.getAttribute( "id" ).compareTo( 
-				m.getAttribute( "id" ));
-		}
-		if ( returnValue == 0 ) {
-			returnValue = this.getExperiment( ).compareTo( 
-					m.getExperiment( ));
+			returnValue = this.getId( ).compareTo( 
+				m.getId( ));
 		}
 		return returnValue;
 	}

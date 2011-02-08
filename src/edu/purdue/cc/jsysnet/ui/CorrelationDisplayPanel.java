@@ -19,101 +19,108 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
+import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.Range;
+import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.jsysnet.io.DataReader;
 import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
-import edu.purdue.cc.jsysnet.ui.layout.RandomLayout;
 import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
+import edu.purdue.cc.jsysnet.ui.layout.RandomLayout;
+import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
-import edu.purdue.cc.jsysnet.util.Correlation;
-import edu.purdue.bbc.util.Range;
 import edu.purdue.cc.jsysnet.util.MonitorableRange;
-import edu.purdue.bbc.util.Settings;
-import edu.purdue.bbc.util.Language;
-import edu.purdue.cc.jsysnet.io.DataReader;
 
-import javax.swing.JPanel;
-import javax.swing.JMenuBar;
-import javax.swing.ButtonGroup;
-import javax.swing.AbstractButton;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JScrollPane;
-import javax.swing.JComboBox;
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.TitledBorder;
-import javax.swing.Action;
-import javax.swing.AbstractAction;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.JTabbedPane;
-import javax.swing.table.TableColumn;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
 import java.awt.Dimension;
-import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Font;
-import java.awt.image.BufferedImage;
+import java.awt.Graphics2D;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import java.awt.image.BufferedImage;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Collection;
-import java.util.Vector;
 import java.util.List;
+import java.util.Vector;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.awt.Component;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JMenu;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
-import edu.uci.ics.jung.graph.util.Pair;
-import edu.uci.ics.jung.graph.util.EdgeType;
-import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
-import edu.uci.ics.jung.algorithms.layout.LayoutDecorator;
-import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
-import edu.uci.ics.jung.algorithms.layout.KKLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
+import edu.uci.ics.jung.algorithms.layout.KKLayout;
+import edu.uci.ics.jung.algorithms.layout.Layout;
+import edu.uci.ics.jung.algorithms.layout.LayoutDecorator;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
-import edu.uci.ics.jung.visualization.picking.PickedState;
+import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.util.EdgeType;
+import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
+import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
+import edu.uci.ics.jung.visualization.picking.PickedState;
 
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.statistics.SimpleHistogramBin;
+import org.jfree.data.statistics.SimpleHistogramDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.data.statistics.SimpleHistogramDataset;
-import org.jfree.data.statistics.SimpleHistogramBin;
 
 import org.apache.log4j.Logger;
 
@@ -423,7 +430,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 
 			public void graphClicked( Correlation c, MouseEvent e ) {
 				if ( e.getButton( ) == MouseEvent.BUTTON1 && e.getClickCount( ) >= 2 ) {
-					new DetailWindow( title, c, correlationFilterPanel.getRange( ));
+					new DetailWindow( c.getExperiment( ), 
+					                  c, correlationFilterPanel.getRange( ));
 				}
 			}
 			public void graphPressed(  Correlation c, MouseEvent e ) { } 
@@ -441,7 +449,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		this.setGraphVisualizer( this.graph );
 		this.setGraphLayout( MultipleCirclesLayout.class );
 
-		this.heatMapPanel = new HeatMap( this.getTitle( ), this.graph.getVertices( ), this.getCorrelationRange( ));
+		this.heatMapPanel = new HeatMap( this.getTitle( ), 
+		                                 this.graph.getExperiment( ), 
+																		 this.getCorrelationRange( ));
 		this.graph.addVertexChangeListener( this.heatMapPanel );
 		this.pearsonCalculationMenuItem.addChangeListener( this.heatMapPanel );
 		this.spearmanCalculationMenuItem.addChangeListener( this.heatMapPanel );
@@ -679,12 +689,12 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 					this.graph.removeVertex( m );
 			}
 		} else if ( item == this.showCorrelatedViewMenuItem ) {
-			for ( Molecule m : this.experiment.getMolecules( )) {
-				for ( Correlation c : m.getCorrelations( )) {
-					if ( this.getCorrelationRange( ).contains( c.getValue( ))
-						&& !vertices.contains( m )
-						&& vertices.contains( c.getOpposite( m )))
-						this.graph.addVertex( m );
+			for ( Correlation c : this.experiment.getCorrelations( )){
+				if ( this.getCorrelationRange( ).contains( c.getValue( )) &&
+				     ( vertices.contains( c.getMolecules( )[ 0 ] ) ||
+						   vertices.contains( c.getMolecules( )[ 1 ] ))) {
+					this.graph.addVertex( c.getMolecules( )[ 0 ]);
+					this.graph.addVertex( c.getMolecules( )[ 1 ]);
 				}
 			}
 		}
@@ -695,7 +705,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	/**
 	 * A UI class for hiding/showing moledules (nodes)
 	 */
-	private class MoleculeFilterPanel extends JPanel implements ItemListener,ActionListener,GraphItemChangeListener<Molecule>,KeyListener {
+	private class MoleculeFilterPanel extends JPanel implements 
+			ItemListener,ActionListener,GraphItemChangeListener<Molecule>,KeyListener{
+
 		private HashMap<Molecule,JCheckBox> checkBoxMap = 
 			new HashMap<Molecule,JCheckBox>( );
 		private HashMap<JCheckBox,Molecule> moleculeMap =
@@ -811,7 +823,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				Molecule molecule = moleculeMap.get( event.getSource( ));
 				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
 					graph.addVertex( molecule );
-					for( Correlation correlation : molecule.getCorrelations( )) {
+					for( Correlation correlation : experiment.getCorrelations( molecule )){
 						if ( graph.isValidEdge( correlation ))
 							graph.addEdge( correlation,
 								new Pair<Molecule>( correlation.getMolecules( )),
@@ -1674,6 +1686,175 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				}
 			}
 	}
+
+	/**
+	 * A class for implementing a context menu on network nodes.
+	 */
+	private class CorrelationGraphMouseListener implements GraphMouseListener<Molecule> {
+		MoleculePopup popup = new MoleculePopup( );
+
+		/**
+		 * The graphClicked method of the GraphMouseListener class
+		 * 
+		 * @param m The Molecule (node) which was clicked on.
+		 * @param e The event which triggered this action.
+		 */
+		public void graphClicked( Molecule m, MouseEvent e ) {
+			if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
+				popup.show( e.getComponent( ), e.getX( ), e.getY( ), m );
+			} else if ( e.getButton( ) == MouseEvent.BUTTON1 && e.getClickCount( ) >= 2 ) {
+				CorrelationGraphVisualizer graph = 
+					(CorrelationGraphVisualizer)e.getComponent( );
+					new DetailWindow( graph.getExperiment( ), m, graph.getRange( ));
+			}
+		}
+		/**
+		 * The graphPressed method of the GraphMouseListener class. Not implemented.
+		 * 
+		 * @param m The Molecule (node) which was clicked on.
+		 * @param e The event which triggered this action.
+		 */
+		public void graphPressed(  Molecule m, MouseEvent e ) { } 
+		/**
+		 * The graphPressed method of the GraphMouseListener class. Not implemented.
+		 * 
+		 * @param m The Molecule (node) which was clicked on.
+		 * @param e The event which triggered this action.
+		 */
+		public void graphReleased( Molecule m, MouseEvent e ) { }
+
+		/**
+		 * A class for implementing the context menu.
+		 */
+		private class MoleculePopup extends JPopupMenu implements ActionListener {
+			protected JMenuItem hideMenuItem;
+			protected JMenuItem detailsMenuItem;
+			protected JMenuItem selectCorrelatedMenuItem;
+			protected JMenuItem selectSubnetworkMenuItem;
+			protected JMenuItem exploreCorrelationsMenu;
+			protected Molecule molecule;
+			protected HashMap <JMenuItem,Correlation> correlationMap = 
+				new HashMap <JMenuItem,Correlation>( );
+			
+			/**
+			 * Creates a new instance of the PopupMenu
+			 */
+			public MoleculePopup ( ) {
+				Language language = Settings.getLanguage( );
+				this.hideMenuItem = new JMenuItem( language.get( "Hide" ) );
+				this.detailsMenuItem = new JMenuItem( language.get( "Details" ) );
+				this.selectCorrelatedMenuItem = new JMenuItem( language.get( "Select Directly Correlated" ) );
+				this.selectSubnetworkMenuItem = new JMenuItem( language.get( "Select Subnetwork" ) );
+				this.exploreCorrelationsMenu = new JMenu( language.get( "Explore Correlations" ) );
+				this.add( this.hideMenuItem );
+				this.add( this.detailsMenuItem );
+				this.add( this.selectCorrelatedMenuItem );
+				this.add( this.selectSubnetworkMenuItem );
+				this.add( this.exploreCorrelationsMenu );
+				this.hideMenuItem.addActionListener( this );
+				this.detailsMenuItem.addActionListener( this );
+				this.selectSubnetworkMenuItem.addActionListener( this );
+				this.selectCorrelatedMenuItem.addActionListener( this );
+				
+			}
+
+			/**
+			 * Causes the JPopupMenu to be displayed at the given coordinates.
+			 * @see javax.swing.JPopupMenu#show(Component,int,int)
+			 * 
+			 * @param invoker The component which invoked this menu.
+			 * @param x The x position to display this menu.
+			 * @param y The y position to display this menu.
+			 * @param m The molecule which was clicked on to trigger this popup.
+			 */
+			public void show( Component invoker, int x, int y, Molecule m ) {
+				this.exploreCorrelationsMenu.removeAll( );
+				this.correlationMap.clear( );
+				this.molecule = m;
+				Range range =
+					((CorrelationGraphVisualizer)invoker).getRange( );
+				for( Correlation c : experiment.getCorrelations( m )) {
+					if ( range.contains( Math.abs( c.getValue( )))) {
+						JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
+						this.correlationMap.put( menuItem, c );
+						this.exploreCorrelationsMenu.add( menuItem );
+						menuItem.addActionListener( this );
+					}
+				}
+				this.show( invoker, x, y );
+			}
+
+
+			/**
+			 * The actionPerformed method of the ActionListener interface.
+			 * @see java.awt.event.ActionListner#actionPerformed(java.awt.event.ActionEvent)
+			 * 
+			 * @param e the event which triggered this action.
+			 */
+			public void actionPerformed ( ActionEvent e ) {
+				CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer)this.getInvoker( );
+				Range range = graph.getRange( );
+				Object source = e.getSource( );
+
+				if ( this.correlationMap.containsKey( source )) {
+					new DetailWindow( graph.getExperiment( ),
+					                  this.correlationMap.get( source ), range );
+				} else if ( source == this.hideMenuItem ) {
+					graph.removeVertex( this.molecule );
+
+				} else if ( source == this.detailsMenuItem ) {
+					new DetailWindow( graph.getExperiment( ),
+					                  this.molecule, range );
+
+				} else if ( source == this.selectCorrelatedMenuItem ) {
+					PickedState<Molecule> state = graph.getPickedVertexState( );
+					state.pick( this.molecule, true );
+					for ( Molecule m : graph.getNeighbors( this.molecule )) {
+						state.pick( m, true );
+					}
+					PickedState<Correlation> edgeState = graph.getPickedEdgeState( );
+					for ( Correlation c : graph.getIncidentEdges( this.molecule )) {
+						edgeState.pick( c, true );
+					}
+
+				} else if ( source == this.selectSubnetworkMenuItem ) {
+					PickedState<Molecule> state = graph.getPickedVertexState( );
+					PickedState<Correlation> edgeState = graph.getPickedEdgeState( );
+					Collection <Molecule> subnetwork = this.getSubnetwork( this.molecule, 
+						(CorrelationGraphVisualizer)this.getInvoker( ), null);
+					for( Molecule m : subnetwork ) {
+						state.pick( m, true );
+						for ( Correlation c : graph.getIncidentEdges( m )) {
+							edgeState.pick( c, true );
+						}
+					}
+				}
+			}
+
+			/**
+			 * Recursive function for selecting connected nodes.
+			 * 
+			 * @param molecule The central molcule to select all connected nodes for.
+			 * @param graph The graph the molecule belongs to.
+			 */
+			private Collection<Molecule> getSubnetwork( Molecule molecule, 
+																									CorrelationGraphVisualizer graph, 
+																									Collection<Molecule> collection ) {
+				if ( collection == null ) 
+					collection = new ArrayList<Molecule>( );
+				if ( collection.contains( molecule ))
+					return collection;
+
+				collection.add( molecule );
+				for ( Molecule m : graph.getNeighbors( molecule )) {
+					this.getSubnetwork( m, graph, collection );
+				}
+				return collection;
+			}
+			
+		}
+	}
+
 }
 
 

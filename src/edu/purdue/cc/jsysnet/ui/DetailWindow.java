@@ -40,6 +40,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 
 	private JTabbedPane tabPane = new ClosableTabbedPane( );
 	private Range correlationRange;
+	private Experiment experiment;
 
 	/**
 	 * Creates a new DetailWindow with the specified title and Correlation Range.
@@ -47,8 +48,8 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 * @param title The title to be placed in the title bar for the new window.
 	 * @param range The Correlation range for this window.
 	 */
-	public DetailWindow( String title, Range range ) {
-		super( title );
+	public DetailWindow( Experiment experiment, Range range ) {
+		super( experiment.getAttribute( "description" ));
 		this.correlationRange = range.clone( );
 		Settings settings = Settings.getSettings( );
 		int width  = settings.getInt( "detailWindowWidth"  );
@@ -84,8 +85,9 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 * @param molecule The Molecule to show detail about.
 	 * @param range The correlation range for this DetailWindow.
 	 */
-	public DetailWindow( String title, Molecule molecule, Range range ) {
-		this( title, range );
+	public DetailWindow( Experiment experiment, 
+	                     Molecule molecule, Range range ) {
+		this( experiment, range );
 		this.show( molecule );
 	}
 
@@ -96,9 +98,14 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 * @param correlation The Correlation to show detail about.
 	 * @param range The correlation range for this DetailWindow.
 	 */
-	public DetailWindow( String title, Correlation correlation, Range range ) {
-		this( title, range );
+	public DetailWindow( Experiment experiment, 
+	                     Correlation correlation, Range range ) {
+		this( experiment, range );
 		this.show( correlation );
+	}
+
+	public Experiment getExperiment( ) {
+		return this.experiment;
 	}
 
 	/**
@@ -143,7 +150,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 * @return A new instance of this class.
 	 */
 	public TabbedWindow newWindow( ) {
-		return new DetailWindow( this.getTitle( ), this.correlationRange );
+		return new DetailWindow( this.experiment, this.correlationRange );
 	}
 
 }

@@ -23,16 +23,19 @@ import edu.purdue.bbc.util.Attributes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Sample implements Comparable<Sample>,Attributes {
 	protected Map<String,Object> attributes;
 	protected String name;
+	protected Map<Molecule,Number> valueMap;
 
 	public Sample( String name ) {
 		this.name = name;
 		this.attributes = new HashMap<String,Object>( );
+		this.valueMap = new HashMap<Molecule,Number>( );
 	}
 
 	public String toString( ) {
@@ -60,6 +63,21 @@ public class Sample implements Comparable<Sample>,Attributes {
 
 	public boolean equals( Sample o ) {
 		return ( this.compareTo( o ) == 0 );
+	}
+
+	public void setValue( Molecule molecule, Number value ) {
+		this.valueMap.put( molecule, value );
+	}
+
+	public Number getValue( Molecule molecule ) {
+		Number returnValue = this.valueMap.get( molecule );
+		if ( returnValue == null )
+			return new Double( Double.NaN );
+		return returnValue;
+	}
+
+	public Collection <Molecule> getMolecules( ) {
+		return this.valueMap.keySet( );
 	}
 }
 

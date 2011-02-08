@@ -28,6 +28,7 @@ import java.util.ArrayList;
  * @author Thomas McGrew
  * @version 1.0
  */
+@Deprecated
 public class MoleculeGroup extends ArrayList<Molecule> implements Comparable<MoleculeGroup> {
 
 	private String name;

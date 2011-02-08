@@ -357,7 +357,11 @@ public class NumberList extends ArrayList<Number> {
 		}
 		int i=0;
 		for( Number t : this ) {
-			this.doubleArray[ i++ ]  = t.doubleValue( );
+			if ( t != null ) {
+				this.doubleArray[ i++ ]  = t.doubleValue( );
+			} else {
+				this.doubleArray[ i++ ] = Double.NaN;
+			}
 		}
 		return this.doubleArray;
 	}
@@ -373,7 +377,11 @@ public class NumberList extends ArrayList<Number> {
 		}
 		int i=0;
 		for( Number t : this ) {
-			this.floatArray[ i++ ]  = t.floatValue( );
+			if ( t != null ) {
+				this.floatArray[ i++ ]  = t.floatValue( );
+			} else {
+				this.floatArray[ i++ ] = Float.NaN;
+			}
 		}
 		return this.floatArray;
 	}
@@ -389,7 +397,11 @@ public class NumberList extends ArrayList<Number> {
 		}
 		int i=0;
 		for( Number t : this ) {
-			this.intArray[ i++ ]  = t.intValue( );
+			if ( t != null ) {
+				this.intArray[ i++ ]  = t.intValue( );
+			} else {
+				this.intArray[ i++ ] = 0;
+			}
 		}
 		return this.intArray;
 	}
@@ -405,7 +417,11 @@ public class NumberList extends ArrayList<Number> {
 		}
 		int i=0;
 		for( Number t : this ) {
-			this.longArray[ i++ ]  = t.longValue( );
+			if ( t != null ) {
+				this.longArray[ i++ ]  = t.longValue( );
+			} else {
+				this.longArray[ i++ ] = 0L;
+			}
 		}
 		return this.longArray;
 	}
@@ -421,7 +437,11 @@ public class NumberList extends ArrayList<Number> {
 		}
 		int i=0;
 		for( Number t : this ) {
-			this.shortArray[ i++ ]  = t.shortValue( );
+			if ( t != null ) {
+				this.shortArray[ i++ ]  = t.shortValue( );
+			} else {
+				this.shortArray[ i++ ] = (short)0; 
+			}
 		}
 		return this.shortArray;
 	}

@@ -97,7 +97,7 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 
 			String groupName;
 			for ( V v : this.getGraph( ).getVertices( )) {
-				groupName = (( Molecule )v).getGroup( );
+				groupName = (( Molecule )v).getAttribute( "group_name" );
 				if ( !groups.containsKey( groupName )) {
 					groups.put( groupName, new ArrayList<V>( ));
 				}

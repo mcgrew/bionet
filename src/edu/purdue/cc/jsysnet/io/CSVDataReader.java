@@ -111,7 +111,8 @@ public class CSVDataReader extends DataReader {
 				columnsMap.put( headings[ i ].trim( ), 
 					( columnLength > i ) ? columns[ i ].trim( ) : "" );
 			}
-			this.addExperiment( new Experiment( columnsMap ));
+			String id = columnsMap.remove( "exp_id" );
+			this.addExperiment( new Experiment( id, columnsMap ));
 		}
 		file.close( );
 
@@ -166,30 +167,37 @@ public class CSVDataReader extends DataReader {
 			line = file.nextLine( );
 			columns = line.split( "," );
 			int columnLength = columns.length;
-			Molecule molecule = new Molecule( );
 
+			Map<String,String> data = new HashMap<String,String>( );
 			for ( int i=headings.length-1; i >= 0; i-- ) {
 				String key = headings[ i ].trim( );  
 				String valueString = ( columnLength > i ) ? columns[ i ].trim( ) : "";
+				data.put( key, valueString );
+			}
+			Molecule molecule = new Molecule( data.remove( "id" ));
+			String exp_id = data.remove( "exp_id" );
+			// add this molecule to the appropriate experiment
+			// add the remaining attributes to the molecule.
+			for( Map.Entry<String,String> entry : data.entrySet( )) {
 				// see if this column is a sample value
-				if ( sampleMap.containsKey( key )) {
+				if ( sampleMap.containsKey( entry.getKey( ))) {
 					double value = Double.NaN;
 					try {
-						value = Double.parseDouble( valueString );
+						value = Double.parseDouble( entry.getValue( ));
 					} catch ( NumberFormatException e ) {
 						Logger.getLogger( getClass( )).debug( String.format( 
-						  "Invalid number format for sample value: %s", valueString ), e );
+							"Invalid number format for sample value: %s", 
+							entry.getValue( )), e );
 					}
-					molecule.addSample( sampleMap.get( key ), value );
+					molecule.addSample( sampleMap.get( entry.getKey( )), value );
 				} else {
-					molecule.setAttribute( key, valueString );
+					molecule.setAttribute( entry.getKey( ), entry.getValue( ));
 				}
 					
 			}
 			for ( Experiment experiment : experiments ) {
-				if ( experiment.getAttribute( "exp_id" ).equals( 
-							molecule.getAttribute( "exp_id" )))
-					molecule.setExperiment( experiment );
+				if ( experiment.getId( ).equals( exp_id ))
+					experiment.addMolecule( molecule );
 			}
 		}
 		file.close( );
@@ -223,8 +231,7 @@ public class CSVDataReader extends DataReader {
 		for( HashMap <String,String> moleculeDataHashMap : moleculeList ) {
 			Experiment experiment = null;
 			for ( Experiment e : experiments ) {
-				if ( e.getAttribute( "exp_id" ).equals( 
-				     moleculeDataHashMap.get( "exp_id" ))) {
+				if ( e.getId( ).equals( moleculeDataHashMap.get( "exp_id" ))) {
 					experiment = e;
 					break;
 				}
@@ -240,6 +247,10 @@ public class CSVDataReader extends DataReader {
 						molecule.setAttribute( molAttr.getKey( ), molAttr.getValue( ));
 					}
 				}
+			} else {
+				logger.debug( String.format( 
+					"Experiment '%s' from Molecule.txt not found",
+					moleculeDataHashMap.get( "exp_id" )));
 			}
 		}
 	}

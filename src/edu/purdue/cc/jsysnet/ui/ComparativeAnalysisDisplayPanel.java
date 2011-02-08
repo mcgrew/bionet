@@ -262,7 +262,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 							// save the node in a map for later lookup.
 							nodeMap.put( molecule, experimentNode ); 
 							int sample = 1;
-							for ( Number value : molecule.getSamples( )) {
+							for ( Number value : molecule.getValues( e.getSamples( ))) {
 								DefaultMutableTreeNode sampleNode = new DefaultMutableTreeNode( "S" + sample++ );	
 								experimentNode.add( sampleNode );
 							}
@@ -309,16 +309,18 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 * @param sample The sample number to check the status of.
 		 * @return True if the sample is checked.
 		 */
-		public List<Number> getSamplesFiltered( Molecule molecule ) {
+		public List<Number> getSamplesFiltered( Molecule molecule, 
+				Experiment experiment ) {
 			DefaultMutableTreeNode molNode = this.nodeMap.get( molecule );
-			List<Number> samples = new ArrayList<Number>( molecule.getSamples( ));
-			for( int i=0; i < samples.size( ); i++ ){
+			List<Number> values = new ArrayList<Number>( 
+				molecule.getSamples( experiment.getSamples( )));
+			for( int i=0; i < values.size( ); i++ ){
 				if ( !this.tree.isPathChecked( new TreePath( 
 					((DefaultMutableTreeNode)molNode.getChildAt( i )).getPath( )))) {
-					samples.set( i, null );
+					values.set( i, null );
 				}
 			}
-			return samples;
+			return values;
 		}
 	}
 
@@ -337,7 +339,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 
 
 		/**
-		 * Creates a new ExperimentGraph panel to show data from the passed in Experiments.
+		 * Creates a new ExperimentGraph panel to show data from the passed in 
+		 * Experiments.
 		 * 
 		 * @param experiments A collection of experiments to show data from.
 		 */
@@ -348,23 +351,28 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			this.stroke = new BasicStroke( 2 );
 			this.singleExperimentLegendItems = new LegendItemCollection( );
 			this.legendItems = new LegendItemCollection( );
-			LegendItem meanLegendItem = new LegendItem( "Mean", null, null, null,
-			                                      new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
-			                                      Color.BLACK, 
-			                                      this.stroke, Color.BLACK);
-			LegendItem medianLegendItem = new LegendItem( "Median", null, null, null,
-			                                      new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-			                                      this.stroke, Color.BLACK );
-			LegendItem minMaxLegendItem1 = new LegendItem( "Min/Max without Outliers", null, null, null,
-			                                      new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-			                                      this.stroke, Color.RED );
-			LegendItem minMaxLegendItem2 = new LegendItem( "Min/Max without Outliers", null, null, null,
-			                                      new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-			                                      this.stroke, Color.BLUE );
-			LegendItem outlierLegendItem = new LegendItem( "Outlier", null, null, null,
-			                                      new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
-			                                      Color.WHITE, 
-			                                      this.stroke, Color.BLACK);
+			LegendItem meanLegendItem = 
+				new LegendItem( "Mean", null, null, null,
+				                 new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
+				                 Color.BLACK, 
+				                 this.stroke, Color.BLACK);
+			LegendItem medianLegendItem = 
+				new LegendItem( "Median", null, null, null,
+				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
+				                this.stroke, Color.BLACK );
+			LegendItem minMaxLegendItem1 = 
+				new LegendItem( "Min/Max without Outliers", null, null, null,
+				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
+				                this.stroke, Color.RED );
+			LegendItem minMaxLegendItem2 = 
+				new LegendItem( "Min/Max without Outliers", null, null, null,
+				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
+				                this.stroke, Color.BLUE );
+			LegendItem outlierLegendItem = 
+				new LegendItem( "Outlier", null, null, null,
+				                new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
+				                Color.WHITE, 
+				                this.stroke, Color.BLACK);
 			this.singleExperimentLegendItems.add( meanLegendItem );
 			this.singleExperimentLegendItems.add( medianLegendItem );
 			this.singleExperimentLegendItems.add( minMaxLegendItem1 );
@@ -377,15 +385,20 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		}
 
 		/**
-		 * Sets the graph to display data from each experiment on the passed in molecule.
-		 * This could be a String with the molecule ID, or an instance of the Molecule.
+		 * Sets the graph to display data from each experiment on the passed in 
+		 * molecule.
+		 *
+		 * This could be a String with the molecule ID, or an instance of the 
+		 * Molecule.
 		 * 
-		 * @param molecule An object whose toString( ) method returns the molecule id.
+		 * @param molecule An object whose toString( ) method returns the molecule 
+		 *	id. 
 		 */
 		public void setGraph( Object molecule ) {
 			Language language = Settings.getLanguage( ); 
 			String id = molecule.toString( );
-			DefaultBoxAndWhiskerXYDataset boxDataSet = new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
+			DefaultBoxAndWhiskerXYDataset boxDataSet = 
+				new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
 			double [] fitValues = new double[ this.experiments.size( ) + 1];
 			fitValues[ 0 ] = Double.NaN;
 			int expIndex = 1;
@@ -398,7 +411,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 					try {
 						BoxAndWhiskerItem item = 
 							BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-								selectorTree.getSamplesFiltered( mol ));
+								selectorTree.getSamplesFiltered( mol, e ));
 						boxDataSet.add( new Date((long)expIndex), item );
 
 						// robust fit uses the median instead of the mean.
@@ -481,7 +494,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			super.paintComponent( g );
 			if ( chart != null ) {
 				Dimension size = this.getSize( null );
-				BufferedImage drawing = this.chart.createBufferedImage( size.width, size.height );
+				BufferedImage drawing =
+					this.chart.createBufferedImage( size.width, size.height );
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 				if ( this.fitEquation != null ) {
 					FontMetrics f = g.getFontMetrics( );
@@ -578,7 +592,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 						language.get( "Experiment" ),
 						experiment.getAttribute( "exp_id" )
 					));
-					List<Number> samples = selectorTree.getSamplesFiltered( molecule );
+					List<Number> samples = 
+						selectorTree.getSamplesFiltered( molecule, experiment );
 					int index = 1;
 					for ( Number value : samples )	{
 						if ( value != null )
@@ -631,12 +646,13 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 * @param molecule The molecule to display data about.
 		 * @return true if setting the graph was successful.
 		 */
-		public boolean setGraph( Molecule molecule ) {
+		public boolean setGraph( Molecule molecule, Experiment experiment ) {
 			Language language = Settings.getLanguage( );
 			CustomXYLineAndShapeRenderer renderer = 
 				new CustomXYLineAndShapeRenderer( true, true );
 			XYSeries data = new XYSeries( language.get( "Sample Data" ));
-			List<Number> samples = selectorTree.getSamplesFiltered( molecule );
+			List<Number> samples = 
+				selectorTree.getSamplesFiltered( molecule, experiment );
 			renderer.setSeriesOutlierInfo( 0,
 				BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
 					samples ));
@@ -652,7 +668,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				String.format( language.get( "%s sample concentrations" ), 
 					molecule.toString( )) + " " +
 					language.get( "Experiment" ) + " " +
-					molecule.getExperiment( ).getAttribute( "exp_id" ), // title
+					experiment.getId( ), // title
 				language.get( "Sample" ),        // x axis label
 				language.get( "Concentration" ), // y axis label
 				dataset,                         // plot data
@@ -669,7 +685,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			// find the index of this experiment for appropriate coloring.
 			int expIndex = 0;
 			for ( Experiment exp : this.experiments ) {
-				if ( exp == molecule.getExperiment( ))
+				if ( exp == experiment )
 					break;
 				expIndex++;
 			}
@@ -696,7 +712,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				for ( Experiment experiment : experiments ) {
 					if ( experiment.toString( ).equals( selectedExperiment )) {
 						this.setGraph( experiment.getMolecule( 
-							path.getPathComponent( MOLECULE ).toString( )));
+							path.getPathComponent( MOLECULE ).toString( )), experiment );
 						break;
 					}
 				}

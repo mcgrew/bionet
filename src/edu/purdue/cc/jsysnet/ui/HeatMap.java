@@ -20,49 +20,54 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.jsysnet.ui;
 
 import edu.purdue.bbc.util.Range;
-import edu.purdue.cc.jsysnet.util.Spectrum;
-import edu.purdue.cc.jsysnet.util.SplitSpectrum;
 import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.MonitorableRange;
+import edu.purdue.cc.jsysnet.util.Spectrum;
+import edu.purdue.cc.jsysnet.util.SplitSpectrum;
 
-import java.util.Collection;
-import java.util.Vector;
-import java.util.List;
-import java.util.ArrayList;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelListener;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import javax.swing.JPanel;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
-import java.awt.Rectangle;
-import java.awt.Point;
-import java.awt.Dimension;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Vector;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
+import org.jfree.chart.axis.Axis;
+import org.jfree.chart.axis.AxisSpace;
+import org.jfree.chart.axis.AxisState;
 import org.jfree.data.general.DefaultHeatMapDataset;
 import org.jfree.data.general.HeatMapDataset;
 import org.jfree.data.general.HeatMapUtilities;
-import org.jfree.chart.axis.Axis;
 import org.jfree.ui.RectangleEdge;
-import org.jfree.chart.axis.AxisSpace;
-import org.jfree.chart.axis.AxisState;
 
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 
-public class HeatMap extends JPanel implements MouseListener, GraphMouseListener<Correlation>, ChangeListener, GraphItemChangeListener<Molecule>, Scalable, MouseWheelListener, ComponentListener {
+public class HeatMap extends JPanel implements MouseListener, 
+		GraphMouseListener<Correlation>, ChangeListener, 
+		GraphItemChangeListener<Molecule>, Scalable, MouseWheelListener, 
+		ComponentListener {
+
 	private List <Molecule> moleculeList;
 	private int tickSize = 0;
 	private ArrayList<GraphMouseListener> graphMouseListeners = 
@@ -74,13 +79,15 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	private float currentZoom = 1.0f;
 	private Spectrum spectrum;
 	private SpectrumLegend spectrumLegend;
+	private Experiment experiment;
 
-	public HeatMap ( Collection <Molecule> molecules ) {
-		this( "", molecules, new MonitorableRange( 0.0, 1.0 ));
+	public HeatMap ( Experiment experiment ) {
+		this( "", experiment, new MonitorableRange( 0.0, 1.0 ));
 	}
 
-	public HeatMap ( String title, Collection <Molecule> molecules, MonitorableRange range ) {
+	public HeatMap ( String title, Experiment experiment, MonitorableRange range ) {
 		super( );
+		this.experiment = experiment;
 		this.scrollPane = new JScrollPane( this );
 		this.title = title;
 		this.range = range;
@@ -89,7 +96,7 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 		this.addMouseWheelListener( this );
 		this.addGraphMouseListener( this );
 		this.addComponentListener( this );
-		this.moleculeList = new Vector( molecules );
+		this.moleculeList = new Vector( experiment.getMolecules( ));
 		this.spectrum = new SplitSpectrum( range, this.getBackground( ));
 		this.spectrum.setOutOfRangePaint( Color.WHITE );
 		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
@@ -107,8 +114,8 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 			for( int j=0; j < size; j++ ) {
 
 				returnValue.setZValue( i, j, (i==j)? Double.NaN : 
-					Correlation.getValue( 
-						moleculeList.get( i ), moleculeList.get( j )));
+					experiment.getCorrelation( moleculeList.get( i ), 
+						moleculeList.get( j )).getValue( ));
 			}
 		}
 		return returnValue;
@@ -290,11 +297,12 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	 * @return The Correlation corresponding to that point.
 	 */
 	private Correlation getCorrelationFromPoint( Point p ) {
-			int xComponent = 
-				(int)((p.getX( ) - mapPosition.getX( )) * moleculeList.size( ) / mapPosition.getWidth( ));
-			int yComponent = moleculeList.size( ) - 1 - 
-				(int)((p.getY( ) - mapPosition.getY( )) * moleculeList.size( ) / mapPosition.getHeight( ));
-			return moleculeList.get( xComponent ).getCorrelation( moleculeList.get( yComponent ));
+			int xComponent = (int)((p.getX( ) - mapPosition.getX( )) * 
+					moleculeList.size( ) / mapPosition.getWidth( ));
+			int yComponent = moleculeList.size( ) - 1 - (int)((p.getY( ) - mapPosition.getY( )) * 
+					moleculeList.size( ) / mapPosition.getHeight( ));
+			return this.experiment.getCorrelation( moleculeList.get( xComponent ),
+			                                       moleculeList.get( yComponent ));
 		
 	}
 
@@ -345,7 +353,7 @@ public class HeatMap extends JPanel implements MouseListener, GraphMouseListener
 	 * @param e The MouseEvent which triggered this action.
 	 */
 	public void graphClicked( Correlation c, MouseEvent e ) {
-		new DetailWindow( this.title, c, range );
+		new DetailWindow( c.getExperiment( ), c, range );
 	}
 	/**
 	 * The graphPressed method of the GraphMouseListener interface. Not implemented.

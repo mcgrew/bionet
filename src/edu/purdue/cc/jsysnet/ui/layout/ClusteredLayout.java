@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.jsysnet.ui.layout;
 
 import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.PolarPoint2D;
 
@@ -38,7 +39,6 @@ import org.apache.commons.collections15.Transformer;
  * correlated together and separates those which are not.
  * 
  * @author Thomas McGrew
- * @version 1.0
  */
 public class ClusteredLayout extends RandomLayout<Molecule,Correlation> {
 
@@ -46,6 +46,7 @@ public class ClusteredLayout extends RandomLayout<Molecule,Correlation> {
 	protected int currentIteration;
 	protected final double attractionStep = 0.2;
 	protected final double repulsionStep = 0.05;
+	private Experiment experiment;
 
 	/**
 	 * Constructor.
@@ -53,6 +54,9 @@ public class ClusteredLayout extends RandomLayout<Molecule,Correlation> {
 	 */
 	public ClusteredLayout( Graph<Molecule,Correlation> graph ) {
 		super( graph );
+//		if ( graph instanceof CorrelationGraphVisualizer ) {
+//			this.experiment = ((CorrelationGraphVisualizer)graph).getExperiment( );
+//		}
 	}
 
 	/**
@@ -124,7 +128,7 @@ public class ClusteredLayout extends RandomLayout<Molecule,Correlation> {
 	 * @return The attraction force.
 	 */
 	protected double getAttraction( Molecule v1, Molecule v2 ) {
-		return (( Molecule )v1).getCorrelation( (Molecule)v2 ).getValue( ) * 0.75;
+		return this.experiment.getCorrelation( v1, v2 ).getValue( ) * 0.75;
 	}
 
 	/**
