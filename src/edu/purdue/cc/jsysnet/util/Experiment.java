@@ -69,7 +69,6 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 * 
 	 * @param id The id for this experiment
 	 * @param attributes A Map containing this Experiment's attributes.
-	 * @return 
 	 */
 	public Experiment( String id, Map <String,String> attributes ) {
 		this.attributes = attributes;
@@ -270,7 +269,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 * 
 	 * @param molecule1 One molecule in the Correlation.
 	 * @param molecule2 The other molecule in the Correlation.
-	 * @return 
+	 * @return The requested correlation.
 	 */
 	public Correlation getCorrelation( Molecule molecule1, Molecule molecule2 ) {
 		for ( Correlation correlation : this.correlations ) {
@@ -281,6 +280,13 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 		return null;
 	}
 
+	/**
+	 * Returns all Correlations associated with the passed in Molecule in this
+	 * esperiment.
+	 * 
+	 * @param molecule The Molecule to get Correlations for.
+	 * @return A Collection containing the requested Correlations.
+	 */
 	public Collection<Correlation> getCorrelations( Molecule molecule ) {
 		Collection<Correlation> returnValue = new ArrayList<Correlation>( );
 		for ( Correlation correlation : this.correlations ) {

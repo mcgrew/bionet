@@ -52,7 +52,6 @@ public class Molecule implements Comparable<Molecule> {
 	@Deprecated
 	public Molecule( ) {
 		this.attributes = new HashMap <String,String>( );
-		this.samples = new TreeMap <Sample,Number>( );
 		this.molecularWeight = Double.NaN;
 	}
 
@@ -63,7 +62,6 @@ public class Molecule implements Comparable<Molecule> {
 	 */
 	public  Molecule( String id ) {
 		this.attributes = new HashMap <String,String>( );
-		this.samples = new TreeMap <Sample,Number>( );
 		this.molecularWeight = Double.NaN;
 		this.id = id;
 	}
@@ -257,8 +255,12 @@ public class Molecule implements Comparable<Molecule> {
 		return returnValue;
 	}
 
-	public Map<Sample,Number> getSampleMap( ) {
-		return this.samples;
+	public Map<Sample,Number> getSampleMap( Collection<Sample> samples ) {
+		Map<Sample,Number> returnValue = new TreeMap<Sample,Number>( );
+		for ( Sample sample : samples ) {
+			returnValue.put( sample, sample.getValue( this ));
+		}
+		return returnValue;
 	}
 
 	@Deprecated
@@ -313,15 +315,7 @@ public class Molecule implements Comparable<Molecule> {
 	}
 
 	public int compareTo( Molecule m ) {
-		int returnValue = 0;
-		if ( returnValue == 0 ) {
-			returnValue = this.getGroup( ).compareTo( 
-				m.getGroup( ));
-		}
-		if ( returnValue == 0 ) {
-			returnValue = this.getId( ).compareTo( 
-				m.getId( ));
-		}
+		int returnValue = this.getId( ).compareTo( m.getId( ));
 		return returnValue;
 	}
 

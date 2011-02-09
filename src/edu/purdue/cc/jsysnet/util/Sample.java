@@ -59,6 +59,7 @@ public class Sample implements Comparable<Sample>,Attributes {
 
 	public int compareTo( Sample o ) {
 		return this.name.compareTo( o.toString( ));
+		
 	}
 
 	public boolean equals( Sample o ) {

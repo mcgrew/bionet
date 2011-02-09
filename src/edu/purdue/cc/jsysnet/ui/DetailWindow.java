@@ -45,7 +45,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	/**
 	 * Creates a new DetailWindow with the specified title and Correlation Range.
 	 * 
-	 * @param title The title to be placed in the title bar for the new window.
+	 * @param experiment The experiment this window is associated with.
 	 * @param range The Correlation range for this window.
 	 */
 	public DetailWindow( Experiment experiment, Range range ) {
@@ -81,7 +81,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	/**
 	 * Creates a new DetailWindow and shows detail about the specified Molecule.
 	 * 
-	 * @param title The title for the window.
+	 * @param experiment The experiment this window is associated with.
 	 * @param molecule The Molecule to show detail about.
 	 * @param range The correlation range for this DetailWindow.
 	 */
@@ -94,7 +94,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	/**
 	 * Creates a new DetailWindow and shows detail about the specified Correlation.
 	 * 
-	 * @param title The title for the window.
+	 * @param experiment The experiment this window is associated with.
 	 * @param correlation The Correlation to show detail about.
 	 * @param range The correlation range for this DetailWindow.
 	 */

@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * A class for writing a set of tabular data to a file.
  */
-public class CsvTableWriter {
+public class CSVTableWriter {
 	protected Writer output;
 	protected String [] keys;
 	protected String delimiter;
@@ -52,9 +52,9 @@ public class CsvTableWriter {
 	 * 
 	 * @param output The File to write output to.
 	 * @param keys The keys for the new CSV table.
-	 * @param delimiter The delimiter for the values in the table.
 	 */
-	public CsvTableWriter( File output, Collection<String> keys ) throws IOException {
+	public CSVTableWriter( File output, Collection<String> keys ) 
+	                       throws IOException {
 		this( new FileWriter( output ), 
 		      keys.toArray( new String[ keys.size( )]), "," );
 	}
@@ -64,31 +64,29 @@ public class CsvTableWriter {
 	 * 
 	 * @param output The File to write output to.
 	 * @param keys The keys for the new CSV table.
-	 * @param delimiter The delimiter for the values in the table.
 	 */
-	public CsvTableWriter( File output, String[] keys ) throws IOException {
+	public CSVTableWriter( File output, String[] keys ) throws IOException {
 		this( new FileWriter( output ), keys, "," );
 	}
 
 	/**
 	 * Creates a new IdentificationWriter.
 	 * 
-	 * @param output The File to write output to.
+	 * @param output The Writer to write output to.
 	 * @param keys The keys for the new CSV table.
-	 * @param delimiter The delimiter for the values in the table.
 	 */
-	public CsvTableWriter( Writer output, Collection<String> keys ) throws IOException{
+	public CSVTableWriter( Writer output, Collection<String> keys ) 
+	                       throws IOException{
 		this( output, keys.toArray( new String[ keys.size( )]), "," );
 	}
 
 	/**
 	 * Creates a new IdentificationWriter.
 	 * 
-	 * @param output The File to write output to.
+	 * @param output The Writer to write output to.
 	 * @param keys The keys for the new CSV table.
-	 * @param delimiter The delimiter for the values in the table.
 	 */
-	public CsvTableWriter( Writer output, String[] keys ) throws IOException {
+	public CSVTableWriter( Writer output, String[] keys ) throws IOException {
 		this( output, keys, "," );
 	}
 
@@ -99,7 +97,7 @@ public class CsvTableWriter {
 	 * @param keys The keys for the new CSV table.
 	 * @param delimiter The delimiter for the values in the table.
 	 */
-	public CsvTableWriter( File output, Collection<String> keys, String delimiter ) 
+	public CSVTableWriter( File output, Collection<String> keys, String delimiter ) 
 			throws IOException {
 		this( new FileWriter( output ), keys, delimiter );
 	}
@@ -111,7 +109,7 @@ public class CsvTableWriter {
 	 * @param keys The keys for the new CSV table.
 	 * @param delimiter The delimiter for the values in the table.
 	 */
-	public CsvTableWriter( File output, String[] keys, String delimiter )
+	public CSVTableWriter( File output, String[] keys, String delimiter )
 			throws IOException {
 		this( new FileWriter( output ), keys, delimiter );
 	}
@@ -123,8 +121,8 @@ public class CsvTableWriter {
 	 * @param keys The keys for the new CSV table.
 	 * @param delimiter The delimiter for the values in the table.
 	 */
-	public CsvTableWriter( Writer output, Collection<String> keys, String delimiter )
-			throws IOException {
+	public CSVTableWriter( Writer output, Collection<String> keys, 
+	                       String delimiter ) throws IOException {
 		this( output, keys.toArray( new String[ keys.size( )]), delimiter );
 	}
 
@@ -135,7 +133,7 @@ public class CsvTableWriter {
 	 * @param keys The keys for the new CSV table.
 	 * @param delimiter The delimiter for the values in the table.
 	 */
-	public CsvTableWriter( Writer output, String[] keys, String delimiter ) 
+	public CSVTableWriter( Writer output, String[] keys, String delimiter ) 
 			throws IOException {
 		this.keys = keys;
 		this.output = output;
@@ -180,8 +178,7 @@ public class CsvTableWriter {
 	/**
 	 * Writes a new line to the CSV output.
 	 * 
-	 * @param 
-	 * @return 
+	 * @param values An Attributes object whose values are to be written out.
 	 */
 	public void write( Attributes<Object> values ) throws IOException {
 		for ( int i=0; i < this.keys.length; i++ ) {

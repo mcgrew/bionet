@@ -19,91 +19,95 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
-import edu.purdue.cc.jsysnet.util.Experiment;
-import edu.purdue.cc.jsysnet.util.MoleculeGroup;
-import edu.purdue.cc.jsysnet.util.Molecule;
-import edu.purdue.bbc.util.Settings;
-import edu.purdue.bbc.util.Language;
-import edu.purdue.bbc.util.Statistics;
 import edu.purdue.bbc.util.CurveFitting;
+import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.Settings;
+import edu.purdue.bbc.util.Statistics;
 import edu.purdue.bbc.util.equation.Equation;
 import edu.purdue.bbc.util.equation.Polynomial;
+import edu.purdue.cc.jsysnet.util.Experiment;
+import edu.purdue.cc.jsysnet.util.Molecule;
+import edu.purdue.cc.jsysnet.util.MoleculeGroup;
+import edu.purdue.cc.jsysnet.util.Sample;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Date;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.text.AttributedString;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.Shape;
-import java.awt.Stroke;
+import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.Paint;
 import java.awt.Polygon;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
-import java.awt.BasicStroke;
-import java.awt.image.BufferedImage;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import javax.swing.JPanel;
-import javax.swing.JTree;
+import java.awt.image.BufferedImage;
+import java.text.AttributedString;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JRadioButton;
-import javax.swing.ButtonGroup;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
 
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.data.xy.XYDataset;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.axis.TickUnits;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.CrosshairState;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.statistics.BoxAndWhiskerCalculator;
+import org.jfree.data.statistics.BoxAndWhiskerItem;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerXYDataset;
-import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
-import org.jfree.data.statistics.BoxAndWhiskerItem;
-import org.jfree.data.statistics.BoxAndWhiskerCalculator;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.labels.XYItemLabelGenerator;
-import org.jfree.chart.renderer.xy.XYItemRendererState;
-import org.jfree.chart.plot.PlotRenderingInfo;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.plot.CrosshairState;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
-import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
-import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingEvent;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
 import org.apache.log4j.Logger;
 
@@ -218,7 +222,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 	 */
 	private class SelectorTreePanel extends JPanel {
 		private CheckboxTree tree;
-		private Map <Molecule,DefaultMutableTreeNode> nodeMap;
+		private Map <Object,DefaultMutableTreeNode> nodeMap;
 
 		/**
 		 * Creates a new SelectorTreePanel based on the passed in Experiments.
@@ -227,7 +231,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 */
 		public SelectorTreePanel( List <Experiment> experiments ) {
 			super( new BorderLayout( ));
-			this.nodeMap = new HashMap<Molecule,DefaultMutableTreeNode>( );
+			this.nodeMap = new HashMap<Object,DefaultMutableTreeNode>( );
 			DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(	
 				Settings.getLanguage( ).get( "All Experiments" ));
 
@@ -239,7 +243,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			// now get all possible molecule ids
 			HashMap<String,Set<String>> moleculeIds = new HashMap <String,Set<String>>( );
 			for ( String group : groups ) {
-				Set set = moleculeIds.get( group );
+				Set<String> set = moleculeIds.get( group );
 				if ( set == null ) {
 					set = new TreeSet<String>( );
 					moleculeIds.put( group, set );
@@ -253,17 +257,20 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 
 			for ( String groupName : groups ) {
 				DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode( groupName );
+
 				for ( String molId : moleculeIds.get( groupName )) {
 					DefaultMutableTreeNode moleculeNode = new DefaultMutableTreeNode( molId );
+
 					for ( Experiment e : experiments ) {
 						Molecule molecule = e.getMolecule( molId );
 						if ( molecule != null ) {
-							DefaultMutableTreeNode experimentNode = new DefaultMutableTreeNode( e.toString( ));
+							DefaultMutableTreeNode experimentNode = 
+								new DefaultMutableTreeNode( e );
 							// save the node in a map for later lookup.
 							nodeMap.put( molecule, experimentNode ); 
-							int sample = 1;
-							for ( Number value : molecule.getValues( e.getSamples( ))) {
-								DefaultMutableTreeNode sampleNode = new DefaultMutableTreeNode( "S" + sample++ );	
+							for ( Sample sample : e.getSamples( )) {
+								DefaultMutableTreeNode sampleNode = 
+									new DefaultMutableTreeNode( sample );	
 								experimentNode.add( sampleNode );
 							}
 							moleculeNode.add( experimentNode );
@@ -309,18 +316,22 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 * @param sample The sample number to check the status of.
 		 * @return True if the sample is checked.
 		 */
-		public List<Number> getSamplesFiltered( Molecule molecule, 
+		public Map<Sample,Number> getSamplesFiltered( Molecule molecule, 
 				Experiment experiment ) {
+			Map<Sample,Number> returnValue = new TreeMap<Sample,Number>( );
 			DefaultMutableTreeNode molNode = this.nodeMap.get( molecule );
-			List<Number> values = new ArrayList<Number>( 
-				molecule.getSamples( experiment.getSamples( )));
-			for( int i=0; i < values.size( ); i++ ){
-				if ( !this.tree.isPathChecked( new TreePath( 
-					((DefaultMutableTreeNode)molNode.getChildAt( i )).getPath( )))) {
-					values.set( i, null );
+			for( int i=0; i < molNode.getChildCount( ); i++ ){
+
+				DefaultMutableTreeNode sampleNode = 
+					(DefaultMutableTreeNode)molNode.getChildAt( i );
+				Sample sample = (Sample)sampleNode.getUserObject( );
+				if ( !this.tree.isPathChecked( new TreePath( sampleNode.getPath( )))) {
+					returnValue.put( sample, null );
+				} else {
+					returnValue.put( sample, molecule.getValue( sample ));
 				}
 			}
-			return values;
+			return returnValue;
 		}
 	}
 
@@ -411,7 +422,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 					try {
 						BoxAndWhiskerItem item = 
 							BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-								selectorTree.getSamplesFiltered( mol, e ));
+								new ArrayList<Number>( 
+									selectorTree.getSamplesFiltered( mol, e ).values( )));
 						boxDataSet.add( new Date((long)expIndex), item );
 
 						// robust fit uses the median instead of the mean.
@@ -446,7 +458,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 						fitSeries.add( i, fitEquation.solve( i ));
 					} catch ( IllegalArgumentException exc ) {
 						Logger.getLogger( getClass( )).debug( 
-							"Unable to find solution for x=" + i, exc );
+							"Unable to find solution for " + 
+							fitEquation.toString( ) + " where x=" + i, exc );
 					}
 				}
 			}
@@ -576,9 +589,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		}
 
 		/**
-		 * Sets the graph to display data from each experiment on the passed in molecule id.
+		 * Sets the graph to display data from each experiment on the passed in 
+		 * molecule id.
 		 * 
-		 * @param molecule An object whose toString( ) method returns the molecule id.
+		 * @param molecule An object whose toString( ) method returns the molecule 
+		 *	id.
 		 */
 		public boolean setGraph( Object moleculeId ) {
 			Language language = Settings.getLanguage( );
@@ -590,19 +605,20 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				if ( molecule != null && selectorTree.isChecked( molecule )) {
 					XYSeries data = new XYSeries( String.format( "%s %s",
 						language.get( "Experiment" ),
-						experiment.getAttribute( "exp_id" )
+						experiment.getId( )
 					));
-					List<Number> samples = 
+					Map<Sample,Number> values = 
 						selectorTree.getSamplesFiltered( molecule, experiment );
-					int index = 1;
-					for ( Number value : samples )	{
+					int index = 0;
+					for ( Sample sample : experiment.getSamples( ))	{
+						Number value = values.get( sample );
 						if ( value != null )
 							data.add( index, value );
 						index++;
 					}
 					renderer.setSeriesOutlierInfo( dataset.getSeriesCount( ),
 						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-							samples ));
+							molecule.getValues( experiment.getSamples( ))));
 					dataset.addSeries( data );
 				}
 			}
@@ -630,7 +646,15 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
-			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			TickUnits tickUnits = new TickUnits( );
+			double tickIndex = 0.0;
+			List<Sample> sampleList = new ArrayList<Sample>( 
+				this.experiments.iterator( ).next( ).getSamples( ));
+			for ( Sample sample : sampleList ) {
+				tickUnits.add( new SampleTickUnit( tickIndex, sampleList ));
+				tickIndex++;
+			}
+			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
 			LegendItemCollection legendItems = plot.getLegendItems( );
 			if ( legendItems == null ) {
 				legendItems = new LegendItemCollection( );
@@ -651,13 +675,14 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			CustomXYLineAndShapeRenderer renderer = 
 				new CustomXYLineAndShapeRenderer( true, true );
 			XYSeries data = new XYSeries( language.get( "Sample Data" ));
-			List<Number> samples = 
+			Map<Sample,Number> values = 
 				selectorTree.getSamplesFiltered( molecule, experiment );
 			renderer.setSeriesOutlierInfo( 0,
 				BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-					samples ));
-			int index = 1;
-			for ( Number value : samples )	{
+					new ArrayList<Number>( values.values( ))));
+			int index = 0;
+			for ( Sample sample : experiment.getSamples( ) )	{
+				Number value = values.get( sample );
 				if ( value != null )
 					data.add( index, value );
 				index++;
@@ -695,8 +720,36 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
-			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			TickUnits tickUnits = new TickUnits( );
+			double tickIndex = 0.0;
+			List<Sample> expSamples = new ArrayList<Sample>(experiment.getSamples( ));
+			for ( Sample sample : expSamples ) {
+				tickUnits.add( new SampleTickUnit( tickIndex, expSamples ));
+				tickIndex++;
+			}
+			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
 			return true;
+		}
+
+		private class SampleTickUnit extends NumberTickUnit {
+			private List<Sample> samples;
+			
+			public SampleTickUnit( double size, List<Sample> samples ) {
+				super( size );
+				this.samples = samples;
+			}
+
+			@Override
+			public String valueToString( double value ) {
+				return this.samples.get( 
+					Math.max( 0, Math.min( (int)Math.round( value ),
+						                     samples.size( )-1))).toString( );
+			}
+
+			@Override
+			public String toString( ) {
+				return this.valueToString( this.getSize( ));
+			}
 		}
 
 		/**
@@ -750,7 +803,6 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}
-
 	}
 
 	private class CustomXYLineAndShapeRenderer extends XYLineAndShapeRenderer {
@@ -776,7 +828,6 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 					new int[]{ 4, 1, 0, -1, -4, -1,  0,  1 },
 					new int[]{ 0, 1, 4,  1,  0, -1, -4, -1 },
 					8 );
-
 		}
 
 		/**

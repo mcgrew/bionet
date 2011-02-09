@@ -41,30 +41,50 @@ import java.util.Scanner;
 /**
  * A class for reading character separated tabular data.
  */
-public class CsvTableReader implements Iterator<Map<String,String>> {
+public class CSVTableReader implements Iterator<Map<String,String>> {
 	protected String delimiter;
 	protected String[] keys;
 	protected Scanner scanner;
 
-	public CsvTableReader ( File file ) throws FileNotFoundException {
+	/**
+	 * Creates a new CSV Reader
+	 * 
+	 * @param file The file to read data from.
+	 */
+	public CSVTableReader ( File file ) throws FileNotFoundException {
 		this( new FileInputStream( file ), "," );
 	}
 
-	public CsvTableReader ( File file, String delimiter ) throws FileNotFoundException{
+	/**
+	 * Creates a new CSV Reader
+	 * 
+	 * @param file The file to read data from.
+	 * @param delimiter The delimiter between fields, usually a comma, semicolon,
+	 *	or tab character.
+	 */
+	public CSVTableReader ( File file, String delimiter ) 
+	                        throws FileNotFoundException {
 		this( new FileInputStream( file ), delimiter );
 	}
 
-	public CsvTableReader( InputStream input ) {
+	/**
+	 * Creates a new CSV Reader
+	 * 
+	 * @param input The InputStream to read data from.
+	 *	or tab character.
+	 */
+	public CSVTableReader( InputStream input ) {
 		this( input, "," );
 	}
 
 	/**
 	 * Creates a new CSV Reader
 	 * 
-	 * @param 
-	 * @return 
+	 * @param input The InputStream to read data from.
+	 * @param delimiter The delimiter between fields, usually a comma, semicolon,
+	 *	or tab character.
 	 */
-	public CsvTableReader ( InputStream input, String delimiter ) {
+	public CSVTableReader ( InputStream input, String delimiter ) {
 		this.delimiter = delimiter;
 		this.scanner = new Scanner( input );
 		String[] keys = scanner.nextLine( ).split( delimiter );

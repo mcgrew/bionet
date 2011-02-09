@@ -1,6 +1,8 @@
-edu.purdue.jsysnet
-edu.purdue.jsysnet.io
-edu.purdue.jsysnet.ui
-edu.purdue.jsysnet.ui.layout
-edu.purdue.jsysnet.util
-edu.purdue.jsysnet.util.equation
+edu.purdue.bbc.io
+edu.purdue.bbc.util
+edu.purdue.bbc.util.equation
+edu.purdue.cc.jsysnet
+edu.purdue.cc.jsysnet.io
+edu.purdue.cc.jsysnet.ui
+edu.purdue.cc.jsysnet.ui.layout
+edu.purdue.cc.jsysnet.util
