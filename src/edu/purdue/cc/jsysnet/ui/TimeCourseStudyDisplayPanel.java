@@ -21,6 +21,7 @@ package edu.purdue.cc.jsysnet.ui;
 
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
+import edu.purdue.cc.jsysnet.util.Sample;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.NumberList;
@@ -28,11 +29,14 @@ import edu.purdue.cc.jsysnet.io.JavaMLTranslator;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.TreeSet;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -50,6 +54,7 @@ import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.clustering.SOM;
 import net.sf.javaml.core.Dataset;
+import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.data.StreamHandler;
 
@@ -87,7 +92,9 @@ import org.apache.log4j.Logger;
 public class TimeCourseStudyDisplayPanel extends JPanel {
 	private SelectorTreePanel selectorTree;
 	private JSplitPane splitPane;
+	private ClusterGraph graph;
 	private Collection<Experiment> experiments;
+	private List<Sample> samples;
 
 	private static final int CLUSTER = 1;
 	private static final int INSTANCE = 2;
@@ -99,6 +106,10 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 	public boolean createGraph( Collection <Experiment> experiments ) {
 		Logger logger = Logger.getLogger( getClass( ));
 		this.experiments = experiments;
+		this.samples = new ArrayList<Sample>( );
+		for( Experiment experiment : experiments ) {
+			samples.addAll( experiment.getSamples( ));
+		}
 		try {
 			int len;
 			InputStream dataStream = new JavaMLTranslator( experiments );
@@ -131,8 +142,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			this.splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 			this.selectorTree = new SelectorTreePanel( clusters );
 			this.splitPane.setLeftComponent( this.selectorTree );
-			this.splitPane.setRightComponent( new JPanel( )); // placeholder
+//			this.splitPane.setRightComponent( new JPanel( )); // placeholder
+			this.graph = new ClusterGraph( );
+			this.splitPane.setRightComponent( this.graph );
+			this.selectorTree.getTree( ).addTreeSelectionListener( this.graph );
 			this.add( this.splitPane, BorderLayout.CENTER );
+			this.splitPane.setDividerLocation( 250 );
 
 		} catch ( Exception e ) {
 			logger.error( e, e );
@@ -201,11 +216,20 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			int clusterCount = 0;
 			for ( Collection<Instance> cluster : clusters ) {
 				clusterCount++;
-				DefaultMutableTreeNode clusterNode = new DefaultMutableTreeNode( 
-					clusterString + clusterCount );
+				DefaultMutableTreeNode clusterNode = 
+					new CustomMutableTreeNode( cluster, clusterString+clusterCount );
 				for ( Instance instance : cluster ) {
-					DefaultMutableTreeNode instanceNode = new DefaultMutableTreeNode(
-						instance.classValue( ).toString( ));
+					DefaultMutableTreeNode instanceNode = 
+						new DefaultMutableTreeNode( instance ) {
+							public String toString( ) {
+								return ((Instance)this.getUserObject( )).classValue( ).toString( );
+							}
+						};
+					for( Sample sample : samples ) {
+						DefaultMutableTreeNode sampleNode = 
+							new DefaultMutableTreeNode( sample );
+						instanceNode.add( sampleNode );
+					}
 					// save the node in a map for later lookup.
 					nodeMap.put( instance, instanceNode );
 					clusterNode.add( instanceNode );
@@ -225,17 +249,17 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			return this.tree;
 		}
 
-		public NumberList getSamplesFiltered( Instance instance ) {
-			NumberList returnValue = new NumberList( );
-			Collection<Integer> keys = instance.keySet( );
-			for ( Integer i : keys ) {
-				returnValue.add( instance.get( i ));
+		public Map<Sample,Number> getSamplesFiltered( Instance instance ) {
+			Map <Sample,Number> returnValue = new HashMap<Sample,Number>( );
+			for ( Integer i : instance.keySet( )) {
+				returnValue.put( samples.get( i.intValue( )), instance.get( i ));
 			}
 			return returnValue;
 		}
 	}
 
-	private class ClusterGraph extends JPanel {
+	private class ClusterGraph extends JPanel
+			implements TreeSelectionListener,TreeCheckingListener {
 		private JFreeChart chart;
 
 		public ClusterGraph( ) {
@@ -248,114 +272,50 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 		 * @param 
 		 * @returns true if creating the graph was successful.
 		 */
-		public boolean setGraph( Dataset dataset ) {
-			Logger.getLogger( getClass( )).debug( dataset.toString( ));
-/*			Language language = Settings.getLanguage( );
-			XYSeriesCollection dataset = new XYSeriesCollection( );
-			for ( Experiment experiment : this.experiments ) {
-				Molecule molecule = experiment.getMolecule( moleculeId.toString( ));
-				if ( molecule != null && selectorTree.isChecked( molecule )) {
-					XYSeries data = new XYSeries( String.format( "%s %s",
-						language.get( "Cluster" ),
-						"x"	
-					));
-					List<Number> samples = selectorTree.getSamplesFiltered( molecule );
-					int index = 1;
-					for ( Number value : samples )	{
-						if ( value != null )
-							data.add( index, value );
-						index++;
-					}
-					dataset.addSeries( data );
+		public boolean setGraph( DefaultMutableTreeNode node ) {
+			Object userObject = node.getUserObject( );
+			Language language = Settings.getLanguage( );
+			XYSeriesCollection xyDataset = new XYSeriesCollection( );
+			Dataset dataset;
+			if ( userObject instanceof Dataset ) {
+				dataset = (Dataset)userObject;
+			} else {
+				dataset = new DefaultDataset( );
+				dataset.add( (Instance)userObject);
+			}
+			for ( Instance instance : dataset ) {
+				XYSeries data = new XYSeries( instance.classValue( ).toString( ));
+				for ( Map.Entry<Integer,Double> value : instance.entrySet( ))	{
+					data.add( value.getKey( ), value.getValue( ));
 				}
+				xyDataset.addSeries( data );
 			}
 			this.chart = ChartFactory.createXYLineChart( 
-				String.format( language.get( "%s sample concentrations" ), 
-				dataset.toString( )),         // title
+				language.get( "Sample concentrations" ), //title
 				language.get( "Sample" ),        // x axis label
 				language.get( "Concentration" ), // y axis label
-				dataset,                         // plot data
+				xyDataset,                         // plot data
 				PlotOrientation.VERTICAL,        // Plot Orientation
-				true,                            // show legend
+				true,                           // show legend
 				false,                           // use tooltips
 				false                            // configure chart to generate URLs (?!)
 			);
 
 			XYPlot plot = this.chart.getXYPlot( );
-			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( 0 );
+			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( );
 			plot.setRenderer( renderer );
-			for ( int i=0,c=plot.getSeriesCount( ); i < c; i++ ) {
-					renderer.setSeriesPaint( i, 
-						Color.getHSBColor( (float)i/c, 1.0f, 0.5f ));
+			// find the index of this experiment for appropriate coloring.
+			for ( int i=0; i < xyDataset.getSeriesCount( ); i++ ) {
 				renderer.setSeriesStroke( i, new BasicStroke( 2 ));
 				renderer.setSeriesShapesVisible( i, true );
+				renderer.setSeriesPaint( i, 
+					Color.getHSBColor( (float)i/xyDataset.getSeriesCount( ), 1.0f, 0.5f ));
 			}
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
 			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
-			LegendItemCollection legendItems = plot.getLegendItems( );
-			if ( legendItems == null ) {
-				legendItems = new LegendItemCollection( );
-			}
-			legendItems.add( renderer.getOutlierLegendItem( ));
-			plot.setFixedLegendItems( legendItems );
-*/			return true;
-		}
-
-		/**
-		 * Sets the graph to display data about only the given molecule object.
-		 * 
-		 * @param 
-		 * @return true if creating the graph was successful.
-		 */
-		public boolean setGraph( Instance instance ) {
-			Logger.getLogger( getClass( )).debug( instance.toString( ));
-/*			Language language = Settings.getLanguage( );
-			XYSeries data = new XYSeries( language.get( "Sample Data" ));
-			List<Molecule> molecules = new ArrayList<Molecule>( experiments.size( ));
-			for ( Experiment experiment : experiments ) {
-				molecules.add( experiment.getMolecule( Instance.classValue( ));
-			}
-			int index = 1;
-			for ( Number value : samples )	{
-				if ( value != null )
-					data.add( index, value );
-				index++;
-			}
-			XYSeriesCollection dataset = new XYSeriesCollection( );
-			dataset.addSeries( data );
-			this.chart = ChartFactory.createXYLineChart( 
-				String.format( language.get( "%s sample concentrations" ), 
-					instance.classValue( ).toString( ), //title
-				language.get( "Sample" ),        // x axis label
-				language.get( "Concentration" ), // y axis label
-				dataset,                         // plot data
-				PlotOrientation.VERTICAL,        // Plot Orientation
-				false,                           // show legend
-				false,                           // use tooltips
-				false                            // configure chart to generate URLs (?!)
-			);
-
-			XYPlot plot = this.chart.getXYPlot( );
-			plot.setRenderer( renderer );
-			renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
-			renderer.setSeriesShapesVisible( 0, true );
-			// find the index of this experiment for appropriate coloring.
-			int expIndex = 0;
-			for ( Instance :  ) {
-				if ( exp == molecule.getExperiment( ))
-					break;
-				expIndex++;
-			}
-			renderer.setSeriesPaint( 0, 
-				Color.getHSBColor( (float)expIndex/this.experiments.size( ), 
-				1.0f, 0.5f ));
-			plot.setBackgroundPaint( Color.WHITE );
-			plot.setRangeGridlinePaint( Color.GRAY );
-			plot.setDomainGridlinePaint( Color.GRAY );
-			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
-*/			return true;
+			return true;
 		}
 
 		/**
@@ -366,17 +326,10 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 		public void valueChanged( TreeSelectionEvent e ) {
 			TreePath path = e.getPath( );
 			int level = path.getPathCount( );
-			if ( level > CLUSTER ) {
-				String selectedExperiment = path.getPathComponent( CLUSTER ).toString( );
-				for ( Experiment experiment : experiments ) {
-					if ( experiment.toString( ).equals( selectedExperiment )) {
-						this.setGraph(  
-							(Instance)path.getPathComponent( INSTANCE ));
-						break;
-					}
-				}
-			} else if ( level > INSTANCE ) { 
-				this.setGraph( (Instance)path.getPathComponent( INSTANCE ));
+			if ( level > INSTANCE ) { 
+				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( INSTANCE ));
+			} else if ( level > CLUSTER ) {
+				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( CLUSTER ));
 			} else {
 				this.chart = null;
 			}
