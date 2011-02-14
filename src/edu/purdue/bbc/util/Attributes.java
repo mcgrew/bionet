@@ -29,6 +29,8 @@ License: MIT license.
 
 package edu.purdue.bbc.util;
 
+import java.util.Map;
+
 /**
  * Interface for a class containing arbitrary attributes.
  */
@@ -49,6 +51,21 @@ public interface Attributes<T> {
 	 * @param value The new value for the specified attribute.
 	 */
 	public void setAttribute( String attribute, T value );
+
+	/**
+	 * Sets multiple Attributes for this object
+	 * 
+	 * @param map A map containing all of the attributes to be set.
+	 */
+	public void setAttributes( Map<String,T> map );
+
+	/**
+	 * Removes the specified attribute and returns it's value.
+	 * 
+	 * @param attribute The attribute to remove
+	 * @return The value of the requested attribute, or null if it does not exist.
+	 */
+	public T removeAttribute( String attribute );
 
 }
 

@@ -41,6 +41,8 @@ import org.apache.log4j.Logger;
  */
 public class CurveFitting {
 
+	private CurveFitting( ){ }
+	
 	/**
 	 * Reduces a set of values to a linear regression, using the array indices
 	 * as the x values. Finds an equation of the form y = ax + b which best matches

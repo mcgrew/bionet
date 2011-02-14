@@ -45,6 +45,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	protected String delimiter;
 	protected String[] keys;
 	protected Scanner scanner;
+	protected boolean stripQuotes;
 
 	/**
 	 * Creates a new CSV Reader
@@ -87,7 +88,11 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	public CSVTableReader ( InputStream input, String delimiter ) {
 		this.delimiter = delimiter;
 		this.scanner = new Scanner( input );
-		String[] keys = scanner.nextLine( ).split( delimiter );
+		this.keys = this.scanner.nextLine( ).split( delimiter );
+	}
+
+	public void setQuoteStripping( boolean strip ) {
+		this.stripQuotes = strip;
 	}
 
 	/**
@@ -106,12 +111,17 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 */
 	public Map<String,String> next( ) {
 		HashMap<String,String> returnValue = new HashMap<String,String>( );
-		String[] values = scanner.nextLine( ).split( this.delimiter );
-		for ( int i=0; i < keys.length; i++ ) {
-			if ( i > values.length ) {
+		String[] values = this.scanner.nextLine( ).split( this.delimiter );
+		for ( int i=0; i < this.keys.length; i++ ) {
+			if ( i >= values.length ) {
 				returnValue.put( keys[ i ], null );
 			} else {
-				returnValue.put( keys[ i ], values[ i ]);
+				if ( this.stripQuotes ) {
+					returnValue.put( keys[ i ].replaceAll( "\"(.*)\"", "$1" ), 
+					                 values[ i ].replaceAll( "\"(.*)\"", "$1" ));
+				} else {
+					returnValue.put( keys[ i ], values[ i ]);
+				}
 			}
 		}
 		return returnValue;
@@ -121,6 +131,13 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 * This optional  method is not implemented.
 	 */
 	public void remove( ) { }
+
+	/**
+	 * Closes the underlying Scanner for this CSVTableReader
+	 */
+	public void close( ) {
+		this.scanner.close( );
+	}
 
 }
 

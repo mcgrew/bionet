@@ -41,6 +41,8 @@ import org.apache.log4j.Logger;
  */
 public class Statistics {
 
+	private Statistics( ){ }
+
 	/**
 	 * Returns the Pearson correlation coefficient of the 2 sets of values.
 	 * 

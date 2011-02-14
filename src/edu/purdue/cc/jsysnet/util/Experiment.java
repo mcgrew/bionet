@@ -40,6 +40,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 
 	private Map <String,String> attributes;
 	private Map <String,MoleculeGroup> moleculeGroups;
+	@Deprecated
 	private Collection <Molecule> molecules;
 	private Collection <Correlation> correlations;
 	private SortedSet <Sample> sampleSet;
@@ -241,6 +242,28 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	public void setAttribute( String attribute, String value ) {
 		this.attributes.put( attribute, value );
 	}
+
+	/**
+	 * Sets a group of attributes specified by the passed in map.
+	 * 
+	 * @param map A Map containing the attributes to be added.
+	 */
+	public void setAttributes( Map<String,String> map ) {
+		for ( Map.Entry<String,String> entry : map.entrySet( )) {
+			this.setAttribute( entry.getKey( ), entry.getValue( ));
+		}
+	}
+
+	/**
+	 * Removes a particular attribute from this Experiment.
+	 * 
+	 * @param attr The name of the attribute to remove.
+	 * @return A String containing the removed Attribute.
+	 */
+	public String removeAttribute( String attr ){
+		return this.attributes.remove( attr );
+	}
+
 
 	/**
 	 * Gets the names of all of the attributes for this Experiment.

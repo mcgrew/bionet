@@ -32,6 +32,7 @@ import java.util.SortedSet;
 
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.bbc.io.CSVTableReader;
 import edu.purdue.cc.jsysnet.JSysNet;
 import edu.purdue.cc.jsysnet.util.*;
 
@@ -75,13 +76,13 @@ public class CSVDataReader extends DataReader {
 		String [ ] headings;
 		String [ ] columns;
 		this.experiments = new ArrayList <Experiment>( );
-		String line = new String( );
+		Map<String,String> line;
 		Language language = Settings.getLanguage( );
-		Scanner file;
+		CSVTableReader file;
 
 		// *********************** load Experiment.txt *************************
 		try{ 
-			file = new Scanner( new File( 
+			file = new CSVTableReader( new File( 
 				this.resource+File.separator+"Experiment.txt" ));
 		} catch( FileNotFoundException e ) {
 			logger.fatal( String.format( language.get( 
@@ -91,7 +92,7 @@ public class CSVDataReader extends DataReader {
 			this.experiments = new ArrayList <Experiment>( );
 			return;
 		}
-		if ( ! file.hasNext( ) ) {
+		if ( !file.hasNext( ) ) {
 			logger.fatal(
 				String.format( language.get( 
 				               "'%s' does not appear to be a valid file." ),
@@ -99,27 +100,16 @@ public class CSVDataReader extends DataReader {
 				               language.get( "No Data has been imported." ));
 			return;
 		}
-		line = file.nextLine( );
-		headings = line.split( "," );
-		HashMap <String,String> columnsMap;
-		while ( file.hasNextLine( )) {
-			line = file.nextLine( );
-			columns = line.split( "," );
-			int columnLength = columns.length;
-			columnsMap = new HashMap <String,String>( );
-			for ( int i=headings.length-1; i >= 0;  i-- ) {
-				columnsMap.put( headings[ i ].trim( ), 
-					( columnLength > i ) ? columns[ i ].trim( ) : "" );
-			}
-			String id = columnsMap.remove( "exp_id" );
-			this.addExperiment( new Experiment( id, columnsMap ));
+		while ( file.hasNext( )) {
+			line = file.next( );
+			String id = line.remove( "exp_id" );
+			this.addExperiment( new Experiment( id, line ));
 		}
 		file.close( );
 
 		// *********************** load Sample.txt ***************************
-		Map<String,Sample> sampleMap = new HashMap<String,Sample>( );
 		try {
-			file = new Scanner( new File( resource+File.separator+"Sample.txt" ));
+			file = new CSVTableReader( new File( resource+File.separator+"Sample.txt" ));
 		} catch( FileNotFoundException e ) {
 			logger.fatal( String.format( 
 				language.get( "Unable to load '%s'. The file was not found." ), 
@@ -128,31 +118,20 @@ public class CSVDataReader extends DataReader {
 			this.experiments = new ArrayList <Experiment>( );
 			return;
 		}
-		line = file.nextLine( );
-		headings = line.split( "," );
-		while( file.hasNextLine( )) {
-			line = file.nextLine( );
-			columns = line.split( "," );
-			Map<String,String> sampleAttrs = new HashMap<String,String>( );
-			for ( int i=headings.length-1; i >= 0; i-- ) {
-				// read the value, removing any surrounding quotes.
-				String value = (( columns.length > i ) ? columns[ i ].trim( ) : "")
-					.replaceAll( "\"(.*)\"", "$1" );
-				sampleAttrs.put( headings[ i ].trim( ), value );
-			}
-			Sample sample = new Sample( sampleAttrs.get( "Sample" ));
-			sample.setAttributes( sampleAttrs );
-			sampleMap.put( sample.toString( ), sample );
+		file.setQuoteStripping( true );
+		while( file.hasNext( )) {
+			line = file.next( );
+			Sample sample = new Sample( line.get( "Sample" ));
+			sample.setAttributes( line );
 			for ( Experiment experiment : experiments ) {
-				experiment.addSample( sample );
+				experiment.addSample( sample.clone( ));
 			}
-
 		}
 		file.close( );
 
 		// *********************** load Data.txt ***************************
 		try {
-			file = new Scanner( new File( resource+File.separator+"Data.txt" ));
+			file = new CSVTableReader( new File( resource+File.separator+"Data.txt" ));
 		} catch( FileNotFoundException e ) {
 			logger.fatal( String.format( language.get( 
 				              "Unable to load '%s'. The file was not found." ), 
@@ -161,96 +140,56 @@ public class CSVDataReader extends DataReader {
 			this.experiments = new ArrayList <Experiment>( );
 			return;
 		}
-		line = file.nextLine( );
-		headings = line.split( "," );
-		while( file.hasNextLine( )) {
-			line = file.nextLine( );
-			columns = line.split( "," );
-			int columnLength = columns.length;
-
-			Map<String,String> data = new HashMap<String,String>( );
-			for ( int i=headings.length-1; i >= 0; i-- ) {
-				String key = headings[ i ].trim( );  
-				String valueString = ( columnLength > i ) ? columns[ i ].trim( ) : "";
-				data.put( key, valueString );
-			}
-			Molecule molecule = new Molecule( data.remove( "id" ));
-			String exp_id = data.remove( "exp_id" );
-			// add this molecule to the appropriate experiment
+		Map<String,Molecule> moleculeMap = new HashMap<String,Molecule>( );
+		while( file.hasNext( )) {
+			line = file.next( );
+			Molecule molecule = new Molecule( line.remove( "id" ));
+			moleculeMap.put( molecule.getId( ), molecule );
+			String exp_id = line.remove( "exp_id" );
+			Experiment experiment = this.getExperiment( exp_id );
 			// add the remaining attributes to the molecule.
-			for( Map.Entry<String,String> entry : data.entrySet( )) {
+			for( Map.Entry<String,String> entry : line.entrySet( )) {
 				// see if this column is a sample value
-				if ( sampleMap.containsKey( entry.getKey( ))) {
-					double value = Double.NaN;
+				Sample sample = experiment.getSample( entry.getKey( ));
+				if ( sample != null ) {
+					Number value = new Double( Double.NaN );
 					try {
-						value = Double.parseDouble( entry.getValue( ));
-					} catch ( NumberFormatException e ) {
+						value = new Double( entry.getValue( ));
+					} catch ( NumberFormatException exc ) {
 						Logger.getLogger( getClass( )).debug( String.format( 
 							"Invalid number format for sample value: %s", 
-							entry.getValue( )), e );
+							entry.getValue( )), exc );
 					}
-					molecule.addSample( sampleMap.get( entry.getKey( )), value );
+					sample.setValue( molecule, value );
 				} else {
 					molecule.setAttribute( entry.getKey( ), entry.getValue( ));
 				}
-					
 			}
-			for ( Experiment experiment : experiments ) {
-				if ( experiment.getId( ).equals( exp_id ))
-					experiment.addMolecule( molecule );
-			}
+			experiment.addMolecule( molecule );
 		}
 		file.close( );
 
 		// *********************** load Molecule.txt ***************************
 		File moleculeFile = new File( resource+File.separator+"Molecule.txt" );
-		List <HashMap<String,String>>  moleculeList = 
-			new ArrayList <HashMap<String,String>>( );
 		if ( moleculeFile.isFile( )) {
 			try {
-				file = new Scanner( moleculeFile );
+				file = new CSVTableReader( moleculeFile );
 			} catch( FileNotFoundException e ) { }
-			line = file.nextLine( );
-			headings = line.split( "," );
-			while( file.hasNextLine( )) {
-				line = file.nextLine( );
-				columns = line.split( "," );
-				int columnLength = columns.length;
-				columnsMap = new HashMap <String,String>( );
-				for ( int i=headings.length-1; i >= 0; i-- ) {
-					columnsMap.put( headings[ i ].trim( ), 
-						( columnLength > i ) ? columns[ i ].trim( ) : "" );
-				}
-				moleculeList.add( columnsMap );
-	
-			}
-			file.close( );
-		}
-
-		// iterate through the data in Molecule.txt and add the attributes
-		for( HashMap <String,String> moleculeDataHashMap : moleculeList ) {
-			Experiment experiment = null;
-			for ( Experiment e : experiments ) {
-				if ( e.getId( ).equals( moleculeDataHashMap.get( "exp_id" ))) {
-					experiment = e;
-					break;
-				}
-			}
-			if ( experiment != null ) {
-				Molecule molecule = experiment.getMolecule( 
-					moleculeDataHashMap.get( "id" ));
-	
+			// iterate through the data in Molecule.txt and add the attributes
+			while( file.hasNext( )) {
+				line = file.next( );
+				line.remove( "exp_id" ); // unneeded info.
+				String id = line.remove( "id" );
+				Molecule molecule = moleculeMap.get( line.remove( "id" ));
 				if ( molecule != null ) {
 					// Add the first set of attributes to the Molecule Objects
-					for ( Map.Entry<String,String> molAttr : 
-					      moleculeDataHashMap.entrySet( )) {
+					for ( Map.Entry<String,String> molAttr : line.entrySet( )) {
 						molecule.setAttribute( molAttr.getKey( ), molAttr.getValue( ));
 					}
+				} else {
+					logger.debug( String.format( 
+						"Molecule '%s' from Molecule.txt not found in Data.txt", id ));
 				}
-			} else {
-				logger.debug( String.format( 
-					"Experiment '%s' from Molecule.txt not found",
-					moleculeDataHashMap.get( "exp_id" )));
 			}
 		}
 	}

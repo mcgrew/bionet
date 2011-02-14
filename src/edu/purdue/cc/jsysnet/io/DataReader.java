@@ -109,4 +109,19 @@ public abstract class DataReader {
 		return this.experiments.remove( experiment );
 	}
 
+	/**
+	 * Retrieves an Experiment by Id.
+	 * 
+	 * @param id The id of the Experiment to retrieve.
+	 * @return The requested experiment.
+	 */
+	public Experiment getExperiment( String id ) {
+		for ( Experiment e : experiments ) {
+			if ( id.equals( e.getId( ))) {
+				return e;
+			}
+		}
+		return null;
+	}
+
 }

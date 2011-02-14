@@ -27,14 +27,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Sample implements Comparable<Sample>,Attributes {
-	protected Map<String,Object> attributes;
+public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
+	protected Map<String,String> attributes;
 	protected String name;
 	protected Map<Molecule,Number> valueMap;
 
 	public Sample( String name ) {
 		this.name = name;
-		this.attributes = new HashMap<String,Object>( );
+		this.attributes = new HashMap<String,String>( );
 		this.valueMap = new HashMap<Molecule,Number>( );
 	}
 
@@ -42,7 +42,7 @@ public class Sample implements Comparable<Sample>,Attributes {
 		return name;
 	}
 
-	public void setAttribute( String attribute, Object value ) {
+	public void setAttribute( String attribute, String value ) {
 		this.attributes.put( attribute.toLowerCase( ), value );
 	}
 
@@ -53,8 +53,12 @@ public class Sample implements Comparable<Sample>,Attributes {
 		}
 	}
 
-	public Object getAttribute( String attribute ) {
+	public String getAttribute( String attribute ) {
 		return this.attributes.get( attribute.toLowerCase( ));
+	}
+
+	public String removeAttribute( String attribute ) {
+		return this.attributes.remove( attribute );
 	}
 
 	public int compareTo( Sample o ) {
@@ -77,8 +81,26 @@ public class Sample implements Comparable<Sample>,Attributes {
 		return returnValue;
 	}
 
+	public Molecule getMolecule( Object id ) {
+		for ( Molecule molecule : this.valueMap.keySet( )) {
+			if ( id.toString( ).equals( molecule.getId( )))
+				return molecule;
+		}
+		return null;
+	}
+
 	public Collection <Molecule> getMolecules( ) {
 		return this.valueMap.keySet( );
+	}
+
+	@Override
+	public Sample clone( ) {
+		Sample returnValue = new Sample( this.name );
+		returnValue.setAttributes( this.attributes );
+		for ( Map.Entry<Molecule,Number> entry : this.valueMap.entrySet( )) {
+			returnValue.setValue( entry.getKey( ), entry.getValue( ));
+		}
+		return returnValue;
 	}
 }
 
