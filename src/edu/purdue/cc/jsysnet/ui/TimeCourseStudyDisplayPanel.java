@@ -19,36 +19,36 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
+import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.NumberList;
+import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.jsysnet.io.JavaMLTranslator;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
-import edu.purdue.bbc.util.Language;
-import edu.purdue.bbc.util.Settings;
-import edu.purdue.bbc.util.NumberList;
-import edu.purdue.cc.jsysnet.io.JavaMLTranslator;
 
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.TreeSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
+import java.util.TreeSet;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
@@ -59,33 +59,35 @@ import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.data.StreamHandler;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
-import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
-import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingEvent;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.TickUnits;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.data.xy.XYDataset;
+import org.jfree.chart.plot.PlotRenderingInfo;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.statistics.BoxAndWhiskerCalculator;
+import org.jfree.data.statistics.BoxAndWhiskerItem;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerXYDataset;
-import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
-import org.jfree.data.statistics.BoxAndWhiskerItem;
-import org.jfree.data.statistics.BoxAndWhiskerCalculator;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.labels.XYItemLabelGenerator;
-import org.jfree.chart.renderer.xy.XYItemRendererState;
-import org.jfree.chart.plot.PlotRenderingInfo;
-import org.jfree.chart.axis.ValueAxis;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import org.apache.log4j.Logger;
 
@@ -119,8 +121,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			
 			RunnableClusterer som = new RunnableClusterer(
 				new SOM(
-					5,                             // number of dimensions on the x axis
-					5,                             // number of dimensions on the y axis
+					10,                            // number of dimensions on the x axis
+					10,                            // number of dimensions on the y axis
 					SOM.GridType.HEXAGONAL,        // type of grid.
 					50000,                          // number of iterations
 					0.1,                           // learning rate of algorithm
@@ -222,7 +224,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 					DefaultMutableTreeNode instanceNode = 
 						new DefaultMutableTreeNode( instance ) {
 							public String toString( ) {
-								return ((Instance)this.getUserObject( )).classValue( ).toString( );
+								return ((Instance)this.getUserObject( )).classValue( )
+									.toString( );
 							}
 						};
 					for( Sample sample : samples ) {
@@ -267,9 +270,10 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 		}
 		
 		/**
-		 * Sets the graph to display data from each experiment on the passed in molecule id.
+		 * Sets the graph to display data from each experiment on the passed in 
+		 * molecule id.
 		 * 
-		 * @param 
+		 * @param node The selected node for the graph.
 		 * @returns true if creating the graph was successful.
 		 */
 		public boolean setGraph( DefaultMutableTreeNode node ) {
@@ -281,7 +285,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 				dataset = (Dataset)userObject;
 			} else {
 				dataset = new DefaultDataset( );
-				dataset.add( (Instance)userObject);
+				dataset.add( (Instance)userObject );
 			}
 			for ( Instance instance : dataset ) {
 				XYSeries data = new XYSeries( instance.classValue( ).toString( ));
@@ -298,11 +302,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 				PlotOrientation.VERTICAL,        // Plot Orientation
 				true,                           // show legend
 				false,                           // use tooltips
-				false                            // configure chart to generate URLs (?!)
+				false                            // configure chart to generate URLs (?)
 			);
 
 			XYPlot plot = this.chart.getXYPlot( );
-			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( );
+			XYLineAndShapeRenderer renderer = 
+				(XYLineAndShapeRenderer)plot.getRenderer( );
 			plot.setRenderer( renderer );
 			// find the index of this experiment for appropriate coloring.
 			for ( int i=0; i < xyDataset.getSeriesCount( ); i++ ) {
@@ -314,7 +319,13 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
-			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			TickUnits tickUnits = new TickUnits( );
+			double tickIndex = 0.0;
+			for ( Sample sample : samples ) {
+				tickUnits.add( new SampleTickUnit( tickIndex, samples ));
+				tickIndex++;
+			}
+			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
 			return true;
 		}
 
@@ -358,13 +369,14 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			super.paintComponent( g );
 			if ( chart != null ) {
 				Dimension size = this.getSize( null );
-				BufferedImage drawing = this.chart.createBufferedImage( size.width, size.height );
+				BufferedImage drawing = 
+					this.chart.createBufferedImage( size.width, size.height );
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}
 
 	}
-
+	
 }
 
 

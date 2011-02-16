@@ -32,8 +32,8 @@ import java.util.TreeSet;
 
 public class JavaMLTranslator extends InputStream {
 	private Collection <Experiment> experiments;
-	private Collection <String> molecules;
-	private Iterator<String> moleculeIterator;
+	private Collection <Molecule> molecules;
+	private Iterator<Molecule> moleculeIterator;
 	private StringBuilder buffer;
 	private Collection<Sample> samples;
 	private boolean numericOnly;
@@ -41,13 +41,11 @@ public class JavaMLTranslator extends InputStream {
 	public JavaMLTranslator ( Collection <Experiment> experiments ) {
 		super( );
 		this.experiments = experiments;
-		this.molecules = new TreeSet<String>( );
-		this.samples = new TreeSet<Sample>( );
+		this.molecules = new TreeSet<Molecule>( );
+		this.samples = new ArrayList<Sample>( );
 		for ( Experiment e : experiments ) {
 			samples.addAll( e.getSamples( ));
-			for( Molecule m : e.getMolecules( )) {
-				molecules.add( m.getAttribute( "id" ));
-			}
+			molecules.addAll( e.getMolecules( ));
 		}
 		this.reset( );
 	}
@@ -120,22 +118,15 @@ public class JavaMLTranslator extends InputStream {
 	private boolean bufferNext( ) {
 		if ( !moleculeIterator.hasNext( ))
 			return false;
-		String m = moleculeIterator.next( );
+		Molecule m = moleculeIterator.next( );
 		this.appendToBuffer( m );
 		return true;
 	}
 
-	private void appendToBuffer( Object m ) {
+	private void appendToBuffer( Molecule m ) {
 		buffer.append( m.toString( ) + "," );
-		for( Experiment exp : this.experiments ) {
-			Molecule molecule = exp.getMolecule( m.toString( ));
-			for( Sample sample : this.samples ) {
-				if ( molecule != null ) {
-					buffer.append( molecule.getSample( sample ).toString( ) + "," );
-				} else {
-					buffer.append( "0," );
-				}
-			}
+		for ( Sample sample : samples ) {
+					buffer.append( sample.getValue( m ).toString( ) + "," );
 		}
 		buffer.setCharAt( buffer.length( )-1, '\n' );
 	}

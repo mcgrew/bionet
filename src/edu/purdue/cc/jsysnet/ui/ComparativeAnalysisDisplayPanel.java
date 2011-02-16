@@ -75,6 +75,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.jfree.chart.ChartFactory;
@@ -236,45 +237,29 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				Settings.getLanguage( ).get( "All Experiments" ));
 
 			// first get all possible group names
-			Set <String> groups = new TreeSet<String>( );
+			Map<String,MoleculeGroup> groupMap = new TreeMap<String,MoleculeGroup>( );
 			for ( Experiment e : experiments ) {
-				groups.addAll( Arrays.asList( e.getMoleculeGroupNames( )));
+				for ( MoleculeGroup group : e.getMoleculeGroups( )) {
+					groupMap.put( group.toString( ), group );
+				}
 			}
 			// now get all possible molecule ids
-			HashMap<String,Set<String>> moleculeIds = new HashMap <String,Set<String>>( );
-			for ( String group : groups ) {
-				Set<String> set = moleculeIds.get( group );
-				if ( set == null ) {
-					set = new TreeSet<String>( );
-					moleculeIds.put( group, set );
-				}
-				for ( Experiment e : experiments ) {
-					for ( Molecule m : e.getMoleculeGroup( group ).getMolecules( )) {
-						set.add( m.getAttribute( "id" ));
-					}
-				}
-			}
+			for ( MoleculeGroup group : groupMap.values( )) {
+				DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode( group );
 
-			for ( String groupName : groups ) {
-				DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode( groupName );
-
-				for ( String molId : moleculeIds.get( groupName )) {
-					DefaultMutableTreeNode moleculeNode = new DefaultMutableTreeNode( molId );
+				for ( Molecule molecule : group ) {
+					DefaultMutableTreeNode moleculeNode = 
+						new DefaultMutableTreeNode( molecule );
 
 					for ( Experiment e : experiments ) {
-						Molecule molecule = e.getMolecule( molId );
-						if ( molecule != null ) {
-							DefaultMutableTreeNode experimentNode = 
-								new DefaultMutableTreeNode( e );
-							// save the node in a map for later lookup.
-							nodeMap.put( molecule, experimentNode ); 
-							for ( Sample sample : e.getSamples( )) {
-								DefaultMutableTreeNode sampleNode = 
-									new DefaultMutableTreeNode( sample );	
-								experimentNode.add( sampleNode );
-							}
-							moleculeNode.add( experimentNode );
+						DefaultMutableTreeNode experimentNode = 
+							new DefaultMutableTreeNode( e );
+						for ( Sample sample : e.getSamples( )) {
+							DefaultMutableTreeNode sampleNode = 
+								new DefaultMutableTreeNode( sample );	
+							experimentNode.add( sampleNode );
 						}
+						moleculeNode.add( experimentNode );
 					}
 					groupNode.add( moleculeNode );
 				}
@@ -304,9 +289,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 * @param molecule The Molecule to search the tree for.
 		 * @return True if the Molecule in the tree is checked.
 		 */
-		public boolean isChecked( Molecule molecule ) {
+		public boolean isChecked( DefaultMutableTreeNode node ) {
 			return this.tree.isPathChecked( 
-				new TreePath( this.nodeMap.get( molecule ).getPath( )));
+				new TreePath( node.getPath( )));
 		}
 
 		/**
@@ -316,19 +301,28 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 * @param sample The sample number to check the status of.
 		 * @return True if the sample is checked.
 		 */
-		public Map<Sample,Number> getSamplesFiltered( Molecule molecule, 
-				Experiment experiment ) {
-			Map<Sample,Number> returnValue = new TreeMap<Sample,Number>( );
-			DefaultMutableTreeNode molNode = this.nodeMap.get( molecule );
-			for( int i=0; i < molNode.getChildCount( ); i++ ){
+		public Map<Sample,Number> getSamplesFiltered( DefaultMutableTreeNode node ){
+			Map<Sample,Number> returnValue = new HashMap<Sample,Number>( );
+			Object userObj = node.getUserObject( );
+			if ( userObj instanceof Experiment ) {
+				Molecule molecule = (Molecule)((DefaultMutableTreeNode)node.getParent( )).getUserObject( );
+				for ( int i=0; i < node.getChildCount( ); i++ ) {
+					if ( this.tree.isPathChecked( new TreePath( ((DefaultMutableTreeNode)node.getChildAt( i )).getPath( )))) {
+						Sample sample = (Sample)((DefaultMutableTreeNode)node.getChildAt( i )).getUserObject( );
+						returnValue.put( sample, sample.getValue( molecule ));
+					}
+				}
 
-				DefaultMutableTreeNode sampleNode = 
-					(DefaultMutableTreeNode)molNode.getChildAt( i );
-				Sample sample = (Sample)sampleNode.getUserObject( );
-				if ( !this.tree.isPathChecked( new TreePath( sampleNode.getPath( )))) {
-					returnValue.put( sample, null );
-				} else {
-					returnValue.put( sample, molecule.getValue( sample ));
+			} else if ( userObj instanceof Molecule ) {
+				Molecule molecule = (Molecule)userObj;
+				for( int i=0; i < node.getChildCount( ); i++ ){
+					DefaultMutableTreeNode expNode = (DefaultMutableTreeNode)node.getChildAt( i );
+					for( int j=0; j < expNode.getChildCount( ); j++ ) {
+						if ( this.tree.isPathChecked( new TreePath( ((DefaultMutableTreeNode)node.getChildAt( j )).getPath( )))) {
+							Sample sample = (Sample)((DefaultMutableTreeNode)expNode.getChildAt( j )).getUserObject( );
+							returnValue.put( sample, sample.getValue( molecule ));
+						}
+					}
 				}
 			}
 			return returnValue;
@@ -405,25 +399,26 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		 * @param molecule An object whose toString( ) method returns the molecule 
 		 *	id. 
 		 */
-		public void setGraph( Object molecule ) {
+		public void setGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( ); 
-			String id = molecule.toString( );
+			Molecule molecule = (Molecule)node.getUserObject( );
 			DefaultBoxAndWhiskerXYDataset boxDataSet = 
 				new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
 			double [] fitValues = new double[ this.experiments.size( ) + 1];
 			fitValues[ 0 ] = Double.NaN;
 			int expIndex = 1;
 			int expCount = 0;
-			for ( Experiment e : this.experiments ) {
-				Molecule mol = e.getMolecule( id );
+			for( int i=0; i < node.getChildCount( ); i++ ) {
+				DefaultMutableTreeNode expNode = (DefaultMutableTreeNode)node.getChildAt( i );
+				Experiment e = (Experiment)expNode.getUserObject( );
 				fitValues[ expIndex ] = Double.NaN;
-				if ( mol != null && selectorTree.isChecked( mol )) {
+				if ( selectorTree.isChecked( node )) {
 					expCount++;
 					try {
 						BoxAndWhiskerItem item = 
 							BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
 								new ArrayList<Number>( 
-									selectorTree.getSamplesFiltered( mol, e ).values( )));
+									selectorTree.getSamplesFiltered( expNode ).values( )));
 						boxDataSet.add( new Date((long)expIndex), item );
 
 						// robust fit uses the median instead of the mean.
@@ -529,7 +524,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			TreePath path = e.getPath( );
 			int level = path.getPathCount( );
 			if ( level > MOLECULE ) {
-				this.setGraph( path.getPathComponent( MOLECULE ));
+				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
 			} else {
 				this.chart = null;
 			}
@@ -545,7 +540,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			TreePath path = selectorTree.getTree( ).getSelectionPath( );
 			int level = path.getPathCount( );
 			if ( level > MOLECULE ) {
-				this.setGraph( path.getPathComponent( MOLECULE ));
+				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
 			} else {
 				this.chart = null;
 			}
@@ -563,7 +558,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				if ( path != null ) {
 					int level = path.getPathCount( );
 					if ( level > MOLECULE ) {
-						this.setGraph( path.getPathComponent( MOLECULE ));
+						this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
 					} else {
 						this.chart = null;
 					}
@@ -589,59 +584,99 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		}
 
 		/**
-		 * Sets the graph to display data from each experiment on the passed in 
-		 * molecule id.
+		 * Sets the graph to display data from the given object in the Node
 		 * 
-		 * @param molecule An object whose toString( ) method returns the molecule 
-		 *	id.
+		 * @param node The node to show information about.
 		 */
-		public boolean setGraph( Object moleculeId ) {
+		public boolean setGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( );
 			XYSeriesCollection dataset = new XYSeriesCollection( );
+			Object userObj = node.getUserObject( );
 			CustomXYLineAndShapeRenderer renderer = 
 				new CustomXYLineAndShapeRenderer( true, true );
-			for ( Experiment experiment : this.experiments ) {
-				Molecule molecule = experiment.getMolecule( moleculeId.toString( ));
-				if ( molecule != null && selectorTree.isChecked( molecule )) {
+			if ( userObj instanceof Molecule ) {
+				for ( int i=0; i < node.getChildCount( ); i++ ) {
+					DefaultMutableTreeNode expNode = (DefaultMutableTreeNode)node.getChildAt( i );
+					Experiment experiment = (Experiment)expNode.getUserObject( );
 					XYSeries data = new XYSeries( String.format( "%s %s",
 						language.get( "Experiment" ),
 						experiment.getId( )
 					));
-					Map<Sample,Number> values = 
-						selectorTree.getSamplesFiltered( molecule, experiment );
+					Collection<Sample> samples = experiment.getSamples( );
+					Map<Sample,Number> values = selectorTree.getSamplesFiltered( expNode );
 					int index = 0;
-					for ( Sample sample : experiment.getSamples( ))	{
+					for ( Sample sample : samples ) {
 						Number value = values.get( sample );
-						if ( value != null )
+						if ( value != null ) {
 							data.add( index, value );
+						}
 						index++;
 					}
+					List<Number> valueList = new ArrayList<Number>( values.size( ));
+					valueList.addAll( values.values( ));
 					renderer.setSeriesOutlierInfo( dataset.getSeriesCount( ),
-						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-							molecule.getValues( experiment.getSamples( ))));
+						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( valueList ));
 					dataset.addSeries( data );
 				}
+			} else {
+				Experiment experiment = (Experiment)node.getUserObject( );
+				XYSeries data = new XYSeries( String.format( "%s %s",
+					language.get( "Experiment" ),
+					experiment.getId( )
+				));
+				Collection<Sample> samples = experiment.getSamples( );
+				Map<Sample,Number> values = selectorTree.getSamplesFiltered( node );
+				int index = 0;
+				for ( Sample sample : samples ) {
+					Number value = values.get( sample );
+					if ( value != null ) {
+						data.add( index, value );
+					}
+					index++;
+				}
+				List<Number> valueList = new ArrayList<Number>( values.size( ));
+				valueList.addAll( values.values( ));
+				renderer.setSeriesOutlierInfo( dataset.getSeriesCount( ),
+					BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( valueList ));
+				dataset.addSeries( data );
 			}
 			this.chart = ChartFactory.createXYLineChart( 
 				String.format( language.get( "%s sample concentrations" ), 
-				moleculeId.toString( )),         // title
+				node.toString( )),         // title
 				language.get( "Sample" ),        // x axis label
 				language.get( "Concentration" ), // y axis label
 				dataset,                         // plot data
 				PlotOrientation.VERTICAL,        // Plot Orientation
 				true,                            // show legend
 				false,                           // use tooltips
-				false                            // configure chart to generate URLs (?!)
+				false                            // configure chart to generate URLs (?)
 			);
 
 			XYPlot plot = this.chart.getXYPlot( );
 //			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( 0 );
 			plot.setRenderer( renderer );
-			for ( int i=0,c=plot.getSeriesCount( ); i < c; i++ ) {
-					renderer.setSeriesPaint( i, 
-						Color.getHSBColor( (float)i/c, 1.0f, 0.5f ));
-				renderer.setSeriesStroke( i, new BasicStroke( 2 ));
-				renderer.setSeriesShapesVisible( i, true );
+			if ( userObj instanceof Molecule ) {
+				// if this is a multi-experiment graph, set the colors for each.
+				for ( int i=0,c=plot.getSeriesCount( ); i < c; i++ ) {
+						renderer.setSeriesPaint( i, 
+							Color.getHSBColor( (float)i/c, 1.0f, 0.5f ));
+					renderer.setSeriesStroke( i, new BasicStroke( 2 ));
+					renderer.setSeriesShapesVisible( i, true );
+				}
+			} else {
+				// this is a single experiment graph, so pick the color to be consistent
+				// with the multi-experiment graph.
+				int experimentCount = node.getParent( ).getChildCount( );
+				int index = 0;
+				for ( int i=0; i < experimentCount; i++ ) {
+					if ( node.getParent( ).getChildAt( i ) == node ) {
+						renderer.setSeriesPaint( 0,
+							Color.getHSBColor( (float)i/experimentCount, 1.0f, 0.5f ));
+					}
+				}
+				renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
+				renderer.setSeriesShapesVisible( 0, true );
+				
 			}
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
@@ -665,94 +700,6 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 		}
 
 		/**
-		 * Sets the graph to display data about only the given molecule object.
-		 * 
-		 * @param molecule The molecule to display data about.
-		 * @return true if setting the graph was successful.
-		 */
-		public boolean setGraph( Molecule molecule, Experiment experiment ) {
-			Language language = Settings.getLanguage( );
-			CustomXYLineAndShapeRenderer renderer = 
-				new CustomXYLineAndShapeRenderer( true, true );
-			XYSeries data = new XYSeries( language.get( "Sample Data" ));
-			Map<Sample,Number> values = 
-				selectorTree.getSamplesFiltered( molecule, experiment );
-			renderer.setSeriesOutlierInfo( 0,
-				BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-					new ArrayList<Number>( values.values( ))));
-			int index = 0;
-			for ( Sample sample : experiment.getSamples( ) )	{
-				Number value = values.get( sample );
-				if ( value != null )
-					data.add( index, value );
-				index++;
-			}
-			XYSeriesCollection dataset = new XYSeriesCollection( );
-			dataset.addSeries( data );
-			this.chart = ChartFactory.createXYLineChart( 
-				String.format( language.get( "%s sample concentrations" ), 
-					molecule.toString( )) + " " +
-					language.get( "Experiment" ) + " " +
-					experiment.getId( ), // title
-				language.get( "Sample" ),        // x axis label
-				language.get( "Concentration" ), // y axis label
-				dataset,                         // plot data
-				PlotOrientation.VERTICAL,        // Plot Orientation
-				false,                           // show legend
-				false,                           // use tooltips
-				false                            // configure chart to generate URLs (?!)
-			);
-
-			XYPlot plot = this.chart.getXYPlot( );
-			plot.setRenderer( renderer );
-			renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
-			renderer.setSeriesShapesVisible( 0, true );
-			// find the index of this experiment for appropriate coloring.
-			int expIndex = 0;
-			for ( Experiment exp : this.experiments ) {
-				if ( exp == experiment )
-					break;
-				expIndex++;
-			}
-			renderer.setSeriesPaint( 0, 
-				Color.getHSBColor( (float)expIndex/this.experiments.size( ), 
-				1.0f, 0.5f ));
-			plot.setBackgroundPaint( Color.WHITE );
-			plot.setRangeGridlinePaint( Color.GRAY );
-			plot.setDomainGridlinePaint( Color.GRAY );
-			TickUnits tickUnits = new TickUnits( );
-			double tickIndex = 0.0;
-			List<Sample> expSamples = new ArrayList<Sample>(experiment.getSamples( ));
-			for ( Sample sample : expSamples ) {
-				tickUnits.add( new SampleTickUnit( tickIndex, expSamples ));
-				tickIndex++;
-			}
-			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
-			return true;
-		}
-
-		private class SampleTickUnit extends NumberTickUnit {
-			private List<Sample> samples;
-			
-			public SampleTickUnit( double size, List<Sample> samples ) {
-				super( size );
-				this.samples = samples;
-			}
-
-			@Override
-			public String valueToString( double value ) {
-				return this.samples.get( 
-					Math.max( 0, Math.min( (int)Math.round( value ),
-						                     samples.size( )-1))).toString( );
-			}
-
-			@Override
-			public String toString( ) {
-				return this.valueToString( this.getSize( ));
-			}
-		}
-
-		/**
 		 * The valueChanged method of the TreeSelectionListener interface
 		 * 
 		 * @param e The event which triggered this action.
@@ -761,16 +708,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			TreePath path = e.getPath( );
 			int level = path.getPathCount( );
 			if ( level > EXPERIMENT ) {
-				String selectedExperiment = path.getPathComponent( EXPERIMENT ).toString( );
-				for ( Experiment experiment : experiments ) {
-					if ( experiment.toString( ).equals( selectedExperiment )) {
-						this.setGraph( experiment.getMolecule( 
-							path.getPathComponent( MOLECULE ).toString( )), experiment );
-						break;
-					}
-				}
+				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( EXPERIMENT ));
 			} else if ( level > MOLECULE ) { 
-				this.setGraph( path.getPathComponent( MOLECULE ));
+				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
 			} else {
 				this.chart = null;
 			}

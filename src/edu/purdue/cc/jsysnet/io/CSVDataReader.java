@@ -143,8 +143,14 @@ public class CSVDataReader extends DataReader {
 		Map<String,Molecule> moleculeMap = new HashMap<String,Molecule>( );
 		while( file.hasNext( )) {
 			line = file.next( );
-			Molecule molecule = new Molecule( line.remove( "id" ));
-			moleculeMap.put( molecule.getId( ), molecule );
+			String id = line.remove( "ID" );
+			Molecule molecule;
+			if ( moleculeMap.containsKey( id )) {
+				molecule = moleculeMap.get( id );
+			} else {
+				molecule = new Molecule( id );
+				moleculeMap.put( id, molecule );
+			}
 			String exp_id = line.remove( "exp_id" );
 			Experiment experiment = this.getExperiment( exp_id );
 			// add the remaining attributes to the molecule.
@@ -179,8 +185,8 @@ public class CSVDataReader extends DataReader {
 			while( file.hasNext( )) {
 				line = file.next( );
 				line.remove( "exp_id" ); // unneeded info.
-				String id = line.remove( "id" );
-				Molecule molecule = moleculeMap.get( line.remove( "id" ));
+				String id = line.remove( "ID" );
+				Molecule molecule = moleculeMap.get( id );
 				if ( molecule != null ) {
 					// Add the first set of attributes to the Molecule Objects
 					for ( Map.Entry<String,String> molAttr : line.entrySet( )) {

@@ -32,6 +32,8 @@ import java.util.Set;
 
 import edu.purdue.bbc.util.NumberList;
 
+import org.apache.log4j.Logger;
+
 /**
  * Representation class for Molecule data
  * 
@@ -46,21 +48,12 @@ public class Molecule implements Comparable<Molecule> {
 	protected String id;
 
 	/**
-	 * Constructor.
-	 * @deprecated This constructor will be removed in a future version.
-	 */
-	@Deprecated
-	public Molecule( ) {
-		this.attributes = new HashMap <String,String>( );
-		this.molecularWeight = Double.NaN;
-	}
-
-	/**
 	 * Constructs a new Molecule with the given id.
 	 * 
 	 * @param id The id of the new Molecule
 	 */
 	public  Molecule( String id ) {
+		Logger.getLogger( getClass( )).debug( "Creating Molecule " + id );
 		this.attributes = new HashMap <String,String>( );
 		this.molecularWeight = Double.NaN;
 		this.id = id;
@@ -72,9 +65,6 @@ public class Molecule implements Comparable<Molecule> {
 	 * @return A String containing the Molecule's id.
 	 */
 	public String getId( ) {
-		if ( this.id == null ) {
-			return this.getAttribute( "id" );
-		}
 		return this.id;
 	}
 

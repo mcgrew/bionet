@@ -31,6 +31,8 @@ import java.util.TreeSet;
 import java.util.SortedSet;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 /**
  * A class for holding data about a particular experiment.
  * 
@@ -74,7 +76,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	public Experiment( String id, Map <String,String> attributes ) {
 		this.attributes = attributes;
 		this.moleculeGroups = new HashMap <String,MoleculeGroup>( );
-		this.molecules = new ArrayList <Molecule>( );
+		this.molecules = new TreeSet<Molecule>( );
 		this.correlations = new ArrayList <Correlation>( );
 		this.sampleSet = new TreeSet<Sample>( );
 		this.id = id;
@@ -137,11 +139,17 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 		if ( !moleculeGroups.containsKey( group )) {
 			this.addMoleculeGroup( group );
 		}
-		this.moleculeGroups.get( group ).addMolecule( molecule );
-		for ( Molecule m : this.molecules ) {
-			this.correlations.add( new Correlation( m, molecule, this ));
+		if ( !this.molecules.contains( molecule )) {
+			this.moleculeGroups.get( group ).addMolecule( molecule );
+			for ( Molecule m : this.molecules ) {
+				this.correlations.add( new Correlation( m, molecule, this ));
+			}
+			this.molecules.add( molecule );
+		} else {
+			Logger.getLogger( getClass( )).debug( String.format( 
+				"Experiment %s already contains Molecule %s", 
+				this.getId( ), molecule.getId( )));
 		}
-		this.molecules.add( molecule );
 	}
 
 	/**
