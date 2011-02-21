@@ -19,19 +19,21 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
-import edu.purdue.cc.jsysnet.util.Molecule;
-import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.Molecule;
+import edu.purdue.cc.jsysnet.util.Experiment;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.Dimension;
-import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
-import edu.purdue.cc.jsysnet.util.*;
+
+import org.apache.log4j.Logger;
 
 /**
  * A class for displaying detail about a particular Molecule or Correlation.
@@ -50,6 +52,10 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 */
 	public DetailWindow( Experiment experiment, Range range ) {
 		super( experiment.getAttribute( "description" ));
+		Logger.getLogger( getClass( )).debug( String.format(
+			"Creating detail window:\n\tExperiment: %s\n" +
+			"\tRange:      %s\n", experiment, range));
+		this.experiment = experiment;
 		this.correlationRange = range.clone( );
 		Settings settings = Settings.getSettings( );
 		int width  = settings.getInt( "detailWindowWidth"  );

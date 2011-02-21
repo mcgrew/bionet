@@ -41,6 +41,8 @@ import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.cc.jsysnet.JSysNet;
 
+import org.apache.log4j.Logger;
+
 public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private Molecule molecule;
 	private Experiment experiment;
@@ -56,8 +58,13 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	public MoleculeDetailPanel ( Molecule molecule, Range range, 
 	                             DetailWindow detailWindow ) {
 		super( new BorderLayout( ));
+		Logger logger = Logger.getLogger( getClass( ));
 		this.molecule = molecule;
 		this.experiment = detailWindow.getExperiment( );
+		logger.debug( String.format(
+			"Showing Molecule detail:\n\tExperiment: %s\n" +
+			"\tMolecule:   %s\n\tRange:      %s\n", 
+			this.experiment, this.molecule, range));
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 

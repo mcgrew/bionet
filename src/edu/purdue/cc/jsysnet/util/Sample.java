@@ -27,6 +27,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 	protected Map<String,String> attributes;
 	protected String name;
@@ -34,6 +36,7 @@ public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 
 	public Sample( String name ) {
 		this.name = name;
+		Logger.getLogger( getClass( )).debug( "Creating Sample: " + name );
 		this.attributes = new HashMap<String,String>( );
 		this.valueMap = new HashMap<Molecule,Number>( );
 	}

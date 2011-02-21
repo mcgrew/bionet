@@ -993,7 +993,6 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	 * A class for displaying the table below the graph.
 	 */
 	private class InfoPanel extends JTabbedPane implements ChangeListener {
-		private final static String MOLECULE_INDEX = "id";
 		private JPanel conditionPanel = new ConditionPanel( );
 		private JPanel topologyPanel = new TopologyPanel( );
 		private JPanel degreeDistributionPanel = new DegreeDistributionPanel( );
@@ -1094,8 +1093,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				kendallCalculationMenuItem.addChangeListener( this );
 			}
 			Object[] newRow = new Object[ 5 ];
-			newRow[ 0 ] = correlation.getMolecules( )[ 0 ].getAttribute( MOLECULE_INDEX );
-			newRow[ 1 ] = correlation.getMolecules( )[ 1 ].getAttribute( MOLECULE_INDEX );
+			newRow[ 0 ] = correlation.getMolecules( )[ 0 ].getId( );
+			newRow[ 1 ] = correlation.getMolecules( )[ 1 ].getId( );
 			newRow[ 2 ] = String.format( "%.5f", correlation.getValue( Correlation.PEARSON ));
 			newRow[ 3 ] = String.format( "%.5f", correlation.getValue( Correlation.SPEARMAN ));
 			newRow[ 4 ] = String.format( "%.5f", correlation.getValue( Correlation.KENDALL ));
@@ -1178,9 +1177,9 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
 			int returnValue = 0;
 			while( returnValue < tm.getRowCount( )) {
-				if ( correlation.getMolecules( )[ 0 ].getAttribute( MOLECULE_INDEX ).equals( 
+				if ( correlation.getMolecules( )[ 0 ].getId( ).equals( 
 					tm.getValueAt( returnValue, 0 )) && 
-					correlation.getMolecules( )[ 1 ].getAttribute( MOLECULE_INDEX ).equals(
+					correlation.getMolecules( )[ 1 ].getId( ).equals(
 					tm.getValueAt( returnValue, 1 )))
 					return returnValue;
 				returnValue++;

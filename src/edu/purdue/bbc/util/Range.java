@@ -355,6 +355,10 @@ public class Range implements Cloneable {
 
 	}
 	private double[] sequence;
+
+	public String toString( ) {
+		return String.format( "%f - %f", this.min, this.max );
+	}
 }
 
 
