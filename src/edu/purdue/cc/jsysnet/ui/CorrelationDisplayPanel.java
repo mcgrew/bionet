@@ -30,6 +30,7 @@ import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.MonitorableRange;
+import edu.purdue.cc.jsysnet.util.Sample;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -53,9 +54,12 @@ import java.awt.image.BufferedImage;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -1034,19 +1038,27 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		 */
 		public void add( Molecule molecule ) {
 			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
-			String [] attributes = molecule.getAttributeNames( );
+			Map<String,String> attributes = molecule.getAttributes( );
+			Collection<Sample> samples = experiment.getSamples( );
 			if ( tm.getColumnCount( ) == 0 ) {
-				for ( String key : attributes ) {
+				for ( String key : attributes.keySet( )) {
 					tm.addColumn( key );
+				}
+				for ( Sample sample : samples ) {
+					tm.addColumn( sample.toString( ));
 				}
 				Enumeration <TableColumn> columns = this.moleculeTable.getColumnModel( ).getColumns( );
 				while( columns.hasMoreElements( ))
 					columns.nextElement( ).setPreferredWidth( 75 );
 			}
-			int c = attributes.length;
+			int c = attributes.size( ) + samples.size( );
 			Object[] newRow = new Object[ c ];
-			for( int i=0; i < c; i++ ) {
-				newRow[ i ] = molecule.getAttribute( tm.getColumnName( i ));
+			int i=0;
+			for( String value : attributes.values( )) {
+				newRow[ i++ ] = value.toString( );
+			}
+			for( Sample sample : samples ) {
+				newRow[ i++ ] = sample.getValue( molecule );
 			}
 			tm.addRow( newRow );
 		}
