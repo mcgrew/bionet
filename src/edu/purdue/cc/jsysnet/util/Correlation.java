@@ -21,6 +21,7 @@ package edu.purdue.cc.jsysnet.util;
 
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Statistics;
+import edu.purdue.bbc.util.Pair;
 
 import java.lang.Math;
 import java.lang.Double;
@@ -34,7 +35,7 @@ import java.util.Arrays;
  *
  * @author Thomas McGrew
  */
-public class Correlation {
+public class Correlation implements Pair<Molecule> {
 
 	public static final int PEARSON = 0;
 	public static final int SPEARMAN = 1;
@@ -117,6 +118,24 @@ public class Correlation {
 	}
 
 	/**
+	 * Gets the first of the two Molecules associated with this Correlation.
+	 * 
+	 * @return The first of the two Molecules associated with this Correlation.
+	 */
+	public Molecule getFirstItem( ) {
+		return this.molecules[ 0 ];
+	}
+
+	/**
+	 * Gets the second of the two Molecules associated with this Correlation.
+	 * 
+	 * @return The second of the two Molecules associated with this Correlation.
+	 */
+	public Molecule getSecondItem( ) {
+		return this.molecules[ 1 ];
+	}
+
+	/**
 	 * Returns the other molecule in this Correlation
 	 * 
 	 * @param molecule The Molecule you wish to get the opposite of.
@@ -135,11 +154,25 @@ public class Correlation {
 	/**
 	 * Whether or not this Correlation is associated with the specified Molecule.
 	 * 
+	 * @deprecated This method will be removed in a future version. Use 
+	 *	hasItem( Molecule ) instead (Part of the Pair interface).
 	 * @param molecule The molecule to test association with.
 	 * @return True if this Correlation is associated with the specified Molecule,
 	 *	false otherwise.
 	 */
+	@Deprecated
 	public boolean hasMolecule( Molecule molecule ) {
+		return hasItem( molecule );
+	}
+
+	/**
+	 * Whether or not this Correlation is associated with the specified Molecule.
+	 * 
+	 * @param molecule The molecule to test association with.
+	 * @return True if this Correlation is associated with the specified Molecule,
+	 *	false otherwise.
+	 */
+	public boolean hasItem( Molecule molecule ) {
 		return ( molecule == this.molecules[ 0 ] ||
 		         molecule == this.molecules[ 1 ] );
 	}

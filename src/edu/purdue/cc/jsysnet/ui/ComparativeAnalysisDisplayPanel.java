@@ -90,7 +90,6 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
@@ -112,7 +111,8 @@ import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
 import org.apache.log4j.Logger;
 
-public class ComparativeAnalysisDisplayPanel extends JPanel implements ComponentListener {
+public class ComparativeAnalysisDisplayPanel extends JPanel 
+                                             implements ComponentListener {
 	private List <Experiment> experiments;
 	private Set <Molecule> molecules;
 	private JSplitPane mainSplitPane;
@@ -474,6 +474,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			plot.setDomainGridlinePaint( Color.GRAY );
 			plot.setDomainAxis( new NumberAxis( ));
 			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			plot.getDomainAxis( ).setVerticalTickLabels( true );
 			XYItemRenderer boxRenderer = plot.getRenderer( );
 			boxRenderer.setSeriesStroke( 0, this.stroke );
 			boxRenderer.setSeriesOutlineStroke( 0, this.stroke );
@@ -690,6 +691,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 				tickIndex++;
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
+			plot.getDomainAxis( ).setVerticalTickLabels( true );
 			LegendItemCollection legendItems = plot.getLegendItems( );
 			if ( legendItems == null ) {
 				legendItems = new LegendItemCollection( );
@@ -739,7 +741,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel implements Component
 			super.paintComponent( g );
 			if ( chart != null ) {
 				Dimension size = this.getSize( null );
-				BufferedImage drawing = this.chart.createBufferedImage( size.width, size.height );
+				BufferedImage drawing = this.chart.createBufferedImage( size.width, 
+				                                                        size.height );
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}

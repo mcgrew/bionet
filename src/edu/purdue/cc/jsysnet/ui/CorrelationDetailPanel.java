@@ -30,8 +30,11 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -48,11 +51,13 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
+import edu.purdue.cc.jsysnet.util.Sample;
 
 /**
  * A panel for displaying detailed information about a correlation.
@@ -61,13 +66,14 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	private Correlation correlation;
 	private Range correlationRange;
 	private DetailWindow detailWindow;
-	private JTable molecule0Table;
-	private JTable molecule1Table;
+	private JTable firstMoleculeTable;
+	private JTable secondMoleculeTable;
 	private Experiment experiment;
-	JButton molecule0Button;
-	JButton molecule1Button;
-	List <Number> molecule0Samples;
-	List <Number> molecule1Samples;
+	JButton firstMoleculeButton;
+	JButton secondMoleculeButton;
+	List <Number> firstMoleculeSamples;
+	List <Number> secondMoleculeSamples;
+	List <Sample> samples;
 
 	/**
 	 * Constructs a new CorrelationDetailPanel
@@ -85,40 +91,32 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		this.experiment = correlation.getExperiment( );
 
 		String buttonText = Settings.getLanguage( ).get( "Show Correlated" );
-		this.molecule0Button = new JButton( buttonText );
-		this.molecule1Button = new JButton( buttonText );
+		this.firstMoleculeButton = new JButton( buttonText );
+		this.secondMoleculeButton = new JButton( buttonText );
 
-		molecule0Samples = correlation.getMolecules( )[ 0 ].getValues(
-			this.experiment.getSamples( ));
-		molecule1Samples = correlation.getMolecules( )[ 1 ].getValues(
-			this.experiment.getSamples( ));
-
-		Molecule [] molecules = correlation.getMolecules( );
-		this.molecule0Table = DataTable.getMoleculeTable( 
-			correlation.getExperiment( ), molecules[ 0 ] ); 
-		this.molecule1Table = DataTable.getMoleculeTable( 
-			correlation.getExperiment( ), molecules[ 1 ] );
+		this.firstMoleculeTable = DataTable.getMoleculeTable( 
+			correlation.getExperiment( ), correlation.getFirstItem( )); 
+		this.secondMoleculeTable = DataTable.getMoleculeTable( 
+			correlation.getExperiment( ), correlation.getSecondItem( ));
 		JPanel topMoleculePanel = new JPanel( new BorderLayout( ));
 		JPanel bottomMoleculePanel = new JPanel( new BorderLayout( ));
-		JScrollPane molecule0ScrollPane = new JScrollPane( this.molecule0Table );
-		JScrollPane molecule1ScrollPane = new JScrollPane( this.molecule1Table );
-		topMoleculePanel.add( molecule0ScrollPane, BorderLayout.CENTER );
-		topMoleculePanel.add( this.molecule0Button, BorderLayout.SOUTH );
-		bottomMoleculePanel.add( molecule1ScrollPane, BorderLayout.CENTER );
-		bottomMoleculePanel.add( this.molecule1Button, BorderLayout.SOUTH );
-		this.molecule0Button.addActionListener( this );
-		this.molecule1Button.addActionListener( this );
+		JScrollPane firstMoleculeScrollPane = new JScrollPane( this.firstMoleculeTable );
+		JScrollPane secondMoleculeScrollPane = new JScrollPane( this.secondMoleculeTable );
+		topMoleculePanel.add( firstMoleculeScrollPane, BorderLayout.CENTER );
+		topMoleculePanel.add( this.firstMoleculeButton, BorderLayout.SOUTH );
+		bottomMoleculePanel.add( secondMoleculeScrollPane, BorderLayout.CENTER );
+		bottomMoleculePanel.add( this.secondMoleculeButton, BorderLayout.SOUTH );
+		this.firstMoleculeButton.addActionListener( this );
+		this.secondMoleculeButton.addActionListener( this );
 
 		JPanel moleculePane = new JPanel( new GridLayout( 2, 1 ));
 		moleculePane.add( topMoleculePanel );
 		moleculePane.add( bottomMoleculePanel );
 		JPanel moleculePanel = new JPanel( new BorderLayout( ));
 		moleculePanel.add( moleculePane, BorderLayout.CENTER );
-		JPanel graphPanel = new ScatterPlot( correlation.getMolecules( ));
+		JPanel graphPanel = new ScatterPlot( correlation, experiment );
 		JPanel infoPanel = new InfoPanel( 
-			this.correlation.getValue( ), 
-			molecule0Samples.size( )
-		);
+			this.correlation.getValue( ), experiment.getSamples( ).size( ));
 
 		JPanel mainPanel = new JPanel( new BorderLayout( ));
 		mainPanel.add( moleculePanel, BorderLayout.WEST );
@@ -138,11 +136,11 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	 */
 	public void actionPerformed( ActionEvent event ) {
 		Object source = event.getSource( );
-		if ( source == this.molecule0Button ) {
-			this.detailWindow.show( this.correlation.getMolecules( )[ 0 ]);
+		if ( source == this.firstMoleculeButton ) {
+			this.detailWindow.show( this.correlation.getFirstItem( ));
 		}
-		else if ( source == this.molecule1Button ) {
-			this.detailWindow.show( this.correlation.getMolecules( )[ 1 ]);
+		else if ( source == this.secondMoleculeButton ) {
+			this.detailWindow.show( this.correlation.getSecondItem( ));
 		}
 	}
 
@@ -151,32 +149,32 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	 */
 	private class ScatterPlot extends JPanel implements XYItemLabelGenerator {
 		private JFreeChart chart;
+		private List<Sample> samples;
 
 		/**
 		 * Construcs a new ScatterPlot instance.
 		 * 
 		 * @param molecules An array of 2 molecules to display the information of.
 		 */
-		public ScatterPlot ( Molecule [] molecules ) {
+		public ScatterPlot ( Pair<Molecule> molecules, Experiment experiment ) {
 			super( );
-			List <Number> mol0Samples = molecules[ 0 ].getValues( 
-				experiment.getSamples( ) );
-			List <Number> mol1Samples = molecules[ 1 ].getValues( 
-				experiment.getSamples( ));
+			Map sortedMap = new TreeMap<Number,Sample>( );
+			for ( Sample sample : experiment.getSamples( )) {
+				sortedMap.put( sample.getValue( molecules.getFirstItem( )), sample );
+			}
+			this.samples = new ArrayList<Sample>( sortedMap.values( ));
 			XYSeries data = new XYSeries( 
 				Settings.getLanguage( ).get( "Sample Data" ));
-			Iterator <Number> mol0Iterator = mol0Samples.iterator( );
-			Iterator <Number> mol1Iterator = mol1Samples.iterator( );
-			while ( mol0Iterator.hasNext( )) {
-				data.add( mol0Iterator.next( ),
-				          mol1Iterator.next( ));
+			for ( Sample sample : this.samples ) {
+				data.add( sample.getValue( molecules.getFirstItem( )),
+									sample.getValue( molecules.getSecondItem( )));
 			}
 			XYSeriesCollection dataset = new XYSeriesCollection( );
 			dataset.addSeries( data );
 			this.chart = ChartFactory.createScatterPlot(
 				null, //title
-				molecules[ 0 ].toString( ), // x axis label
-				molecules[ 1 ].toString( ), // y axis label
+				molecules.getFirstItem( ).toString( ), // x axis label
+				molecules.getSecondItem( ).toString( ), // y axis label
 				dataset, // plot data
 				PlotOrientation.VERTICAL, // Plot Orientation
 				false, // show legend
@@ -202,7 +200,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		 * @return The label for the item as a String.
 		 */
 		public String generateLabel( XYDataset dataset, int series, int item ) {
-			return "S" + Integer.toString( item + 1 );
+			return this.samples.get( item ).toString( );
 		}
 
 		/**

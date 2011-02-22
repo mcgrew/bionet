@@ -121,10 +121,10 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			
 			RunnableClusterer som = new RunnableClusterer(
 				new SOM(
-					10,                            // number of dimensions on the x axis
-					10,                            // number of dimensions on the y axis
+					5,                            // number of dimensions on the x axis
+					5,                            // number of dimensions on the y axis
 					SOM.GridType.HEXAGONAL,        // type of grid.
-					50000,                          // number of iterations
+					10000,                          // number of iterations
 					0.1,                           // learning rate of algorithm
 					8,                             // initial radius
 					SOM.LearningType.LINEAR,       // type of learning to use
@@ -326,6 +326,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 				tickIndex++;
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
+			plot.getDomainAxis( ).setVerticalTickLabels( true );
 			return true;
 		}
 
