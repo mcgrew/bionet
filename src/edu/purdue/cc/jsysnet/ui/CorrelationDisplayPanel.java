@@ -1041,6 +1041,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			Map<String,String> attributes = molecule.getAttributes( );
 			Collection<Sample> samples = experiment.getSamples( );
 			if ( tm.getColumnCount( ) == 0 ) {
+				tm.addColumn( "id" );
 				for ( String key : attributes.keySet( )) {
 					tm.addColumn( key );
 				}
@@ -1051,9 +1052,10 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 				while( columns.hasMoreElements( ))
 					columns.nextElement( ).setPreferredWidth( 75 );
 			}
-			int c = attributes.size( ) + samples.size( );
+			int c = attributes.size( ) + samples.size( ) + 1;
 			Object[] newRow = new Object[ c ];
 			int i=0;
+			newRow[ i++ ] = molecule.getId( );
 			for( String value : attributes.values( )) {
 				newRow[ i++ ] = value.toString( );
 			}
@@ -1167,12 +1169,7 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 			int returnValue = 0;
 			boolean match;
 			while( returnValue < tm.getRowCount( )) {
-				match = true;
-				for( int i=0; match && i < tm.getColumnCount( ); i++ ) {
-					match = ( molecule.getAttribute( tm.getColumnName( i )).equals( 
-						tm.getValueAt( returnValue, i )));
-				}
-				if ( match )
+				if ( tm.getValueAt( returnValue, 0 ).equals( molecule.getId( )))
 					return returnValue;
 				returnValue++;
 			}

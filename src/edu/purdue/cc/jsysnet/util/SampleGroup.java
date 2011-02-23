@@ -19,60 +19,37 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.util;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
- * A class for holding data about a group of Molecules.
+ * A class for holding data about a group of Samples.
  *
  * @author Thomas McGrew
  */
-@Deprecated
-public class MoleculeGroup extends ArrayList<Molecule> implements Comparable<MoleculeGroup> {
+public class SampleGroup extends ArrayList<Sample> 
+                         implements Comparable<SampleGroup> {
 
 	private String name;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param name The name of this MoleculeGroup.
+	 * @param name The name of this SampleGroup.
 	 */
-	public MoleculeGroup( String name ) {
+	public SampleGroup( String name ) {
 		this.name = name;
-	}
-
-	/**
-	 * Adds a Molecule to this MoleculeGroup.
-	 * 
-	 * @param molecule The molecule to be added.
-	 *
-	 * @deprecated This type now implements List&lt;Molecule&gt;. Use add( Molecule ) instead.
-	 */
-	@Deprecated
-	public void addMolecule( Molecule molecule ) {
-		this.add( molecule );
-	}
-
-	/**
-	 * Gets all of the Molecules in this group.
-	 * 
-	 * @return A List containing all of the molecules.
-	 *
-	 * @deprecated This type now implements List, so this method simply returns itelf.
-	 */
-	@Deprecated
-	public List <Molecule> getMolecules( ) {
-		return this;
 	}
 
 	/**
 	 * Gets a molecule by its id attribute.
 	 * 
-	 * @param id The id of the Molecule to be retrieved.
-	 * @return The requested Molecule.
+	 * @param id The id of the Sample to be retrieved.
+	 * @return The requested Sample.
 	 */
-	public Molecule getMolecule( String id ) {
-		for ( Molecule m : this ) {
+	public Sample getSample( String id ) {
+		for ( Sample m : this ) {
 			if ( id.equals( m.getAttribute( "id" )))
 				return m;
 		}
@@ -111,15 +88,30 @@ public class MoleculeGroup extends ArrayList<Molecule> implements Comparable<Mol
 	 * @see java.lang.Comparable#compareTo(T)
 	 * 
 	 * @param mg Compares this object with the specified object for order. 
-	 * @return a negative integer, zero, or a positive integer as this MoleculeGroup is
-	 *	less than, equal to, or greater than the specified MoleculeGroup.
+	 * @return a negative integer, zero, or a positive integer as this SampleGroup
+	 *	is less than, equal to, or greater than the specified SampleGroup.
 	 */
-	public int compareTo( MoleculeGroup mg ) {
-		int returnValue = this.getName( ).compareTo( mg.getName( ));
+	public int compareTo( SampleGroup sg ) {
+		int returnValue = this.getName( ).compareTo( sg.getName( ));
 		if ( returnValue == 0 ) {
-			returnValue = (int)Math.signum( this.size( ) -  mg.size( ));
+			returnValue = (int)Math.signum( this.size( ) -  sg.size( ));
+		}
+		if ( returnValue == 0 ) {
+			Iterator<Sample> mySamples = this.iterator( );
+			Iterator<Sample> hisSamples = sg.iterator( );
+			while( returnValue == 0 ) {
+				if ( mySamples.hasNext( ) && !hisSamples.hasNext( ))
+					return 1;
+				if ( !mySamples.hasNext( ) && hisSamples.hasNext( ))
+					return -1;
+				if ( !mySamples.hasNext( ) && !hisSamples.hasNext( ))
+					return 0;
+				returnValue = mySamples.next( ).compareTo( hisSamples.next( ));
+			}
+			
 		}
 		return returnValue;
 	}
 
 }
+

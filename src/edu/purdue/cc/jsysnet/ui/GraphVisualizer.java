@@ -1222,8 +1222,10 @@ import org.apache.log4j.Logger;
 				} else {
 					for( V v : new Vector<V>( this )) {
 						this.remove( event.getItem( ));
-						if( !graph.isNeighbor( event.getItem( ), v ))
-							this.remove( v );
+						try {
+							if( !graph.isNeighbor( event.getItem( ), v ))
+								this.remove( v );
+						} catch ( IllegalArgumentException e ) { }
 					}
 				}
 			} else {
