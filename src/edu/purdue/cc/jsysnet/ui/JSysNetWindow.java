@@ -368,7 +368,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 
 			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
 				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
-				if( cdp.createGraph( (Experiment)choice.getValue( ).get( 0 ))) {
+				if( cdp.createView( choice.getValue( ))) {
 					this.tabPane.addTab( cdp.getTitle( ), cdp );
 					this.tabPane.setSelectedComponent( cdp );
 				}
@@ -376,7 +376,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			else if ( choice.getKey( ).intValue( ) == 
 				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
 				ComparativeAnalysisDisplayPanel cadp = new ComparativeAnalysisDisplayPanel( );
-				if ( cadp.createGraph( choice.getValue( ))) {
+				if ( cadp.createView( choice.getValue( ))) {
 					this.tabPane.addTab( cadp.getTitle( ), cadp );
 					this.tabPane.setSelectedComponent( cadp );
 				}
@@ -384,7 +384,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			else if ( choice.getKey( ).intValue( ) == 
 				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
 				TimeCourseStudyDisplayPanel tcdp = new TimeCourseStudyDisplayPanel( );
-				if ( tcdp.createGraph( choice.getValue( ))) {
+				if ( tcdp.createView( choice.getValue( ))) {
 					this.tabPane.addTab( tcdp.getTitle( ), tcdp );
 					this.tabPane.setSelectedComponent( tcdp );
 				}

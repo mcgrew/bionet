@@ -87,7 +87,7 @@ public class SampleGroup extends ArrayList<Sample>
 	 * The compareTo method of the Comparable interface.
 	 * @see java.lang.Comparable#compareTo(T)
 	 * 
-	 * @param mg Compares this object with the specified object for order. 
+	 * @param sg Compares this object with the specified object for order. 
 	 * @return a negative integer, zero, or a positive integer as this SampleGroup
 	 *	is less than, equal to, or greater than the specified SampleGroup.
 	 */

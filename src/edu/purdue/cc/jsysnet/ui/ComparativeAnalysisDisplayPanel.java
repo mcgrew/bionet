@@ -112,8 +112,9 @@ import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 import org.apache.log4j.Logger;
 
 public class ComparativeAnalysisDisplayPanel extends JPanel 
-                                             implements ComponentListener {
-	private List <Experiment> experiments;
+		implements DisplayPanel,ComponentListener {
+
+	private Collection <Experiment> experiments;
 	private Set <Molecule> molecules;
 	private JSplitPane mainSplitPane;
 	private JSplitPane graphSplitPane;
@@ -138,7 +139,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		super( new BorderLayout( ));
 	}
 
-	public boolean createGraph( List <Experiment> experiments ) {
+	public boolean createView( Collection<Experiment> experiments ) {
 		this.experiments = experiments;
 		this.molecules = new TreeSet<Molecule>( );
 		for ( Experiment e : experiments ) {
@@ -230,7 +231,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * 
 		 * @param experiments The Experiment data to be shown in the tree.
 		 */
-		public SelectorTreePanel( List <Experiment> experiments ) {
+		public SelectorTreePanel( Collection <Experiment> experiments ) {
 			super( new BorderLayout( ));
 			this.nodeMap = new HashMap<Object,DefaultMutableTreeNode>( );
 			DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(	

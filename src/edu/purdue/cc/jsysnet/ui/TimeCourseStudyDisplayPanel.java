@@ -91,13 +91,14 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import org.apache.log4j.Logger;
 
-public class TimeCourseStudyDisplayPanel extends JPanel {
+public class TimeCourseStudyDisplayPanel extends JPanel implements DisplayPanel{
 	private SelectorTreePanel selectorTree;
 	private JSplitPane splitPane;
 	private ClusterGraph graph;
 	private Collection<Experiment> experiments;
 	private List<Sample> samples;
 
+	private static final int ROOT = 0;
 	private static final int CLUSTER = 1;
 	private static final int INSTANCE = 2;
 
@@ -105,7 +106,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 		super( new BorderLayout( ));
 	}
 		
-	public boolean createGraph( Collection <Experiment> experiments ) {
+	public boolean createView( Collection <Experiment> experiments ) {
 		Logger logger = Logger.getLogger( getClass( ));
 		this.experiments = experiments;
 		this.samples = new ArrayList<Sample>( );
@@ -144,12 +145,14 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			this.splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 			this.selectorTree = new SelectorTreePanel( clusters );
 			this.splitPane.setLeftComponent( this.selectorTree );
-//			this.splitPane.setRightComponent( new JPanel( )); // placeholder
 			this.graph = new ClusterGraph( );
 			this.splitPane.setRightComponent( this.graph );
 			this.selectorTree.getTree( ).addTreeSelectionListener( this.graph );
+			this.selectorTree.getTree( ).addTreeCheckingListener( this.graph );
 			this.add( this.splitPane, BorderLayout.CENTER );
 			this.splitPane.setDividerLocation( 250 );
+			this.graph.setMeanGraph( (DefaultMutableTreeNode)
+				this.selectorTree.getTree( ).getModel( ).getRoot( ));
 
 		} catch ( Exception e ) {
 			logger.error( e, e );
@@ -205,14 +208,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 
 	private class SelectorTreePanel extends JPanel {
 		private CheckboxTree tree;
-		private Map<Instance,DefaultMutableTreeNode> nodeMap;
 
 		public SelectorTreePanel( Collection<Dataset> clusters )  {
 			super( new BorderLayout( ));
 			Language language = Settings.getLanguage( );
-			this.nodeMap = new HashMap<Instance,DefaultMutableTreeNode>( );
-			DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode( 
-				language.get( "Clusters" ));
+			DefaultMutableTreeNode rootNode = new CustomMutableTreeNode( 
+				clusters, language.get( "Clusters" ));
 			
 			String clusterString = language.get( "Cluster" ) + " ";
 			int clusterCount = 0;
@@ -234,13 +235,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 						instanceNode.add( sampleNode );
 					}
 					// save the node in a map for later lookup.
-					nodeMap.put( instance, instanceNode );
 					clusterNode.add( instanceNode );
 				}
 				rootNode.add( clusterNode );
 			}
 			this.tree = new CheckboxTree( rootNode );
-			this.tree.setRootVisible( false );
+//			this.tree.setRootVisible( false );
 			this.tree.setCheckingPath( new TreePath( rootNode ));
 			this.tree.setSelectsByChecking( false );
 			this.tree.getCheckingModel( ).setCheckingMode( 
@@ -269,6 +269,83 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			super( );
 		}
 		
+		public boolean setMeanGraph( DefaultMutableTreeNode node ) {
+			Language language = Settings.getLanguage( );
+			Object userObject = node.getUserObject( );
+			XYSeriesCollection xyDataset = new XYSeriesCollection( );
+			Collection <Dataset> clusters = null;
+			Map<Integer,NumberList> clusterData; 
+			if ( userObject instanceof Collection ) {
+				// If the root node is selected (which should be the only time this
+				// method is called)
+				for ( DefaultMutableTreeNode datasetNode = 
+					    (DefaultMutableTreeNode)node.getFirstChild( );
+				      datasetNode != null; datasetNode = datasetNode.getNextSibling( )){
+
+					XYSeries data = new XYSeries( datasetNode.toString( ));
+					clusterData = new HashMap<Integer,NumberList>( );
+					for ( DefaultMutableTreeNode instanceNode = 
+							  (DefaultMutableTreeNode)datasetNode.getFirstChild( );
+					      instanceNode != null; 
+								instanceNode = instanceNode.getNextSibling( )) {
+
+						if ( selectorTree.getTree( ).isPathChecked( 
+						     new TreePath( instanceNode.getPath( )))) {
+							Instance instance = (Instance)instanceNode.getUserObject( );
+							for ( Map.Entry<Integer,Double> value : instance.entrySet( )) {
+								if ( !clusterData.containsKey( value.getKey( )))
+									clusterData.put( value.getKey( ), new NumberList( ));
+								clusterData.get( value.getKey( )).add( value.getValue( ));
+							}
+						}
+					}
+					for ( Map.Entry<Integer,NumberList>value : clusterData.entrySet( )) {
+						data.add( value.getKey( ), value.getValue( ).getMean( ));
+					}
+					xyDataset.addSeries( data );
+				}
+			}
+			// check to make sure there is actually data in the XYSeriesCollection
+			if ( xyDataset.getSeriesCount( ) == 0 ) {
+				this.chart = null;
+				return false;
+			}
+			this.chart = ChartFactory.createXYLineChart( 
+					language.get( "Sample concentrations" ), //title
+					language.get( "Sample" ),        // x axis label
+					language.get( "Concentration" ), // y axis label
+					xyDataset,                         // plot data
+					PlotOrientation.VERTICAL,        // Plot Orientation
+					true,                           // show legend
+					false,                           // use tooltips
+					false                            // configure chart to generate URLs (?)
+				);
+
+				XYPlot plot = this.chart.getXYPlot( );
+				XYLineAndShapeRenderer renderer = 
+					(XYLineAndShapeRenderer)plot.getRenderer( );
+				plot.setRenderer( renderer );
+				// find the index of this experiment for appropriate coloring.
+				for ( int i=0; i < xyDataset.getSeriesCount( ); i++ ) {
+					renderer.setSeriesStroke( i, new BasicStroke( 2 ));
+					renderer.setSeriesShapesVisible( i, true );
+					renderer.setSeriesPaint( i, 
+						Color.getHSBColor( (float)i/xyDataset.getSeriesCount( ), 1.0f, 0.5f ));
+				}
+				plot.setBackgroundPaint( Color.WHITE );
+				plot.setRangeGridlinePaint( Color.GRAY );
+				plot.setDomainGridlinePaint( Color.GRAY );
+				TickUnits tickUnits = new TickUnits( );
+				double tickIndex = 0.0;
+				for ( Sample sample : samples ) {
+					tickUnits.add( new SampleTickUnit( tickIndex, samples ));
+					tickIndex++;
+				}
+				plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
+				plot.getDomainAxis( ).setVerticalTickLabels( true );
+				return true;
+		}
+
 		/**
 		 * Sets the graph to display data from each experiment on the passed in 
 		 * molecule id.
@@ -280,19 +357,41 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			Object userObject = node.getUserObject( );
 			Language language = Settings.getLanguage( );
 			XYSeriesCollection xyDataset = new XYSeriesCollection( );
-			Dataset dataset;
+			XYSeries data;
 			if ( userObject instanceof Dataset ) {
-				dataset = (Dataset)userObject;
-			} else {
-				dataset = new DefaultDataset( );
-				dataset.add( (Instance)userObject );
-			}
-			for ( Instance instance : dataset ) {
-				XYSeries data = new XYSeries( instance.classValue( ).toString( ));
-				for ( Map.Entry<Integer,Double> value : instance.entrySet( ))	{
-					data.add( value.getKey( ), value.getValue( ));
+				// If a cluster node is selected, follow the tree down to instance nodes
+				// and add them to the xyDataset if they are checked.
+				for( DefaultMutableTreeNode instanceNode =
+						 (DefaultMutableTreeNode)node.getFirstChild( );
+						 instanceNode != null;
+						 instanceNode = instanceNode.getNextSibling( )) {
+
+					if ( selectorTree.getTree( ).isPathChecked( 
+							 new TreePath( instanceNode.getPath( )))) {
+						Instance instance = (Instance)instanceNode.getUserObject( );
+						data = new XYSeries( instance.classValue( ).toString( ));
+						for ( Map.Entry<Integer,Double> value : instance.entrySet( ))	{
+							data.add( value.getKey( ), value.getValue( ));
+						}
+						xyDataset.addSeries( data );
+					}
 				}
-				xyDataset.addSeries( data );
+			} else if ( userObject instanceof Instance ) {
+				// If an instance node is selected, add it if it is checked.
+				if ( selectorTree.getTree( ).isPathChecked( 
+					   new TreePath( node.getPath( )))){
+					Instance instance = (Instance)userObject;
+					data = new XYSeries( instance.classValue( ).toString( ));
+					for ( Map.Entry<Integer,Double> value : instance.entrySet( ))	{
+						data.add( value.getKey( ), value.getValue( ));
+					}
+					xyDataset.addSeries( data );
+				}
+			}
+			// check to make sure there is actually data in the XYSeriesCollection
+			if ( xyDataset.getSeriesCount( ) == 0 ) {
+				this.chart = null;
+				return false;
 			}
 			this.chart = ChartFactory.createXYLineChart( 
 				language.get( "Sample concentrations" ), //title
@@ -343,7 +442,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 			} else if ( level > CLUSTER ) {
 				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( CLUSTER ));
 			} else {
-				this.chart = null;
+				this.setMeanGraph( (DefaultMutableTreeNode)path.getPathComponent( ROOT ));
 			}
 			this.repaint( );
 		}
@@ -375,9 +474,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel {
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}
-
 	}
-	
 }
 
 

@@ -29,6 +29,7 @@ This file is distributed under the following terms (MIT/X11 License):
 package edu.purdue.bbc.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -568,6 +569,58 @@ public class NumberList extends ArrayList<Number> {
 	 */
 	public short set( int index, short value ) {
 		return this.set( index, new Short( value )).shortValue( );
+	}
+
+	/**
+	 * Returns the mean value for this list as a Double.
+	 * 
+	 * @return The mean value.
+	 */
+	public Double getMean( ) {
+		double total = 0;
+		int items = 0;
+		for ( Number value : this ) {
+			if ( value != null && !Double.isNaN( value.doubleValue( ))) {
+				total += value.doubleValue( );
+				items++;
+			}
+		}
+		return new Double( total / items );
+	}
+
+	/**
+	 * Returns the sum of all values in this list as a Double.
+	 * 
+	 * @return The sum of the list values.
+	 */
+	public Double getSum( ) {
+		double total = 0;
+		for ( Number value : this ) {
+			if ( value != null && !Double.isNaN( value.doubleValue( ))) {
+				total += value.doubleValue( );
+			}
+		}
+		return new Double( total );
+	}
+
+	/**
+	 * Returns the median of the values in this list as a Double.
+	 * 
+	 * @return The median of the values in this list.
+	 */
+	public Double getMedian( ) {
+		int items = 0;
+		double[] values = new double[ this.size( )];
+		for ( Number value : this ) {
+			if ( value != null && !Double.isNaN( value.doubleValue( ))) {
+				values[ items++ ] = value.doubleValue( );
+			}
+		}
+		Arrays.sort( values, 0, items );
+		if ( items % 2 == 0 )
+			return new Double( ( values[ items / 2 ] + values[ items / 2 - 1 ]) / 2 );
+		else
+			return new Double( values[ items / 2 ] );
 	}
 
 }

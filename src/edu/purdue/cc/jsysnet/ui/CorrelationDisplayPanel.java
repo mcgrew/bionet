@@ -131,7 +131,8 @@ import org.apache.log4j.Logger;
 /**
  * A class for displaying and interacting with Correlation data for a set of molecules.
  */
-public class CorrelationDisplayPanel extends JPanel implements ActionListener,ChangeListener,ItemListener {
+public class CorrelationDisplayPanel extends JPanel 
+		implements ActionListener,ChangeListener,ItemListener,DisplayPanel {
 
 	private JMenuBar menuBar = new JMenuBar( );
 
@@ -190,23 +191,11 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	private Scalable visibleGraph;
 
 	/**
-	 * Creates a new CorrelationDisplayPanel. When this constructor is used,
-	 *	you must specify a DataReader object when you call createGraph.
+	 * Creates a new CorrelationDisplayPanel. 
 	 */
 	public CorrelationDisplayPanel ( ) {
 		super( new BorderLayout( ) );
 		this.buildPanel( );
-	}
-
-	/**
-	 * Creates a CorrelationDisplayPanel object using the supplied data.
-	 * 
-	 * @param experiment The data to be used in this Panel
-	 */
-	public CorrelationDisplayPanel ( Experiment experiment ) {
-		super( new BorderLayout( ));
-		this.buildPanel( );
-		this.createGraph( experiment );
 	}
 
 	/**
@@ -236,43 +225,69 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		Language language = Settings.getLanguage( );
 		this.calculationMenu = new JMenu( language.get( "Calculation" ));
 		this.calculationMenuButtonGroup = new ButtonGroup( );
-		this.pearsonCalculationMenuItem = new JRadioButtonMenuItem( language.get( "Pearson" ), true );
-		this.spearmanCalculationMenuItem = new JRadioButtonMenuItem( language.get( "Spearman" ));
-		this.kendallCalculationMenuItem = new JRadioButtonMenuItem( language.get( "Kendall" ));
+		this.pearsonCalculationMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Pearson" ), true );
+		this.spearmanCalculationMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Spearman" ));
+		this.kendallCalculationMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Kendall" ));
 
 		// layout menu itmes
 		this.layoutMenu = new JMenu( language.get( "Layout" ));
 		this.layoutMenuButtonGroup = new ButtonGroup( );
-		this.multipleCirclesLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Multiple Circles" ), true );
-		this.singleCircleLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Single Circle" ));
-		this.randomLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Random" ));
-		this.heatMapLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Heat Map" ));
-		this.kkLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Kamada-Kawai" ));
-//		this.frLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Fruchterman-Reingold" ));
-//		this.springLayoutMenuItem = new JRadioButtonMenuItem( language.get( "Spring Layout" ));
-		this.animatedLayoutMenuItem = new JCheckBoxMenuItem( language.get( "Fruchterman-Reingold Spring Embedding" ));
+		this.multipleCirclesLayoutMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Multiple Circles" ), true );
+		this.singleCircleLayoutMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Single Circle" ));
+		this.randomLayoutMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Random" ));
+		this.heatMapLayoutMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Heat Map" ));
+		this.kkLayoutMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Kamada-Kawai" ));
+//		this.frLayoutMenuItem = 
+//				new JRadioButtonMenuItem( language.get( "Fruchterman-Reingold" ));
+//		this.springLayoutMenuItem = 
+//					new JRadioButtonMenuItem( language.get( "Spring Layout" ));
+		this.animatedLayoutMenuItem = 
+			new JCheckBoxMenuItem( language.get( "Fruchterman-Reingold Spring Embedding" ));
 
 		// view menu items
 		this.viewMenu = new JMenu( language.get( "View" ));
-		this.zoomInViewMenuItem = new JMenuItem( language.get( "Zoom In" ), KeyEvent.VK_I );
-		this.zoomOutViewMenuItem = new JMenuItem( language.get( "Zoom Out" ), KeyEvent.VK_O );
-		this.fitToWindowViewMenuItem = new JMenuItem( language.get( "Fit to Window" ), KeyEvent.VK_F );
-		this.selectAllViewMenuItem = new JMenuItem( language.get( "Select All" ), KeyEvent.VK_A );
-		this.clearSelectionViewMenuItem = new JMenuItem( language.get( "Clear Selection" ), KeyEvent.VK_C );
-		this.invertSelectionViewMenuItem = new JMenuItem( language.get( "Invert Selection" ), KeyEvent.VK_I );
-		this.selectCorrelatedViewMenuItem = new JMenuItem( language.get( "Select Correlated to Selection" ), KeyEvent.VK_R );
-		this.hideSelectedViewMenuItem = new JMenuItem( language.get( "Hide Selected" ), KeyEvent.VK_H );
-		this.hideUnselectedViewMenuItem = new JMenuItem( language.get( "Hide Unselected" ), KeyEvent.VK_U );
-		this.hideUncorrelatedViewMenuItem = new JMenuItem( language.get( "Hide Uncorrelated to Selection" ), KeyEvent.VK_L );
-		this.hideOrphansViewMenuItem = new JMenuItem( language.get( "Hide Orphans" ), KeyEvent.VK_P );
-		this.showCorrelatedViewMenuItem = new JMenuItem( language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
+		this.zoomInViewMenuItem = 
+			new JMenuItem( language.get( "Zoom In" ), KeyEvent.VK_I );
+		this.zoomOutViewMenuItem = 
+			new JMenuItem( language.get( "Zoom Out" ), KeyEvent.VK_O );
+		this.fitToWindowViewMenuItem = 
+			new JMenuItem( language.get( "Fit to Window" ), KeyEvent.VK_F );
+		this.selectAllViewMenuItem = 
+			new JMenuItem( language.get( "Select All" ), KeyEvent.VK_A );
+		this.clearSelectionViewMenuItem = 
+			new JMenuItem( language.get( "Clear Selection" ), KeyEvent.VK_C );
+		this.invertSelectionViewMenuItem = 
+			new JMenuItem( language.get( "Invert Selection" ), KeyEvent.VK_I );
+		this.selectCorrelatedViewMenuItem = 
+			new JMenuItem( language.get( "Select Correlated to Selection" ), KeyEvent.VK_R );
+		this.hideSelectedViewMenuItem = 
+			new JMenuItem( language.get( "Hide Selected" ), KeyEvent.VK_H );
+		this.hideUnselectedViewMenuItem = 
+			new JMenuItem( language.get( "Hide Unselected" ), KeyEvent.VK_U );
+		this.hideUncorrelatedViewMenuItem = 
+			new JMenuItem( language.get( 
+				"Hide Uncorrelated to Selection" ), KeyEvent.VK_L );
+		this.hideOrphansViewMenuItem = 
+			new JMenuItem( language.get( "Hide Orphans" ), KeyEvent.VK_P );
+		this.showCorrelatedViewMenuItem = 
+			new JMenuItem( language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
 
 		
 		// color menu items
 		this.colorMenu = new JMenu( language.get( "Color" ));
 		this.colorMenuButtonGroup = new ButtonGroup( );
-		this.normalColorMenuItem = new JRadioButtonMenuItem( language.get( "Normal Color" ), true );
-		this.highContrastColorMenuItem = new JRadioButtonMenuItem( language.get( "High Contrast Color" ));
+		this.normalColorMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Normal Color" ), true );
+		this.highContrastColorMenuItem = 
+			new JRadioButtonMenuItem( language.get( "High Contrast Color" ));
 
 		// CORRELATION FILTER ELEMENTS
 		JPanel leftPanel = new JPanel( new BorderLayout( ));
@@ -402,27 +417,18 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 	}
 
 	/**
-	 * Creates a Graph using the data supplied in the constructor.
-	 */
-	public boolean createGraph( ) {
-			if ( this.experiment != null ) {
-				return this.createGraph( this.experiment );
-			}
-			return false;
-	}
-
-	/**
 	 * Creates a Correlation Graph.
 	 * 
-	 * @param experiment An Experiment Object containing the data to be used.
+	 * @param experiments An Experiment Object containing the data to be used.
 	 */
-	public boolean createGraph( Experiment experiment ) {
-		this.setVisible( true );
-		this.experiment = experiment;
-		if ( this.experiment == null ) {
+	public boolean createView( Collection<Experiment> experiments ) {
+		if ( experiments.size( ) == 0 ) {
 			return false;
 		}
-		this.title = Settings.getLanguage( ).get( "Correlation" ) + " - " + this.experiment.getAttribute( "description" );
+		this.experiment = experiments.iterator( ).next( );
+		this.setVisible( true );
+		this.title = Settings.getLanguage( ).get( "Correlation" ) + " - " + 
+			this.experiment.getAttribute( "description" );
 
 		this.graph = new CorrelationGraphVisualizer( 
 			this.experiment, this.correlationFilterPanel.getMonitorableRange( ));
@@ -443,7 +449,8 @@ public class CorrelationDisplayPanel extends JPanel implements ActionListener,Ch
 		});
 
 		for( String groupName : this.experiment.getMoleculeGroupNames( ))
-			for( Molecule molecule : this.experiment.getMoleculeGroup( groupName ).getMolecules( ))
+			for( Molecule molecule : 
+				   this.experiment.getMoleculeGroup( groupName ).getMolecules( ))
 				this.moleculeFilterPanel.add( molecule );
 
 		this.add( this.graphSplitPane, BorderLayout.CENTER );

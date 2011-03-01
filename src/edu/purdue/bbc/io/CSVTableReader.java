@@ -111,7 +111,8 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 */
 	public Map<String,String> next( ) {
 		HashMap<String,String> returnValue = new HashMap<String,String>( );
-		String[] values = this.scanner.nextLine( ).split( this.delimiter );
+		String[] values = this.scanner.nextLine( ).split( this.delimiter,
+		                                                  this.keys.length );
 		for ( int i=0; i < this.keys.length; i++ ) {
 			if ( i >= values.length ) {
 				returnValue.put( keys[ i ], null );
