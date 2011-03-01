@@ -30,7 +30,7 @@ License: MIT license.
 package edu.purdue.bbc.util;
 
 /**
- * Interface for a class containing arbitrary attributes.
+ * Interface for a class containing a pair of Objects of the same type.
  */
 public interface Pair<T> {
 
