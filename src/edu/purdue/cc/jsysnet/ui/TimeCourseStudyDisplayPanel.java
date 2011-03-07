@@ -453,6 +453,9 @@ public class TimeCourseStudyDisplayPanel extends JPanel implements DisplayPanel{
 		 * @param e The event which triggered this action.
 		 */
 		public void valueChanged( TreeCheckingEvent e ) {
+			if ( selectorTree.getTree( ).isSelectionEmpty( )) {
+				selectorTree.getTree( ).setSelectionRow( 0 );
+			}
 			this.valueChanged( new TreeSelectionEvent( 
 				e.getSource( ),
 				selectorTree.getTree( ).getSelectionPath( ),

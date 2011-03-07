@@ -47,7 +47,9 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
-public class ExperimentSelectionDialog extends JDialog implements ActionListener,ChangeListener {
+public class ExperimentSelectionDialog extends JDialog
+		implements ActionListener,ChangeListener {
+
 	public static final int CORRELATION_VIEW = 0;
 	public static final int COMPARATIVE_ANALYSIS_VIEW = 1;
 	public static final int TIME_COURSE_STUDY_VIEW = 2;
@@ -67,14 +69,15 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 	protected final String okButtonText;
 	protected final String cancelButtonText;
 
-	public ExperimentSelectionDialog( Frame owner, String title, Collection experiments ) {
+	public ExperimentSelectionDialog( Frame owner, 
+	                                  String title, 
+																		Collection experiments ) {
 		super( owner, title );
 		this.getContentPane( ).setLayout( null );
-		this.setBounds( 
-			Settings.getSettings( ).getInt( "windowXPosition" ),
-			Settings.getSettings( ).getInt( "windowYPosition" ),
-			500, 200 );
-		
+		this.setBounds( Settings.getSettings( ).getInt( "windowXPosition" ),
+		                Settings.getSettings( ).getInt( "windowYPosition" ),
+		                500, 200 );
+
 		Language language = Settings.getLanguage( );
 		this.chooseText = language.get( "Choose an Experiment" );
 		this.correlationButtonText = language.get( "Correlation" );
@@ -86,11 +89,13 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 		this.okButton = new JButton( okButtonText );
 		this.cancelButton = new JButton( cancelButtonText );
 		this.correlationButton = new JRadioButton( correlationButtonText );
-		this.comparativeAnalysisButton = new JRadioButton( comparativeAnalysisButtonText );
+		this.comparativeAnalysisButton = 
+			new JRadioButton( comparativeAnalysisButtonText );
 		this.timeCourseStudyButton = new JRadioButton( timeCourseStudyButtonText );
 		this.visualizationTypeSelection = new ButtonGroup( );
 		this.instructionLabel = new JLabel( chooseText );
-		this.experimentList = new JList( experiments.toArray( new Object[ experiments.size( )]));
+		this.experimentList = 
+			new JList( experiments.toArray( new Object[ experiments.size( )]));
 
 		this.okButton.addActionListener( this );
 		this.cancelButton.addActionListener( this );
@@ -135,11 +140,14 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 		this.setVisible( true );
 	}
 
-	public static Map.Entry<Integer,List> showInputDialog( Frame owner, String title, Collection experiments ) {
-		ExperimentSelectionDialog dialog = new ExperimentSelectionDialog( owner, title, experiments );
+	public static Map.Entry<Integer,List> showInputDialog( 
+		Frame owner, String title, Collection experiments ) {
+
+		ExperimentSelectionDialog dialog = 
+			new ExperimentSelectionDialog( owner, title, experiments );
 		return dialog.getReturnValue( );
 	}
-	
+
 	public void actionPerformed( ActionEvent event ) {
 		Object source = event.getSource( );
 		Object selection = this.visualizationTypeSelection.getSelection( );
@@ -156,8 +164,10 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 				returnCode = new Integer( TIME_COURSE_STUDY_VIEW );
 
 			Object [] selectedItems = experimentList.getSelectedValues( );
+
 			if ( selectedItems.length < 1 ) {
-				Logger.getLogger( getClass( )).fatal( Settings.getLanguage( ).get( "You must select at least one item" ));
+				Logger.getLogger( getClass( )).fatal( 
+					Settings.getLanguage( ).get( "You must select at least one item" ));
 				return;
 			}
 
@@ -171,9 +181,11 @@ public class ExperimentSelectionDialog extends JDialog implements ActionListener
 	public void stateChanged( ChangeEvent e ) {
 		Object source = e.getSource( );
 		if ( source == this.correlationButton )
-			this.experimentList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+			this.experimentList.setSelectionMode( 
+				ListSelectionModel.SINGLE_SELECTION );
 		else
-			this.experimentList.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
+			this.experimentList.setSelectionMode(
+				ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 	}
 
 	public Map.Entry getReturnValue( ) {
