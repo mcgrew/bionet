@@ -1,5 +1,6 @@
 edu.purdue.bbc.io
 edu.purdue.bbc.util
+edu.purdue.bbc.util.attributes
 edu.purdue.bbc.util.equation
 edu.purdue.cc.jsysnet
 edu.purdue.cc.jsysnet.io
