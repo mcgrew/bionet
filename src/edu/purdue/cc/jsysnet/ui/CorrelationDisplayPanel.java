@@ -22,6 +22,7 @@ package edu.purdue.cc.jsysnet.ui;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.bbc.util.Pair;
 import edu.purdue.cc.jsysnet.io.DataReader;
 import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
 import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
@@ -31,11 +32,13 @@ import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.MonitorableRange;
 import edu.purdue.cc.jsysnet.util.Sample;
+import edu.purdue.cc.jsysnet.util.SampleGroup;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Graphics;
@@ -92,6 +95,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -108,7 +112,6 @@ import edu.uci.ics.jung.algorithms.layout.LayoutDecorator;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout2;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
-import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.picking.PickedState;
@@ -169,6 +172,7 @@ public class CorrelationDisplayPanel extends JPanel
 	private JMenuItem hideUncorrelatedViewMenuItem;
 	private JMenuItem hideOrphansViewMenuItem;
 	private JMenuItem showCorrelatedViewMenuItem;
+	private JMenuItem chooseSampleGroupsMenuItem;
 
 	
 	// color menu items
@@ -189,6 +193,7 @@ public class CorrelationDisplayPanel extends JPanel
 	private Experiment experiment = null;
 	private String title;
 	private Scalable visibleGraph;
+	private Pair<SampleGroup> sampleGroups;
 
 	/**
 	 * Creates a new CorrelationDisplayPanel. 
@@ -279,6 +284,8 @@ public class CorrelationDisplayPanel extends JPanel
 			new JMenuItem( language.get( "Hide Orphans" ), KeyEvent.VK_P );
 		this.showCorrelatedViewMenuItem = 
 			new JMenuItem( language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
+		this.chooseSampleGroupsMenuItem = 
+			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
 
 		
 		// color menu items
@@ -366,6 +373,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.viewMenu.add( this.hideUncorrelatedViewMenuItem );
 		this.viewMenu.add( this.hideOrphansViewMenuItem );
 		this.viewMenu.add( this.showCorrelatedViewMenuItem );
+		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
 		this.zoomOutViewMenuItem.addActionListener( this );
 		this.zoomInViewMenuItem.addActionListener( this );
 		this.fitToWindowViewMenuItem.addActionListener( this );
@@ -378,6 +386,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.hideUncorrelatedViewMenuItem.addActionListener( this );
 		this.hideOrphansViewMenuItem.addActionListener( this );
 		this.showCorrelatedViewMenuItem.addActionListener( this );
+		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.selectAllViewMenuItem.setAccelerator(
 			KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK ));
 		this.clearSelectionViewMenuItem.setAccelerator(
@@ -536,22 +545,23 @@ public class CorrelationDisplayPanel extends JPanel
 		this.visibleGraph = this.graph;
 		this.graph.addAnimationListener( this );
 		this.graph.addVertexChangeListener( this.moleculeFilterPanel );
-		v.addPickedVertexStateChangeListener( new PickedStateChangeListener <Molecule> ( ){
-
-			public void stateChanged( PickedStateChangeEvent <Molecule> event ) {
-				if ( event.getStateChange( ))
-					infoPanel.add( event.getItem( ));
-				else
-					infoPanel.remove( event.getItem( ));
-			}
+		v.addPickedVertexStateChangeListener( 
+			new PickedStateChangeListener <Molecule> ( ){
+				public void stateChanged( PickedStateChangeEvent <Molecule> event ) {
+					if ( event.getStateChange( ))
+						infoPanel.add( event.getItem( ));
+					else
+						infoPanel.remove( event.getItem( ));
+				}
 		});
-		v.addPickedEdgeStateChangeListener( new PickedStateChangeListener <Correlation> ( ){
-			public void stateChanged( PickedStateChangeEvent <Correlation> event ) {
-				if ( event.getStateChange( ))
-					infoPanel.add( event.getItem( ));
-				else
-					infoPanel.remove( event.getItem( ));
-			}
+		v.addPickedEdgeStateChangeListener( 
+			new PickedStateChangeListener <Correlation> ( ){
+				public void stateChanged( PickedStateChangeEvent <Correlation> event ) {
+					if ( event.getStateChange( ))
+						infoPanel.add( event.getItem( ));
+					else
+						infoPanel.remove( event.getItem( ));
+				}
 		});
 
 	}
@@ -709,6 +719,29 @@ public class CorrelationDisplayPanel extends JPanel
 				}
 			}
 		}
+		else if ( item == this.chooseSampleGroupsMenuItem ) {
+			Component frame = this;
+			while( !(frame instanceof Frame) && frame != null ) {
+				frame = frame.getParent( );
+			}
+			this.sampleGroups = SampleGroupingDialog.showInputDialog( 
+					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
+					this.experiment.getSamples( ));
+
+			if ( this.sampleGroups != null ) {
+				Logger logger = Logger.getLogger( getClass( ));
+				SampleGroup group = this.sampleGroups.getFirstItem( );
+				logger.debug( group.toString( ));
+				for ( Sample sample : group ) {
+					logger.debug( "\t" + sample.toString( ));
+				}
+				group = this.sampleGroups.getSecondItem( );
+				logger.debug( group.toString( ));
+				for ( Sample sample : group ) {
+					logger.debug( "\t" +  sample.toString( ));
+				}
+			}
+		}
 	}
 
 	// ******************* PRIVATE/PROTECTED CLASSES **************************
@@ -759,7 +792,8 @@ public class CorrelationDisplayPanel extends JPanel
 			Language language = Settings.getLanguage( );
 			this.noneButton = new JButton( language.get( "None" ));
 			this.allButton = new JButton( language.get( "All" ));
-			this.filterLabel = new JLabel( language.get( "Search" ) + ": ", SwingConstants.RIGHT );
+			this.filterLabel = new JLabel( language.get( "Search" ) + ": ",
+			                               SwingConstants.RIGHT );
 			this.clearButton = new JButton( language.get( "Clear" ));
 
 			JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
@@ -837,7 +871,8 @@ public class CorrelationDisplayPanel extends JPanel
 					for( Correlation correlation : experiment.getCorrelations( molecule )){
 						if ( graph.isValidEdge( correlation ))
 							graph.addEdge( correlation,
-								new Pair<Molecule>( correlation.getMolecules( )),
+								new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
+									correlation.getMolecules( )),
 								EdgeType.UNDIRECTED );
 					}
 				}

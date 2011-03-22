@@ -91,6 +91,15 @@ public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 		return this.attributes.get( attribute.toLowerCase( ));
 	}
 
+	/**
+	 * Retrieves all attributes for this sample.
+	 * 
+	 * @return A Map containing the attributes of this Sample.
+	 */
+	public Map<String,String> getAttributes( ) {
+		return this.attributes;
+	}
+
 	public String removeAttribute( String attribute ) {
 		return this.attributes.remove( attribute );
 	}

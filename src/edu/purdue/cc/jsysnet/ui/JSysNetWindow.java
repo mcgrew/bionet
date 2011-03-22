@@ -19,43 +19,43 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Image;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Collection;
-import java.util.Arrays;
-import javax.swing.JFrame;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileView;
-import javax.swing.JFileChooser;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JTabbedPane;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
+import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.imageio.ImageIO;
-import java.awt.Image;
-import java.awt.event.KeyEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.Window;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.BorderLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileView;
 
-import edu.purdue.cc.jsysnet.util.Experiment;
-import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.Language;
-import edu.purdue.cc.jsysnet.io.DataReader;
+import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.io.CSVDataReader;
+import edu.purdue.cc.jsysnet.io.DataReader;
+import edu.purdue.cc.jsysnet.util.Experiment;
 
 import net.sourceforge.helpgui.gui.MainFrame;
 
@@ -73,13 +73,6 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	private JMenuItem saveFileMenuItem;
 	private JMenuItem printFileMenuItem;
 	private JMenuItem exitFileMenuItem;
-//	private JMenu databaseMenu;
-//	private JMenu setupDatabaseMenu;
-//	private JMenuItem addSetupDatabaseMenuItem;
-//	private JMenuItem removeSetupDatabaseMenuItem;
-//	private JMenuItem connectDatabaseMenuItem;
-//	private JMenu clusteringMenu;
-//	private JMenuItem ldaClusteringMenuItem;
 	private JMenu helpMenu;
 	private JMenuItem contentsHelpMenuItem;
 	private JMenuItem aboutHelpMenuItem;
@@ -113,8 +106,8 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		this.setVisible( true );
 		this.repaint( );
 
-		this.addWindowListener(new WindowAdapter() {
-		  public void windowClosing(WindowEvent e) {
+		this.addWindowListener( new WindowAdapter( ) {
+		  public void windowClosing( WindowEvent e ) {
 				JFrame f = (JFrame)e.getSource( );
 				Settings settings = Settings.getSettings( );
 				settings.setInt( "windowXPosition", f.getX( ));
@@ -122,12 +115,12 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 				settings.setInt( "windowWidth", f.getWidth( ));
 				settings.setInt( "windowHeight", f.getHeight( ));
 				if ( this.getWindowCount( ) == 1 )
-			    System.exit(0);
+			    System.exit( 0 );
 			}
 			private int getWindowCount( ) {
 				int returnValue = 0;
 				for( Window w : Window.getWindows( )) {
-					if ( w.isShowing( ))
+					if ( w.isShowing( ) && w instanceof JSysNetWindow )
 						returnValue++;
 				}
 				return returnValue;
@@ -155,13 +148,6 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		this.saveFileMenuItem = new JMenuItem( language.get( "Save" ) + "...", KeyEvent.VK_S );
 		this.printFileMenuItem = new JMenuItem( language.get( "Print" ) + "...", KeyEvent.VK_P );
 		this.exitFileMenuItem = new JMenuItem( language.get( "Close" ), KeyEvent.VK_C );
-//	this.databaseMenu = new JMenu( "Database" );
-//	this.setupDatabaseMenu = new JMenu( "Setup" );
-//	this.addSetupDatabaseMenuItem = new JMenuItem( "Add...", KeyEvent.VK_A );
-//	this.removeSetupDatabaseMenuItem = new JMenuItem( "Remove...", KeyEvent.VK_R );
-//	this.connectDatabaseMenuItem = new JMenuItem( "Connect...", KeyEvent.VK_C );
-//	this.clusteringMenu = new JMenu( "Clustering" );
-//	this.ldaClusteringMenuItem = new JMenuItem( "LDA", KeyEvent.VK_L );
 		this.helpMenu = new JMenu( language.get( "Help" ));
 		this.contentsHelpMenuItem = new JMenuItem( language.get( "Contents" ), KeyEvent.VK_C );
 		this.aboutHelpMenuItem = new JMenuItem( language.get( "About" ), KeyEvent.VK_A );
@@ -173,7 +159,6 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		this.fileMenu.add( this.newWindowFileMenuItem );
 		this.fileMenu.add( this.openFileMenuItem );
 		this.fileMenu.add( this.saveFileMenuItem );
-//		this.fileMenu.add( this.printFileMenuItem );
 		this.fileMenu.add( this.exitFileMenuItem );
 		this.newWindowFileMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK ));
@@ -188,20 +173,6 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 
 		this.saveFileMenuItem.setEnabled( false );
 
-		// DATABASE MENU
-//		this.databaseMenu.setMnemonic( KeyEvent.VK_D );
-//		this.databaseMenu.getAccessibleContext( ).setAccessibleDescription(
-//			"Manage Database Connections" );
-//		this.databaseMenu.add( this.setupDatabaseMenu );
-//		this.setupDatabaseMenu.add( this.addSetupDatabaseMenuItem );
-//		this.setupDatabaseMenu.add( this.removeSetupDatabaseMenuItem );
-//		this.databaseMenu.add( this.connectDatabaseMenuItem );
-
-
-		//CLUSTERING MENU
-//		this.clusteringMenu.setMnemonic( KeyEvent.VK_L );
-//		this.clusteringMenu.add( this.ldaClusteringMenuItem );
-
 		//HELP MENU
 		this.helpMenu.setMnemonic( KeyEvent.VK_H );
 		this.helpMenu.getAccessibleContext( ).setAccessibleDescription(
@@ -210,15 +181,11 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		this.helpMenu.add( this.aboutHelpMenuItem );
 
 		this.menuBar.add( this.fileMenu );
-//		this.menuBar.add( this.databaseMenu );
-//		this.menuBar.add( this.clusteringMenu );
 		this.menuBar.add( this.helpMenu );
 
 		this.setJMenuBar( this.menuBar );
 
 		this.addMenuListeners( );
-
-//		this.setVisible( true );
 	}
 
 	private void addMenuListeners( ) {
@@ -227,9 +194,6 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		this.saveFileMenuItem.addActionListener( this );
 		this.printFileMenuItem.addActionListener( this );
 		this.exitFileMenuItem.addActionListener( this );
-//		this.addSetupDatabaseMenuItem.addActionListener( this );
-//		this.removeSetupDatabaseMenuItem.addActionListener( this );
-//		this.connectDatabaseMenuItem.addActionListener( this );
 		this.contentsHelpMenuItem.addActionListener( this );
 		this.aboutHelpMenuItem.addActionListener( this );
 	}

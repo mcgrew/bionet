@@ -333,7 +333,8 @@ public class Range implements Cloneable {
 	}
 
 	/**
-	 * Returns a sequence within the range separated by increment.
+	 * Returns a sequence within the range containing the requested number of
+	 * values.
 	 * 
 	 * @param count The number of elements for the sequence to contain.
 	 * @return a double array containing a sequence of numbers contained in this

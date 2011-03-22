@@ -27,52 +27,26 @@ License: MIT license.
 
 */
 
-package edu.purdue.bbc.util;
+package edu.purdue.bbc.util.attributes;
 
-import java.util.Map;
+import edu.purdue.bbc.util.Attributes;
+
+import java.util.Collection;
 
 /**
- * Interface for a class containing arbitrary attributes.
+ * An interface for filtering a set of Attributes objects.
  */
-public interface Attributes<T> {
+public interface AttributesFilter<T extends Attributes> {
 
 	/**
-	 * Gets an attribute for this object.
+	 * Filters the passed in Attribute objects based on this filter's criteria.
 	 * 
-	 * @param attribute The attribute to retrieve.
-	 * @return The value of the requested attribute, or null if it does not exist.
+	 * @param attributes The set of Attributes to be filtered.
+	 * @return The new set containing only objects which passed through the 
+	 *	filtering process.
 	 */
-	public T getAttribute( String attribute );
-
-	/**
-	 * Gets the attributes of this object as a Map.
-	 * 
-	 * @return A Map containing the attributes of this object.
-	 */
-	public Map<String,T> getAttributes( );
-
-	/**
-	 * Sets an attribute for this object.
-	 * 
-	 * @param attribute The attribute to set.
-	 * @param value The new value for the specified attribute.
-	 */
-	public void setAttribute( String attribute, T value );
-
-	/**
-	 * Sets multiple Attributes for this object
-	 * 
-	 * @param map A map containing all of the attributes to be set.
-	 */
-	public void setAttributes( Map<String,T> map );
-
-	/**
-	 * Removes the specified attribute and returns it's value.
-	 * 
-	 * @param attribute The attribute to remove
-	 * @return The value of the requested attribute, or null if it does not exist.
-	 */
-	public T removeAttribute( String attribute );
+	public Collection<T> filter( Collection<T> attributes );
 
 }
+
 

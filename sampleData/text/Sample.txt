@@ -1,13 +1,13 @@
 Sample,Gender,Age,Drug,Race,Health,Remark
-"S1",NA,10,NA,NA,NA,NA
-"S2",NA,10,NA,NA,NA,NA
-"S3",NA,10,NA,NA,NA,NA
-"S4",NA,10,NA,NA,NA,NA
-"S5",NA,10,NA,NA,NA,NA
-"S6",NA,10,NA,NA,NA,NA
-"S7",NA,10,NA,NA,NA,NA
-"S8",NA,10,NA,NA,NA,NA
-"S9",NA,10,NA,NA,NA,NA
-"S10",NA,10,NA,NA,NA,NA
-"S11",NA,10,NA,NA,NA,NA
-"S12",NA,10,NA,NA,NA,NA
+"S1",M,45,None,Hispanic,Healthy,
+"S2",M,23,None,White,Cancer,
+"S3",M,16,Calcium Leucovorin,White,Cancer,
+"S4",F,78,Rubidomycin hydrochloride,African American,Healthy,
+"S5",F,43,None,African American,Healthy,
+"S6",M,24,Calcium Leucovorin,Hispanic,Cancer,
+"S7",F,65,Phenylalanine Mustard,White,Cancer,
+"S8",M,88,Phenylalanine Mustard,Asian,Cancer,
+"S9",F,32,Calcium Leucovorin,White,Healthy,
+"S10",F,22,Rubidomycin hydrochloride,Asian,Healthy,
+"S11",F,77,None,Pacific Islander,Cancer,
+"S12",M,65,None,White,Cancer,

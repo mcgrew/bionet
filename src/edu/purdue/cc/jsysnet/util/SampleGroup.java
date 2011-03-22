@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.jsysnet.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,6 +40,17 @@ public class SampleGroup extends ArrayList<Sample>
 	 * @param name The name of this SampleGroup.
 	 */
 	public SampleGroup( String name ) {
+		super( );
+		this.name = name;
+	}
+
+	public SampleGroup( String name, int initialCapacity ) {
+		super( initialCapacity );
+		this.name = name;
+	}
+
+	public SampleGroup( String name, Collection<Sample> samples ) {
+		super( samples );
 		this.name = name;
 	}
 
