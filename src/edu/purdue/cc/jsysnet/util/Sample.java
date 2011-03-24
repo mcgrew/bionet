@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.jsysnet.util;
 
 import edu.purdue.bbc.util.Attributes;
+import edu.purdue.bbc.util.NumberList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -160,6 +161,21 @@ public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 		Number returnValue = this.valueMap.get( molecule );
 		if ( returnValue == null )
 			return new Double( Double.NaN );
+		return returnValue;
+	}
+
+	/**
+	 * Retrieves the concentration values for a set of Molecules
+	 * 
+	 * @param molecules A Collection containing the molecules to retrieve values
+	 *	for.
+	 * @return a NumberList containing the values.
+	 */
+	public NumberList getValues( Collection<Molecule> molecules ) {
+		NumberList returnValue = new NumberList( );
+		for ( Molecule m : molecules ) {
+			returnValue.add( this.getValue( m ));
+		}
 		return returnValue;
 	}
 

@@ -31,22 +31,17 @@ import java.util.Iterator;
 import java.util.TreeSet;
 
 public class JavaMLTranslator extends InputStream {
-	private Collection <Experiment> experiments;
 	private Collection <Molecule> molecules;
 	private Iterator<Molecule> moleculeIterator;
 	private StringBuilder buffer;
 	private Collection<Sample> samples;
 	private boolean numericOnly;
 
-	public JavaMLTranslator ( Collection <Experiment> experiments ) {
+	public JavaMLTranslator ( Collection <Sample> samples,
+	                          Collection<Molecule> molecules ) {
 		super( );
-		this.experiments = experiments;
-		this.molecules = new TreeSet<Molecule>( );
-		this.samples = new ArrayList<Sample>( );
-		for ( Experiment e : experiments ) {
-			samples.addAll( e.getSamples( ));
-			molecules.addAll( e.getMolecules( ));
-		}
+		this.molecules = molecules;
+		this.samples = samples;
 		this.reset( );
 	}
 
@@ -92,13 +87,6 @@ public class JavaMLTranslator extends InputStream {
 	public void reset( ) {
 		moleculeIterator = this.molecules.iterator( );
 		buffer = new StringBuilder( );
-//		buffer.append( "id," );
-//		for ( Experiment exp : this.experiments ) {
-//			for ( String att : this.attributes ) {
-//				buffer.append( att + "_" + exp.getAttribute( "exp_id" ) + "," );
-//			}
-//		}
-//		buffer.setCharAt( buffer.length( ) - 1, '\n' );
 	}
 
 	public long skip( long n ) {

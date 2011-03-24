@@ -121,6 +121,7 @@
 
 	<!-- ============ TARGET: DOCS ===================== -->
 	<target name="docs">
+		<delete dir="docs/api"/>
 		<javadoc
            destdir="docs/api"
            author="true"

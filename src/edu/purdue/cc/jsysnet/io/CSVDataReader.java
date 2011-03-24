@@ -121,10 +121,11 @@ public class CSVDataReader extends DataReader {
 		file.setQuoteStripping( true );
 		while( file.hasNext( )) {
 			line = file.next( );
-			Sample sample = new Sample( line.get( "Sample" ));
-			sample.setAttributes( line );
 			for ( Experiment experiment : experiments ) {
-				experiment.addSample( sample.clone( ));
+				Sample sample = 
+					new Sample( line.get( "Sample" ) + "-" + experiment.getId( ));
+				sample.setAttributes( line );
+				experiment.addSample( sample );
 			}
 		}
 		file.close( );
@@ -156,7 +157,8 @@ public class CSVDataReader extends DataReader {
 			// add the remaining attributes to the molecule.
 			for( Map.Entry<String,String> entry : line.entrySet( )) {
 				// see if this column is a sample value
-				Sample sample = experiment.getSample( entry.getKey( ));
+				Sample sample = 
+					experiment.getSample( entry.getKey( ) + "-" + experiment.getId( ));
 				if ( sample != null ) {
 					Number value = new Double( Double.NaN );
 					try {
