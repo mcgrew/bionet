@@ -81,8 +81,8 @@ public class CorrelationFilterPanel extends JPanel implements ChangeListener {
 	public CorrelationFilterPanel( double min, double max, double step, double low, double high ) {
 		super( new BorderLayout( ));
 		Language language = Settings.getLanguage( );
-		this.minCorrelationLabel = new JLabel( language.get( "Higher Than: " ), SwingConstants.RIGHT );
-		this.maxCorrelationLabel = new JLabel( language.get( "Lower Than: " ), SwingConstants.RIGHT );
+		this.minCorrelationLabel = new JLabel( language.get( "Higher Than" ) + ": ", SwingConstants.RIGHT );
+		this.maxCorrelationLabel = new JLabel( language.get( "Lower Than" )+ ": ", SwingConstants.RIGHT );
 
 		this.range = new MonitorableRange( low, high );
 		this.minCorrelationSpinner = new JSpinner( new SpinnerNumberModel( low, min, max, step ));

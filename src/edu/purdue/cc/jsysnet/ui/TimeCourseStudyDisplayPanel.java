@@ -44,6 +44,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -56,6 +57,7 @@ import javax.swing.JSplitPane;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import net.sf.javaml.clustering.Clusterer;
@@ -100,16 +102,17 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.apache.log4j.Logger;
 
 public class TimeCourseStudyDisplayPanel extends JPanel 
-                                   implements DisplayPanel, ActionListener {
+                                implements DisplayPanel, ActionListener {
 	private SelectorTreePanel selectorTree;
 	private SampleSelectorTreePanel sampleSelectorTree;
-	private JButton recalculateButton;
+	private JButton recomputeButton;
 	private JSplitPane splitPane;
 	private JSplitPane treeSplitPane;
 	private ClusterGraph graph;
 	private Collection<Experiment> experiments;
 	private List<Sample> samples;
 	private Collection<Molecule> molecules;
+	private Clusterer clusterer;
 
 	private static final int ROOT = 0;
 	private static final int CLUSTER = 1;
@@ -139,38 +142,21 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			this.molecules.addAll( experiment.getMolecules( ));
 		}
 		this.sampleSelectorTree = new SampleSelectorTreePanel( this.samples );
-		Collection<Collection<Molecule>> clusters = 
-			new TreeSet<Collection<Molecule>>( new DatasetComparator( ));
+		
+		this.setClusterer( new SOM(
+				5,                            // number of dimensions on the x axis
+				5,                            // number of dimensions on the y axis
+				SOM.GridType.HEXAGONAL,        // type of grid.
+				10000,                          // number of iterations
+				0.1,                           // learning rate of algorithm
+				8,                             // initial radius
+				SOM.LearningType.LINEAR,       // type of learning to use
+				SOM.NeighbourhoodFunction.STEP // neighborhood function.
+		));
+		Collection<Collection<Molecule>> clusters;
 		try {
-			int len;
-			InputStream dataStream = new JavaMLTranslator( 
-					this.sampleSelectorTree.getSamples( ), this.molecules );
-			logger.debug( "Starting Clustering ..." );
-			Dataset data = StreamHandler.load( 
-				new InputStreamReader( dataStream ), 0, ",");
-			
-			RunnableClusterer som = new RunnableClusterer(
-				new SOM(
-					8,                            // number of dimensions on the x axis
-					8,                            // number of dimensions on the y axis
-					SOM.GridType.HEXAGONAL,        // type of grid.
-					10000,                          // number of iterations
-					0.1,                           // learning rate of algorithm
-					8,                             // initial radius
-					SOM.LearningType.LINEAR,       // type of learning to use
-					SOM.NeighbourhoodFunction.STEP // neighborhood function.
-				),
-				data );
-			Thread somThread = new Thread( som );
-			somThread.start( );
-
-			this.setCursor( new Cursor( Cursor.WAIT_CURSOR ));
-			logger.debug( "Waiting for SOM Clustering to complete..." );
-			somThread.join( );
-			this.setCursor( new Cursor( Cursor.DEFAULT_CURSOR ));
-			for ( Dataset d : som.getResult( )) {
-				clusters.add( this.getMoleculesForDataset( d ));
-			}
+				clusters = this.computeClusters( this.sampleSelectorTree.getSamples( ), 
+				                                 this.molecules, this.clusterer );
 		} catch ( Exception e ) {
 			logger.error( e, e );
 			return false;
@@ -178,11 +164,13 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 
 		this.splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.treeSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
-		this.recalculateButton = new JButton( "Recalculate" );
+		this.recomputeButton = 
+			new JButton( Settings.getLanguage( ).get( "Recompute" ));
+		this.recomputeButton.addActionListener( this );
 		JPanel treePanel = new JPanel( new BorderLayout( ));
 		this.treeSplitPane.setBottomComponent( this.sampleSelectorTree );
 		treePanel.add( this.treeSplitPane, BorderLayout.CENTER );
-//		treePanel.add( this.recalculateButton, BorderLayout.SOUTH );
+		treePanel.add( this.recomputeButton, BorderLayout.SOUTH );
 		this.splitPane.setLeftComponent( treePanel );
 		this.graph = new ClusterGraph( );
 		this.splitPane.setRightComponent( this.graph );
@@ -197,8 +185,53 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		this.graph.setMeanGraph( (DefaultMutableTreeNode)
 			this.selectorTree.getTree( ).getModel( ).getRoot( ));
 
-		
 		return true;
+	}
+
+	private Collection<Collection<Molecule>> computeClusters( 
+		Collection<Sample> samples,
+		Collection<Molecule> molecules, 
+		Clusterer clusterer ) throws InterruptedException {
+
+		Logger logger = Logger.getLogger( getClass( ));
+		int len;
+		InputStream dataStream = new JavaMLTranslator( samples, molecules );
+		logger.debug( "Starting Clustering..." );
+		Dataset data = StreamHandler.load( 
+			new InputStreamReader( dataStream ), 0, ",");
+		
+		RunnableClusterer som = new RunnableClusterer( clusterer, data );
+		Thread somThread = new Thread( som );
+		somThread.start( );
+
+		this.setCursor( new Cursor( Cursor.WAIT_CURSOR ));
+		logger.debug( "Waiting for SOM Clustering to complete..." );
+		somThread.join( );
+		this.setCursor( new Cursor( Cursor.DEFAULT_CURSOR ));
+		Collection<Collection<Molecule>> returnValue = 
+			new TreeSet<Collection<Molecule>>( new DatasetComparator( ));
+		for ( Dataset d : som.getResult( )) {
+			returnValue.add( this.getMoleculesForDataset( d ));
+		}
+		return returnValue;
+	}
+
+	/**
+	 * Sets the clusterer to be used by this TimeCourseStudyDisplayPanel.
+	 * 
+	 * @param clusterer The new clusterer to use.
+	 */
+	private void setClusterer( Clusterer clusterer ) {
+		this.clusterer = clusterer;
+	}
+
+	/**
+	 * Gets the current clusterer being used by this TimeCourseStudyDisplayPanel.
+	 * 
+	 * @return The clusterer currently in use.
+	 */
+	private Clusterer getClusterer( ) {
+		return this.clusterer;
 	}
 
 	/**
@@ -244,6 +277,55 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		return "Time Course Study";
 	}
 
+	/**
+	 * The actionPerformed method of the ActionListener interface. Performs 
+	 * cluster recalculation when the 'recalculate' button is clicked.
+	 * 
+	 * @param e The event which triggered this action.
+	 */
+	public void actionPerformed( ActionEvent e ) {
+		Logger logger = Logger.getLogger( getClass( ));
+		Language language = Settings.getLanguage( );
+		Object source = e.getSource( );
+		if ( source == this.recomputeButton ) {
+			Collection<Molecule> clusterMolecules = 
+				this.selectorTree.getCheckedMolecules( );
+			logger.debug( String.format( "Recomputing with %d selected Molecules...", 
+																	 clusterMolecules.size( )));
+			this.selectorTree.clear( );
+			if ( clusterMolecules.size( ) > 0 ) {
+				try {	
+					Collection<Collection<Molecule>> clusters = 
+						this.computeClusters( this.sampleSelectorTree.getSamples( ), 
+																	clusterMolecules, this.clusterer );
+					int clusterCount = 0;
+					for ( Collection<Molecule> cluster : clusters ) {
+						this.selectorTree.add( cluster,
+							String.format( "%s %d",
+							               language.get( "Cluster" ), 
+														 ++clusterCount ));
+					}
+				} catch ( InterruptedException exc ) {
+					logger.error( exc, exc );
+					this.selectorTree.clear( );
+					clusterMolecules.clear( );
+				}
+			}
+			// add any samples that were left out of the clustering.
+			Collection<Molecule> missingMolecules = new ArrayList( this.molecules );
+			missingMolecules.removeAll( clusterMolecules );
+			logger.debug( String.format( "Adding %d unclustered molecules...",
+			                             missingMolecules.size( )));
+			if ( missingMolecules.size( ) > 0 ) {
+				this.selectorTree.add( missingMolecules, 
+					Settings.getLanguage( ).get( "Unclustered" ),
+					false );
+			}
+		}
+	}
+
+	// ============================= PRIVATE CLASSES =============================
+	// ============================ RunnableClusterer ============================
 	/**
 	 * A class for running a Clusterer instance in a seperate thread.
 	 */
@@ -302,16 +384,6 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	}
 
 	/**
-	 * The actionPerformed method of the ActionListener interface. Performs 
-	 * cluster recalculation when the 'recalculate' button is clicked.
-	 * 
-	 * @param e The event which triggered this action.
-	 */
-	public void actionPerformed( ActionEvent e ) {
-
-	}
-
-	/**
 	 * A class for handling the sizng of panels and such in 
 	 * TimeCourseStudyDisplayPanel when it is initially shown.
 	 */
@@ -335,6 +407,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		}
 	}
 
+	// =========================== DatasetComparator =============================
 	/**
 	 * Compares and orders a Collection of Collections of Molecules.
 	 */
@@ -368,12 +441,27 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		}
 	}
 
+	// ========================== SelectorTreePanel ==============================
 	/**
 	 * A Panel containing a CheckboxTree with all clusters and their associated 
 	 * Molecules.
 	 */
 	private class SelectorTreePanel extends JPanel {
 		private CheckboxTree tree;
+		private JScrollPane scrollPane;
+		private DefaultMutableTreeNode rootNode;
+
+		/**
+		 * Creates a new emtpy SelectorTreePanel.
+		 */
+		public SelectorTreePanel( ) {
+			super( new BorderLayout( ));
+			this.rootNode = new DefaultMutableTreeNode( 
+				Settings.getLanguage( ).get( "Clusters" ));
+			this.tree = new CheckboxTree( this.rootNode );
+			this.scrollPane = new JScrollPane( this.tree );
+			this.add( this.scrollPane );
+		}
 
 		/**
 		 * Creates a new SelectorTreePanel
@@ -381,32 +469,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		 * @param clusters The clusters to be displayed in the panel.
 		 */
 		public SelectorTreePanel( Collection<Collection<Molecule>> clusters )  {
-			super( new BorderLayout( ));
-			Language language = Settings.getLanguage( );
-			DefaultMutableTreeNode rootNode = new CustomMutableTreeNode( 
-				clusters, language.get( "Clusters" ));
-			
-			String clusterString = language.get( "Cluster" ) + " ";
+			this( );
 			int clusterCount = 0;
+			String clusterString = Settings.getLanguage( ).get( "Cluster" ) + " ";
 			for ( Collection<Molecule> cluster : clusters ) {
-				clusterCount++;
-				DefaultMutableTreeNode clusterNode = 
-					new CustomMutableTreeNode( cluster, clusterString+clusterCount );
-				for ( Molecule molecule : cluster ) {
-					DefaultMutableTreeNode moleculeNode = 
-						new DefaultMutableTreeNode( molecule );
-					// save the node in a map for later lookup.
-					clusterNode.add( moleculeNode );
-				}
-				rootNode.add( clusterNode );
+				this.add( cluster, clusterString + ++clusterCount );
 			}
-			this.tree = new CheckboxTree( rootNode );
-//			this.tree.setRootVisible( false );
-			this.tree.setCheckingPath( new TreePath( rootNode ));
-			this.tree.setSelectsByChecking( false );
-			this.tree.getCheckingModel( ).setCheckingMode( 
-				TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
-			this.add( new JScrollPane( tree ), BorderLayout.CENTER );
 		}
 
 		/**
@@ -417,8 +485,90 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		public CheckboxTree getTree( ) {
 			return this.tree;
 		}
+
+		public void clear( ) {
+			while( this.rootNode.getChildCount( ) > 0 ) {
+				this.rootNode.remove( 0 );
+			}
+			((DefaultTreeModel)this.tree.getModel( )).reload( );
+			this.repaint( );
+		}
+
+		/**
+		 * Adds a cluster of molecules to the tree and sets it as checked.
+		 * 
+		 * @param cluster The cluster to be added to the tree
+		 * @param name The name for this cluster, usually "Cluster" followed by a
+		 *	number.
+		 */
+		public void add( Collection<Molecule> cluster, String name ) {
+			this.add( cluster, name, true );
+		}
+
+		/**
+		 * Adds a cluster of molecules to the tree.
+		 * 
+		 * @param cluster The cluster to be added to the tree
+		 * @param name The name for this cluster, usually "Cluster" followed by a
+		 * @param checked whether the initial state should be checked.
+		 *	number.
+		 */
+		public void add( Collection<Molecule> cluster, String name, 
+		                  boolean checked ) {
+			Language language = Settings.getLanguage( );
+			
+			int clusterCount = 0;
+			// add the cluster to the tree.
+			DefaultMutableTreeNode clusterNode = 
+				new CustomMutableTreeNode( cluster, name );
+			for ( Molecule molecule : cluster ) {
+				DefaultMutableTreeNode moleculeNode = 
+					new DefaultMutableTreeNode( molecule );
+				clusterNode.add( moleculeNode );
+			}
+
+			((DefaultTreeModel)this.tree.getModel( )).insertNodeInto( 
+				clusterNode, rootNode, rootNode.getChildCount( ));
+			if ( checked ) {
+				this.tree.addCheckingPath( new TreePath( this.rootNode.getPath( )));
+				this.tree.addCheckingPath( new TreePath( clusterNode.getPath( )));
+			} else {
+				this.tree.removeCheckingPath( new TreePath( clusterNode.getPath( )));
+			}
+			this.tree.expandPath( new TreePath( rootNode.getPath( )));
+			this.tree.setSelectsByChecking( false );
+			this.tree.getCheckingModel( ).setCheckingMode( 
+				TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
+			this.repaint( );
+		}
+
+		/**
+		 * Returns a Collection containing all of the molecules whose checkboxes are
+		 * selected.
+		 * 
+		 * @return A Collection of the "Checked" molecules in the tree.
+		 */
+		public Collection<Molecule> getCheckedMolecules( ) {
+			Collection<Molecule> returnValue = new TreeSet<Molecule>( );
+			Enumeration nodeEnum = 
+				((DefaultMutableTreeNode)this.getTree( ).getModel( ).getRoot( )).
+					breadthFirstEnumeration( );
+
+			while ( nodeEnum.hasMoreElements( )) {
+				DefaultMutableTreeNode node = 
+					(DefaultMutableTreeNode)nodeEnum.nextElement( );
+				if ( node.getLevel( ) == MOLECULE && 
+					   this.tree.isPathChecked( new TreePath( node.getPath( )))) {
+					returnValue.add( (Molecule)node.getUserObject( ));
+				}
+			}
+
+			return returnValue;
+		}
 	}
 
+
+	// ======================= SampleSelectorTreePanel ===========================
 	/**
 	 * A Panel containing a CheckBoxTree containing the available Samples in this
 	 * study so they can be selected/deselected.
@@ -478,6 +628,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		}
 	}
 
+	// ========================== ClusterGraph ===================================
 	/**
 	 * A class which displays the visualization of Sample values in a JFreeChart.
 	 */
@@ -515,27 +666,36 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			// If the root node is selected (which should be the only time this
 			// method is called)
 			if ( node.getLevel( ) == ROOT ) {
+				// make sure the root node has children.
+				if ( node.getChildCount( ) < 1 ) {
+					this.chart = null;
+					return false;
+				}
 				// iterate through each of the nodes indicating a dataset.
 				for ( DefaultMutableTreeNode datasetNode = 
 					    (DefaultMutableTreeNode)node.getFirstChild( );
 				      datasetNode != null; datasetNode = datasetNode.getNextSibling( )){
 
-					XYSeries data = new XYSeries( datasetNode.toString( ));
-					// create a map for holding the data for an entire cluster.
-					clusterData = new HashMap<Integer,NumberList>( );
-					// iterate through each of the nodes indicating a Molecule
-					Collection<Molecule> molecules = new ArrayList<Molecule>( );
-					for ( DefaultMutableTreeNode moleculeNode = 
-					      (DefaultMutableTreeNode)datasetNode.getFirstChild( );
-								moleculeNode != null; 
-								moleculeNode = moleculeNode.getNextSibling( )) {
-						molecules.add( (Molecule)moleculeNode.getUserObject( ));
+					if ( selectorTree.getTree( ).isPathChecked( new TreePath( 
+								datasetNode.getPath( )))) {
+
+						XYSeries data = new XYSeries( datasetNode.toString( ));
+						// create a map for holding the data for an entire cluster.
+						clusterData = new HashMap<Integer,NumberList>( );
+						// iterate through each of the nodes indicating a Molecule
+						Collection<Molecule> molecules = new ArrayList<Molecule>( );
+						for ( DefaultMutableTreeNode moleculeNode = 
+									(DefaultMutableTreeNode)datasetNode.getFirstChild( );
+									moleculeNode != null; 
+									moleculeNode = moleculeNode.getNextSibling( )) {
+							molecules.add( (Molecule)moleculeNode.getUserObject( ));
+						}
+						int index = 0;
+						for ( Sample sample : samples ) {
+							data.add( index++, sample.getValues( molecules ).getMean( ));
+						}
+						xyDataset.addSeries( data );
 					}
-					int index = 0;
-					for ( Sample sample : samples ) {
-						data.add( index++, sample.getValues( molecules ).getMean( ));
-					}
-					xyDataset.addSeries( data );
 				}
 			}
 			// check to make sure there is actually data in the XYSeriesCollection
@@ -598,22 +758,24 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			XYSeriesCollection xyDataset = new XYSeriesCollection( );
 			XYSeries data;
 			if ( node.getLevel( ) == CLUSTER ) {
-				// If a cluster node is selected, follow the tree down to instance nodes
+				// If a cluster node is selected, follow the tree down to molecule nodes
 				// and add them to the xyDataset if they are checked.
-				for( DefaultMutableTreeNode moleculeNode =
-						 (DefaultMutableTreeNode)node.getFirstChild( );
-						 moleculeNode != null;
-						 moleculeNode = moleculeNode.getNextSibling( )) {
+				if ( node.getChildCount( ) > 0 ) {
+					for( DefaultMutableTreeNode moleculeNode =
+							 (DefaultMutableTreeNode)node.getFirstChild( );
+							 moleculeNode != null;
+							 moleculeNode = moleculeNode.getNextSibling( )) {
 
-					if ( selectorTree.getTree( ).isPathChecked( 
-							 new TreePath( moleculeNode.getPath( )))) {
-						Molecule molecule = (Molecule)moleculeNode.getUserObject( );
-						data = new XYSeries( molecule.getId( ));
-						int index = 0;
-						for ( Sample sample : samples )	{
-							data.add( index++, sample.getValue( molecule ));
+						if ( selectorTree.getTree( ).isPathChecked( 
+								 new TreePath( moleculeNode.getPath( )))) {
+							Molecule molecule = (Molecule)moleculeNode.getUserObject( );
+							data = new XYSeries( molecule.getId( ));
+							int index = 0;
+							for ( Sample sample : samples )	{
+								data.add( index++, sample.getValue( molecule ));
+							}
+							xyDataset.addSeries( data );
 						}
-						xyDataset.addSeries( data );
 					}
 				}
 			} else if ( node.getLevel( ) == MOLECULE ) {
