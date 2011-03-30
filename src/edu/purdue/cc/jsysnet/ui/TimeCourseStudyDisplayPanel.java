@@ -103,7 +103,7 @@ import org.apache.log4j.Logger;
 
 public class TimeCourseStudyDisplayPanel extends JPanel 
                                 implements DisplayPanel, ActionListener {
-	private SelectorTreePanel selectorTree;
+	private ClusterSelectorTreePanel selectorTree;
 	private SampleSelectorTreePanel sampleSelectorTree;
 	private JButton recomputeButton;
 	private JSplitPane splitPane;
@@ -178,7 +178,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		this.add( this.splitPane, BorderLayout.CENTER );
 		this.splitPane.setDividerLocation( 250 );
 
-		this.selectorTree = new SelectorTreePanel( clusters );
+		this.selectorTree = new ClusterSelectorTreePanel( clusters );
 		this.treeSplitPane.setTopComponent( this.selectorTree );
 		this.selectorTree.getTree( ).addTreeSelectionListener( this.graph );
 		this.selectorTree.getTree( ).addTreeCheckingListener( this.graph );
@@ -441,20 +441,19 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		}
 	}
 
-	// ========================== SelectorTreePanel ==============================
+	// ========================== ClusterSelectorTreePanel ==============================
 	/**
 	 * A Panel containing a CheckboxTree with all clusters and their associated 
 	 * Molecules.
 	 */
-	private class SelectorTreePanel extends JPanel {
-		private CheckboxTree tree;
+	private class ClusterSelectorTreePanel extends CheckboxTreePanel {
 		private JScrollPane scrollPane;
 		private DefaultMutableTreeNode rootNode;
 
 		/**
-		 * Creates a new emtpy SelectorTreePanel.
+		 * Creates a new emtpy ClusterSelectorTreePanel.
 		 */
-		public SelectorTreePanel( ) {
+		public ClusterSelectorTreePanel( ) {
 			super( new BorderLayout( ));
 			this.rootNode = new DefaultMutableTreeNode( 
 				Settings.getLanguage( ).get( "Clusters" ));
@@ -464,26 +463,17 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		}
 
 		/**
-		 * Creates a new SelectorTreePanel
+		 * Creates a new ClusterSelectorTreePanel
 		 * 
 		 * @param clusters The clusters to be displayed in the panel.
 		 */
-		public SelectorTreePanel( Collection<Collection<Molecule>> clusters )  {
+		public ClusterSelectorTreePanel( Collection<Collection<Molecule>> clusters )  {
 			this( );
 			int clusterCount = 0;
 			String clusterString = Settings.getLanguage( ).get( "Cluster" ) + " ";
 			for ( Collection<Molecule> cluster : clusters ) {
 				this.add( cluster, clusterString + ++clusterCount );
 			}
-		}
-
-		/**
-		 * Gets the CheckboxTree contained in this Panel.
-		 * 
-		 * @return The CheckboxTree contained in this Panel.
-		 */
-		public CheckboxTree getTree( ) {
-			return this.tree;
 		}
 
 		public void clear( ) {
@@ -530,10 +520,10 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			((DefaultTreeModel)this.tree.getModel( )).insertNodeInto( 
 				clusterNode, rootNode, rootNode.getChildCount( ));
 			if ( checked ) {
-				this.tree.addCheckingPath( new TreePath( this.rootNode.getPath( )));
-				this.tree.addCheckingPath( new TreePath( clusterNode.getPath( )));
+				this.check( this.rootNode );
+				this.check( clusterNode );
 			} else {
-				this.tree.removeCheckingPath( new TreePath( clusterNode.getPath( )));
+				this.uncheck( clusterNode );
 			}
 			this.tree.expandPath( new TreePath( rootNode.getPath( )));
 			this.tree.setSelectsByChecking( false );
@@ -557,73 +547,11 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			while ( nodeEnum.hasMoreElements( )) {
 				DefaultMutableTreeNode node = 
 					(DefaultMutableTreeNode)nodeEnum.nextElement( );
-				if ( node.getLevel( ) == MOLECULE && 
-					   this.tree.isPathChecked( new TreePath( node.getPath( )))) {
+				if ( node.getLevel( ) == MOLECULE && this.isChecked( node )) {
 					returnValue.add( (Molecule)node.getUserObject( ));
 				}
 			}
 
-			return returnValue;
-		}
-	}
-
-
-	// ======================= SampleSelectorTreePanel ===========================
-	/**
-	 * A Panel containing a CheckBoxTree containing the available Samples in this
-	 * study so they can be selected/deselected.
-	 */
-	private class SampleSelectorTreePanel extends JPanel {
-		private CheckboxTree tree;
-		private DefaultMutableTreeNode rootNode;
-
-		/**
-		 * Creates a new SampleSelectorTreePanel.
-		 * 
-		 * @param samples A Collection of the Samples to be displayed in this panel.
-		 */
-		public SampleSelectorTreePanel ( Collection<Sample> samples ) {
-			super( new BorderLayout( ));
-			Language language = Settings.getLanguage( );
-			this.rootNode = new DefaultMutableTreeNode( language.get( "Samples" ));
-			for ( Sample sample : samples ) {
-				DefaultMutableTreeNode sampleNode = new DefaultMutableTreeNode( sample );
-				this.rootNode.add( sampleNode );
-			}
-			this.tree = new CheckboxTree( this.rootNode );
-			//this.tree.setRootVisible( false );
-			this.tree.setCheckingPath( new TreePath( this.rootNode ));
-			this.tree.setSelectsByChecking( false );
-			this.tree.getCheckingModel( ).setCheckingMode( 
-				TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
-			this.add( new JScrollPane( tree ), BorderLayout.CENTER );
-		}
-
-		/**
-		 * Gets the CheckboxTree contained in this Panel.
-		 * 
-		 * @return The CheckboxTree contained in this Panel.
-		 */
-		public CheckboxTree getTree( ) {
-			return this.tree;
-		}
-
-		/**
-		 * Checks the status of the Checkboxes in the tree and returns the Samples
-		 * which have been selected for display.
-		 * 
-		 * @return A Collection containing the selected Samples.
-		 */
-		public Collection<Sample> getSamples( ) {
-			DefaultMutableTreeNode sampleNode = 
-				(DefaultMutableTreeNode)this.rootNode.getFirstChild( );
-			Collection<Sample> returnValue = new ArrayList<Sample>( );
-			while( sampleNode != null ) {
-				if ( this.tree.isPathChecked( new TreePath( sampleNode.getPath( )))) {
-					returnValue.add( (Sample)sampleNode.getUserObject( ));
-				}
-				sampleNode = (DefaultMutableTreeNode)sampleNode.getNextSibling( );
-			}
 			return returnValue;
 		}
 	}
@@ -662,7 +590,6 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			}
 			XYSeriesCollection xyDataset = new XYSeriesCollection( );
 			Collection <Dataset> clusters = null;
-			Map<Integer,NumberList> clusterData; 
 			// If the root node is selected (which should be the only time this
 			// method is called)
 			if ( node.getLevel( ) == ROOT ) {
@@ -676,19 +603,19 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 					    (DefaultMutableTreeNode)node.getFirstChild( );
 				      datasetNode != null; datasetNode = datasetNode.getNextSibling( )){
 
-					if ( selectorTree.getTree( ).isPathChecked( new TreePath( 
-								datasetNode.getPath( )))) {
+					if ( selectorTree.isChecked( datasetNode )) {
 
 						XYSeries data = new XYSeries( datasetNode.toString( ));
-						// create a map for holding the data for an entire cluster.
-						clusterData = new HashMap<Integer,NumberList>( );
 						// iterate through each of the nodes indicating a Molecule
 						Collection<Molecule> molecules = new ArrayList<Molecule>( );
 						for ( DefaultMutableTreeNode moleculeNode = 
 									(DefaultMutableTreeNode)datasetNode.getFirstChild( );
 									moleculeNode != null; 
 									moleculeNode = moleculeNode.getNextSibling( )) {
-							molecules.add( (Molecule)moleculeNode.getUserObject( ));
+
+							if ( selectorTree.isChecked( moleculeNode )) {
+								molecules.add( (Molecule)moleculeNode.getUserObject( ));
+							}
 						}
 						int index = 0;
 						for ( Sample sample : samples ) {
@@ -766,8 +693,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 							 moleculeNode != null;
 							 moleculeNode = moleculeNode.getNextSibling( )) {
 
-						if ( selectorTree.getTree( ).isPathChecked( 
-								 new TreePath( moleculeNode.getPath( )))) {
+						if ( selectorTree.isChecked( moleculeNode )) {
 							Molecule molecule = (Molecule)moleculeNode.getUserObject( );
 							data = new XYSeries( molecule.getId( ));
 							int index = 0;
@@ -780,8 +706,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				}
 			} else if ( node.getLevel( ) == MOLECULE ) {
 				// If an instance node is selected, add it if it is checked.
-				if ( selectorTree.getTree( ).isPathChecked( 
-					   new TreePath( node.getPath( )))){
+				if ( selectorTree.isChecked( node )){
 					Molecule molecule = (Molecule)userObject;
 					data = new XYSeries( molecule.getId( ));
 					int index = 0;

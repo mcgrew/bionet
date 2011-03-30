@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -114,11 +115,12 @@ import org.apache.log4j.Logger;
 public class ComparativeAnalysisDisplayPanel extends JPanel 
 		implements DisplayPanel,ComponentListener {
 
-	private Collection <Experiment> experiments;
-	private Set <Molecule> molecules;
+	private Collection<Experiment> experiments;
+	private Set<Molecule> molecules;
+	private Set<Sample> samples;
 	private JSplitPane mainSplitPane;
 	private JSplitPane graphSplitPane;
-	private SelectorTreePanel selectorTree;
+	private ExperimentSelectorTreePanel selectorTree;
 	private JPanel topPanel;
 	private JPanel bottomPanel;
 	private ExperimentGraph experimentGraph;
@@ -142,8 +144,10 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	public boolean createView( Collection<Experiment> experiments ) {
 		this.experiments = experiments;
 		this.molecules = new TreeSet<Molecule>( );
+		this.samples = new TreeSet<Sample>( );
 		for ( Experiment e : experiments ) {
 			molecules.addAll( e.getMolecules( ));
+			samples.addAll( e.getSamples( ));
 		}
 		Language language = Settings.getLanguage( );
 
@@ -161,7 +165,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		this.fitButtonGroup.add( this.chiSquareFitButton );
 		this.noFitButton.setSelected( true );
 
-		this.selectorTree = new SelectorTreePanel( experiments );
+		this.selectorTree = new ExperimentSelectorTreePanel( experiments );
 		this.mainSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
 
@@ -219,19 +223,20 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		}
 	} 
 
+	// =========================== PRIVATE CLASSES ===============================
+	// ====================== ExperimentSelectorTreePanel ========================
 	/**
 	 * A class for displaying the selector tree
 	 */
-	private class SelectorTreePanel extends JPanel {
-		private CheckboxTree tree;
+	private class ExperimentSelectorTreePanel extends CheckboxTreePanel {
 		private Map <Object,DefaultMutableTreeNode> nodeMap;
 
 		/**
-		 * Creates a new SelectorTreePanel based on the passed in Experiments.
+		 * Creates a new ExperimentSelectorTreePanel based on the passed in Experiments.
 		 * 
 		 * @param experiments The Experiment data to be shown in the tree.
 		 */
-		public SelectorTreePanel( Collection <Experiment> experiments ) {
+		public ExperimentSelectorTreePanel( Collection <Experiment> experiments ) {
 			super( new BorderLayout( ));
 			this.nodeMap = new HashMap<Object,DefaultMutableTreeNode>( );
 			DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(	
@@ -268,7 +273,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			}
 			this.tree = new CheckboxTree( rootNode );
 			this.tree.setRootVisible( false );
-			this.tree.setCheckingPath( new TreePath( rootNode ));
+			this.check( rootNode );
 			this.tree.setSelectsByChecking( false );
 			this.tree.getCheckingModel( ).setCheckingMode( 
 				TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
@@ -276,31 +281,10 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		}
 
 		/**
-		 * Returns the JTree object displayed in this panel.
+		 * Returns a mapping of Samples that are checked along with their values
 		 * 
-		 * @return The JTree object.
-		 */
-		public CheckboxTree getTree( ) {
-			return this.tree;
-		}
-
-		/**
-		 * Determines whether the tree node for the molecule is checked.
-		 * 
-		 * @param molecule The Molecule to search the tree for.
-		 * @return True if the Molecule in the tree is checked.
-		 */
-		public boolean isChecked( DefaultMutableTreeNode node ) {
-			return this.tree.isPathChecked( 
-				new TreePath( node.getPath( )));
-		}
-
-		/**
-		 * Determines whether the tree node for the sample is checked.
-		 * 
-		 * @param molecule The molecule to search the tree for.
-		 * @param sample The sample number to check the status of.
-		 * @return True if the sample is checked.
+		 * @param node A tree node which contains the sample nodes to be retrieved.
+		 * @return A Map containing the requested values.
 		 */
 		public Map<Sample,Number> getSamplesFiltered( DefaultMutableTreeNode node ){
 			Map<Sample,Number> returnValue = new HashMap<Sample,Number>( );
@@ -308,7 +292,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			if ( userObj instanceof Experiment ) {
 				Molecule molecule = (Molecule)((DefaultMutableTreeNode)node.getParent( )).getUserObject( );
 				for ( int i=0; i < node.getChildCount( ); i++ ) {
-					if ( this.tree.isPathChecked( new TreePath( ((DefaultMutableTreeNode)node.getChildAt( i )).getPath( )))) {
+					if ( this.isChecked( node.getChildAt( i ) )) {
 						Sample sample = (Sample)((DefaultMutableTreeNode)node.getChildAt( i )).getUserObject( );
 						returnValue.put( sample, sample.getValue( molecule ));
 					}
@@ -319,7 +303,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				for( int i=0; i < node.getChildCount( ); i++ ){
 					DefaultMutableTreeNode expNode = (DefaultMutableTreeNode)node.getChildAt( i );
 					for( int j=0; j < expNode.getChildCount( ); j++ ) {
-						if ( this.tree.isPathChecked( new TreePath( ((DefaultMutableTreeNode)node.getChildAt( j )).getPath( )))) {
+						if ( this.isChecked( node.getChildAt( j ))) {
 							Sample sample = (Sample)((DefaultMutableTreeNode)expNode.getChildAt( j )).getUserObject( );
 							returnValue.put( sample, sample.getValue( molecule ));
 						}
@@ -330,6 +314,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		}
 	}
 
+	// =========================== ExperimentGraph ===============================
 	/**
 	 * A class for displaying molecular data across experiments
 	 */
@@ -570,6 +555,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		}
 	}
 
+	// ============================ SampleGraph ==================================
 	/**
 	 * A class for showing sample concentrations in a graph.
 	 */
@@ -598,7 +584,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				new CustomXYLineAndShapeRenderer( true, true );
 			if ( userObj instanceof Molecule ) {
 				for ( int i=0; i < node.getChildCount( ); i++ ) {
-					DefaultMutableTreeNode expNode = (DefaultMutableTreeNode)node.getChildAt( i );
+					DefaultMutableTreeNode expNode = 
+						(DefaultMutableTreeNode)node.getChildAt( i );
 					Experiment experiment = (Experiment)expNode.getUserObject( );
 					XYSeries data = new XYSeries( String.format( "%s %s",
 						language.get( "Experiment" ),
@@ -748,6 +735,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			}
 		}
 	}
+
+	// ================== CustomXyLineAndShapeRenderer ===========================
 
 	private class CustomXYLineAndShapeRenderer extends XYLineAndShapeRenderer {
 		private List<BoxAndWhiskerItem> outlierInfo;
