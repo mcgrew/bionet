@@ -40,6 +40,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Graphics;
 import java.awt.GridLayout;
@@ -132,7 +133,8 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.apache.log4j.Logger;
 
 /**
- * A class for displaying and interacting with Correlation data for a set of molecules.
+ * A class for displaying and interacting with Correlation data for a set of 
+ * molecules.
  */
 public class CorrelationDisplayPanel extends JPanel 
 		implements ActionListener,ChangeListener,ItemListener,DisplayPanel {
@@ -254,8 +256,8 @@ public class CorrelationDisplayPanel extends JPanel
 //				new JRadioButtonMenuItem( language.get( "Fruchterman-Reingold" ));
 //		this.springLayoutMenuItem = 
 //					new JRadioButtonMenuItem( language.get( "Spring Layout" ));
-		this.animatedLayoutMenuItem = 
-			new JCheckBoxMenuItem( language.get( "Fruchterman-Reingold Spring Embedding" ));
+		this.animatedLayoutMenuItem = new JCheckBoxMenuItem( 
+			language.get( "Fruchterman-Reingold Spring Embedding" ));
 
 		// view menu items
 		this.viewMenu = new JMenu( language.get( "View" ));
@@ -271,19 +273,18 @@ public class CorrelationDisplayPanel extends JPanel
 			new JMenuItem( language.get( "Clear Selection" ), KeyEvent.VK_C );
 		this.invertSelectionViewMenuItem = 
 			new JMenuItem( language.get( "Invert Selection" ), KeyEvent.VK_I );
-		this.selectCorrelatedViewMenuItem = 
-			new JMenuItem( language.get( "Select Correlated to Selection" ), KeyEvent.VK_R );
+		this.selectCorrelatedViewMenuItem = new JMenuItem( 
+			language.get( "Select Correlated to Selection" ), KeyEvent.VK_R );
 		this.hideSelectedViewMenuItem = 
 			new JMenuItem( language.get( "Hide Selected" ), KeyEvent.VK_H );
 		this.hideUnselectedViewMenuItem = 
 			new JMenuItem( language.get( "Hide Unselected" ), KeyEvent.VK_U );
-		this.hideUncorrelatedViewMenuItem = 
-			new JMenuItem( language.get( 
-				"Hide Uncorrelated to Selection" ), KeyEvent.VK_L );
+		this.hideUncorrelatedViewMenuItem = new JMenuItem( 
+			language.get( "Hide Uncorrelated to Selection" ), KeyEvent.VK_L );
 		this.hideOrphansViewMenuItem = 
 			new JMenuItem( language.get( "Hide Orphans" ), KeyEvent.VK_P );
-		this.showCorrelatedViewMenuItem = 
-			new JMenuItem( language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
+		this.showCorrelatedViewMenuItem = new JMenuItem( 
+			language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
 		this.chooseSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
 
@@ -445,16 +446,18 @@ public class CorrelationDisplayPanel extends JPanel
 		this.infoPanel = new InfoPanel( );
 		this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
 
-		this.graph.addGraphMouseEdgeListener( new GraphMouseListener<Correlation>( ) {
+		this.graph.addGraphMouseEdgeListener( 
+			new GraphMouseListener<Correlation>( ) {
 
-			public void graphClicked( Correlation c, MouseEvent e ) {
-				if ( e.getButton( ) == MouseEvent.BUTTON1 && e.getClickCount( ) >= 2 ) {
-					new DetailWindow( c.getExperiment( ), 
-					                  c, correlationFilterPanel.getRange( ));
+				public void graphClicked( Correlation c, MouseEvent e ) {
+					if ( e.getButton( ) == MouseEvent.BUTTON1 && 
+					     e.getClickCount( ) >= 2 ) {
+						new DetailWindow( c.getExperiment( ), 
+															c, correlationFilterPanel.getRange( ));
+					}
 				}
-			}
-			public void graphPressed(  Correlation c, MouseEvent e ) { } 
-			public void graphReleased( Correlation c, MouseEvent e ) { }
+				public void graphPressed(  Correlation c, MouseEvent e ) { } 
+				public void graphReleased( Correlation c, MouseEvent e ) { }
 		});
 
 		for( String groupName : this.experiment.getMoleculeGroupNames( ))
@@ -605,7 +608,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 	/**
 	 * The stateChanged method of the ChangeListener interface.
-	 * @see java.awt.event.ChangeListener#stateChanged(java.awt.event.ChangeEvent)
+	 * @see ChangeListener#stateChanged(ChangeEvent)
 	 * 
 	 * @param event The event which triggered this action.
 	 */
@@ -617,7 +620,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 	/**
 	 * The itemStateChanged method of the ItemListener interface.
-	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+	 * @see ItemListener#itemStateChanged(ItemEvent)
 	 * 
 	 * @param e The event which triggered this action.
 	 */
@@ -727,6 +730,8 @@ public class CorrelationDisplayPanel extends JPanel
 			this.sampleGroups = SampleGroupingDialog.showInputDialog( 
 					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
 					this.experiment.getSamples( ));
+			this.graph.setSampleGroups( this.sampleGroups );
+			this.infoPanel.repaint( );
 
 			if ( this.sampleGroups != null ) {
 				Logger logger = Logger.getLogger( getClass( ));
@@ -744,7 +749,8 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 	}
 
-	// ******************* PRIVATE/PROTECTED CLASSES **************************
+	// =================== PRIVATE/PROTECTED CLASSES ==========================
+	// ======================= MoleculeFilterPanel ============================
 
 	/**
 	 * A UI class for hiding/showing moledules (nodes)
@@ -859,7 +865,7 @@ public class CorrelationDisplayPanel extends JPanel
 		//for the checkboxes
 		/**
 		 * The itemStateChanged method of the ItemListener interface.
-		 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+		 * @see ItemListener#itemStateChanged(ItemEvent)
 		 * 
 		 * @param event the event which triggered this action.
 		 */
@@ -887,7 +893,7 @@ public class CorrelationDisplayPanel extends JPanel
 		// for the select all/none buttons
 		/**
 		 * The actionPerformed method of the ActionListener interface.
-		 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+		 * @see ActionListener#actionPerformed(ActionEvent)
 		 * 
 		 * @param e The event which triggered this action.
 		 */
@@ -1035,6 +1041,7 @@ public class CorrelationDisplayPanel extends JPanel
 		
 	}
 
+	// ============================ InfoPanel ===================================
 	/**
 	 * A class for displaying the table below the graph.
 	 */
@@ -1114,7 +1121,8 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		public void add( Correlation correlation ) {
 			Language language = Settings.getLanguage( );
-			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
+			DefaultTableModel tm = 
+				(DefaultTableModel)this.correlationTable.getModel( );
 			if ( tm.getColumnCount( ) == 0 ) {
 				String [ ] keys = { 
 					language.get( "Molecule" ) + " 1", 
@@ -1126,20 +1134,24 @@ public class CorrelationDisplayPanel extends JPanel
 				for ( String key : keys ) {
 					tm.addColumn( key );
 				}
-				Enumeration <TableColumn> columns = this.correlationTable.getColumnModel( ).getColumns( );
+				Enumeration <TableColumn> columns = 
+					this.correlationTable.getColumnModel( ).getColumns( );
 				int column = 0;
 				while( columns.hasMoreElements( )) {
 					TableColumn tc = columns.nextElement( );
 					tc.setPreferredWidth( 175 );
 					switch ( column ) {
 						case 2:
-							tc.setCellRenderer( new PickedColumnRenderer( pearsonCalculationMenuItem ));
+							tc.setCellRenderer( new PickedColumnRenderer( 
+								pearsonCalculationMenuItem ));
 							break;
 						case 3:
-							tc.setCellRenderer( new PickedColumnRenderer( spearmanCalculationMenuItem ));
+							tc.setCellRenderer( new PickedColumnRenderer( 
+								spearmanCalculationMenuItem ));
 							break;
 						case 4:
-							tc.setCellRenderer( new PickedColumnRenderer( kendallCalculationMenuItem ));
+							tc.setCellRenderer( new PickedColumnRenderer( 
+								kendallCalculationMenuItem ));
 							break;
 					}
 					column++;
@@ -1151,14 +1163,18 @@ public class CorrelationDisplayPanel extends JPanel
 			Object[] newRow = new Object[ 5 ];
 			newRow[ 0 ] = correlation.getMolecules( )[ 0 ].getId( );
 			newRow[ 1 ] = correlation.getMolecules( )[ 1 ].getId( );
-			newRow[ 2 ] = String.format( "%.5f", correlation.getValue( Correlation.PEARSON ));
-			newRow[ 3 ] = String.format( "%.5f", correlation.getValue( Correlation.SPEARMAN ));
-			newRow[ 4 ] = String.format( "%.5f", correlation.getValue( Correlation.KENDALL ));
+			newRow[ 2 ] = String.format( "%.5f", 
+				correlation.getValue( Correlation.PEARSON ));
+			newRow[ 3 ] = String.format( "%.5f", 
+				correlation.getValue( Correlation.SPEARMAN ));
+			newRow[ 4 ] = String.format( "%.5f", 
+				correlation.getValue( Correlation.KENDALL ));
 			tm.addRow( newRow );
 		}
 
 		/**
-		 * Removes a Molecule from the table. Does nothing if the Molecule is not present.
+		 * Removes a Molecule from the table. Does nothing if the Molecule is not 
+		 * present.
 		 * 
 		 * @param molecule the Molecule to be removed.
 		 */
@@ -1169,21 +1185,24 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 
 		/**
-		 * Removes a Correlation from the table. Does nothing if the Correlation is not present.
+		 * Removes a Correlation from the table. Does nothing if the Correlation 
+		 * is not present.
 		 * 
 		 * @param correlation the Correlation to be added.
 		 */
 		public void remove( Correlation correlation ) {
 			int row = getRowOf( correlation );
 			if ( row >= 0 )
-				((DefaultTableModel)this.correlationTable.getModel( )).removeRow( row );
+				((DefaultTableModel)this.correlationTable.getModel( ))
+					.removeRow( row );
 		}
 
 		/**
 		 * Clears the Molecule table.
 		 */
 		public void clearMolecules( ) {
-			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
+			DefaultTableModel tm = 
+				(DefaultTableModel)this.moleculeTable.getModel( );
 			while( tm.getRowCount( ) > 0 ) {
 				tm.removeRow( 0 );
 			}
@@ -1193,7 +1212,8 @@ public class CorrelationDisplayPanel extends JPanel
 		 * Clears the Correlation Table.
 		 */
 		public void clearCorrelations( ) {
-			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
+			DefaultTableModel tm = 
+				(DefaultTableModel)this.correlationTable.getModel( );
 			while( tm.getRowCount( ) > 0 ) {
 				tm.removeRow( 0 );
 			}
@@ -1225,7 +1245,8 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @return The row number of the Correlation.
 		 */
 		private int getRowOf( Correlation correlation ) {
-			DefaultTableModel tm = (DefaultTableModel)this.correlationTable.getModel( );
+			DefaultTableModel tm = 
+				(DefaultTableModel)this.correlationTable.getModel( );
 			int returnValue = 0;
 			while( returnValue < tm.getRowCount( )) {
 				if ( correlation.getMolecules( )[ 0 ].getId( ).equals( 
@@ -1243,6 +1264,7 @@ public class CorrelationDisplayPanel extends JPanel
 			correlationTable.repaint( );	
 		}
 
+		// ====================== PickedColumnRenderer ==========================
 		/**
 		 * A class for highlighting the selected correlation in the InfoTable
 		 */
@@ -1273,10 +1295,12 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 		}
 
+		// ======================== ConditionPanel =============================
 		/**
 		 * A UI class for displaying the current graph conditions.
 		 */
-		private class ConditionPanel extends JPanel implements ActionListener {
+		private class ConditionPanel extends JPanel 
+		                             implements ActionListener {
 
 			/**
 			 * Creates a new ConditionPanel
@@ -1298,7 +1322,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 			/**
 			 * Called when the Panel is repainted.
-			 * @see java.awt.Component#paintComponent(java.awt.Graphics)
+			 * @see Component#paintComponent(java.awt.Graphics)
 			 * 
 			 * @param g The graphics component associated with this panel
 			 */
@@ -1308,8 +1332,10 @@ public class CorrelationDisplayPanel extends JPanel
 				Language language = Settings.getLanguage( );
 				String text;
 				String layoutName;
+				FontMetrics f = g.getFontMetrics( );
 				try { 
-					layoutName = ((LayoutDecorator)graph.getGraphLayout( )).getDelegate( ) .getClass( ).getSimpleName( );
+					layoutName = ((LayoutDecorator)graph.getGraphLayout( ))
+						.getDelegate( ).getClass( ).getSimpleName( );
 				} catch ( ClassCastException e ) {
 					layoutName = graph.getGraphLayout( ).getClass( ).getSimpleName( );
 				}
@@ -1318,12 +1344,37 @@ public class CorrelationDisplayPanel extends JPanel
 
 				text = String.format( language.get( "Correlation Method" ) + ": %s",
 					Correlation.NAME[ Correlation.getDefaultMethod( )]);
-				g.drawString( text, 20, 70 );
+				g.drawString( text, 20, 50 );
+				if ( sampleGroups != null ) {
+					// create a heading
+					text = language.get( "Sample Groups" );
+					g.drawString( text, 415, 30 );
+					g.drawLine( 415, 32, 415 + f.stringWidth( text ), 32 );
+
+					// list the samples in group 1.
+					text = language.get( "Group" ) + " 1";
+					g.drawString( text, 300, 50 );
+					g.drawLine( 300, 52, 300 + f.stringWidth( text ), 52 );
+					int verticalPos = 70;
+					for ( Sample s : sampleGroups.getFirstItem( )) {
+						g.drawString( s.toString( ), 300, verticalPos );
+						verticalPos += 20;
+					}
+					// list the samples in group 2.
+					text = language.get( "Group" ) + " 2";
+					g.drawString( text, 530, 50 );
+					g.drawLine( 530, 52, 530 + f.stringWidth( text ), 52 );
+					verticalPos = 70;
+					for ( Sample s : sampleGroups.getSecondItem( )) {
+						g.drawString( s.toString( ), 530, verticalPos );
+						verticalPos += 20;
+					}
+				}
 			}
 
 			/**
 			 * The actionPerformed method of the ActionListener interface.
-			 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+			 * @see ActionListener#actionPerformed(java.awt.event.ActionEvent)
 			 * 
 			 * @param e The event which triggered this action.
 			 */
@@ -1333,10 +1384,12 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 		}
 
+		// ============================= TopologyPanel ===========================
 		/**
 		 * A UI class for displaying the graph Topology.
 		 */
-		private class TopologyPanel extends JPanel implements GraphItemChangeListener {
+		private class TopologyPanel extends JPanel 
+		                            implements GraphItemChangeListener {
 
 			/**
 			 * Creates a new TopologyPanel.
@@ -1349,41 +1402,53 @@ public class CorrelationDisplayPanel extends JPanel
 
 			/**
 			 * Called when the panel is repainted.
-			 * @see java.awt.Component#PaintComponent(java.awt.Graphics)
+			 * @see Component#PaintComponent(java.awt.Graphics)
 			 * 
 			 * @param g The Graphics for this Component.
 			 */
 			public void paintComponent( Graphics g ) {
 				super.paintComponent( g );
 				Language language = Settings.getLanguage( );
-				Vector <Molecule> molecules = new Vector<Molecule>( graph.getVertices( ));
-				Vector <Correlation> correlations = new Vector<Correlation>( graph.getEdges( ));
+				Vector <Molecule> molecules = 
+					new Vector<Molecule>( graph.getVertices( ));
+				Vector <Correlation> correlations = 
+					new Vector<Correlation>( graph.getEdges( ));
 //				g.setFont( new Font( "Sans Serif", Font.BOLD, 18 ));
 				String text;
 				
-				text = String.format( language.get( "Number of Nodes" ) + ": %d", molecules.size( ));
+				text = String.format( language.get( "Number of Nodes" ) + ": %d", 
+					molecules.size( ));
 				g.drawString( text, 20, 16 );
 
-				text = String.format( language.get( "Number of Edges" ) + ": %d", correlations.size( ));
+				text = String.format( language.get( "Number of Edges" ) + ": %d", 
+					correlations.size( ));
 				g.drawString( text, 20, 34 );
 
-				text = String.format( language.get( "Number of correlated molecules" ) + ": %d", getCorrelatedCount( molecules ));
+				text = String.format( language.get( "Number of correlated molecules" ) +
+					": %d", getCorrelatedCount( molecules ));
 				g.drawString( text, 20, 52 );
 
-				text = String.format( language.get( "Average number of neighbors" ) + ": %.2f", getAverageNeighbors( molecules ));
+				text = String.format( 
+					language.get( "Average number of neighbors" ) + ": %.2f", 
+					getAverageNeighbors( molecules ));
+
 				g.drawString( text, 20, 70 );
 
-				text = String.format( language.get( "Network diameter" ) + ": %d", getNetworkDiameter( molecules ));
+				text = String.format( language.get( "Network diameter" ) + ": %d",
+					getNetworkDiameter( molecules ));
 				g.drawString( text, 20, 86 );
 
-				text = String.format( language.get( "Characteristic path length" ) + ": %.2f", getCharacteristicPathLength( molecules ));
+				text = String.format( 
+					language.get( "Characteristic path length" ) + ": %.2f", 
+					getCharacteristicPathLength( molecules ));
 				g.drawString( text, 20, 102 );
 
 
 			}
 
 			/**
-			 * Returns the number of nodes which are connected to at least one other node.
+			 * Returns the number of nodes which are connected to at least one other 
+			 * node.
 			 */
 			public int getCorrelatedCount( Collection <Molecule> molecules ) {
 				int returnValue = 0;
@@ -1436,13 +1501,15 @@ public class CorrelationDisplayPanel extends JPanel
 
 			/**
 			 * Returns the characteristic path length for the network, or the average
-			 * shortest path length from one node to another. Nodes which do not have a path
-			 * to one another are ignored.
+			 * shortest path length from one node to another. Nodes which do not have
+			 * a path to one another are ignored.
 			 * 
 			 * @param molecules The collection of molecules to check.
 			 * @return The characteristic path length.
 			 */
-			public double getCharacteristicPathLength( Collection <Molecule> molecules ) {
+			public double getCharacteristicPathLength( 
+					Collection <Molecule> molecules ) {
+
 				double returnValue = 0.0;
 				int count = 0;
 				List<Correlation> path;
@@ -1460,7 +1527,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 			/**
 			 * The stateChanged method of the GraphItemChangeListener interface.
-			 * @see edu.purdue.cc.jsysnet.ui.GraphItemChangeListener#stateChanged(edu.purdue.jsysnet.ui.GraphItemChangeEvent)
+			 * @see GraphItemChangeListener#stateChanged(GraphItemChangeEvent)
 			 * 
 			 * @param event The event which triggered this action.
 			 */
@@ -1470,11 +1537,16 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 		}
 
-		private abstract class DistributionPanel extends JPanel implements GraphItemChangeListener {
+		// ========================== DistributionPanel ===========================
+		private abstract class DistributionPanel extends JPanel 
+		                       implements GraphItemChangeListener {
+
 			protected JFreeChart distributionChart;
 			protected DefaultCategoryDataset distributionData;
 
-			protected DistributionPanel( String categoryAxisLabel, String valueAxisLabel ) {
+			protected DistributionPanel( 
+					String categoryAxisLabel, String valueAxisLabel ) {
+
 				super( );
 				graph.addVertexChangeListener( this );
 				graph.addEdgeChangeListener( this );
@@ -1496,7 +1568,8 @@ public class CorrelationDisplayPanel extends JPanel
 
 			}
 
-			public abstract void getDistributionData ( DefaultCategoryDataset distributionData );
+			public abstract void getDistributionData ( 
+					DefaultCategoryDataset distributionData );
 
 			public void paintComponent( Graphics g ) {
 				super.paintComponent( g );
@@ -1511,16 +1584,23 @@ public class CorrelationDisplayPanel extends JPanel
 					this.repaint( );
 			}
 		}
+
+		// ========================= DegreeDistributionPanel ======================
 		private class DegreeDistributionPanel extends DistributionPanel {
 
 			public DegreeDistributionPanel( ) {
-				super( Settings.getLanguage( ).get( "Neighbor Count" ), Settings.getLanguage( ).get( "Nodes" ));
+				super( Settings.getLanguage( ).get( "Neighbor Count" ), 
+					Settings.getLanguage( ).get( "Nodes" ));
+
 				distributionChart.getCategoryPlot( ).getRangeAxis( )
 					.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
 			}
 
-			public void getDistributionData( DefaultCategoryDataset distributionData ) {
-				Vector<Molecule> molecules = new Vector<Molecule>( graph.getVertices( ));
+			public void getDistributionData( 
+					DefaultCategoryDataset distributionData ) {
+
+				Vector<Molecule> molecules = 
+					new Vector<Molecule>( graph.getVertices( ));
 				int max = -1;
 				int [] dist = new int[ molecules.size( ) ];
 				for( Molecule m : molecules ) {
@@ -1536,7 +1616,10 @@ public class CorrelationDisplayPanel extends JPanel
 
 		}
 
-		private class CorrelationDistributionPanel extends JPanel implements ItemListener,GraphItemChangeListener {
+	// ===================== CorrelationDistributionPanel ======================
+		private class CorrelationDistributionPanel extends JPanel 
+		                      implements ItemListener,GraphItemChangeListener {
+
 			protected SimpleHistogramDataset distributionData;
 			protected JFreeChart distributionChart;
 
@@ -1548,7 +1631,8 @@ public class CorrelationDisplayPanel extends JPanel
 				pearsonCalculationMenuItem.addItemListener( this );
 				spearmanCalculationMenuItem.addItemListener( this ); 
 				kendallCalculationMenuItem.addItemListener( this );
-				this.distributionData = new SimpleHistogramDataset( "Correlation Distribution"  );
+				this.distributionData = 
+					new SimpleHistogramDataset( "Correlation Distribution"  );
 				distributionChart = ChartFactory.createHistogram(
 					null, //title
 					"", // category axis label
@@ -1565,7 +1649,7 @@ public class CorrelationDisplayPanel extends JPanel
 						includeUpper = false;
 					else if ( i == 0 )
 						includeLower = true; 
-					SimpleHistogramBin s = new SimpleHistogramBin( i * 0.01, (i+1) * 0.01, 
+					SimpleHistogramBin s = new SimpleHistogramBin( i * 0.01, (i+1) * 0.01,
 						includeLower, includeUpper );
 					distributionData.addBin( s );
 				}
@@ -1611,22 +1695,26 @@ public class CorrelationDisplayPanel extends JPanel
 
 		}
 
-		private class NeighborhoodConnectivityDistributionPanel extends DistributionPanel {
+		// ================== NeighborhoodConnectivityDistributionPanel ==========
+		private class NeighborhoodConnectivityDistributionPanel 
+				                                            extends DistributionPanel {
 
 			public NeighborhoodConnectivityDistributionPanel( ) {
 				super( Settings.getLanguage( ).get( "Neighbor Count" ), 
 					Settings.getLanguage( ).get( "Average Neighbor Degree" ));
 			}
 
-			public void getDistributionData( DefaultCategoryDataset distributionData ) {
+			public void getDistributionData( 
+						DefaultCategoryDataset distributionData ) {
+
 				Vector <Molecule> nodes = new Vector<Molecule>( graph.getVertices( ));
 				int [] neighborCount = new int[ nodes.size( )];
 				int [] nodeCount = new int[ nodes.size( )];
 				int maxNeighborCount = 0;
 				// First, go through all of the nodes, finding how many neighbors they
 				// have and add the neighbors' degrees to the appropriate "bucket".
-				// also increment the "buckets" to keep track of how many nodes have which
-				// degree.
+				// also increment the "buckets" to keep track of how many nodes have 
+				// which degree.
 				for( int i=0; i < nodes.size( ); i++ ) {
 					Molecule m = nodes.get( i );
 					Collection<Molecule> neighbors = graph.getNeighbors( m );
@@ -1648,6 +1736,7 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 	}
 
+	// ======================= CalculationChangeListener =======================
 	/**
 	 * A class which listens for a change in the state of the calculation menu.
 	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
@@ -1656,7 +1745,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 		/**
 		 * The itemStateChanged method of the ItemListener interface.
-		 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+		 * @see ItemListener#itemStateChanged(ItemEvent)
 		 * 
 		 * @param event The event which triggered this action.
 		 */
@@ -1675,6 +1764,7 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 	}
 
+	// ========================= MenuItemListener ============================
 	/**
 	 * A class for listening for clicks on menu items.
 	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
@@ -1683,7 +1773,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 		/**
 		 * The actionPerformed method of the ActionListener interface.
-		 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+		 * @see ActionListener#actionPerformed(ActionEvent)
 		 * 
 		 * @param event The event which triggered this action.
 		 */
@@ -1699,6 +1789,7 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 	}
 
+	// ========================== LayoutChangeListener =========================
 	/**
 	 * A class for listening for changes to the layout menu.
 	 * @todo Integrate this class with the CorrelationDisplayPanel class.
@@ -1707,7 +1798,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 			/**
 			 * The actionPerformed method of the ActionListener interface.
-			 # @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+			 # @see ActionListener#actionPerformed(ActionEvent)
 			 * 
 			 * @param event The event which triggered this action.
 			 */
@@ -1737,10 +1828,12 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 	}
 
+	// ==================== CorrelationGraphMouseListener ======================
 	/**
 	 * A class for implementing a context menu on network nodes.
 	 */
-	private class CorrelationGraphMouseListener implements GraphMouseListener<Molecule> {
+	private class CorrelationGraphMouseListener 
+	                                 implements GraphMouseListener<Molecule> {
 		MoleculePopup popup = new MoleculePopup( );
 
 		/**
@@ -1752,7 +1845,9 @@ public class CorrelationDisplayPanel extends JPanel
 		public void graphClicked( Molecule m, MouseEvent e ) {
 			if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
 				popup.show( e.getComponent( ), e.getX( ), e.getY( ), m );
-			} else if ( e.getButton( ) == MouseEvent.BUTTON1 && e.getClickCount( ) >= 2 ) {
+			} else if ( e.getButton( ) == MouseEvent.BUTTON1 && 
+			            e.getClickCount( ) >= 2 ) {
+
 				CorrelationGraphVisualizer graph = 
 					(CorrelationGraphVisualizer)e.getComponent( );
 					new DetailWindow( graph.getExperiment( ), m, graph.getRange( ));
@@ -1773,6 +1868,7 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		public void graphReleased( Molecule m, MouseEvent e ) { }
 
+		// =========================== MoleculePopup ============================
 		/**
 		 * A class for implementing the context menu.
 		 */
@@ -1793,9 +1889,12 @@ public class CorrelationDisplayPanel extends JPanel
 				Language language = Settings.getLanguage( );
 				this.hideMenuItem = new JMenuItem( language.get( "Hide" ) );
 				this.detailsMenuItem = new JMenuItem( language.get( "Details" ) );
-				this.selectCorrelatedMenuItem = new JMenuItem( language.get( "Select Directly Correlated" ) );
-				this.selectSubnetworkMenuItem = new JMenuItem( language.get( "Select Subnetwork" ) );
-				this.exploreCorrelationsMenu = new JMenu( language.get( "Explore Correlations" ) );
+				this.selectCorrelatedMenuItem = 
+					new JMenuItem( language.get( "Select Directly Correlated" ) );
+				this.selectSubnetworkMenuItem =
+					new JMenuItem( language.get( "Select Subnetwork" ) );
+				this.exploreCorrelationsMenu =
+					new JMenu( language.get( "Explore Correlations" ) );
 				this.add( this.hideMenuItem );
 				this.add( this.detailsMenuItem );
 				this.add( this.selectCorrelatedMenuItem );
@@ -1810,7 +1909,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 			/**
 			 * Causes the JPopupMenu to be displayed at the given coordinates.
-			 * @see javax.swing.JPopupMenu#show(Component,int,int)
+			 * @see JPopupMenu#show(Component,int,int)
 			 * 
 			 * @param invoker The component which invoked this menu.
 			 * @param x The x position to display this menu.
@@ -1837,12 +1936,13 @@ public class CorrelationDisplayPanel extends JPanel
 
 			/**
 			 * The actionPerformed method of the ActionListener interface.
-			 * @see java.awt.event.ActionListner#actionPerformed(java.awt.event.ActionEvent)
+			 * @see ActionListner#actionPerformed(ActionEvent)
 			 * 
 			 * @param e the event which triggered this action.
 			 */
 			public void actionPerformed ( ActionEvent e ) {
-				CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer)this.getInvoker( );
+				CorrelationGraphVisualizer graph = 
+					(CorrelationGraphVisualizer)this.getInvoker( );
 				Range range = graph.getRange( );
 				Object source = e.getSource( );
 
@@ -1887,9 +1987,10 @@ public class CorrelationDisplayPanel extends JPanel
 			 * @param molecule The central molcule to select all connected nodes for.
 			 * @param graph The graph the molecule belongs to.
 			 */
-			private Collection<Molecule> getSubnetwork( Molecule molecule, 
-																									CorrelationGraphVisualizer graph, 
-																									Collection<Molecule> collection ) {
+			private Collection<Molecule> getSubnetwork( 
+			                                      Molecule molecule, 
+																						CorrelationGraphVisualizer graph, 
+																						Collection<Molecule> collection ) {
 				if ( collection == null ) 
 					collection = new ArrayList<Molecule>( );
 				if ( collection.contains( molecule ))

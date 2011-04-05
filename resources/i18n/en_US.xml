@@ -34,7 +34,6 @@
 <entry key="Correlation Distrubution">Correlation Distrubution</entry>
 <entry key="Correlation Filter">Correlation Filter</entry>
 <entry key="Correlation Method">Correlation Method</entry>
-<entry key="Correlation coefficient between %.3f and %.3f">Correlation coefficient between %.3f and %.3f</entry>
 <entry key="Correlation test">Correlation test</entry>
 <entry key="Correlation">Correlation</entry>
 <entry key="Correlations between %.3f and %.3f">Correlations between %.3f and %.3f</entry>
@@ -105,6 +104,7 @@
 <entry key="Sample concentrations">Sample concentrations</entry>
 <entry key="Sample">Sample</entry>
 <entry key="Samples">Samples</entry>
+<entry key="Sample Groups">Grupos de Muestras</entry>
 <entry key="Save">Save</entry>
 <entry key="Search">Search</entry>
 <entry key="Select All">Select All</entry>

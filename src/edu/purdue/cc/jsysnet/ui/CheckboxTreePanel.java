@@ -21,6 +21,9 @@ package edu.purdue.cc.jsysnet.ui;
 
 import java.awt.LayoutManager;
 import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import javax.swing.JPanel;
 import javax.swing.tree.TreePath;
@@ -129,6 +132,23 @@ public abstract class CheckboxTreePanel extends JPanel {
 	 */
 	public boolean isChecked( TreePath path ) {
 		return this.tree.isPathChecked( path );
+	}
+
+	/**
+	 * Returns an iterator over the checked children of the given node.
+	 * 
+	 * @param The node to retrieve the checked children of.
+	 * @return an iterator over the checked child nodes.
+	 */
+	public Iterator<TreeNode> checkedChildIterator( TreeNode node ) {
+		Collection<TreeNode> iterList = new ArrayList<TreeNode>( );
+		for ( int i=0; i < node.getChildCount( ); i++ ) {
+			TreeNode childNode = node.getChildAt( i );
+			if ( this.isChecked( childNode )) {
+				iterList.add( childNode );
+			}
+		}
+		return iterList.iterator( );
 	}
 }
 

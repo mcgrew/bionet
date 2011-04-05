@@ -19,50 +19,62 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
+import edu.purdue.bbc.util.Range;
 import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.MonitorableRange;
-import edu.purdue.bbc.util.Range;
-import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Spectrum;
+import edu.purdue.cc.jsysnet.util.SampleGroup;
+import edu.purdue.cc.jsysnet.util.Sample;
 import edu.purdue.cc.jsysnet.util.SplitSpectrum;
 
-import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.graph.util.EdgeType;
-import edu.uci.ics.jung.visualization.picking.PickedState;
+import edu.uci.ics.jung.graph.util.Pair;
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
+import edu.uci.ics.jung.visualization.picking.PickedState;
 
 import org.apache.commons.collections15.Transformer;
 
-import java.awt.Paint;
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
+import java.awt.Paint;
+import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import javax.swing.JScrollPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.apache.log4j.Logger;
 
 /**
  * A class for displaying a JUNG graph tailored for JSysNet
  */
-public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correlation> implements ChangeListener,GraphMouseListener<Correlation>, ComponentListener {
+public class CorrelationGraphVisualizer 
+		extends GraphVisualizer<Molecule,Correlation> 
+		implements ChangeListener,GraphMouseListener<Correlation>, 
+			ComponentListener {
+
 	public MonitorableRange range;
 	public Experiment experiment;
 	protected Spectrum spectrum;
 	private SpectrumLegend spectrumLegend;
+	private edu.purdue.bbc.util.Pair<SampleGroup> sampleGroups;
 
 	/**
 	 * Creates a new CorrelationGraphVisualizer.
 	 * 
-	 * @param experiment The experiment to be associated with this CorrelationGraphVisualizer.
-	 * @param range A MonitorableRange object used to determine which Correlations to show on the graph.
+	 * @param experiment The experiment to be associated with this 
+	 *  CorrelationGraphVisualizer.
+	 * @param range A MonitorableRange object used to determine which 
+	 *  Correlations to show on the graph.
 	 */
-	public CorrelationGraphVisualizer( Experiment experiment, MonitorableRange range ) {
+	public CorrelationGraphVisualizer( Experiment experiment, 
+	                                   MonitorableRange range ) {
 		super( );
 		this.setRange( range );
 		this.setExperiment( experiment );
@@ -71,7 +83,8 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 
 		this.spectrum = new SplitSpectrum( range );
 		this.spectrum.setOutOfRangePaint( Color.WHITE );
-		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
+		this.spectrumLegend = 
+			new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
 		this.setLayout( null );
 		this.add( this.spectrumLegend );
 		Transformer e = new Transformer<Correlation,Paint>( ) {
@@ -103,6 +116,19 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		this.addEdges( );
 	}
 
+	/**
+	 * Sets sample groups for up/downregulation indicators on the display.
+	 * 
+	 * @param sg The selected groups.
+	 */
+	public void setSampleGroups( edu.purdue.bbc.util.Pair<SampleGroup> sg ) {
+		this.sampleGroups = sg;
+		this.getRenderContext( ).setVertexDrawPaintTransformer(
+			new RegulationTransformer( 
+				sg, Color.GREEN.darker( ), Color.RED, vertexOutline ));
+		this.repaint( );
+	}
+	
 	/**
 	 * Returns the current Experiment associated with this graph.
 	 * 
@@ -274,5 +300,61 @@ public class CorrelationGraphVisualizer extends GraphVisualizer<Molecule,Correla
 		componentMoved( e );
 	}
 	public void componentShown( ComponentEvent e ) { }
+
+	// ==================== PRIVATE/PROTECTED CLASSES ==========================
+	// ====================== RegulationTransformer ============================
+	/**
+	 * A class for deteriming the outline  color of a Molecule vertex.
+	 */
+	private class RegulationTransformer implements Transformer<Molecule,Paint> {
+		private edu.purdue.bbc.util.Pair<SampleGroup> sampleGroups;
+		private Paint upPaint;
+		private Paint downPaint;
+		private Paint neutralPaint;
+
+		/**
+		 * Creates a new RegulationTransformer.
+		 * 
+		 * @param sg A pair of SampleGroups to be used for determining up or
+		 *  downregulation.
+		 * @param upPaint The Paint to be used for outlining upregulated Molecules.
+		 * @param downPaint The Paint to be used for outlining downregulated
+		 *  Molecules.
+		 * @param neutralPaint The Paint to be used for outlining Molecules which
+		 *  are neither up or downregulated.
+		 */
+		private RegulationTransformer ( edu.purdue.bbc.util.Pair<SampleGroup> sg, 
+																	 Paint upPaint,
+																	 Paint downPaint, 
+																	 Paint neutralPaint ) {
+			this.sampleGroups = sg;
+			this.upPaint = upPaint;
+			this.downPaint = downPaint;
+			this.neutralPaint = neutralPaint;
+		}
+
+		/**
+		 * Returns the appropriate Paint for the indicated molecule.
+		 * 
+		 * @param m The Molecule to determine the outline Paint for.
+		 * @return The Paint to use.
+		 */
+		public Paint transform( Molecule m ) {
+			Logger logger = Logger.getLogger( getClass( ));
+			if ( sampleGroups.getFirstItem( ).size( ) == 0  || 
+					 sampleGroups.getSecondItem( ).size( ) == 0 ) {
+				return this.neutralPaint;
+			}
+			double mean1 = m.getValues( sampleGroups.getFirstItem( )).getMean( );
+			double mean2 = m.getValues( sampleGroups.getSecondItem( )).getMean( );
+			if ( mean1 < mean2 ) {
+				return this.upPaint;
+			}
+			if ( mean2 < mean1 ) {
+				return this.downPaint;
+			}
+			return this.neutralPaint;
+		}
+	}
 
 }
