@@ -20,9 +20,9 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.jsysnet.ui;
 
 import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
-import edu.purdue.bbc.util.Pair;
 import edu.purdue.cc.jsysnet.io.DataReader;
 import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
 import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
@@ -33,19 +33,25 @@ import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.MonitorableRange;
 import edu.purdue.cc.jsysnet.util.Sample;
 import edu.purdue.cc.jsysnet.util.SampleGroup;
+import edu.purdue.cc.jsysnet.util.Spectrum;
+import edu.purdue.cc.jsysnet.util.SplitSpectrum;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Paint;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -55,7 +61,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -67,12 +72,6 @@ import java.util.TreeMap;
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.awt.Component;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import javax.swing.JPopupMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JMenu;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -88,13 +87,16 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -127,9 +129,9 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.statistics.SimpleHistogramBin;
 import org.jfree.data.statistics.SimpleHistogramDataset;
 import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import org.apache.commons.collections15.Transformer;
 import org.apache.log4j.Logger;
 
 /**
@@ -442,6 +444,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 		this.graph = new CorrelationGraphVisualizer( 
 			this.experiment, this.correlationFilterPanel.getMonitorableRange( ));
+		this.graph.setBackground( Color.WHITE );
 		this.graph.setIndicateCommonNeighbors( true );
 		this.infoPanel = new InfoPanel( );
 		this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
@@ -638,14 +641,14 @@ public class CorrelationDisplayPanel extends JPanel
 				heatMapPanel.setForeground( Color.WHITE );
 			}
 			else if ( item == this.normalColorMenuItem ) {
-				graph.setBackground( null );
+				graph.setBackground( Color.WHITE );
 				graph.setForeground( Color.BLACK );
 				graph.setPickedLabelColor( Color.BLUE );
 				graph.setVertexPaint( Color.ORANGE );
 				graph.setPickedVertexPaint( Color.YELLOW );
 				graph.setPickedEdgePaint( Color.BLACK );
 				heatMapPanel.setForeground( Color.BLACK );
-				heatMapPanel.setBackground( null );
+				heatMapPanel.setBackground( Color.WHITE );
 			}
 
 		}
@@ -706,7 +709,6 @@ public class CorrelationDisplayPanel extends JPanel
 					this.graph.removeVertex( m );
 				}
 			}
-
 		} else if ( item == this.hideOrphansViewMenuItem ) {
 			for ( Molecule m : vertices ) {
 				if ( this.graph.getNeighborCount( m ) == 0 )
@@ -730,10 +732,10 @@ public class CorrelationDisplayPanel extends JPanel
 			this.sampleGroups = SampleGroupingDialog.showInputDialog( 
 					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
 					this.experiment.getSamples( ));
-			this.graph.setSampleGroups( this.sampleGroups );
-			this.infoPanel.repaint( );
 
 			if ( this.sampleGroups != null ) {
+				this.graph.setSampleGroups( this.sampleGroups );
+				this.infoPanel.repaint( );
 				Logger logger = Logger.getLogger( getClass( ));
 				SampleGroup group = this.sampleGroups.getFirstItem( );
 				logger.debug( group.toString( ));
@@ -750,7 +752,7 @@ public class CorrelationDisplayPanel extends JPanel
 	}
 
 	// =================== PRIVATE/PROTECTED CLASSES ==========================
-	// ======================= MoleculeFilterPanel ============================
+	// ====================== MoleculeFilterPanel =============================
 
 	/**
 	 * A UI class for hiding/showing moledules (nodes)
@@ -762,8 +764,6 @@ public class CorrelationDisplayPanel extends JPanel
 			new HashMap<Molecule,JCheckBox>( );
 		private HashMap<JCheckBox,Molecule> moleculeMap =
 			new HashMap<JCheckBox,Molecule>( );
-//		private JLabel sortLabel = new JLabel( "Sort by ", SwingConstants.RIGHT );
-//		private JComboBox sortComboBox = new JComboBox( );
 		private JLabel filterLabel;
 		private JButton clearButton;
 		private JButton noneButton;
@@ -788,7 +788,8 @@ public class CorrelationDisplayPanel extends JPanel
 				return this.add( component, index );
 			}
 		};
-		private JScrollPane moleculeScrollPane = new JScrollPane( this.moleculeList );
+		private JScrollPane moleculeScrollPane = 
+			new JScrollPane( this.moleculeList );
 
 		/**
 		 * Creates a new instance of MoleculeFilterPanel.
@@ -796,22 +797,17 @@ public class CorrelationDisplayPanel extends JPanel
 		public MoleculeFilterPanel( ) {
 			super( new BorderLayout( ));
 			Language language = Settings.getLanguage( );
+
 			this.noneButton = new JButton( language.get( "None" ));
 			this.allButton = new JButton( language.get( "All" ));
 			this.filterLabel = new JLabel( language.get( "Search" ) + ": ",
 			                               SwingConstants.RIGHT );
 			this.clearButton = new JButton( language.get( "Clear" ));
 
-			JPanel sortSelectionPanel = new JPanel( new BorderLayout( ));
-//			sortSelectionPanel.add( this.sortLabel, BorderLayout.CENTER );
-//			sortSelectionPanel.add( this.sortComboBox, BorderLayout.EAST );
-			// control configuration
-//			this.sortComboBox.addItem( "Index" );
-//			this.sortComboBox.addItem( "Group" );
-//			this.sortComboBox.addItem( "Name" );
-			sortSelectionPanel.add( this.clearButton, BorderLayout.SOUTH );
-			sortSelectionPanel.add( this.filterLabel, BorderLayout.WEST );
-			sortSelectionPanel.add( this.filterBox, BorderLayout.CENTER );
+			JPanel searchPanel = new JPanel( new BorderLayout( ));
+			searchPanel.add( this.clearButton, BorderLayout.SOUTH );
+			searchPanel.add( this.filterLabel, BorderLayout.WEST );
+			searchPanel.add( this.filterBox, BorderLayout.CENTER );
 			this.filterBox.addKeyListener( this );
 			this.clearButton.addActionListener( this );
 			this.clearButton.setPreferredSize( new Dimension( 75, 20 ));
@@ -826,7 +822,7 @@ public class CorrelationDisplayPanel extends JPanel
 			moleculeButtonPanel.add( this.noneButton, BorderLayout.EAST );	
 
 			// MOLECULE LIST
-			this.add( sortSelectionPanel, BorderLayout.NORTH );
+			this.add( searchPanel, BorderLayout.NORTH );
 			this.add( this.moleculeScrollPane, BorderLayout.CENTER );
 			this.add( moleculeButtonPanel, BorderLayout.SOUTH );
 			this.setBorder( 
@@ -837,6 +833,8 @@ public class CorrelationDisplayPanel extends JPanel
 					TitledBorder.TOP
 				)
 			);
+			this.moleculeList.setBackground( Color.WHITE );
+			this.filterBox.setBackground( Color.WHITE );
 			this.moleculeScrollPane.getVerticalScrollBar( ).setUnitIncrement( 50 );
 		}
 
@@ -879,7 +877,7 @@ public class CorrelationDisplayPanel extends JPanel
 							graph.addEdge( correlation,
 								new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
 									correlation.getMolecules( )),
-								EdgeType.UNDIRECTED );
+									EdgeType.UNDIRECTED );
 					}
 				}
 				else {
@@ -991,19 +989,23 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @param filter The string to filter on.
 		 */
 		public void filter( String filter ) {
-			// try the string as a regular Pattern, if that fails then try a literal string 
-			// match. If all of that fails, just print the stack trace and show all.
+			// try the string as a regular Pattern, if that fails then try a literal 
+			// string match. If all of that fails, just print the stack trace and show
+			// all.
 			Pattern p;
-			// this will cause the string to emulate shell style pattern matching, since most users
-			// will not be expecting regular expression ability. This may be changed later.
-			// some RegEx characters will still work, however.
-			filter = String.format( ".*%s.*", filter.replace( "*", ".*" ).replace( "?", "." ));
+			// this will cause the string to emulate shell style pattern matching, 
+			// since most users will not be expecting regular expression ability. 
+			// This may be changed later. some RegEx characters will still work, 
+			// however.
+			filter = String.format( ".*%s.*", 
+				filter.replace( "*", ".*" ).replace( "?", "." ));
 			try { 
 				p = Pattern.compile( filter, Pattern.CASE_INSENSITIVE );
 
 				} catch ( PatternSyntaxException e ) { 
 					try {
-						p = Pattern.compile( filter, Pattern.CASE_INSENSITIVE | Pattern.LITERAL );
+						p = Pattern.compile( filter, 
+						                     Pattern.CASE_INSENSITIVE | Pattern.LITERAL );
 
 					} catch ( PatternSyntaxException exc ) {
 						Logger.getLogger( getClass( )).debug( e );
@@ -1012,11 +1014,13 @@ public class CorrelationDisplayPanel extends JPanel
 				}
 
 			for( JCheckBox cb : this.getCheckBoxes( )) {
-				if ( cb.isVisible( ) && !p.matcher( this.moleculeMap.get( cb ).toString( ) ).matches( )) {
+				if ( cb.isVisible( ) && 
+					   !p.matcher( this.moleculeMap.get( cb ).toString( ) ).matches( )) {
 					this.moleculeList.remove( cb );
 					cb.setVisible( false );
 					
-				} else if ( !cb.isVisible( ) && p.matcher( this.moleculeMap.get( cb ).toString( )).matches( )) {
+				} else if ( !cb.isVisible( ) && 
+					p.matcher( this.moleculeMap.get( cb ).toString( )).matches( )) {
 					this.moleculeList.add( cb );
 					cb.setVisible( true );
 				}
@@ -1026,7 +1030,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 		/**
 		 * The stateChanged method of the GraphItemChangeListener interface.
-		 * @see edu.purdue.cc.jsysnet.ui.GraphItemChangeListener#stateChanged(edu.purdue.jsysnet.ui.GraphItemChangeEvent)
+		 * @see GraphItemChangeListener#stateChanged(GraphItemChangeEvent)
 		 * 
 		 * @param event The GraphItemChangeEvent which triggered this action.
 		 */
@@ -1046,22 +1050,13 @@ public class CorrelationDisplayPanel extends JPanel
 	 * A class for displaying the table below the graph.
 	 */
 	private class InfoPanel extends JTabbedPane implements ChangeListener {
-		private JPanel conditionPanel = new ConditionPanel( );
-		private JPanel topologyPanel = new TopologyPanel( );
-		private JPanel degreeDistributionPanel = new DegreeDistributionPanel( );
-		private JPanel correlationDistributionPanel = new CorrelationDistributionPanel( );
-		private JPanel neighborhoodConnectivityPanel = 
-				new NeighborhoodConnectivityDistributionPanel( );
-		private JTable moleculeTable = new JTable(0,0) {
-			public boolean isCellEditable( int row, int col ) {
-				return false;
-			}
-		};
-		private JTable correlationTable = new JTable(0,0) {
-			public boolean isCellEditable( int row, int col ) {
-				return false;
-			}
-		};
+		private JPanel conditionPanel;
+		private JPanel topologyPanel;
+		private JPanel degreeDistributionPanel;
+		private JPanel correlationDistributionPanel;
+		private JPanel neighborhoodConnectivityPanel;
+		private JTable moleculeTable;
+		private JTable correlationTable;
 
 		/**
 		 * Creates a new InfoPanel.
@@ -1069,15 +1064,43 @@ public class CorrelationDisplayPanel extends JPanel
 		public InfoPanel( ) {
 			super( );
 			Language language = Settings.getLanguage( );
+
+			this.conditionPanel = new ConditionPanel( );
+			this.topologyPanel = new TopologyPanel( );
+			this.degreeDistributionPanel = new DegreeDistributionPanel( );
+			this.correlationDistributionPanel = new CorrelationDistributionPanel( );
+			this.neighborhoodConnectivityPanel = 
+					new NeighborhoodConnectivityDistributionPanel( );
+			this.moleculeTable = new JTable(0,0) {
+				public boolean isCellEditable( int row, int col ) {
+					return false;
+				}
+			};
+			this.correlationTable = new JTable(0,0) {
+				public boolean isCellEditable( int row, int col ) {
+					return false;
+				}
+			};
+
+			this.conditionPanel.setBackground( Color.WHITE );
+			this.topologyPanel.setBackground( Color.WHITE );
+			this.moleculeTable.setBackground( Color.WHITE );
+			this.correlationTable.setBackground( Color.WHITE );
+
 			this.moleculeTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 			this.correlationTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
-			this.add( new JScrollPane( moleculeTable ), language.get( "Molecules" ));
-			this.add( new JScrollPane( correlationTable ), language.get( "Correlations" ));
+			this.add( new JScrollPane( moleculeTable ), 
+			          language.get( "Molecules" ));
+			this.add( new JScrollPane( correlationTable ), 
+			          language.get( "Correlations" ));
 			this.add( conditionPanel, language.get( "Display Conditions" ));
 			this.add( topologyPanel, language.get( "Topological Information" ));
-			this.add( degreeDistributionPanel, language.get( "Node Degree Distribution" ));
-			this.add( correlationDistributionPanel, language.get( "Correlation Distribution" ));
-			this.add( neighborhoodConnectivityPanel, language.get( "Neighborhood Connectivity" ));
+			this.add( degreeDistributionPanel, 
+			          language.get( "Node Degree Distribution" ));
+			this.add( correlationDistributionPanel, 
+			          language.get( "Correlation Distribution" ));
+			this.add( neighborhoodConnectivityPanel, 
+			          language.get( "Neighborhood Connectivity" ));
 		}
 
 		/**
@@ -1097,7 +1120,8 @@ public class CorrelationDisplayPanel extends JPanel
 				for ( Sample sample : samples ) {
 					tm.addColumn( sample.toString( ));
 				}
-				Enumeration <TableColumn> columns = this.moleculeTable.getColumnModel( ).getColumns( );
+				Enumeration <TableColumn> columns = 
+					this.moleculeTable.getColumnModel( ).getColumns( );
 				while( columns.hasMoreElements( ))
 					columns.nextElement( ).setPreferredWidth( 75 );
 			}
@@ -1346,29 +1370,37 @@ public class CorrelationDisplayPanel extends JPanel
 					Correlation.NAME[ Correlation.getDefaultMethod( )]);
 				g.drawString( text, 20, 50 );
 				if ( sampleGroups != null ) {
-					// create a heading
-					text = language.get( "Sample Groups" );
-					g.drawString( text, 415, 30 );
-					g.drawLine( 415, 32, 415 + f.stringWidth( text ), 32 );
 
+					int leftMargin = 300;
 					// list the samples in group 1.
 					text = language.get( "Group" ) + " 1";
-					g.drawString( text, 300, 50 );
-					g.drawLine( 300, 52, 300 + f.stringWidth( text ), 52 );
+					g.drawString( text, leftMargin, 50 );
+					g.drawLine( leftMargin, 52, leftMargin + f.stringWidth( text ), 52 );
 					int verticalPos = 70;
 					for ( Sample s : sampleGroups.getFirstItem( )) {
-						g.drawString( s.toString( ), 300, verticalPos );
+						g.drawString( s.toString( ), leftMargin, verticalPos );
 						verticalPos += 20;
 					}
+					
 					// list the samples in group 2.
 					text = language.get( "Group" ) + " 2";
-					g.drawString( text, 530, 50 );
-					g.drawLine( 530, 52, 530 + f.stringWidth( text ), 52 );
+					int col2Margin = leftMargin + 230;
+					int stringWidth = f.stringWidth( text );
+					int rightMargin = col2Margin + stringWidth;
+					g.drawString( text, col2Margin, 50 );
+					g.drawLine( col2Margin, 52, col2Margin + stringWidth, 52 );
 					verticalPos = 70;
 					for ( Sample s : sampleGroups.getSecondItem( )) {
-						g.drawString( s.toString( ), 530, verticalPos );
+						g.drawString( s.toString( ), col2Margin, verticalPos );
 						verticalPos += 20;
 					}
+
+					// create a heading
+					int center = leftMargin + ( rightMargin - leftMargin ) / 2;
+					text = language.get( "Sample Groups" );
+					stringWidth = f.stringWidth( text );
+					g.drawString( text, center - stringWidth/2, 30 );
+					g.drawLine( center - stringWidth/2, 32, center + stringWidth/2, 32 );
 				}
 			}
 
@@ -2006,6 +2038,443 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 	}
 
+	// ====================== CorrelationFilterPanel =============================
+	/**
+	 * A UI class which shows a set of Spinners for adjusting the visible 
+	 * correlation range.
+	 */
+	private class CorrelationFilterPanel extends JPanel implements ChangeListener {
+
+		private JLabel minCorrelationLabel;
+		private JLabel maxCorrelationLabel;
+		private JPanel minCorrelationFilterPanel = new JPanel( );
+		private JPanel maxCorrelationFilterPanel = new JPanel( );
+		private JSpinner minCorrelationSpinner;
+		private JSpinner maxCorrelationSpinner;
+		private MonitorableRange range; 
+
+		/**
+		 * Creates a new CorrelationFilterPanel with the default correlation range 
+		 * (0.6-1.0) a step of 0.5, min of 0.0 and max of 1.0
+		 */
+		public CorrelationFilterPanel( ) {
+			this( 0.6, 1.0 );
+		}
+
+		/**
+		 * Creates a new CorrelationFilterPanel with the the specified correlation
+		 * range, a step of 0.05, and min of 0.0, max of 1.0.
+		 * 
+		 * @param low The initial low setting for the filter.
+		 * @param high The initial high setting for the filter.
+		 */
+		public CorrelationFilterPanel( double low, double high ) {
+			this( 0.0, 1.0, 0.05, low, high );
+		}
+
+		/**
+		 * Creates a new Correlation filter with the passed in values.
+		 * 
+		 * @param min The minimum allowed value in the spinners.
+		 * @param max The maximum allowed value in the spinners.
+		 * @param step The step amount for each spinner click.
+		 * @param low The initial low setting for the filter.
+		 * @param high The initial high setting for the filter.
+		 */
+		public CorrelationFilterPanel( double min, double max, double step, 
+		                               double low, double high ) {
+			super( new BorderLayout( ));
+			Language language = Settings.getLanguage( );
+			this.minCorrelationLabel = 
+				new JLabel( language.get( "Higher Than" ) + ": ", SwingConstants.RIGHT );
+			this.maxCorrelationLabel = 
+				new JLabel( language.get( "Lower Than" )+ ": ", SwingConstants.RIGHT );
+
+			this.range = new MonitorableRange( low, high );
+			this.minCorrelationSpinner =
+				new JSpinner( new SpinnerNumberModel( low, min, max, step ));
+			this.maxCorrelationSpinner = 
+				new JSpinner( new SpinnerNumberModel( high, min, max, step ));
+
+			this.minCorrelationSpinner.setPreferredSize( new Dimension( 80, 25 ));
+			this.maxCorrelationSpinner.setPreferredSize( new Dimension( 80, 25 ));
+
+			this.minCorrelationFilterPanel = new JPanel( new BorderLayout( ));
+			this.minCorrelationFilterPanel.add( this.minCorrelationSpinner, 
+			                                    BorderLayout.EAST );
+			this.minCorrelationFilterPanel.add( this.minCorrelationLabel, 
+			                                    BorderLayout.CENTER );
+
+			this.maxCorrelationFilterPanel = new JPanel( new BorderLayout( ));
+			this.maxCorrelationFilterPanel.add( this.maxCorrelationSpinner, 
+			                                    BorderLayout.EAST );
+			this.maxCorrelationFilterPanel.add( this.maxCorrelationLabel, 
+			                                    BorderLayout.CENTER );
+
+			this.add( this.minCorrelationFilterPanel, BorderLayout.NORTH );
+			this.add( this.maxCorrelationFilterPanel, BorderLayout.SOUTH );
+			this.minCorrelationSpinner.addChangeListener( this ); 
+			this.maxCorrelationSpinner.addChangeListener( this );
+			this.minCorrelationSpinner.setBackground( Color.WHITE );
+			this.maxCorrelationSpinner.setBackground( Color.WHITE );
+
+			this.setBorder( 
+				BorderFactory.createTitledBorder( 
+					BorderFactory.createLineBorder( Color.BLACK, 1 ),
+					Settings.getLanguage( ).get( "Correlation Filter" ),
+					TitledBorder.CENTER,
+					TitledBorder.TOP
+			));
+		}
+
+
+		/**
+		 * Returns the current range setting of the filter.
+		 * 
+		 * @return The current range setting of the filter.
+		 */
+		public Range getRange( ) {
+			return range;
+		}
+
+		/**
+		 * Returns the current range setting of the filter as a MonitorableRange
+		 * which will accept a listener.
+		 * 
+		 * @return The current range setting as a MonitorableRange object.
+		 */
+		public MonitorableRange getMonitorableRange( ) {
+			return range;
+		}
+
+		/**
+		 * The stateChanged method of the ChangeListener interface.
+		 * @see javax.swing.event.ChangeListener#stateChanged(ChangeEvent)
+		 * 
+		 * @param e The event which triggered this action.
+		 */
+		public void stateChanged( ChangeEvent e ) {
+			range.setRange((( Double )this.minCorrelationSpinner.getValue( )).doubleValue( ),
+											 (( Double )this.maxCorrelationSpinner.getValue( )).doubleValue( ));
+		}
+
+	}
+
+	// ======================= CorrelationGraphVisualizer ======================
+	/**
+	 * A class for displaying a JUNG graph tailored for JSysNet
+	 */
+	private class CorrelationGraphVisualizer 
+			extends GraphVisualizer<Molecule,Correlation> 
+			implements ChangeListener,GraphMouseListener<Correlation>, 
+				ComponentListener {
+
+		public MonitorableRange range;
+		public Experiment experiment;
+		protected Spectrum spectrum;
+		private SpectrumLegend spectrumLegend;
+		private Pair<SampleGroup> sampleGroups;
+
+		/**
+		 * Creates a new CorrelationGraphVisualizer.
+		 * 
+		 * @param experiment The experiment to be associated with this 
+		 *  CorrelationGraphVisualizer.
+		 * @param range A MonitorableRange object used to determine which 
+		 *  Correlations to show on the graph.
+		 */
+		public CorrelationGraphVisualizer( Experiment experiment, 
+																			 MonitorableRange range ) {
+			super( );
+			this.setRange( range );
+			this.setExperiment( experiment );
+			this.addGraphMouseEdgeListener( this );
+			this.addComponentListener( this );
+
+			this.spectrum = new SplitSpectrum( range );
+			this.spectrum.setOutOfRangePaint( Color.WHITE );
+			this.spectrumLegend = 
+				new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
+			this.setLayout( null );
+			this.add( this.spectrumLegend );
+			Transformer e = new Transformer<Correlation,Paint>( ) {
+				public Paint transform( Correlation e ) {
+					if ( getPickedEdgeState( ).isPicked( e )) {
+						return pickedEdgePaint;
+					} else {
+						return spectrum.getPaint( e.getValue( ));
+					}
+				}
+			};
+			this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
+		}
+
+		/**
+		 * Used to change the experiment which is displayed in this graph.
+		 * 
+		 * @param experiment The new experiment.
+		 */
+		public void setExperiment( Experiment experiment ) {
+			// remove all edges and vertices.
+			for ( Molecule v : this.getVertices( ))
+				this.removeVertex( v );
+			for ( Correlation e : this.getEdges( ))
+				this.removeEdge( e );
+			// add the new data.
+			this.experiment = experiment;
+			this.addVertices( );
+			this.addEdges( );
+		}
+
+		/**
+		 * Sets sample groups for up/downregulation indicators on the display.
+		 * 
+		 * @param sg The selected groups.
+		 */
+		public void setSampleGroups( Pair<SampleGroup> sg ) {
+			this.sampleGroups = sg;
+			this.getRenderContext( ).setVertexDrawPaintTransformer(
+				new RegulationTransformer( 
+					sg, Color.GREEN.darker( ), Color.RED, vertexOutline ));
+			this.repaint( );
+		}
+		
+		/**
+		 * Returns the current Experiment associated with this graph.
+		 * 
+		 * @return The Experiment associated with this graph.
+		 */
+		public Experiment getExperiment( ) {
+			return this.experiment;
+		}
+		
+		/**
+		 * Sets a new range to be used for filtering.
+		 * 
+		 * @param range The new MonitorableRange object to use.
+		 */
+		public void setRange( MonitorableRange range ) {
+			if ( this.range != null )
+				this.range.removeChangeListener( this );
+			this.range = range;
+			range.addChangeListener( this );
+		}
+
+		/**
+		 * Gets the current MOnitorableRange object being used.
+		 * 
+		 * @return The current MonitorableRange.
+		 */
+		public MonitorableRange getRange( ) {
+			return this.range;
+		}
+
+		/**
+		 * Adds the Vertices (Molecules) to the Graph
+		 */
+		protected void addVertices( ) {
+			for( Molecule molecule : this.experiment.getMolecules( ))
+				this.graph.addVertex( molecule );
+		}
+
+		/**
+		 * Adds the Edges (Correlations) to the Graph.
+		 */
+		protected void addEdges( ) {
+			for( Correlation correlation : this.experiment.getCorrelations( )) {
+				if ( this.isValidEdge( correlation )) {
+					this.graph.addEdge( 
+						correlation, 
+						new edu.uci.ics.jung.graph.util.Pair <Molecule> ( correlation.getMolecules( )),
+						EdgeType.UNDIRECTED );
+				}
+			}
+		}
+
+		/**
+		 * Filters the edges displayed in the graph based on the MonitorableRange
+		 * associated with this graph.
+		 * 
+		 * @return The new number of edges contained in the graph.
+		 */
+		public int filterEdges( ) {
+			
+			int returnValue = 0;
+			for( Correlation correlation : this.experiment.getCorrelations( )) {
+				if ( this.isValidEdge( correlation )) {
+					returnValue++;
+					// this Correlation belongs on the graph, make sure it is there.
+					if ( !this.containsEdge( correlation )) {
+						this.addEdge( correlation, 
+													new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
+														correlation.getMolecules( )),
+													EdgeType.UNDIRECTED );
+					}
+				}
+				else {
+					// this Correlation does not belong on the graph, make sure it is 
+					// not there.
+					if ( this.containsEdge( correlation )) {
+						this.getPickedEdgeState( ).pick( correlation, false );
+						this.removeEdge( correlation );
+					}
+				}
+			}
+			this.repaint( );
+			return returnValue;
+		}
+
+		/**
+		 * Checks to see if an edge is valid and belongs in the graph.
+		 * 
+		 * @param correlation The edge to check.
+		 * @return true If the correlation should be shown, false otherwise.
+		 */
+		public boolean isValidEdge( Correlation correlation ) {
+			Molecule [] molecules = correlation.getMolecules( );
+			return ( this.containsVertex( molecules[ 0 ] ) &&
+							 this.containsVertex( molecules[ 1 ] ) &&
+							 this.range.contains( 
+								 Math.abs( correlation.getValue( ))));
+		}
+
+		/**
+		 * The stateChanged method of the ChangeListener interface.
+		 * @see ChangeListener#stateChanged(ChangeEvent)
+		 * 
+		 * @param event The event which triggered this action.
+		 */
+		public void stateChanged( ChangeEvent event ) {
+			this.filterEdges( );
+		}
+
+		/**
+		 * The graphClicked method of the GraphMouseListener interface.
+		 * @see GraphMouseListener#graphClicked(V,MouseEvent)
+		 * 
+		 * @param edge The edge which was clicked on to trigger the event.
+		 * @param event The event which triggered this action.
+		 */
+		public void graphClicked( Correlation edge, MouseEvent event ) {
+			if ( event.getButton( ) == MouseEvent.BUTTON1 ) {
+				Molecule [] m = edge.getMolecules( );
+				PickedState <Molecule> state = this.getPickedVertexState( );
+				// see if shift or ctrl is being held down
+				if(( event.getModifiers( ) & 
+					 ( InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK )) == 0 ) 
+						state.clear( );
+				state.pick( m[0], true );
+				state.pick( m[1], true );
+			}
+		}
+
+		/**
+		 * Called when the component is repainted.
+		 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+		 * 
+		 * @param g The Graphics object associated with this Component.
+		 */
+		public void paintComponent( Graphics g ) {
+			super.paintComponent( g );
+		}
+		
+		/**
+		 * The graphPressed method of the GraphMouseListener interface. Not 
+		 * implemented.
+		 * 
+		 * @param edge The edge which was clicked on to trigger the event.
+		 * @param event The event which triggered this action.
+		 */
+		public void graphPressed( Correlation edge, MouseEvent event ) { }
+
+		/**
+		 * The graphReleased method of the GraphMouseListener interface. Not 
+		 * implemented.
+		 * 
+		 * @param edge The edge which was clicked on to trigger the event.
+		 * @param event The event which triggered this action.
+		 */
+		public void graphReleased( Correlation edge, MouseEvent event ) { }
+
+		// ComponentListener Methods
+		public void componentHidden( ComponentEvent e ) { }
+		public void componentMoved( ComponentEvent e ) {
+			int h, w;
+			if ( this.scrollPane != null ) {
+				Rectangle view = this.scrollPane.getViewport( ).getViewRect( );
+				w = view.x;
+				h = view.y + view.height;
+			} else {
+				w = 0;
+				h = this.getHeight( );
+			}
+			Rectangle legendArea = new Rectangle( w + 20, h - 35, 150, 20);
+			this.spectrumLegend.setBounds( legendArea );
+			this.spectrumLegend.repaint( );
+		}
+		public void componentResized( ComponentEvent e ) { 
+			componentMoved( e );
+		}
+		public void componentShown( ComponentEvent e ) { }
+
+		// ==================== PRIVATE/PROTECTED CLASSES ==========================
+		// ====================== RegulationTransformer ============================
+		/**
+		 * A class for deteriming the outline  color of a Molecule vertex.
+		 */
+		private class RegulationTransformer implements Transformer<Molecule,Paint> {
+			private Pair<SampleGroup> sampleGroups;
+			private Paint upPaint;
+			private Paint downPaint;
+			private Paint neutralPaint;
+
+			/**
+			 * Creates a new RegulationTransformer.
+			 * 
+			 * @param sg A pair of SampleGroups to be used for determining up or
+			 *  downregulation.
+			 * @param upPaint The Paint to be used for outlining upregulated 
+			 *	Molecules.
+			 * @param downPaint The Paint to be used for outlining downregulated
+			 *  Molecules.
+			 * @param neutralPaint The Paint to be used for outlining Molecules which
+			 *  are neither up or downregulated.
+			 */
+			private RegulationTransformer ( Pair<SampleGroup> sg, 
+																		 Paint upPaint,
+																		 Paint downPaint, 
+																		 Paint neutralPaint ) {
+				this.sampleGroups = sg;
+				this.upPaint = upPaint;
+				this.downPaint = downPaint;
+				this.neutralPaint = neutralPaint;
+			}
+
+			/**
+			 * Returns the appropriate Paint for the indicated molecule.
+			 * 
+			 * @param m The Molecule to determine the outline Paint for.
+			 * @return The Paint to use.
+			 */
+			public Paint transform( Molecule m ) {
+				Logger logger = Logger.getLogger( getClass( ));
+				if ( sampleGroups.getFirstItem( ).size( ) == 0  || 
+						 sampleGroups.getSecondItem( ).size( ) == 0 ) {
+					return this.neutralPaint;
+				}
+				double mean1 = m.getValues( sampleGroups.getFirstItem( )).getMean( );
+				double mean2 = m.getValues( sampleGroups.getSecondItem( )).getMean( );
+				if ( mean1 < mean2 ) {
+					return this.upPaint;
+				}
+				if ( mean2 < mean1 ) {
+					return this.downPaint;
+				}
+				return this.neutralPaint;
+			}
+		}
+
+	}
 }
 
 

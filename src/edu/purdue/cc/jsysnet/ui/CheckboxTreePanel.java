@@ -137,7 +137,7 @@ public abstract class CheckboxTreePanel extends JPanel {
 	/**
 	 * Returns an iterator over the checked children of the given node.
 	 * 
-	 * @param The node to retrieve the checked children of.
+	 * @param node The node to retrieve the checked children of.
 	 * @return an iterator over the checked child nodes.
 	 */
 	public Iterator<TreeNode> checkedChildIterator( TreeNode node ) {
