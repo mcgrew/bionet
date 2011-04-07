@@ -98,7 +98,7 @@ public class HeatMap extends JPanel implements MouseListener,
 		this.addComponentListener( this );
 		this.moleculeList = new Vector( experiment.getMolecules( ));
 		this.spectrum = new SplitSpectrum( range, this.getBackground( ));
-		this.spectrum.setOutOfRangePaint( Color.WHITE );
+		this.spectrum.setOutOfRangePaint( this.getBackground( ));
 		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
 		this.setLayout( null );
 		this.add( this.spectrumLegend );
@@ -119,6 +119,22 @@ public class HeatMap extends JPanel implements MouseListener,
 			}
 		}
 		return returnValue;
+	}
+
+	@Override
+	public void setBackground( Color color ) {
+		super.setBackground( color );
+		if ( this.spectrum != null )
+			this.spectrum.setOutOfRangePaint( color );
+		if ( this.spectrumLegend != null )
+			this.spectrumLegend.setBackground( color );
+	}
+
+	@Override
+	public void setForeground( Color color ){
+		super.setForeground( color );
+		if ( this.spectrumLegend != null )
+			this.spectrumLegend.setForeground( color );
 	}
 
 	/**
@@ -229,7 +245,7 @@ public class HeatMap extends JPanel implements MouseListener,
 			int bottomEdge = this.getHeight( ) * 7 / 8;
 			int rightEdge = this.getWidth( ) * 31 / 32;
 			mapPosition = new Rectangle( leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge );
-			g.drawImage( drawing, leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge, Color.WHITE, this );
+			g.drawImage( drawing, leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge, this.getBackground( ), this );
 			// y-axis
 			int yAxisPos = leftEdge - 1;
 	//		g.drawLine( yAxisPos, topEdge, yAxisPos, bottomEdge );

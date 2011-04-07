@@ -144,12 +144,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		this.sampleSelectorTree = new SampleSelectorTreePanel( this.samples );
 		
 		this.setClusterer( new SOM(
-				5,                            // number of dimensions on the x axis
-				5,                            // number of dimensions on the y axis
-				SOM.GridType.HEXAGONAL,        // type of grid.
-				10000,                          // number of iterations
+				8,                             // number of dimensions on the x axis
+				8,                             // number of dimensions on the y axis
+				SOM.GridType.RECTANGLES,       // type of grid.
+				10000,                         // number of iterations
 				0.1,                           // learning rate of algorithm
-				8,                             // initial radius
+				10,                             // initial radius
 				SOM.LearningType.LINEAR,       // type of learning to use
 				SOM.NeighbourhoodFunction.STEP // neighborhood function.
 		));

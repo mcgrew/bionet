@@ -49,6 +49,7 @@ public class SpectrumLegend extends JPanel {
 		super( );
 		this.spectrum = spectrum;
 		this.range = range;
+		this.setForeground( Color.BLACK );
 	}
 
 	protected void paintComponent( Graphics g ) {
@@ -76,7 +77,7 @@ public class SpectrumLegend extends JPanel {
 			g.drawLine( area.x+i+1, area.y, area.x+i+1, legendBottom );
 		}
 
-		g.setColor( Color.BLACK );
+		g.setColor( this.getForeground( ));
 		if ( drawBorder )
 			g.drawRect( area.x, area.y, area.width-1, legendBottom - area.y );
 		if ( scaleSpace > 0 ) {

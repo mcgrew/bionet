@@ -845,6 +845,7 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		public void add( Molecule m ) {
 			JCheckBox cb = new JCheckBox( m.toString( ), true );
+			cb.setBackground( Color.WHITE );
 			this.moleculeList.add( cb );
 			this.checkBoxMap.put( m, cb );
 			this.moleculeMap.put( cb, m );
@@ -1081,6 +1082,7 @@ public class CorrelationDisplayPanel extends JPanel
 					return false;
 				}
 			};
+			this.setBackground( Color.WHITE );
 
 			this.conditionPanel.setBackground( Color.WHITE );
 			this.topologyPanel.setBackground( Color.WHITE );
@@ -2207,6 +2209,20 @@ public class CorrelationDisplayPanel extends JPanel
 				}
 			};
 			this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
+		}
+
+		@Override
+		public void setBackground( Color color ) {
+			super.setBackground( color );
+			if ( this.spectrumLegend != null )
+				this.spectrumLegend.setBackground( color );
+		}
+
+		@Override
+		public void setForeground( Color color ) {
+			super.setForeground( color );
+			if ( this.spectrumLegend != null )
+				this.spectrumLegend.setForeground( color );
 		}
 
 		/**
