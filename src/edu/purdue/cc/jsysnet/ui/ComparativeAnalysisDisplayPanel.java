@@ -22,6 +22,7 @@ package edu.purdue.cc.jsysnet.ui;
 import edu.purdue.bbc.util.CurveFitting;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.bbc.util.SparseMatrix;
 import edu.purdue.bbc.util.Statistics;
 import edu.purdue.bbc.util.equation.Equation;
 import edu.purdue.bbc.util.equation.Polynomial;
@@ -55,10 +56,12 @@ import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -132,10 +135,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	private ButtonGroup fitButtonGroup;
 	private boolean graphSplitPaneDividerLocationSet = false;
 
-	private static final int MOLECULEGROUP = 1;
-	private static final int MOLECULE      = 2;
-	private static final int EXPERIMENT    = 3;
-	private static final int SAMPLE        = 4;
+	private static final int MOLECULE      = 1;
+	private static final int EXPERIMENT    = 2;
+	private static final int SAMPLE        = 3;
 
 	public ComparativeAnalysisDisplayPanel ( ) {
 		super( new BorderLayout( ));
@@ -157,8 +159,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		this.sampleGraph = new SampleGraph( experiments );
 		this.fitSelectorPanel = new JPanel( new GridLayout( 4, 1 ));
 		this.noFitButton = new JRadioButton( language.get( "No Fit" ));
-		this.robustFitButton = new JRadioButton( language.get( "Robust Linear Fit" ));
-		this.chiSquareFitButton = new JRadioButton( language.get( "Chi Square Fit" ));
+		this.robustFitButton = new JRadioButton( language.get("Robust Linear Fit"));
+		this.chiSquareFitButton = new JRadioButton( language.get("Chi Square Fit"));
 		this.fitButtonGroup = new ButtonGroup( );
 		this.fitButtonGroup.add( this.noFitButton );
 		this.fitButtonGroup.add( this.robustFitButton );
@@ -229,47 +231,38 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	 * A class for displaying the selector tree
 	 */
 	private class ExperimentSelectorTreePanel extends CheckboxTreePanel {
-		private Map <Object,DefaultMutableTreeNode> nodeMap;
 
 		/**
-		 * Creates a new ExperimentSelectorTreePanel based on the passed in Experiments.
+		 * Creates a new ExperimentSelectorTreePanel based on the passed in 
+		 * Experiments.
 		 * 
 		 * @param experiments The Experiment data to be shown in the tree.
 		 */
 		public ExperimentSelectorTreePanel( Collection <Experiment> experiments ) {
 			super( new BorderLayout( ));
-			this.nodeMap = new HashMap<Object,DefaultMutableTreeNode>( );
 			DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(	
 				Settings.getLanguage( ).get( "All Experiments" ));
 
 			// first get all possible group names
-			Map<String,MoleculeGroup> groupMap = new TreeMap<String,MoleculeGroup>( );
+			TreeSet<Molecule> molecules = new TreeSet<Molecule>( );
 			for ( Experiment e : experiments ) {
-				for ( MoleculeGroup group : e.getMoleculeGroups( )) {
-					groupMap.put( group.toString( ), group );
-				}
+				molecules.addAll( e.getMolecules( ));
 			}
-			// now get all possible molecule ids
-			for ( MoleculeGroup group : groupMap.values( )) {
-				DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode( group );
+			for ( Molecule molecule : molecules ) {
+				DefaultMutableTreeNode moleculeNode = 
+					new DefaultMutableTreeNode( molecule );
 
-				for ( Molecule molecule : group ) {
-					DefaultMutableTreeNode moleculeNode = 
-						new DefaultMutableTreeNode( molecule );
-
-					for ( Experiment e : experiments ) {
-						DefaultMutableTreeNode experimentNode = 
-							new DefaultMutableTreeNode( e );
-						for ( Sample sample : e.getSamples( )) {
-							DefaultMutableTreeNode sampleNode = 
-								new DefaultMutableTreeNode( sample );	
-							experimentNode.add( sampleNode );
-						}
-						moleculeNode.add( experimentNode );
+				for ( Experiment e : experiments ) {
+					DefaultMutableTreeNode experimentNode = 
+						new DefaultMutableTreeNode( e );
+					for ( Sample sample : e.getSamples( )) {
+						DefaultMutableTreeNode sampleNode = 
+							new DefaultMutableTreeNode( sample );	
+						experimentNode.add( sampleNode );
 					}
-					groupNode.add( moleculeNode );
+					moleculeNode.add( experimentNode );
 				}
-				rootNode.add( groupNode );
+				rootNode.add( moleculeNode );
 			}
 			this.tree = new CheckboxTree( rootNode );
 			this.tree.setRootVisible( false );
@@ -290,10 +283,12 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			Map<Sample,Number> returnValue = new HashMap<Sample,Number>( );
 			Object userObj = node.getUserObject( );
 			if ( userObj instanceof Experiment ) {
-				Molecule molecule = (Molecule)((DefaultMutableTreeNode)node.getParent( )).getUserObject( );
+				Molecule molecule = (Molecule)
+					((DefaultMutableTreeNode)node.getParent( )).getUserObject( );
 				for ( int i=0; i < node.getChildCount( ); i++ ) {
 					if ( this.isChecked( node.getChildAt( i ) )) {
-						Sample sample = (Sample)((DefaultMutableTreeNode)node.getChildAt( i )).getUserObject( );
+						Sample sample = (Sample)
+							((DefaultMutableTreeNode)node.getChildAt( i )).getUserObject( );
 						returnValue.put( sample, sample.getValue( molecule ));
 					}
 				}
@@ -301,10 +296,12 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			} else if ( userObj instanceof Molecule ) {
 				Molecule molecule = (Molecule)userObj;
 				for( int i=0; i < node.getChildCount( ); i++ ){
-					DefaultMutableTreeNode expNode = (DefaultMutableTreeNode)node.getChildAt( i );
+					DefaultMutableTreeNode expNode = 
+						(DefaultMutableTreeNode)node.getChildAt( i );
 					for( int j=0; j < expNode.getChildCount( ); j++ ) {
 						if ( this.isChecked( node.getChildAt( j ))) {
-							Sample sample = (Sample)((DefaultMutableTreeNode)expNode.getChildAt( j )).getUserObject( );
+							Sample sample = (Sample)((DefaultMutableTreeNode)
+								expNode.getChildAt( j )).getUserObject( );
 							returnValue.put( sample, sample.getValue( molecule ));
 						}
 					}
@@ -395,7 +392,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			int expIndex = 1;
 			int expCount = 0;
 			for( int i=0; i < node.getChildCount( ); i++ ) {
-				DefaultMutableTreeNode expNode = (DefaultMutableTreeNode)node.getChildAt( i );
+				DefaultMutableTreeNode expNode = 
+					(DefaultMutableTreeNode)node.getChildAt( i );
 				Experiment e = (Experiment)expNode.getUserObject( );
 				fitValues[ expIndex ] = Double.NaN;
 				if ( selectorTree.isChecked( node )) {
@@ -459,7 +457,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
 			plot.setDomainAxis( new NumberAxis( ));
-			plot.getDomainAxis( ).setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			plot.getDomainAxis( ).setStandardTickUnits( 
+				NumberAxis.createIntegerTickUnits( ));
 			plot.getDomainAxis( ).setVerticalTickLabels( true );
 			XYItemRenderer boxRenderer = plot.getRenderer( );
 			boxRenderer.setSeriesStroke( 0, this.stroke );
@@ -545,7 +544,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				if ( path != null ) {
 					int level = path.getPathCount( );
 					if ( level > MOLECULE ) {
-						this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
+						this.setGraph( 
+							(DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
 					} else {
 						this.chart = null;
 					}
@@ -579,56 +579,45 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		public boolean setGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( );
 			XYSeriesCollection dataset = new XYSeriesCollection( );
-			Object userObj = node.getUserObject( );
+			LegendItemCollection legendItems = new LegendItemCollection( );
 			CustomXYLineAndShapeRenderer renderer = 
 				new CustomXYLineAndShapeRenderer( true, true );
-			if ( userObj instanceof Molecule ) {
-				for ( int i=0; i < node.getChildCount( ); i++ ) {
-					DefaultMutableTreeNode expNode = 
-						(DefaultMutableTreeNode)node.getChildAt( i );
-					Experiment experiment = (Experiment)expNode.getUserObject( );
-					XYSeries data = new XYSeries( String.format( "%s %s",
-						language.get( "Experiment" ),
-						experiment.getId( )
-					));
-					Collection<Sample> samples = experiment.getSamples( );
-					Map<Sample,Number> values = selectorTree.getSamplesFiltered( expNode );
-					int index = 0;
-					for ( Sample sample : samples ) {
-						Number value = values.get( sample );
-						if ( value != null ) {
-							data.add( index, value );
-						}
-						index++;
-					}
-					List<Number> valueList = new ArrayList<Number>( values.size( ));
-					valueList.addAll( values.values( ));
-					renderer.setSeriesOutlierInfo( dataset.getSeriesCount( ),
-						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( valueList ));
-					dataset.addSeries( data );
+			int nodeLevel = node.getLevel( );
+			Logger.getLogger( getClass( )).debug( 
+				"Selected Node level: " + nodeLevel );
+			Collection<Sample> samples = null;
+
+			if ( nodeLevel == MOLECULE || nodeLevel == EXPERIMENT ) {
+				Molecule molecule = null;
+				if ( nodeLevel == MOLECULE ) {
+					molecule = (Molecule)node.getUserObject( );
+				} else {
+					molecule = (Molecule)((DefaultMutableTreeNode)
+							node.getParent( )).getUserObject( );
 				}
-			} else {
-				Experiment experiment = (Experiment)node.getUserObject( );
-				XYSeries data = new XYSeries( String.format( "%s %s",
-					language.get( "Experiment" ),
-					experiment.getId( )
-				));
-				Collection<Sample> samples = experiment.getSamples( );
-				Map<Sample,Number> values = selectorTree.getSamplesFiltered( node );
+				samples = new TreeSet<Sample>( new SampleValueComparator( molecule ));
+				Iterator<TreeNode> sampleNodeIter = 
+					selectorTree.checkedDescendantIterator( node, SAMPLE );
+				XYSeries data = new XYSeries( language.get( "Samples" ));
 				int index = 0;
+				while( sampleNodeIter.hasNext( )) {
+					samples.add((Sample)
+						((DefaultMutableTreeNode)sampleNodeIter.next( )).getUserObject( ));
+				}
 				for ( Sample sample : samples ) {
-					Number value = values.get( sample );
-					if ( value != null ) {
-						data.add( index, value );
-					}
+					Number value = molecule.getValue( sample );
+					data.add( index, value );
 					index++;
 				}
-				List<Number> valueList = new ArrayList<Number>( values.size( ));
-				valueList.addAll( values.values( ));
 				renderer.setSeriesOutlierInfo( dataset.getSeriesCount( ),
-					BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( valueList ));
+					BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
+						molecule.getValues( samples )));
 				dataset.addSeries( data );
+
+			} else { 
+				return false;
 			}
+
 			this.chart = ChartFactory.createXYLineChart( 
 				String.format( language.get( "%s sample concentrations" ), 
 				node.toString( )),         // title
@@ -642,48 +631,61 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			);
 
 			XYPlot plot = this.chart.getXYPlot( );
-//			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( 0 );
+//			XYLineAndShapeRenderer renderer = 
+//				(XYLineAndShapeRenderer)plot.getRenderer( 0 );
 			plot.setRenderer( renderer );
-			if ( userObj instanceof Molecule ) {
-				// if this is a multi-experiment graph, set the colors for each.
-				for ( int i=0,c=plot.getSeriesCount( ); i < c; i++ ) {
-						renderer.setSeriesPaint( i, 
-							Color.getHSBColor( (float)i/c, 1.0f, 0.5f ));
-					renderer.setSeriesStroke( i, new BasicStroke( 2 ));
-					renderer.setSeriesShapesVisible( i, true );
-				}
-			} else {
-				// this is a single experiment graph, so pick the color to be consistent
-				// with the multi-experiment graph.
-				int experimentCount = node.getParent( ).getChildCount( );
-				int index = 0;
-				for ( int i=0; i < experimentCount; i++ ) {
-					if ( node.getParent( ).getChildAt( i ) == node ) {
-						renderer.setSeriesPaint( 0,
-							Color.getHSBColor( (float)i/experimentCount, 1.0f, 0.5f ));
+			// this is a single experiment graph, so pick the color to be consistent
+			// with the multi-experiment graph.
+			int experimentCount = node.getParent( ).getChildCount( );
+			int index = 0;
+			renderer.setSeriesPaint( 0,
+				Color.getHSBColor( 0.5f, 1.0f, 0.5f ));
+			renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
+			renderer.setSeriesShapesVisible( 0, true );
+
+			// set up the colors for the graph items.
+			int experimentIndex = 0;
+			for ( Experiment experiment : experiments ) {
+				int sampleIndex = 0;
+				Paint p = Color.getHSBColor( 
+					(float)experimentIndex/experiments.size( ), 1.0f, 0.5f );
+					// add a legend item for this experiment.
+					legendItems.add( new LegendItem(
+						language.get( "Experiment" ) + " " + experiment.getId( ),// label
+						null,                                          // description
+						null,                                          // toolTipText
+						null,                                          // urlText
+						renderer.getItemShape( 0, samples.size( )/2 ), // shape
+						p,                                             // fillPaint
+						renderer.getSeriesStroke( 0 ),                 // outlineStroke
+						p                                              // outlinePaint
+					));
+
+				for ( Sample sample : samples ) {
+					if ( experiment.getSamples( ).contains( sample )) {
+						renderer.setItemShapePaint( 0, sampleIndex, p );
 					}
+					sampleIndex++;
 				}
-				renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
-				renderer.setSeriesShapesVisible( 0, true );
-				
+				experimentIndex++;
 			}
+				
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
 			TickUnits tickUnits = new TickUnits( );
 			double tickIndex = 0.0;
-			List<Sample> sampleList = new ArrayList<Sample>( 
-				this.experiments.iterator( ).next( ).getSamples( ));
+			List<Sample> sampleList = new ArrayList<Sample>( samples );
 			for ( Sample sample : sampleList ) {
 				tickUnits.add( new SampleTickUnit( tickIndex, sampleList ));
 				tickIndex++;
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
 			plot.getDomainAxis( ).setVerticalTickLabels( true );
-			LegendItemCollection legendItems = plot.getLegendItems( );
-			if ( legendItems == null ) {
-				legendItems = new LegendItemCollection( );
-			}
+//			LegendItemCollection legendItems = plot.getLegendItems( );
+//			if ( legendItems == null ) {
+//				legendItems = new LegendItemCollection( );
+//			}
 			legendItems.add( renderer.getOutlierLegendItem( ));
 			plot.setFixedLegendItems( legendItems );
 			return true;
@@ -698,9 +700,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			TreePath path = e.getPath( );
 			int level = path.getPathCount( );
 			if ( level > EXPERIMENT ) {
-				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( EXPERIMENT ));
+				this.setGraph((DefaultMutableTreeNode)path.getPathComponent( EXPERIMENT ));
 			} else if ( level > MOLECULE ) { 
-				this.setGraph( (DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
+				this.setGraph((DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
 			} else {
 				this.chart = null;
 			}
@@ -734,12 +736,30 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}
+
+		// =============== SampleValueComparator ===========================
+		private class SampleValueComparator implements Comparator<Sample> {
+			private Molecule molecule;
+
+			public SampleValueComparator( Molecule m ) {
+				this.molecule = m;
+			}
+
+			public int compare( Sample s1, Sample s2 ) {
+				return (int)Math.signum( s1.getValue( this.molecule ).doubleValue( ) - 
+																 s2.getValue( this.molecule ).doubleValue( ));
+			}
+		}
 	}
 
 	// ================== CustomXyLineAndShapeRenderer ===========================
 
+	/**
+	 * A customized version of XYLineAndShapeRenderer
+	 */
 	private class CustomXYLineAndShapeRenderer extends XYLineAndShapeRenderer {
 		private List<BoxAndWhiskerItem> outlierInfo;
+		private SparseMatrix<Paint> itemShapePaints;
 		private Paint outlierPaint;
 		private Shape outlierShape;
 		private Stroke outlierStroke;
@@ -749,7 +769,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		public CustomXYLineAndShapeRenderer( ) {
 			super( );
 			this.outlierInfo = new ArrayList<BoxAndWhiskerItem>( );
-			this.outlierPaint = Color.GRAY;
+			this.outlierPaint = Color.RED;
 		}
 
 		public CustomXYLineAndShapeRenderer( boolean lines, boolean shapes ) {
@@ -761,6 +781,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 					new int[]{ 4, 1, 0, -1, -4, -1,  0,  1 },
 					new int[]{ 0, 1, 4,  1,  0, -1, -4, -1 },
 					8 );
+			this.itemShapePaints = new SparseMatrix<Paint>( );
 		}
 
 		/**
@@ -772,25 +793,37 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param state - the renderer state.
 		 * @param dataArea - the area within which the data is being drawn.
 		 * @param info - collects information about the drawing.
-		 * @param plot - the plot (can be used to obtain standard color information etc).
+		 * @param plot - the plot (can be used to obtain standard color 
+		 *	information etc).
 		 * @param domainAxis - the domain axis.
 		 * @param rangeAxis - the range axis.
 		 * @param dataset - the dataset.
 		 * @param series - the series index (zero-based).
 		 * @param item - the item index (zero-based).
-		 * @param crosshairState - crosshair information for the plot (null permitted).
+		 * @param crosshairState - crosshair information for the plot (null 
+		 *	permitted).
 		 * @param pass - the pass index.
+		 * @see XYLineAndShapeRenderer#drawItem( Graphics2D, XYItemRenderState,
+		 *	Rectangle2D, PlotRenderingInfo, XYPlot, ValueAxis, ValueAxis XYDataset,
+		 *  int, int, CrosshairState, int )
 		 */
+		@Override
 		public void drawItem( Graphics2D g2, XYItemRendererState state, 
 		                      Rectangle2D dataArea, PlotRenderingInfo info, 
-													XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis, 
-													XYDataset dataset, int series, int item, 
-													CrosshairState crosshairState, int pass ) {
+													XYPlot plot, ValueAxis domainAxis, 
+													ValueAxis rangeAxis, XYDataset dataset, int series, 
+													int item, CrosshairState crosshairState, int pass ) {
 			this.currentPass = pass;
 			super.drawItem( g2, state, dataArea, info, plot, domainAxis, rangeAxis, 
 			                dataset, series, item, crosshairState, pass );
 		}
 
+		/**
+		 * Sets the outlier information for a series.
+		 * 
+		 * @param index The index of the series to set the outlier information for.
+		 * @param item A BoxandWhiskerItem which will be used to determine outliers.
+		 */
 		public void setSeriesOutlierInfo( int index, BoxAndWhiskerItem item ) {
 			while ( index >= outlierInfo.size( )){
 				outlierInfo.add( null );
@@ -798,12 +831,25 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			outlierInfo.set( index, item );
 		}
 
+		/**
+		 * Returns the series outlier information for this series.
+		 * 
+		 * @param index The index of the series.
+		 * @return The BoxAndWhiskerItem used to calculate outliers.
+		 */
 		public BoxAndWhiskerItem getSeriesOutlierInfo( int index ) {
 			if ( index >= outlierInfo.size( ))
 				return null;
 			return outlierInfo.get( index );
 		}
 
+		/**
+		 * Determines if the given item in a series is an outlier.
+		 * 
+		 * @param series The series the item belongs to.
+		 * @param item The item in question.
+		 * @return A boolean indicating whether the item is an outlier.
+		 */
 		private boolean isOutlier( int series, int item ) {
 			if ( this.dataset == null ) {
 				this.dataset = this.getPlot( ).getDataset( 0 ); 
@@ -812,8 +858,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			if ( stats == null )
 				return false;
 			double y = this.dataset.getYValue( series, item );
-			return ( Double.compare( y, stats.getMinRegularValue( ).doubleValue( )) < 0 || 
-			         Double.compare( y, stats.getMaxRegularValue( ).doubleValue( )) > 0 );
+			return ( 
+				Double.compare( y, stats.getMinRegularValue( ).doubleValue( )) < 0 || 
+			  Double.compare( y, stats.getMaxRegularValue( ).doubleValue( )) > 0 );
 		}
 
 		/**
@@ -839,20 +886,49 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param column The item to get the Paint  for.
 		 * @return The appropriate Paint for this item.
 		 */
+	 @Override
 		public Paint getItemPaint( int row, int column ) {
-			if ( this.isItemPass( this.currentPass ) && this.isOutlier( row, column )) {
-				return this.outlierPaint;
+			if ( this.isItemPass( this.currentPass )) {
+				if ( this.isOutlier( row, column )) {
+					return this.outlierPaint;
+				} else {
+					Paint returnValue = this.itemShapePaints.get( row, column );
+					if ( returnValue == null )
+						return super.getItemPaint( row, column );
+					return returnValue;
+				}
 			} else {
 				return super.getItemPaint( row, column );
 			}
 		}
 
+		/**
+		 * Sets the shape color for a particular item
+		 * 
+		 * @param row The row (or series) of the item
+		 * @param column The column of the item.
+		 * @param paint The Paint to use when drawing the item.
+		 */
+		public void setItemShapePaint( int row, int column, Paint paint ) {
+			this.itemShapePaints.set( row, column, paint );
+		}
+
+		/**
+		 * Returns an appropriate LegendItem for the Outliers
+		 * 
+		 * @return A LegendItem for the outliers.
+		 */
 		public LegendItem getOutlierLegendItem( ) {
-			return new LegendItem( "Outlier", null, null, null,
-			                       this.outlierShape,
-														 this.outlierPaint,
-														 this.outlierStroke,
-														 this.outlierPaint );
+			return new LegendItem( 
+				"Outlier",             // label
+				null,                  // description
+				null,                  // toolTipText
+				null,                  // urlText
+				this.outlierShape,     // shape
+				this.outlierPaint,     // fillPaint
+				this.outlierStroke,    // outlineStroke
+				this.outlierPaint      // outlinePaint
+			);
 		}
 	}
 }

@@ -150,5 +150,32 @@ public abstract class CheckboxTreePanel extends JPanel {
 		}
 		return iterList.iterator( );
 	}
+
+	/**
+	 * Gets all checked descendant nodes of this TreeNode
+	 * 
+	 * @param node The node to get the descendants of (including itself)
+	 * @param level The level of the nodes to retrieve or -1 for all.
+	 * @return An iterator over the requested nodes.
+	 */
+	public Iterator<TreeNode> checkedDescendantIterator( TreeNode node, 
+	                                                    int level ) {
+		Collection<TreeNode> iterList = new ArrayList<TreeNode>( );
+		int nodeLevel = this.getNodePath( node ).getPathCount( ) - 1;
+		if ( isChecked( node ) && ( level < 0 || level == nodeLevel )) {
+			iterList.add( node );
+		}
+		if ( level < 0 || nodeLevel < level ) {
+			for ( int i=0; i < node.getChildCount( ); i++ ) {
+				TreeNode childNode = node.getChildAt( i );
+				Iterator<TreeNode> descIter = 
+					this.checkedDescendantIterator( childNode, level );
+				while( descIter.hasNext( )){ 
+					iterList.add( descIter.next( ));
+				}
+			}
+		}
+		return iterList.iterator( );
+	}
 }
 
