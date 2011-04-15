@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.jsysnet.ui;
 
 import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.MutableNumber;
 import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
@@ -191,19 +192,22 @@ public class CorrelationDisplayPanel extends JPanel
 	private CorrelationGraphVisualizer graph;
 	private Layout <Molecule,Correlation> layout; //Graph Layout
 	private InfoPanel infoPanel;
-	private JSplitPane graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+	private JSplitPane graphSplitPane;
 	private HeatMap  heatMapPanel;
 
 	private Experiment experiment = null;
 	private String title;
 	private Scalable visibleGraph;
 	private Pair<SampleGroup> sampleGroups;
+	private MutableNumber correlationMethod;
 
 	/**
 	 * Creates a new CorrelationDisplayPanel. 
 	 */
 	public CorrelationDisplayPanel ( ) {
 		super( new BorderLayout( ) );
+		this.graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+		this.correlationMethod = new MutableNumber( Correlation.PEARSON );
 		this.buildPanel( );
 	}
 
@@ -319,10 +323,13 @@ public class CorrelationDisplayPanel extends JPanel
 		this.calculationMenu.add( this.pearsonCalculationMenuItem );
 		this.calculationMenu.add( this.spearmanCalculationMenuItem );
 		this.calculationMenu.add( this.kendallCalculationMenuItem );
-		CalculationChangeListener ccl = new CalculationChangeListener( );
-		this.pearsonCalculationMenuItem.addItemListener( ccl );
-		this.spearmanCalculationMenuItem.addItemListener( ccl ); 
-		this.kendallCalculationMenuItem.addItemListener( ccl );
+//		CalculationChangeListener ccl = new CalculationChangeListener( );
+//		this.pearsonCalculationMenuItem.addItemListener( ccl );
+//		this.spearmanCalculationMenuItem.addItemListener( ccl ); 
+//		this.kendallCalculationMenuItem.addItemListener( ccl );
+		this.pearsonCalculationMenuItem.addItemListener( this );
+		this.spearmanCalculationMenuItem.addItemListener( this ); 
+		this.kendallCalculationMenuItem.addItemListener( this );
 
 		//LAYOUT MENU
 		LayoutChangeListener lcl = new LayoutChangeListener( );
@@ -456,7 +463,8 @@ public class CorrelationDisplayPanel extends JPanel
 					if ( e.getButton( ) == MouseEvent.BUTTON1 && 
 					     e.getClickCount( ) >= 2 ) {
 						new DetailWindow( c.getExperiment( ), 
-															c, correlationFilterPanel.getRange( ));
+															c, correlationFilterPanel.getRange( ),
+															correlationMethod.intValue( ));
 					}
 				}
 				public void graphPressed(  Correlation c, MouseEvent e ) { } 
@@ -477,7 +485,8 @@ public class CorrelationDisplayPanel extends JPanel
 
 		this.heatMapPanel = new HeatMap( this.getTitle( ), 
 		                                 this.graph.getExperiment( ), 
-																		 this.getCorrelationRange( ));
+																		 this.getCorrelationRange( ),
+																		 this.correlationMethod );
 		this.graph.addVertexChangeListener( this.heatMapPanel );
 		this.pearsonCalculationMenuItem.addChangeListener( this.heatMapPanel );
 		this.spearmanCalculationMenuItem.addChangeListener( this.heatMapPanel );
@@ -639,8 +648,7 @@ public class CorrelationDisplayPanel extends JPanel
 				graph.setPickedEdgePaint( Color.WHITE );
 				heatMapPanel.setBackground( Color.BLACK );
 				heatMapPanel.setForeground( Color.WHITE );
-			}
-			else if ( item == this.normalColorMenuItem ) {
+			} else if ( item == this.normalColorMenuItem ) {
 				graph.setBackground( Color.WHITE );
 				graph.setForeground( Color.BLACK );
 				graph.setPickedLabelColor( Color.BLUE );
@@ -649,8 +657,15 @@ public class CorrelationDisplayPanel extends JPanel
 				graph.setPickedEdgePaint( Color.BLACK );
 				heatMapPanel.setForeground( Color.BLACK );
 				heatMapPanel.setBackground( Color.WHITE );
+			} else if ( item == pearsonCalculationMenuItem ) {
+					correlationMethod.setValue( Correlation.PEARSON );
+			} else if ( item == spearmanCalculationMenuItem ) {
+					correlationMethod.setValue( Correlation.SPEARMAN );
+			} else if ( item == kendallCalculationMenuItem ) {
+					correlationMethod.setValue( Correlation.KENDALL );
 			}
-
+			graph.filterEdges( );
+			graph.repaint( );
 		}
 	}
 
@@ -716,7 +731,7 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 		} else if ( item == this.showCorrelatedViewMenuItem ) {
 			for ( Correlation c : this.experiment.getCorrelations( )){
-				if ( this.getCorrelationRange( ).contains( c.getValue( )) &&
+				if ( this.getCorrelationRange( ).contains( c.getValue( this.correlationMethod )) &&
 				     ( vertices.contains( c.getMolecules( )[ 0 ] ) ||
 						   vertices.contains( c.getMolecules( )[ 1 ] ))) {
 					this.graph.addVertex( c.getMolecules( )[ 0 ]);
@@ -1706,7 +1721,7 @@ public class CorrelationDisplayPanel extends JPanel
 				Range correlationRange = correlationFilterPanel.getRange( );
 				distributionData.clearObservations( );
 				for( Correlation c : edges ) {
-					double value = c.getValue( );
+					double value = c.getValue( correlationMethod );
 //					if ( correlationRange.contains( Math.abs( value ))) {
 						try {
 							distributionData.addObservation( value );
@@ -1766,34 +1781,6 @@ public class CorrelationDisplayPanel extends JPanel
 						(double)neighborCount[ i ] / ( nodeCount[ i ] * i ), "",
 						String.format( "%d", i ));
 				}
-			}
-		}
-	}
-
-	// ======================= CalculationChangeListener =======================
-	/**
-	 * A class which listens for a change in the state of the calculation menu.
-	 * @todo Integrate this listener with the CorrelationDisplayPanel class.
-	 */
-	private class CalculationChangeListener implements ItemListener {
-
-		/**
-		 * The itemStateChanged method of the ItemListener interface.
-		 * @see ItemListener#itemStateChanged(ItemEvent)
-		 * 
-		 * @param event The event which triggered this action.
-		 */
-		public void itemStateChanged( ItemEvent event ) {
-			JRadioButtonMenuItem item = (( JRadioButtonMenuItem )event.getSource( ));
-			if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
-				if ( item == pearsonCalculationMenuItem )
-					Correlation.setDefaultMethod( Correlation.PEARSON );
-				else if ( item == spearmanCalculationMenuItem )
-					Correlation.setDefaultMethod( Correlation.SPEARMAN );
-				else if ( item == kendallCalculationMenuItem )
-					Correlation.setDefaultMethod( Correlation.KENDALL );
-				graph.filterEdges( );
-				graph.repaint( );
 			}
 		}
 	}
@@ -1884,7 +1871,8 @@ public class CorrelationDisplayPanel extends JPanel
 
 				CorrelationGraphVisualizer graph = 
 					(CorrelationGraphVisualizer)e.getComponent( );
-					new DetailWindow( graph.getExperiment( ), m, graph.getRange( ));
+				new DetailWindow( graph.getExperiment( ), m, graph.getRange( ),
+													correlationMethod.intValue( ));
 			}
 		}
 		/**
@@ -1921,14 +1909,14 @@ public class CorrelationDisplayPanel extends JPanel
 			 */
 			public MoleculePopup ( ) {
 				Language language = Settings.getLanguage( );
-				this.hideMenuItem = new JMenuItem( language.get( "Hide" ) );
-				this.detailsMenuItem = new JMenuItem( language.get( "Details" ) );
+				this.hideMenuItem = new JMenuItem( language.get( "Hide" ));
+				this.detailsMenuItem = new JMenuItem( language.get( "Details" ));
 				this.selectCorrelatedMenuItem = 
-					new JMenuItem( language.get( "Select Directly Correlated" ) );
+					new JMenuItem( language.get( "Select Directly Correlated" ));
 				this.selectSubnetworkMenuItem =
-					new JMenuItem( language.get( "Select Subnetwork" ) );
+					new JMenuItem( language.get( "Select Subnetwork" ));
 				this.exploreCorrelationsMenu =
-					new JMenu( language.get( "Explore Correlations" ) );
+					new JMenu( language.get( "Explore Correlations" ));
 				this.add( this.hideMenuItem );
 				this.add( this.detailsMenuItem );
 				this.add( this.selectCorrelatedMenuItem );
@@ -1938,7 +1926,6 @@ public class CorrelationDisplayPanel extends JPanel
 				this.detailsMenuItem.addActionListener( this );
 				this.selectSubnetworkMenuItem.addActionListener( this );
 				this.selectCorrelatedMenuItem.addActionListener( this );
-				
 			}
 
 			/**
@@ -1957,7 +1944,7 @@ public class CorrelationDisplayPanel extends JPanel
 				Range range =
 					((CorrelationGraphVisualizer)invoker).getRange( );
 				for( Correlation c : experiment.getCorrelations( m )) {
-					if ( range.contains( Math.abs( c.getValue( )))) {
+					if ( range.contains( Math.abs( c.getValue( correlationMethod )))) {
 						JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
 						this.correlationMap.put( menuItem, c );
 						this.exploreCorrelationsMenu.add( menuItem );
@@ -1982,13 +1969,14 @@ public class CorrelationDisplayPanel extends JPanel
 
 				if ( this.correlationMap.containsKey( source )) {
 					new DetailWindow( graph.getExperiment( ),
-					                  this.correlationMap.get( source ), range );
+					                  this.correlationMap.get( source ), 
+														range, correlationMethod.intValue( ));
 				} else if ( source == this.hideMenuItem ) {
 					graph.removeVertex( this.molecule );
 
 				} else if ( source == this.detailsMenuItem ) {
 					new DetailWindow( graph.getExperiment( ),
-					                  this.molecule, range );
+					                  this.molecule, range, correlationMethod.intValue( ));
 
 				} else if ( source == this.selectCorrelatedMenuItem ) {
 					PickedState<Molecule> state = graph.getPickedVertexState( );
@@ -2174,8 +2162,8 @@ public class CorrelationDisplayPanel extends JPanel
 		public MonitorableRange range;
 		public Experiment experiment;
 		protected Spectrum spectrum;
-		private SpectrumLegend spectrumLegend;
-		private Pair<SampleGroup> sampleGroups;
+		protected SpectrumLegend spectrumLegend;
+		protected Pair<SampleGroup> sampleGroups;
 
 		/**
 		 * Creates a new CorrelationGraphVisualizer.
@@ -2204,7 +2192,8 @@ public class CorrelationDisplayPanel extends JPanel
 					if ( getPickedEdgeState( ).isPicked( e )) {
 						return pickedEdgePaint;
 					} else {
-						return spectrum.getPaint( e.getValue( ));
+						return spectrum.getPaint( 
+							e.getValue( correlationMethod ));
 					}
 				}
 			};
@@ -2351,7 +2340,7 @@ public class CorrelationDisplayPanel extends JPanel
 			return ( this.containsVertex( molecules[ 0 ] ) &&
 							 this.containsVertex( molecules[ 1 ] ) &&
 							 this.range.contains( 
-								 Math.abs( correlation.getValue( ))));
+								 Math.abs( correlation.getValue( correlationMethod ))));
 		}
 
 		/**
@@ -2433,7 +2422,6 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 		public void componentShown( ComponentEvent e ) { }
 
-		// ==================== PRIVATE/PROTECTED CLASSES ==========================
 		// ====================== RegulationTransformer ============================
 		/**
 		 * A class for deteriming the outline  color of a Molecule vertex.

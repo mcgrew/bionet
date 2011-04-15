@@ -80,17 +80,20 @@ public class HeatMap extends JPanel implements MouseListener,
 	private Spectrum spectrum;
 	private SpectrumLegend spectrumLegend;
 	private Experiment experiment;
+	private Number correlationMethod;
 
-	public HeatMap ( Experiment experiment ) {
-		this( "", experiment, new MonitorableRange( 0.0, 1.0 ));
+	public HeatMap ( Experiment experiment, Number correlationMethod ) {
+		this( "", experiment, new MonitorableRange( 0.0, 1.0 ), correlationMethod );
 	}
 
-	public HeatMap ( String title, Experiment experiment, MonitorableRange range ) {
+	public HeatMap ( String title, Experiment experiment, 
+	                 MonitorableRange range, Number correlationMethod ) {
 		super( );
 		this.experiment = experiment;
 		this.scrollPane = new JScrollPane( this );
 		this.title = title;
 		this.range = range;
+		this.correlationMethod = correlationMethod;
 		range.addChangeListener( this );
 		this.addMouseListener( this );
 		this.addMouseWheelListener( this );
@@ -115,7 +118,7 @@ public class HeatMap extends JPanel implements MouseListener,
 
 				returnValue.setZValue( i, j, (i==j)? Double.NaN : 
 					experiment.getCorrelation( moleculeList.get( i ), 
-						moleculeList.get( j )).getValue( ));
+						moleculeList.get( j )).getValue( this.correlationMethod ));
 			}
 		}
 		return returnValue;
@@ -331,7 +334,8 @@ public class HeatMap extends JPanel implements MouseListener,
 	public void mouseClicked( MouseEvent event ) {
 		if ( mapPosition.contains( event.getPoint( ))) {
 			Correlation clicked = this.getCorrelationFromPoint( new Point( event.getX( ), event.getY( )));
-			if ( clicked != null && this.range.contains( Math.abs( clicked.getValue( )))) {
+			if ( clicked != null && this.range.contains( 
+				   Math.abs( clicked.getValue( this.correlationMethod )))) {
 				this.fireGraphMouseEvent( clicked, event );
 			}
 		}
@@ -369,7 +373,8 @@ public class HeatMap extends JPanel implements MouseListener,
 	 * @param e The MouseEvent which triggered this action.
 	 */
 	public void graphClicked( Correlation c, MouseEvent e ) {
-		new DetailWindow( c.getExperiment( ), c, range );
+		new DetailWindow( c.getExperiment( ), c, range, 
+		                  this.correlationMethod.intValue( ));
 	}
 	/**
 	 * The graphPressed method of the GraphMouseListener interface. Not implemented.

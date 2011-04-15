@@ -242,6 +242,32 @@ public class Correlation implements Pair<Molecule> {
 	}
 
 	/**
+	 * Gets the correlation coefficient of this Correlation.
+	 * 
+	 * @param method The coefficient calculation method to use. Should be one of
+	 *	Correlation.PEARSON, Correlation.SPEARMAN, or Correlation.KENDALL in the
+	 *	form of a Number.
+	 * @return A double containing the requested correlation value.
+	 */
+	public double getValue( Number method ) {
+		return this.getValue( method.intValue( ), false );
+	}
+
+	/**
+	 * Gets the correlation coefficient of this Correlation.
+	 * 
+	 * @param method The coefficient calculation method to use. Should be one of
+	 *	Correlation.PEARSON, Correlation.SPEARMAN, or Correlation.KENDALL in the
+	 *	form of a Number.
+	 * @param recalculate Whether or not to recalculate this value if it has 
+	 *	already been calculated.
+	 * @return A double containing the requested correlation value.
+	 */
+	public double getValue( Number method, boolean recalculate ) {
+		return this.getValue( method.intValue( ), recalculate );
+	}
+
+	/**
 	 * Returns the Pearson correlation coefficient of the 2 molecueles.
 	 * 
 	 * @return    The Pearson correlation value. 

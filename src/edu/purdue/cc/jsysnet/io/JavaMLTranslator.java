@@ -80,10 +80,6 @@ public class JavaMLTranslator extends InputStream {
 		return len;
 	}
 
-//	public boolean ready( ) {
-//		return true;
-//	}
-
 	public void reset( ) {
 		moleculeIterator = this.molecules.iterator( );
 		buffer = new StringBuilder( );
@@ -114,7 +110,8 @@ public class JavaMLTranslator extends InputStream {
 	private void appendToBuffer( Molecule m ) {
 		buffer.append( m.toString( ) + "," );
 		for ( Sample sample : samples ) {
-					buffer.append( sample.getValue( m ).toString( ) + "," );
+				Number value = sample.getValue( m );
+				buffer.append( value.toString( ) + "," );
 		}
 		buffer.setCharAt( buffer.length( )-1, '\n' );
 	}

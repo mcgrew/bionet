@@ -304,8 +304,8 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 */
 	public Correlation getCorrelation( Molecule molecule1, Molecule molecule2 ) {
 		for ( Correlation correlation : this.correlations ) {
-			if ( correlation.hasMolecule( molecule1 ) && 
-			     correlation.hasMolecule( molecule2 ))
+			if ( correlation.hasItem( molecule1 ) && 
+			     correlation.hasItem( molecule2 ))
 				return correlation;
 		}
 		return null;
@@ -321,7 +321,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	public Collection<Correlation> getCorrelations( Molecule molecule ) {
 		Collection<Correlation> returnValue = new ArrayList<Correlation>( );
 		for ( Correlation correlation : this.correlations ) {
-			if ( correlation.hasMolecule( molecule )) {
+			if ( correlation.hasItem( molecule )) {
 				returnValue.add( correlation );
 			}
 		}

@@ -43,6 +43,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	private JTabbedPane tabPane = new ClosableTabbedPane( );
 	private Range correlationRange;
 	private Experiment experiment;
+	private int correlationMethod;
 
 	/**
 	 * Creates a new DetailWindow with the specified title and Correlation Range.
@@ -50,13 +51,15 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 * @param experiment The experiment this window is associated with.
 	 * @param range The Correlation range for this window.
 	 */
-	public DetailWindow( Experiment experiment, Range range ) {
+	public DetailWindow( Experiment experiment, Range range, 
+	                     int correlationMethod ) {
 		super( experiment.getAttribute( "description" ));
 		Logger.getLogger( getClass( )).debug( String.format(
 			"Creating detail window:\n\tExperiment: %s\n" +
 			"\tRange:      %s\n", experiment, range));
 		this.experiment = experiment;
 		this.correlationRange = range.clone( );
+		this.correlationMethod = correlationMethod;
 		Settings settings = Settings.getSettings( );
 		int width  = settings.getInt( "detailWindowWidth"  );
 		int height = settings.getInt( "detailWindowHeight" );
@@ -91,9 +94,9 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 * @param molecule The Molecule to show detail about.
 	 * @param range The correlation range for this DetailWindow.
 	 */
-	public DetailWindow( Experiment experiment, 
-	                     Molecule molecule, Range range ) {
-		this( experiment, range );
+	public DetailWindow( Experiment experiment, Molecule molecule, 
+	                     Range range, int correlationMethod ) {
+		this( experiment, range, correlationMethod );
 		this.show( molecule );
 	}
 
@@ -104,9 +107,9 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 * @param correlation The Correlation to show detail about.
 	 * @param range The correlation range for this DetailWindow.
 	 */
-	public DetailWindow( Experiment experiment, 
-	                     Correlation correlation, Range range ) {
-		this( experiment, range );
+	public DetailWindow( Experiment experiment, Correlation correlation,
+	                     Range range, int correlationMethod ) {
+		this( experiment, range, correlationMethod );
 		this.show( correlation );
 	}
 
@@ -133,7 +136,8 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	public void show( Correlation correlation ) {
 		this.tabPane.setSelectedComponent( 
 			this.tabPane.add( correlation.toString( ),
-				new CorrelationDetailPanel( correlation, this.correlationRange, this )));
+				new CorrelationDetailPanel( correlation, this.correlationRange, 
+				                            this, this.correlationMethod )));
 	}
 
 	/**
@@ -156,7 +160,8 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 * @return A new instance of this class.
 	 */
 	public TabbedWindow newWindow( ) {
-		return new DetailWindow( this.experiment, this.correlationRange );
+		return new DetailWindow( this.experiment, this.correlationRange,
+		                         this.correlationMethod );
 	}
 
 }

@@ -74,6 +74,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	List <Number> firstMoleculeSamples;
 	List <Number> secondMoleculeSamples;
 	List <Sample> samples;
+	private int correlationMethod;
 
 	/**
 	 * Constructs a new CorrelationDetailPanel
@@ -83,12 +84,13 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	 * @param detailWindow The parent window of this panel.
 	 */
 	public CorrelationDetailPanel( Correlation correlation, Range range, 
-			DetailWindow detailWindow ) {
+			DetailWindow detailWindow, int correlationMethod ) {
 		super( new BorderLayout( ));
 		this.correlation = correlation;
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 		this.experiment = correlation.getExperiment( );
+		this.correlationMethod = correlationMethod;
 
 		String buttonText = Settings.getLanguage( ).get( "Show Correlated" );
 		this.firstMoleculeButton = new JButton( buttonText );
@@ -100,8 +102,10 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			correlation.getExperiment( ), correlation.getSecondItem( ));
 		JPanel topMoleculePanel = new JPanel( new BorderLayout( ));
 		JPanel bottomMoleculePanel = new JPanel( new BorderLayout( ));
-		JScrollPane firstMoleculeScrollPane = new JScrollPane( this.firstMoleculeTable );
-		JScrollPane secondMoleculeScrollPane = new JScrollPane( this.secondMoleculeTable );
+		JScrollPane firstMoleculeScrollPane = 
+			new JScrollPane( this.firstMoleculeTable );
+		JScrollPane secondMoleculeScrollPane = 
+			new JScrollPane( this.secondMoleculeTable );
 		topMoleculePanel.add( firstMoleculeScrollPane, BorderLayout.CENTER );
 		topMoleculePanel.add( this.firstMoleculeButton, BorderLayout.SOUTH );
 		bottomMoleculePanel.add( secondMoleculeScrollPane, BorderLayout.CENTER );
@@ -211,7 +215,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		public void paintComponent ( Graphics g ) {
 			super.paintComponent( g );
 			Dimension size = this.getSize( null );
-			BufferedImage drawing = this.chart.createBufferedImage( size.width, size.height );
+			BufferedImage drawing = 
+				this.chart.createBufferedImage( size.width, size.height );
 			g.drawImage( drawing, 0, 0, Color.WHITE, this );
 		}
 	}
@@ -235,7 +240,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			this.coefficient = coefficient;
 			this.sampleVolume = sampleVolume;
 			this.criticalValues = Correlation.getCriticalValues( 
-					Correlation.getDefaultMethod( ), this.sampleVolume );
+					correlationMethod, this.sampleVolume );
 		}
 
 		/**
@@ -254,7 +259,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 
 			g.setColor( Color.BLACK );
 			g.setFont( new Font( "SansSerif", Font.PLAIN, 14 ));
-			g.drawString( language.get( "Current correlation coefficient" )+":", 10, 40 );
+			g.drawString( language.get( "Current correlation coefficient" )+":", 
+			              10, 40 );
 			g.drawString( language.get( "Sample Volume N" )+":" , 10, 70 );
 			g.drawString( "0.05",   xpos[0], 180 );
 			g.drawString( "0.025",  xpos[1], 180 );
@@ -268,20 +274,26 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			g.setFont( new Font( "SansSerif", Font.BOLD, 14 ));
 			g.drawString( language.get( "Table of critical values for" ), 10, 100 );
 			g.drawString( language.get( "Correlation test" ), 10, 120 );
-			g.drawString( language.get( "One-tailed level of significance" ), 10, 160 );
-			g.drawString( language.get( "Two-tailed levelof significance" ), 10, 200 );
+			g.drawString( language.get( 
+				"One-tailed level of significance" ), 10, 160 );
+			g.drawString( language.get( 
+				"Two-tailed levelof significance" ), 10, 200 );
 			for( int i=0; i < 4; i++ ) {
 				if ( this.criticalValues[ i ] < 0 )
 					g.drawString( "-", xpos[ i ], 260 );
 				else
-					g.drawString( Double.toString( this.criticalValues[ i ]), xpos[ i ], 260 );
+					g.drawString( Double.toString( 
+						this.criticalValues[ i ]), xpos[ i ], 260 );
 			}
-			g.drawString( Integer.toString( this.sampleVolume ), 140, 70 ); // sample volume
-			g.drawString( String.format( "%.3f", this.coefficient ), 230, 40 ); // correlation coefficient
+			g.drawString( Integer.toString( this.sampleVolume ), 
+			              140, 70 ); // sample volume
+			g.drawString( String.format( "%.3f", this.coefficient ), 
+			              230, 40 ); // correlation coefficient
 
 			g.setFont( new Font( "SansSerif", Font.BOLD | Font.ITALIC, 14 ));
 			g.setColor( Color.BLUE );
-			g.drawString( Correlation.NAME[ Correlation.getDefaultMethod( )], 125, 120 ); // correlation name;
+			g.drawString( Correlation.NAME[ correlationMethod ], 
+			              125, 120 ); // correlation name;
 		}
 
 	}

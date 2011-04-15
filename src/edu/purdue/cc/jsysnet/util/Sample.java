@@ -160,7 +160,7 @@ public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 	public Number getValue( Molecule molecule ) {
 		Number returnValue = this.valueMap.get( molecule );
 		if ( returnValue == null )
-			return new Double( Double.NaN );
+			return new Double( 0 );
 		return returnValue;
 	}
 
