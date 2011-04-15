@@ -112,11 +112,11 @@ public class SampleGroupingDialog extends JDialog
 		this.groupPanels = new SimplePair<GroupPanel>( 
 			new GroupPanel( "Group 1",  samples ), 
 			new GroupPanel( "Group 2", samples ));
-		this.groupPanels.getFirstItem( ).addChangeListener( this );
-		this.groupPanels.getSecondItem( ).addChangeListener( this );
+		this.groupPanels.getFirst( ).addChangeListener( this );
+		this.groupPanels.getSecond( ).addChangeListener( this );
 		JPanel mainGroupsPanel = new JPanel( new GridLayout( 2, 1 ));
-		mainGroupsPanel.add( this.groupPanels.getFirstItem( ));
-		mainGroupsPanel.add( this.groupPanels.getSecondItem( ));
+		mainGroupsPanel.add( this.groupPanels.getFirst( ));
+		mainGroupsPanel.add( this.groupPanels.getSecond( ));
 		this.add( mainGroupsPanel, BorderLayout.CENTER );
 
 		this.addWindowListener( new WindowAdapter( ) {
@@ -158,8 +158,8 @@ public class SampleGroupingDialog extends JDialog
 		if ( source == this.okButton ) {
 			Logger.getLogger( getClass( )).debug( "Setting groups..." );
 			this.returnValue = new SimplePair<SampleGroup>(
-					this.groupPanels.getFirstItem( ).filter( this.samples ),
-					this.groupPanels.getSecondItem( ).filter( this.samples ));
+					this.groupPanels.getFirst( ).filter( this.samples ),
+					this.groupPanels.getSecond( ).filter( this.samples ));
 		} else {
 			Logger.getLogger( getClass( )).debug( "Group setting canceled..." );
 		}
@@ -185,8 +185,8 @@ public class SampleGroupingDialog extends JDialog
 	public void stateChanged( ChangeEvent e ) {
 		// set the ok button to be enabled only if both groups are not 0.
 		this.okButton.setEnabled( 
-			this.groupPanels.getFirstItem( ).getGroupSize( ) != 0  &&
-			this.groupPanels.getSecondItem( ).getGroupSize( ) != 0 );
+			this.groupPanels.getFirst( ).getGroupSize( ) != 0  &&
+			this.groupPanels.getSecond( ).getGroupSize( ) != 0 );
 	}
 	
 	// ========================= PRIVATE CLASSES ================================

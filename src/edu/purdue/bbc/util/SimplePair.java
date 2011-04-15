@@ -52,7 +52,7 @@ public class SimplePair<T> implements Pair<T> {
 	 * 
 	 * @return The first of the two items in the pair.
 	 */
-	public T getFirstItem( ) {
+	public T getFirst( ) {
 		return this.firstItem; 
 	}
 
@@ -61,7 +61,7 @@ public class SimplePair<T> implements Pair<T> {
 	 * 
 	 * @return The second of the two items in the pair.
 	 */
-	public T getSecondItem( ) {
+	public T getSecond( ) {
 		return this.secondItem;
 	}
 
@@ -86,7 +86,7 @@ public class SimplePair<T> implements Pair<T> {
 	 * @return boolean indicating whether the specified item is a part of this
 	 *	pair.
 	 */
-	public boolean hasItem( T item ) {
+	public boolean contains( T item ) {
 		return ( this.firstItem.equals( item ) || this.secondItem.equals( item ));
 	}
 }

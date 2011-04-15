@@ -42,8 +42,6 @@ public class Correlation implements Pair<Molecule> {
 	public static final int KENDALL = 2;
 	public static final String [] NAME =
 		{ "Pearson R", "Spearman Rho", "Kendall Tau" };
-	@Deprecated
-	protected static int defaultMethod = PEARSON;
 	protected double pearsonCorrelation = Double.NaN;
 	protected double spearmanCorrelation = Double.NaN;
 	protected double kendallCorrelation = Double.NaN;
@@ -80,34 +78,6 @@ public class Correlation implements Pair<Molecule> {
 	}
 
 	/**
-	 * Returns the current default method to be used in Correlation calculations.
-	 * 
-	 * @deprecated Having a default method presents problems with multiple 
-	 *  experiment instances. This method will be removed in a future version.
-	 * @return an int representing the current default method.
-	 */
-	@Deprecated
-	public static int getDefaultMethod( ) {
-		return defaultMethod;
-	}
-
-	/**
-	 * Sets the default calculation method for all Correlations.
-	 * 
-	 * @deprecated Having a default method presents problems with multiple 
-	 *  experiment instances. This method will be removed in a future version.
-	 * @param method The method to be used.
-	 * @return true on success, false on failure.
-	 */
-	@Deprecated
-	public static boolean setDefaultMethod( int method ) {
-		if ( method < 0 || method > 2 )
-			return false;
-		defaultMethod = method;
-		return true;
-	}
-
-	/**
 	 * Gets the Molecules associated with this Correlation.
 	 * 
 	 * @return A Molecule array of length 2, containing the 2 Molecules
@@ -122,7 +92,7 @@ public class Correlation implements Pair<Molecule> {
 	 * 
 	 * @return The first of the two Molecules associated with this Correlation.
 	 */
-	public Molecule getFirstItem( ) {
+	public Molecule getFirst( ) {
 		return this.molecules[ 0 ];
 	}
 
@@ -131,7 +101,7 @@ public class Correlation implements Pair<Molecule> {
 	 * 
 	 * @return The second of the two Molecules associated with this Correlation.
 	 */
-	public Molecule getSecondItem( ) {
+	public Molecule getSecond( ) {
 		return this.molecules[ 1 ];
 	}
 
@@ -154,54 +124,13 @@ public class Correlation implements Pair<Molecule> {
 	/**
 	 * Whether or not this Correlation is associated with the specified Molecule.
 	 * 
-	 * @deprecated This method will be removed in a future version. Use 
-	 *	hasItem( Molecule ) instead (Part of the Pair interface).
 	 * @param molecule The molecule to test association with.
 	 * @return True if this Correlation is associated with the specified Molecule,
 	 *	false otherwise.
 	 */
-	@Deprecated
-	public boolean hasMolecule( Molecule molecule ) {
-		return hasItem( molecule );
-	}
-
-	/**
-	 * Whether or not this Correlation is associated with the specified Molecule.
-	 * 
-	 * @param molecule The molecule to test association with.
-	 * @return True if this Correlation is associated with the specified Molecule,
-	 *	false otherwise.
-	 */
-	public boolean hasItem( Molecule molecule ) {
+	public boolean contains( Molecule molecule ) {
 		return ( molecule == this.molecules[ 0 ] ||
 		         molecule == this.molecules[ 1 ] );
-	}
-
-	/**
-	 * Gets the correlation coefficient of this Correlation.
-	 * 
-	 * @deprecated Having a default method presents problems with multiple 
-	 *  experiment instances. This method will be removed in a future version.
-	 * @return A double containing the last calculated correlation coeficcient.
-	 *	Defaults to PEARSON.
-	 */
-	@Deprecated
-	public double getValue( ) {
-		return this.getValue( defaultMethod, false );
-	}
-
-	/**
-	 * Gets the correlation coeffiecient of this Correlation
-	 * 
-	 * @deprecated Having a default method presents problems with multiple 
-	 *  experiment instances. This method will be removed in a future version.
-	 * @param recalculate Whether or not to recalculate this value if it has 
-	 *	already been calculated.
-	 * @return A double containing the last calculated correlation coeficcient.
-	 */
-	@Deprecated
-	public double getValue( boolean recalculate ) {
-		return this.getValue( defaultMethod, recalculate );
 	}
 
 	/**

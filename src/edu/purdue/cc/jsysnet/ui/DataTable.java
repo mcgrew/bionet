@@ -74,13 +74,14 @@ class DataTable extends JTable {
 	 */
 	public static DataTable getCorrelatedTable( Experiment experiment,
 	                                            Molecule molecule, 
-																							Range correlationRange ) {
+	                                            Range correlationRange,
+	                                            int correlationMethod ) {
 		DefaultTableModel returnValue = new DefaultTableModel( );
 	  Collection<Correlation> correlations = experiment.getCorrelations( molecule );
 		List <String[ ]> data = new ArrayList<String[ ]>( );
 		double value;
 		for ( Correlation c : correlations ) {
-			value = c.getValue( );
+			value = c.getValue( correlationMethod );
 			if ( correlationRange.contains( Math.abs( value ))) {
 				String [] row = new String [ 3 ];
 				row[ 0 ] = String.format( "%.3f", value );

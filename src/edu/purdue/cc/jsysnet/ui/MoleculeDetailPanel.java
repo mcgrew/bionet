@@ -68,13 +68,16 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private JTable moleculeDetailTable;
 	private Molecule molecule;
 	private Range correlationRange;
+	private int correlationMethod;
 
 	public MoleculeDetailPanel ( Molecule molecule, Range range, 
-	                             DetailWindow detailWindow ) {
+	                             DetailWindow detailWindow, 
+	                             int correlationMethod ) {
 		super( new BorderLayout( ));
 		Logger logger = Logger.getLogger( getClass( ));
 		this.molecule = molecule;
 		this.experiment = detailWindow.getExperiment( );
+		this.correlationMethod = correlationMethod;
 		logger.debug( String.format(
 			"Showing Molecule detail:\n\tExperiment: %s\n" +
 			"\tMolecule:   %s\n\tRange:      %s\n", 
@@ -87,7 +90,8 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			DataTable.getMoleculeTable( this.experiment, this.molecule );
 		this.correlationsTable = 
 			DataTable.getCorrelatedTable( this.experiment, this.molecule,
-			                              this.correlationRange );
+			                              this.correlationRange,
+			                              this.correlationMethod );
 		this.selectedMoleculeLabel = new JLabel( language.get( "Selected Molecule" ));
 		this.showElementButton = new JButton( language.get( "Show Element" ));
 		this.showCorrelationButton = new JButton( language.get( "Show Correlation" ));
@@ -150,7 +154,8 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private List <Molecule> getMoleculesInRange( ) {
 		List <Molecule> returnValue = new ArrayList( );
 		for ( Correlation c : this.experiment.getCorrelations( molecule )) {
-			if ( this.correlationRange.contains( Math.abs( c.getValue( )))) {
+			if ( this.correlationRange.contains( 
+				     Math.abs( c.getValue( this.correlationMethod )))) {
 					returnValue.add( c.getOpposite( this.molecule ));
 			}
 		}
@@ -209,7 +214,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			if ( chart != null ) {
 				Dimension size = this.getSize( null );
 				BufferedImage drawing = this.chart.createBufferedImage( size.width, 
-																																size.height );
+				                                                        size.height );
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}

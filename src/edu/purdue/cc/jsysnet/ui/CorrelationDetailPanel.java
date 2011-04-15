@@ -97,9 +97,9 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		this.secondMoleculeButton = new JButton( buttonText );
 
 		this.firstMoleculeTable = DataTable.getMoleculeTable( 
-			correlation.getExperiment( ), correlation.getFirstItem( )); 
+			correlation.getExperiment( ), correlation.getFirst( )); 
 		this.secondMoleculeTable = DataTable.getMoleculeTable( 
-			correlation.getExperiment( ), correlation.getSecondItem( ));
+			correlation.getExperiment( ), correlation.getSecond( ));
 		JPanel topMoleculePanel = new JPanel( new BorderLayout( ));
 		JPanel bottomMoleculePanel = new JPanel( new BorderLayout( ));
 		JScrollPane firstMoleculeScrollPane = 
@@ -120,7 +120,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		moleculePanel.add( moleculePane, BorderLayout.CENTER );
 		JPanel graphPanel = new ScatterPlot( correlation, experiment );
 		JPanel infoPanel = new InfoPanel( 
-			this.correlation.getValue( ), experiment.getSamples( ).size( ));
+			this.correlation.getValue( this.correlationMethod ), 
+			experiment.getSamples( ).size( ));
 
 		JPanel mainPanel = new JPanel( new BorderLayout( ));
 		mainPanel.add( moleculePanel, BorderLayout.WEST );
@@ -141,10 +142,10 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	public void actionPerformed( ActionEvent event ) {
 		Object source = event.getSource( );
 		if ( source == this.firstMoleculeButton ) {
-			this.detailWindow.show( this.correlation.getFirstItem( ));
+			this.detailWindow.show( this.correlation.getFirst( ));
 		}
 		else if ( source == this.secondMoleculeButton ) {
-			this.detailWindow.show( this.correlation.getSecondItem( ));
+			this.detailWindow.show( this.correlation.getSecond( ));
 		}
 	}
 
@@ -164,21 +165,21 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			super( );
 			Map sortedMap = new TreeMap<Number,Sample>( );
 			for ( Sample sample : experiment.getSamples( )) {
-				sortedMap.put( sample.getValue( molecules.getFirstItem( )), sample );
+				sortedMap.put( sample.getValue( molecules.getFirst( )), sample );
 			}
 			this.samples = new ArrayList<Sample>( sortedMap.values( ));
 			XYSeries data = new XYSeries( 
 				Settings.getLanguage( ).get( "Sample Data" ));
 			for ( Sample sample : this.samples ) {
-				data.add( sample.getValue( molecules.getFirstItem( )),
-									sample.getValue( molecules.getSecondItem( )));
+				data.add( sample.getValue( molecules.getFirst( )),
+									sample.getValue( molecules.getSecond( )));
 			}
 			XYSeriesCollection dataset = new XYSeriesCollection( );
 			dataset.addSeries( data );
 			this.chart = ChartFactory.createScatterPlot(
 				null, //title
-				molecules.getFirstItem( ).toString( ), // x axis label
-				molecules.getSecondItem( ).toString( ), // y axis label
+				molecules.getFirst( ).toString( ), // x axis label
+				molecules.getSecond( ).toString( ), // y axis label
 				dataset, // plot data
 				PlotOrientation.VERTICAL, // Plot Orientation
 				false, // show legend

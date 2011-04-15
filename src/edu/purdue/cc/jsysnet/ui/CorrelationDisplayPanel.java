@@ -752,12 +752,12 @@ public class CorrelationDisplayPanel extends JPanel
 				this.graph.setSampleGroups( this.sampleGroups );
 				this.infoPanel.repaint( );
 				Logger logger = Logger.getLogger( getClass( ));
-				SampleGroup group = this.sampleGroups.getFirstItem( );
+				SampleGroup group = this.sampleGroups.getFirst( );
 				logger.debug( group.toString( ));
 				for ( Sample sample : group ) {
 					logger.debug( "\t" + sample.toString( ));
 				}
-				group = this.sampleGroups.getSecondItem( );
+				group = this.sampleGroups.getSecond( );
 				logger.debug( group.toString( ));
 				for ( Sample sample : group ) {
 					logger.debug( "\t" +  sample.toString( ));
@@ -1384,7 +1384,7 @@ public class CorrelationDisplayPanel extends JPanel
 				g.drawString( text, 20, 30 );
 
 				text = String.format( language.get( "Correlation Method" ) + ": %s",
-					Correlation.NAME[ Correlation.getDefaultMethod( )]);
+					Correlation.NAME[ correlationMethod.intValue( )]);
 				g.drawString( text, 20, 50 );
 				if ( sampleGroups != null ) {
 
@@ -1394,7 +1394,7 @@ public class CorrelationDisplayPanel extends JPanel
 					g.drawString( text, leftMargin, 50 );
 					g.drawLine( leftMargin, 52, leftMargin + f.stringWidth( text ), 52 );
 					int verticalPos = 70;
-					for ( Sample s : sampleGroups.getFirstItem( )) {
+					for ( Sample s : sampleGroups.getFirst( )) {
 						g.drawString( s.toString( ), leftMargin, verticalPos );
 						verticalPos += 20;
 					}
@@ -1407,7 +1407,7 @@ public class CorrelationDisplayPanel extends JPanel
 					g.drawString( text, col2Margin, 50 );
 					g.drawLine( col2Margin, 52, col2Margin + stringWidth, 52 );
 					verticalPos = 70;
-					for ( Sample s : sampleGroups.getSecondItem( )) {
+					for ( Sample s : sampleGroups.getSecond( )) {
 						g.drawString( s.toString( ), col2Margin, verticalPos );
 						verticalPos += 20;
 					}
@@ -2462,12 +2462,12 @@ public class CorrelationDisplayPanel extends JPanel
 			 */
 			public Paint transform( Molecule m ) {
 				Logger logger = Logger.getLogger( getClass( ));
-				if ( sampleGroups.getFirstItem( ).size( ) == 0  || 
-						 sampleGroups.getSecondItem( ).size( ) == 0 ) {
+				if ( sampleGroups.getFirst( ).size( ) == 0  || 
+						 sampleGroups.getSecond( ).size( ) == 0 ) {
 					return this.neutralPaint;
 				}
-				double mean1 = m.getValues( sampleGroups.getFirstItem( )).getMean( );
-				double mean2 = m.getValues( sampleGroups.getSecondItem( )).getMean( );
+				double mean1 = m.getValues( sampleGroups.getFirst( )).getMean( );
+				double mean2 = m.getValues( sampleGroups.getSecond( )).getMean( );
 				if ( mean1 < mean2 ) {
 					return this.upPaint;
 				}

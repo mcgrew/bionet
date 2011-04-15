@@ -49,16 +49,6 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	private String id;
 
 	/**
-	 * Constructor.
-	 * 
-	 * @param attributes A HashMap containing this Experiment's attributes.
-	 */
-	@Deprecated
-	public Experiment( Map <String,String> attributes ) {
-		this( null, attributes );
-	}
-
-	/**
 	 * Constructor
 	 * 
 	 * @param id The id for this experiment.
@@ -272,20 +262,6 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 		return this.attributes.remove( attr );
 	}
 
-
-	/**
-	 * Gets the names of all of the attributes for this Experiment.
-	 * 
-	 * @deprecated This method will be removed in a future version.
-	 * @return A String array containing the attribute names.
-	 */
-	@Deprecated
-	public String [ ] getAttributeNames( ) {
-		String [ ] returnValue = this.attributes.keySet( ).toArray( new String[0] );
-		Arrays.sort( returnValue );
-		return returnValue;
-	}
-
 	/**
 	 * Gets all Molecule Correlations present in this experiment. 
 	 * 
@@ -304,8 +280,8 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 */
 	public Correlation getCorrelation( Molecule molecule1, Molecule molecule2 ) {
 		for ( Correlation correlation : this.correlations ) {
-			if ( correlation.hasItem( molecule1 ) && 
-			     correlation.hasItem( molecule2 ))
+			if ( correlation.contains( molecule1 ) && 
+			     correlation.contains( molecule2 ))
 				return correlation;
 		}
 		return null;
@@ -321,7 +297,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	public Collection<Correlation> getCorrelations( Molecule molecule ) {
 		Collection<Correlation> returnValue = new ArrayList<Correlation>( );
 		for ( Correlation correlation : this.correlations ) {
-			if ( correlation.hasItem( molecule )) {
+			if ( correlation.contains( molecule )) {
 				returnValue.add( correlation );
 			}
 		}

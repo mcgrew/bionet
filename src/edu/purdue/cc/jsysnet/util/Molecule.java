@@ -112,29 +112,6 @@ public class Molecule implements Comparable<Molecule> {
 	}
 	 
 	/**
-	 * Sets the &quot;name&quot; attribute for the Molecule.
-	 * This method is deprecated; use setAttribute( &quot;name&quot; ) instead.
-	 * 
-	 * @param name The value for the &quot;name&quot; attribute.
-	 */
-	@Deprecated
-	public void setName( String name ){
-		this.setAttribute( "name", name );
-	}
-
-	/**
-	 * Gets the &quot;name&quot; attribute for the Molecule.
-	 * This method is deprecated; use getAttribute( &quot;name&quot; ) instead.
-	 * 
-	 * @return A string containing the &quot;name&quot; attribute for the 
-	 *	Molecule.
-	 */
-	@Deprecated
-	public String getName( ){
-		return this.getAttribute( "name" );
-	}
-
-	/**
 	 * Sets the molecular weight of the molecule;
 	 * 
 	 * @param mw The molecular weight of the molecule;
@@ -150,42 +127,6 @@ public class Molecule implements Comparable<Molecule> {
 	 */
 	public double getMolecularWeight( ){
 		return this.molecularWeight;
-	}
-
-	/**
-	 * Sets the &quot;Formula&quot; attribute for the Molecule.
-	 * 
-	 * @deprecated This method is deprecated; use 
-	 *	setAttribute( &quot;formula&quot;, value ) instead.
-	 * @param formula A string containing the new &quot;formula&quot; attribute.
-	 */
-	@Deprecated
-	public void setFormula( String formula ){
-		this.setAttribute( "formula", formula );
-	}
-	/**
-	 * Gets the &quot;formula&quot; attribute for the module.
-	 * 
-	 * @deprecated This method is deprecated; use 
-	 *	getAttribute( &quot;formula&quot; ) instead.
-	 * @return A string containing the &quot;formula&quot; attribute for the 
-	 *	Molecule.
-	 */
-	@Deprecated
-	public String getFormula( ){
-		return this.getAttribute( "formula" );
-	}
-
-	/**
-	 * Adds a new sample value to this Molecule.
-	 * 
-	 * @deprecated This method is being replaced by setValue( Sample, double )
-	 * @param sample The Sample this value it associated with.
-	 * @param value The value of this sample;
-	 */
-	@Deprecated
-	public void addSample( Sample sample, double value ) {
-		this.addSample( sample, new Double( value ));
 	}
 
 	/**
@@ -222,18 +163,6 @@ public class Molecule implements Comparable<Molecule> {
 	/**
 	 * Returns the sample value for the appropriate Samples
 	 * 
-	 * deprecated This method is being replaced by getValues( Sample ).
-	 * @param samples The samples to get the values for.
-	 * @return The sample values.
-	 */
-	@Deprecated
-	public NumberList getSamples( Collection<Sample> samples ) {
-		return this.getValues( samples );
-	}
-
-	/**
-	 * Returns the sample value for the appropriate Samples
-	 * 
 	 * @param samples The samples to get the values for.
 	 * @return The sample values.
 	 */
@@ -251,11 +180,6 @@ public class Molecule implements Comparable<Molecule> {
 			returnValue.put( sample, sample.getValue( this ));
 		}
 		return returnValue;
-	}
-
-	@Deprecated
-	public Number getSample( Sample sample ) {
-		return this.getValue( sample );
 	}
 
 	public Number getValue( Sample sample ) {

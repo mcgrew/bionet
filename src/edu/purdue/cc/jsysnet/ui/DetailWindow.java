@@ -125,7 +125,8 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	public void show( Molecule molecule ) {
 		this.tabPane.setSelectedComponent( 
 			this.tabPane.add( molecule.toString( ), 
-			  new MoleculeDetailPanel( molecule, this.correlationRange, this )));
+			  new MoleculeDetailPanel( molecule, this.correlationRange, 
+			                           this, this.correlationMethod )));
 	}
 
 	/**
