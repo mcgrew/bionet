@@ -192,8 +192,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
 			XYItemRenderer renderer = plot.getRenderer( );
-			renderer.setItemLabelGenerator( this );
-			renderer.setItemLabelsVisible( true );
+			renderer.setBaseItemLabelGenerator( this );
+			renderer.setBaseItemLabelsVisible( true );
 		}
 
 		/**

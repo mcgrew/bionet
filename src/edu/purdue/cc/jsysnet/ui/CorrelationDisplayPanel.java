@@ -26,7 +26,7 @@ import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.io.DataReader;
 import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
-import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
+//import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
 import edu.purdue.cc.jsysnet.ui.layout.RandomLayout;
 import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.Experiment;
@@ -80,6 +80,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import java.awt.event.ComponentAdapter;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -154,7 +155,7 @@ public class CorrelationDisplayPanel extends JPanel
 	// layout menu itmes
 	private JMenu layoutMenu;
 	private ButtonGroup layoutMenuButtonGroup;
-	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem;
+//	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem;
 	private JRadioButtonMenuItem singleCircleLayoutMenuItem;
 	private JRadioButtonMenuItem randomLayoutMenuItem;
 	private JRadioButtonMenuItem heatMapLayoutMenuItem;
@@ -165,6 +166,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 	// view menu items
 	private JMenu viewMenu;
+	private JMenuItem chooseSampleGroupsMenuItem;
 	private JMenuItem zoomInViewMenuItem;
 	private JMenuItem zoomOutViewMenuItem;
 	private JMenuItem fitToWindowViewMenuItem;
@@ -177,7 +179,6 @@ public class CorrelationDisplayPanel extends JPanel
 	private JMenuItem hideUncorrelatedViewMenuItem;
 	private JMenuItem hideOrphansViewMenuItem;
 	private JMenuItem showCorrelatedViewMenuItem;
-	private JMenuItem chooseSampleGroupsMenuItem;
 
 	
 	// color menu items
@@ -248,10 +249,10 @@ public class CorrelationDisplayPanel extends JPanel
 		// layout menu itmes
 		this.layoutMenu = new JMenu( language.get( "Layout" ));
 		this.layoutMenuButtonGroup = new ButtonGroup( );
-		this.multipleCirclesLayoutMenuItem = 
-			new JRadioButtonMenuItem( language.get( "Multiple Circles" ), true );
+//		this.multipleCirclesLayoutMenuItem = 
+			new JRadioButtonMenuItem( language.get( "Multiple Circles" ));
 		this.singleCircleLayoutMenuItem = 
-			new JRadioButtonMenuItem( language.get( "Single Circle" ));
+			new JRadioButtonMenuItem( language.get( "Single Circle" ), true);
 		this.randomLayoutMenuItem = 
 			new JRadioButtonMenuItem( language.get( "Random" ));
 		this.heatMapLayoutMenuItem = 
@@ -267,6 +268,8 @@ public class CorrelationDisplayPanel extends JPanel
 
 		// view menu items
 		this.viewMenu = new JMenu( language.get( "View" ));
+		this.chooseSampleGroupsMenuItem = 
+			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
 		this.zoomInViewMenuItem = 
 			new JMenuItem( language.get( "Zoom In" ), KeyEvent.VK_I );
 		this.zoomOutViewMenuItem = 
@@ -291,8 +294,6 @@ public class CorrelationDisplayPanel extends JPanel
 			new JMenuItem( language.get( "Hide Orphans" ), KeyEvent.VK_P );
 		this.showCorrelatedViewMenuItem = new JMenuItem( 
 			language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
-		this.chooseSampleGroupsMenuItem = 
-			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
 
 		
 		// color menu items
@@ -323,10 +324,6 @@ public class CorrelationDisplayPanel extends JPanel
 		this.calculationMenu.add( this.pearsonCalculationMenuItem );
 		this.calculationMenu.add( this.spearmanCalculationMenuItem );
 		this.calculationMenu.add( this.kendallCalculationMenuItem );
-//		CalculationChangeListener ccl = new CalculationChangeListener( );
-//		this.pearsonCalculationMenuItem.addItemListener( ccl );
-//		this.spearmanCalculationMenuItem.addItemListener( ccl ); 
-//		this.kendallCalculationMenuItem.addItemListener( ccl );
 		this.pearsonCalculationMenuItem.addItemListener( this );
 		this.spearmanCalculationMenuItem.addItemListener( this ); 
 		this.kendallCalculationMenuItem.addItemListener( this );
@@ -336,7 +333,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.layoutMenu.setMnemonic( KeyEvent.VK_L );
 		this.layoutMenu.getAccessibleContext( ).setAccessibleDescription(
 			language.get( "Change the layout of the graph" ));
-		this.layoutMenuButtonGroup.add( this.multipleCirclesLayoutMenuItem );
+//		this.layoutMenuButtonGroup.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.randomLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.kkLayoutMenuItem );
@@ -345,7 +342,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		
 		Enumeration<AbstractButton> e = this.layoutMenuButtonGroup.getElements( );
-		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
+//		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenu.add( this.randomLayoutMenuItem );
 		this.layoutMenu.add( this.kkLayoutMenuItem );
@@ -354,7 +351,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
 		this.layoutMenu.addSeparator( );
 		this.layoutMenu.add( this.animatedLayoutMenuItem );
-		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
+//		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
 		this.singleCircleLayoutMenuItem.addActionListener( lcl );
 		this.randomLayoutMenuItem.addActionListener( lcl );
 		this.kkLayoutMenuItem.addActionListener( lcl );
@@ -365,6 +362,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 		//VIEW MENU
 		this.viewMenu.add( this.colorMenu );
+		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
 		this.viewMenu.addSeparator( );
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
 		this.viewMenu.getAccessibleContext( ).setAccessibleDescription(
@@ -383,7 +381,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.viewMenu.add( this.hideUncorrelatedViewMenuItem );
 		this.viewMenu.add( this.hideOrphansViewMenuItem );
 		this.viewMenu.add( this.showCorrelatedViewMenuItem );
-		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
+		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.zoomOutViewMenuItem.addActionListener( this );
 		this.zoomInViewMenuItem.addActionListener( this );
 		this.fitToWindowViewMenuItem.addActionListener( this );
@@ -396,7 +394,6 @@ public class CorrelationDisplayPanel extends JPanel
 		this.hideUncorrelatedViewMenuItem.addActionListener( this );
 		this.hideOrphansViewMenuItem.addActionListener( this );
 		this.showCorrelatedViewMenuItem.addActionListener( this );
-		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.selectAllViewMenuItem.setAccelerator(
 			KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK ));
 		this.clearSelectionViewMenuItem.setAccelerator(
@@ -471,17 +468,12 @@ public class CorrelationDisplayPanel extends JPanel
 				public void graphReleased( Correlation c, MouseEvent e ) { }
 		});
 
-		for( String groupName : this.experiment.getMoleculeGroupNames( ))
-			for( Molecule molecule : 
-				   this.experiment.getMoleculeGroup( groupName ).getMolecules( ))
-				this.moleculeFilterPanel.add( molecule );
+		for( Molecule molecule : this.experiment.getMolecules( ))
+			this.moleculeFilterPanel.add( molecule );
 
 		this.add( this.graphSplitPane, BorderLayout.CENTER );
 		this.graphSplitPane.setBottomComponent( this.infoPanel );
-		this.graphSplitPane.setDividerLocation( 
-			Settings.getSettings( ).getInt( "windowHeight" ) - 400 );
 		this.setGraphVisualizer( this.graph );
-		this.setGraphLayout( MultipleCirclesLayout.class );
 
 		this.heatMapPanel = new HeatMap( this.getTitle( ), 
 		                                 this.graph.getExperiment( ), 
@@ -491,8 +483,36 @@ public class CorrelationDisplayPanel extends JPanel
 		this.pearsonCalculationMenuItem.addChangeListener( this.heatMapPanel );
 		this.spearmanCalculationMenuItem.addChangeListener( this.heatMapPanel );
 		this.kendallCalculationMenuItem.addChangeListener( this.heatMapPanel );
+		this.addComponentListener( new InitialSetup( ));
 		return true;
 	}
+
+	// ============================ InitialSetup =================================
+	/**
+	 * A class for handling the sizng of panels and such in 
+	 * TimeCourseStudyDisplayPanel when it is initially shown.
+	 */
+	private class InitialSetup extends ComponentAdapter {
+		public InitialSetup( ) {
+			super( );
+		}
+
+		/**
+		 * Fired when the component is shown. Sets up a few things 
+		 * based on the overall size of the panel when it is made visible, then
+		 * unregisters itself as a listener so it is only fired once.
+		 * 
+		 * @param e The event which triggered this action.
+		 */
+		public void componentShown( ComponentEvent e ) {
+			Component source = e.getComponent( );
+			graphSplitPane.setDividerLocation( source.getHeight( ) - 300 );
+			setGraphLayout( CircleLayout.class );
+			// we only need to perform this action once.
+			source.removeComponentListener( this );
+		}
+	}
+
 
 	/**
 	 * Resets the Graph Layout back to its original state.
@@ -1349,8 +1369,8 @@ public class CorrelationDisplayPanel extends JPanel
 			public ConditionPanel( ) {
 				super( );
 				// listen for changes to layout/calculation
-				multipleCirclesLayoutMenuItem.addActionListener( this );
-				multipleCirclesLayoutMenuItem.addActionListener( this );
+//				multipleCirclesLayoutMenuItem.addActionListener( this );
+//				multipleCirclesLayoutMenuItem.addActionListener( this );
 				singleCircleLayoutMenuItem.addActionListener( this );
 				randomLayoutMenuItem.addActionListener( this );
 				kkLayoutMenuItem.addActionListener( this );
@@ -1830,9 +1850,10 @@ public class CorrelationDisplayPanel extends JPanel
 					graph.animate( animatedLayoutMenuItem.getState( ));
 				} else {
 					graph.animate( false );
-					if ( item == multipleCirclesLayoutMenuItem )
-						setGraphLayout( MultipleCirclesLayout.class );
-					else if ( item == singleCircleLayoutMenuItem )
+//					if ( item == multipleCirclesLayoutMenuItem )
+//						setGraphLayout( MultipleCirclesLayout.class );
+//					else 
+					if ( item == singleCircleLayoutMenuItem )
 						setGraphLayout( CircleLayout.class );
 					else if ( item == randomLayoutMenuItem )
 						setGraphLayout( RandomLayout.class );

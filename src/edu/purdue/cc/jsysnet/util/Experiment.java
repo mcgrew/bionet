@@ -41,8 +41,6 @@ import org.apache.log4j.Logger;
 public class Experiment implements Comparable<Experiment>,Attributes<String> {
 
 	private Map <String,String> attributes;
-	private Map <String,MoleculeGroup> moleculeGroups;
-	@Deprecated
 	private Collection <Molecule> molecules;
 	private Collection <Correlation> correlations;
 	private SortedSet <Sample> sampleSet;
@@ -65,7 +63,6 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 */
 	public Experiment( String id, Map <String,String> attributes ) {
 		this.attributes = attributes;
-		this.moleculeGroups = new HashMap <String,MoleculeGroup>( );
 		this.molecules = new TreeSet<Molecule>( );
 		this.correlations = new ArrayList <Correlation>( );
 		this.sampleSet = new TreeSet<Sample>( );
@@ -120,17 +117,10 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	/**
 	 * Adds a Molecule to this Experiment.
 	 * 
-	 * @deprecated Molecule groups are being removed.
-	 * @param group A string containing the group this molecule belongs to.
 	 * @param molecule The molecule to be added.
 	 */
-	@Deprecated
-	public void addMolecule( String group, Molecule molecule ){
-		if ( !moleculeGroups.containsKey( group )) {
-			this.addMoleculeGroup( group );
-		}
+	public void addMolecule( Molecule molecule ){
 		if ( !this.molecules.contains( molecule )) {
-			this.moleculeGroups.get( group ).addMolecule( molecule );
 			for ( Molecule m : this.molecules ) {
 				this.correlations.add( new Correlation( m, molecule, this ));
 			}
@@ -140,76 +130,6 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 				"Experiment %s already contains Molecule %s", 
 				this.getId( ), molecule.getId( )));
 		}
-	}
-
-	/**
-	 * Adds a Molecule to this Experiment.
-	 * 
-	 * @param molecule The molecule to be added. The group is determined from the
-	 *	Molecule's &quot;group&quot; attribute.
-	 */
-	public void addMolecule( Molecule molecule ) {
-		this.addMolecule( molecule.getGroup( ), molecule );
-	}
-
-	/**
-	 * The MoleculeGroups for this experiement.
-	 * 
-	 * @deprecated MoleculeGroup is deprecated
-	 * @return A Map containing the MoleculeGroups in this Experiment,
-	 *	indexed by group name.
-	 */
-	@Deprecated
-	public Map <String,MoleculeGroup> getMoleculeGroupMap( ) {
-		return this.moleculeGroups;
-	}
-
-	/**
-	 * The MoleculeGroups for this experiement.
-	 * 
-	 * @deprecated MoleculeGroup is deprecated
-	 * @return A Collection containing the MoleculeGroups in this Experiment.
-	 */
-	@Deprecated
-	public Collection <MoleculeGroup> getMoleculeGroups( ) {
-		return this.moleculeGroups.values( );
-	}
-
-	/**
-	 * Gets a particular MoleculeGroup.
-	 * 
-	 * @deprecated MoleculeGroup is deprecated
-	 * @param group The name of the MoleculeGroup to be retrieved.
-	 * @return The MoleculeGroup requested.
-	 */
-	@Deprecated
-	public MoleculeGroup getMoleculeGroup( Object group ) {
-		org.apache.log4j.Logger.getLogger( getClass()).debug( "Group: "+group.toString());
-		return this.moleculeGroups.get( group.toString( ));
-	}
-
-	/**
-	 * Gets an array containing the molecule group names.
-	 * 
-	 * @deprecated MoleculeGroup is deprecated
-	 * @return a String array containing the names of the MoleculeGroups for this Experiment.
-	 */
-	@Deprecated
-	public String [ ] getMoleculeGroupNames( ) {
-		String [ ] returnValue = this.moleculeGroups.keySet( ).toArray( new String[ 0 ]);
-		Arrays.sort( returnValue );
-		return returnValue;
-	}
-
-	/**
-	 * Adds a MoleculeGroup to this Experiment.
-	 * 
-	 * @deprecated MoleculeGroup is deprecated
-	 * @param group The name of the group to be added.
-	 */
-	@Deprecated
-	public void addMoleculeGroup( String group ) {
-		this.moleculeGroups.put( group, new MoleculeGroup( group ));
 	}
 
 	/**

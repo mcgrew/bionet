@@ -29,6 +29,7 @@ import edu.purdue.cc.jsysnet.util.Molecule;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
@@ -52,11 +53,13 @@ class DataTable extends JTable {
 	 */
 	public static DataTable getMoleculeTable( Experiment experiment,
 	                                          Molecule molecule ) {
-		String [] attributes = molecule.getAttributeNames( );
-		String [][] values = new String[ attributes.length ][ 2 ];
-		for ( int i=0; i < attributes.length; i++ ) {
-			values[ i ][ 0 ] = attributes[ i ];
-			values[ i ][ 1 ] = molecule.getAttribute( attributes[ i ]);
+		Map<String,String> attributes = molecule.getAttributes( );
+		String [][] values = new String[ attributes.size( )][ 2 ];
+		int i=0;
+		for ( Map.Entry<String,String> attribute : attributes.entrySet( )) {
+			values[ i ][ 0 ] = attribute.getKey( );
+			values[ i ][ 1 ] = attribute.getValue( );
+			i++;
 		}
 		Language language = Settings.getLanguage( );
 		return new DataTable( values, new String[]{ 

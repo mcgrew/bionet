@@ -123,7 +123,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	 */
 	public TimeCourseStudyDisplayPanel( ) {
 		super( new BorderLayout( ));
-		this.addComponentListener( new Sizer( ));
+		this.addComponentListener( new InitialSetup( ));
 	}
 		
 	/**
@@ -382,13 +382,13 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			return result;
 		}
 	}
-
+	// ============================ InitialSetup =================================
 	/**
 	 * A class for handling the sizng of panels and such in 
 	 * TimeCourseStudyDisplayPanel when it is initially shown.
 	 */
-	private class Sizer extends ComponentAdapter {
-		public Sizer( ) {
+	private class InitialSetup extends ComponentAdapter {
+		public InitialSetup( ) {
 			super( );
 		}
 

@@ -28,7 +28,6 @@ import edu.purdue.bbc.util.equation.Equation;
 import edu.purdue.bbc.util.equation.Polynomial;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
-import edu.purdue.cc.jsysnet.util.MoleculeGroup;
 import edu.purdue.cc.jsysnet.util.Sample;
 
 import java.awt.BasicStroke;

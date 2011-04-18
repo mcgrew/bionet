@@ -98,20 +98,6 @@ public class Molecule implements Comparable<Molecule> {
 	}
 
 	/**
-	 * Get the name of all attributes set for this Molecule.
-	 * 
-	 * @deprecated This method will be removed in a future version. Use
-	 * getAttributes( ) instead.
-	 * @return An array of Strings containing the names of all attributes.
-	 */
-	@Deprecated
-	public String [] getAttributeNames( ){
-		String [] returnValue = this.attributes.keySet( ).toArray( new String[ 0 ]);
-		Arrays.sort( returnValue );
-		return returnValue;
-	}
-	 
-	/**
 	 * Sets the molecular weight of the molecule;
 	 * 
 	 * @param mw The molecular weight of the molecule;
@@ -184,44 +170,6 @@ public class Molecule implements Comparable<Molecule> {
 
 	public Number getValue( Sample sample ) {
 		return sample.getValue( this );
-	}
-
-	/**
-	 * Sets the group name this Molecule belongs to.
-	 * 
-	 * @deprecated Molecule groups will be removed from a future version.
-	 * @param group A string containing the group name for this Molecule.
-	 */
-	@Deprecated
-	public void setGroup( String group ) {
-		this.setAttribute( "group_name", group );
-	}
-
-	/**
-	 * Gets the group name this Molecule belongs to.
-	 * 
-	 * @deprecated Molecule groups will be removed from a future version.
-	 * @return A String containing the group name for this Molecule.
-	 */
-	@Deprecated
-	public String getGroup( ) {
-		return this.getAttribute( "group_name" );
-	}
-
-	/**
-	 * Returns the MoleculeGroup this Molecule belongs to.
-	 * 
-	 * @deprecated The MoleculeGroup class will be removed from a future version.
-	 * @return The MoleculeGroup which contains this Molecule, or null if no
-	 *	such group exists.
-	 */
-	@Deprecated
-	public MoleculeGroup getMoleculeGroup( ) {
-		for ( MoleculeGroup m : this.experiment.getMoleculeGroups( )) {
-			if ( m.contains( this ))
-				return m;
-		}
-		return null;
 	}
 
 	public String toString( ) {
