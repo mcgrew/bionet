@@ -61,8 +61,8 @@ public interface Pair<T> {
 	 * 
 	 * @param item The item to check for.
 	 * @return boolean indicating whether the specified item is a part of this
-	 *	pair.
+	 *	Pair.
 	 */
-	public boolean contains( T item );
+	public boolean contains( Object item );
 }
 

@@ -21,7 +21,7 @@ package edu.purdue.cc.jsysnet.util;
 
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Statistics;
-import edu.purdue.bbc.util.Pair;
+import edu.purdue.bbc.util.SimplePair;
 
 import java.lang.Math;
 import java.lang.Double;
@@ -35,7 +35,7 @@ import java.util.Arrays;
  *
  * @author Thomas McGrew
  */
-public class Correlation implements Pair<Molecule> {
+public class Correlation extends SimplePair<Molecule> {
 
 	public static final int PEARSON = 0;
 	public static final int SPEARMAN = 1;
@@ -45,7 +45,6 @@ public class Correlation implements Pair<Molecule> {
 	protected double pearsonCorrelation = Double.NaN;
 	protected double spearmanCorrelation = Double.NaN;
 	protected double kendallCorrelation = Double.NaN;
-	protected Molecule [ ] molecules = new Molecule[ 2 ];
 	protected Experiment experiment;
 
 	/**
@@ -57,8 +56,7 @@ public class Correlation implements Pair<Molecule> {
 	 */
 	public Correlation( Molecule molecule1, Molecule molecule2, 
 	                    Experiment experiment ) {
-		this.molecules[ 0 ] = molecule1;
-		this.molecules[ 1 ] = molecule2;
+		super( molecule1, molecule2 );
 		this.experiment = experiment;
 	}
 
@@ -83,54 +81,9 @@ public class Correlation implements Pair<Molecule> {
 	 * @return A Molecule array of length 2, containing the 2 Molecules
 	 *	associated with this correlation.
 	 */
+	@Deprecated
 	public Molecule [ ] getMolecules( ) {
-		return this.molecules;
-	}
-
-	/**
-	 * Gets the first of the two Molecules associated with this Correlation.
-	 * 
-	 * @return The first of the two Molecules associated with this Correlation.
-	 */
-	public Molecule getFirst( ) {
-		return this.molecules[ 0 ];
-	}
-
-	/**
-	 * Gets the second of the two Molecules associated with this Correlation.
-	 * 
-	 * @return The second of the two Molecules associated with this Correlation.
-	 */
-	public Molecule getSecond( ) {
-		return this.molecules[ 1 ];
-	}
-
-	/**
-	 * Returns the other molecule in this Correlation
-	 * 
-	 * @param molecule The Molecule you wish to get the opposite of.
-	 * @return The opposite Molecule from the passed in Molecule which is 
-	 *	assiciated with this correlation. Returns null if the passed in Molecule
-	 *	is not associated with this Correlation.
-	 */
-	public Molecule getOpposite( Molecule molecule ) {
-		if ( molecule == this.molecules[ 0 ])
-			return this.molecules[ 1 ];
-		if ( molecule == this.molecules[ 1 ])
-			return this.molecules[ 0 ];
-		return null;
-	}
-
-	/**
-	 * Whether or not this Correlation is associated with the specified Molecule.
-	 * 
-	 * @param molecule The molecule to test association with.
-	 * @return True if this Correlation is associated with the specified Molecule,
-	 *	false otherwise.
-	 */
-	public boolean contains( Molecule molecule ) {
-		return ( molecule == this.molecules[ 0 ] ||
-		         molecule == this.molecules[ 1 ] );
+		return new Molecule[] { this.first, this.second };
 	}
 
 	/**
@@ -216,9 +169,9 @@ public class Correlation implements Pair<Molecule> {
 		//See if this value has already been calculated
 		if ( recalculate || Double.isNaN( this.pearsonCorrelation )) {
 			NumberList molecule0Values = new NumberList( 
-				this.molecules[ 0 ].getValues( this.experiment.getSamples( )));
+				this.first.getValues( this.experiment.getSamples( )));
 			NumberList molecule1Values = new NumberList( 
-				this.molecules[ 1 ].getValues( this.experiment.getSamples( )));
+				this.second.getValues( this.experiment.getSamples( )));
 			filterZeros( molecule0Values, molecule1Values );
 			this.pearsonCorrelation = Statistics.getPearsonCorrelation( 
 				molecule0Values.toDoubleArray( ), 
@@ -247,9 +200,9 @@ public class Correlation implements Pair<Molecule> {
 		//See if this value has already been calculated
 		if ( recalculate || Double.isNaN( this.spearmanCorrelation ) ) {
 			NumberList molecule0Values = new NumberList( 
-				this.molecules[ 0 ].getValues( this.experiment.getSamples( )));
+				this.first.getValues( this.experiment.getSamples( )));
 			NumberList molecule1Values = new NumberList( 
-				this.molecules[ 1 ].getValues( this.experiment.getSamples( )));
+				this.second.getValues( this.experiment.getSamples( )));
 			filterZeros( molecule0Values, molecule1Values );
 			this.spearmanCorrelation = Statistics.getSpearmanCorrelation( 
 				molecule0Values.toDoubleArray( ), 
@@ -277,9 +230,9 @@ public class Correlation implements Pair<Molecule> {
 	public double getKendallCorrelation( boolean recalculate ) {
 		if ( recalculate || Double.isNaN( this.kendallCorrelation )) {
 			NumberList molecule0Values = new NumberList( 
-				this.molecules[ 0 ].getValues( this.experiment.getSamples( )));
+				this.first.getValues( this.experiment.getSamples( )));
 			NumberList molecule1Values = new NumberList( 
-				this.molecules[ 1 ].getValues( this.experiment.getSamples( )));
+				this.second.getValues( this.experiment.getSamples( )));
 			filterZeros( molecule0Values, molecule1Values );
 			this.kendallCorrelation = Statistics.getKendallCorrelation( 
 				molecule0Values.toDoubleArray( ), 
@@ -314,9 +267,8 @@ public class Correlation implements Pair<Molecule> {
 	 * @return a String representing this Correlation.
 	 */
 	public String toString( ) {
-		return String.format( "%s - %s", 
-			this.molecules[0].toString( ), 
-			this.molecules[1].toString( ));
+		return String.format( "%s - %s", this.first.toString( ), 
+			this.second.toString( ));
 	}
 
 	/**
