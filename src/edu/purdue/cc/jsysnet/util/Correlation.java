@@ -76,17 +76,6 @@ public class Correlation extends SimplePair<Molecule> {
 	}
 
 	/**
-	 * Gets the Molecules associated with this Correlation.
-	 * 
-	 * @return A Molecule array of length 2, containing the 2 Molecules
-	 *	associated with this correlation.
-	 */
-	@Deprecated
-	public Molecule [ ] getMolecules( ) {
-		return new Molecule[] { this.first, this.second };
-	}
-
-	/**
 	 * Gets the correlation coeffiecient of this Correlation
 	 * 
 	 * @param method The coefficient calculation method to use. Should be one of

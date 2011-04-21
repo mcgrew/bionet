@@ -753,10 +753,10 @@ public class CorrelationDisplayPanel extends JPanel
 		} else if ( item == this.showCorrelatedViewMenuItem ) {
 			for ( Correlation c : this.experiment.getCorrelations( )){
 				if ( this.getCorrelationRange( ).contains( c.getValue( this.correlationMethod )) &&
-				     ( vertices.contains( c.getMolecules( )[ 0 ] ) ||
-						   vertices.contains( c.getMolecules( )[ 1 ] ))) {
-					this.graph.addVertex( c.getMolecules( )[ 0 ]);
-					this.graph.addVertex( c.getMolecules( )[ 1 ]);
+				     ( vertices.contains( c.getFirst( ) ) ||
+						   vertices.contains( c.getSecond( ) ))) {
+					this.graph.addVertex( c.getFirst( ));
+					this.graph.addVertex( c.getSecond( ));
 				}
 			}
 		} else if ( item == this.chooseSampleGroupsMenuItem ) {
@@ -912,7 +912,7 @@ public class CorrelationDisplayPanel extends JPanel
 						if ( graph.isValidEdge( correlation ))
 							graph.addEdge( correlation,
 								new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
-									correlation.getMolecules( )),
+									correlation.toArray( new Molecule[ 2 ])),
 									EdgeType.UNDIRECTED );
 					}
 				}
@@ -1222,8 +1222,8 @@ public class CorrelationDisplayPanel extends JPanel
 				kendallCalculationMenuItem.addChangeListener( this );
 			}
 			Object[] newRow = new Object[ 5 ];
-			newRow[ 0 ] = correlation.getMolecules( )[ 0 ].getId( );
-			newRow[ 1 ] = correlation.getMolecules( )[ 1 ].getId( );
+			newRow[ 0 ] = correlation.getFirst( ).getId( );
+			newRow[ 1 ] = correlation.getSecond( ).getId( );
 			newRow[ 2 ] = String.format( "%.5f", 
 				correlation.getValue( Correlation.PEARSON ));
 			newRow[ 3 ] = String.format( "%.5f", 
@@ -1310,9 +1310,9 @@ public class CorrelationDisplayPanel extends JPanel
 				(DefaultTableModel)this.correlationTable.getModel( );
 			int returnValue = 0;
 			while( returnValue < tm.getRowCount( )) {
-				if ( correlation.getMolecules( )[ 0 ].getId( ).equals( 
+				if ( correlation.getFirst( ).getId( ).equals( 
 					tm.getValueAt( returnValue, 0 )) && 
-					correlation.getMolecules( )[ 1 ].getId( ).equals(
+					correlation.getSecond( ).getId( ).equals(
 					tm.getValueAt( returnValue, 1 )))
 					return returnValue;
 				returnValue++;
@@ -2311,7 +2311,8 @@ public class CorrelationDisplayPanel extends JPanel
 				if ( this.isValidEdge( correlation )) {
 					this.graph.addEdge( 
 						correlation, 
-						new edu.uci.ics.jung.graph.util.Pair <Molecule> ( correlation.getMolecules( )),
+						new edu.uci.ics.jung.graph.util.Pair <Molecule> ( 
+							correlation.toArray( new Molecule[ 2 ])),
 						EdgeType.UNDIRECTED );
 				}
 			}
@@ -2333,7 +2334,7 @@ public class CorrelationDisplayPanel extends JPanel
 					if ( !this.containsEdge( correlation )) {
 						this.addEdge( correlation, 
 													new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
-														correlation.getMolecules( )),
+														correlation.toArray( new Molecule[ 2 ])),
 													EdgeType.UNDIRECTED );
 					}
 				}
@@ -2357,9 +2358,8 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @return true If the correlation should be shown, false otherwise.
 		 */
 		public boolean isValidEdge( Correlation correlation ) {
-			Molecule [] molecules = correlation.getMolecules( );
-			return ( this.containsVertex( molecules[ 0 ] ) &&
-							 this.containsVertex( molecules[ 1 ] ) &&
+			return ( this.containsVertex( correlation.getFirst( )) &&
+							 this.containsVertex( correlation.getSecond( )) &&
 							 this.range.contains( 
 								 Math.abs( correlation.getValue( correlationMethod ))));
 		}
@@ -2383,14 +2383,13 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		public void graphClicked( Correlation edge, MouseEvent event ) {
 			if ( event.getButton( ) == MouseEvent.BUTTON1 ) {
-				Molecule [] m = edge.getMolecules( );
 				PickedState <Molecule> state = this.getPickedVertexState( );
 				// see if shift or ctrl is being held down
 				if(( event.getModifiers( ) & 
 					 ( InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK )) == 0 ) 
 						state.clear( );
-				state.pick( m[0], true );
-				state.pick( m[1], true );
+				state.pick( edge.getFirst( ), true );
+				state.pick( edge.getSecond( ), true );
 			}
 		}
 
