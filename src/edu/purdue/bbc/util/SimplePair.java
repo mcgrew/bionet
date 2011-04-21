@@ -54,6 +54,17 @@ public class SimplePair<T> implements Pair<T>, Collection<T> {
 	}
 
 	/**
+	 * Creates a new SimplePair containing the same objects in the passed in 
+	 * pair.
+	 * 
+	 * @param pair The Pair to use to create a new SimplePair.
+	 */
+	public SimplePair( Pair<T> pair ) {
+		this.first = pair.getFirst( );
+		this.second = pair.getSecond( );
+	}
+
+	/**
 	 * Gets the first item in this pair.
 	 * 
 	 * @return The first of the two items in the pair.
@@ -285,7 +296,7 @@ public class SimplePair<T> implements Pair<T>, Collection<T> {
 		 * @return true if the iterator has more elements.
 		 */
 		public boolean hasNext( ) {
-			return ( iterPos < 1 );
+			return ( iterPos < 2 );
 		}
 
 		/**

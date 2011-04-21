@@ -26,6 +26,7 @@ import edu.purdue.cc.jsysnet.io.JavaMLTranslator;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
+import edu.purdue.cc.jsysnet.util.SampleGroup;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -33,7 +34,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -59,6 +62,10 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.JMenu;
+import java.awt.event.KeyEvent;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
@@ -103,6 +110,11 @@ import org.apache.log4j.Logger;
 
 public class TimeCourseStudyDisplayPanel extends JPanel 
                                 implements DisplayPanel, ActionListener {
+	private JMenuBar menuBar;
+	private JMenu viewMenu;
+	private JMenuItem chooseSampleGroupsMenuItem;
+	private JMenuItem removeSampleGroupsMenuItem;
+
 	private ClusterSelectorTreePanel selectorTree;
 	private SampleSelectorTreePanel sampleSelectorTree;
 	private JButton recomputeButton;
@@ -113,6 +125,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	private List<Sample> samples;
 	private Collection<Molecule> molecules;
 	private Clusterer clusterer;
+	private Collection<SampleGroup> sampleGroups;
 
 	private static final int ROOT = 0;
 	private static final int CLUSTER = 1;
@@ -123,7 +136,21 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	 */
 	public TimeCourseStudyDisplayPanel( ) {
 		super( new BorderLayout( ));
+		Language language = Settings.getLanguage( );
 		this.addComponentListener( new InitialSetup( ));
+		this.menuBar = new JMenuBar( );
+		this.viewMenu = new JMenu( language.get( "View" ));
+		this.viewMenu.setMnemonic( KeyEvent.VK_V );
+		this.removeSampleGroupsMenuItem = 
+			new JMenuItem( language.get( "Remove Sample Groups" ), KeyEvent.VK_G );
+		this.chooseSampleGroupsMenuItem = 
+			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
+		this.viewMenu.add( this.removeSampleGroupsMenuItem );
+		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
+		this.chooseSampleGroupsMenuItem.addActionListener( this );
+		this.removeSampleGroupsMenuItem.addActionListener( this );
+		this.add( menuBar, BorderLayout.NORTH );
+		this.menuBar.add( this.viewMenu );
 	}
 		
 	/**
@@ -141,6 +168,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			this.samples.addAll( experiment.getSamples( ));
 			this.molecules.addAll( experiment.getMolecules( ));
 		}
+		Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
+		sampleGroups.add( new SampleGroup( "", samples ));
 		this.sampleSelectorTree = new SampleSelectorTreePanel( this.samples );
 		
 		this.setClusterer( new SOM(
@@ -172,7 +201,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		treePanel.add( this.treeSplitPane, BorderLayout.CENTER );
 		treePanel.add( this.recomputeButton, BorderLayout.SOUTH );
 		this.splitPane.setLeftComponent( treePanel );
-		this.graph = new ClusterGraph( );
+		this.graph = new MultiClusterGraph( sampleGroups );
 		this.splitPane.setRightComponent( this.graph );
 		this.sampleSelectorTree.getTree( ).addTreeCheckingListener( this.graph );
 		this.add( this.splitPane, BorderLayout.CENTER );
@@ -182,8 +211,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		this.treeSplitPane.setTopComponent( this.selectorTree );
 		this.selectorTree.getTree( ).addTreeSelectionListener( this.graph );
 		this.selectorTree.getTree( ).addTreeCheckingListener( this.graph );
-		this.graph.setMeanGraph( (DefaultMutableTreeNode)
-			this.selectorTree.getTree( ).getModel( ).getRoot( ));
+
+		this.setSampleGroups( sampleGroups );
 
 		return true;
 	}
@@ -321,7 +350,48 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 					Settings.getLanguage( ).get( "Unclustered" ),
 					false );
 			}
+		} else if ( source == this.chooseSampleGroupsMenuItem ) {
+			// Choose sample groups.
+			Component frame = this;
+			while( !(frame instanceof Frame) && frame != null ) {
+				frame = frame.getParent( );
+			}
+			Collection<SampleGroup> groups = 
+				SampleGroupingDialog.showInputDialog( 
+					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
+					this.samples );
+			if ( groups != null ) {
+
+				if ( this.sampleGroups != null ) {
+					for ( SampleGroup group : this.getSampleGroups( )) {
+						logger.debug( group.toString( ));
+						for ( Sample sample : group ) {
+							logger.debug( "\t" + sample.toString( ));
+						}
+					}
+				}
+				this.setSampleGroups( groups );
+			}
+		} else if ( source == this.removeSampleGroupsMenuItem ) {
+			Collection<SampleGroup> groups = new ArrayList<SampleGroup>( );
+			groups.add( new SampleGroup( "", this.samples ));
+			this.setSampleGroups( groups );
 		}
+	}
+
+	public void setSampleGroups( Collection<SampleGroup> sampleGroups ) {
+		this.sampleGroups = sampleGroups;
+		if ( this.graph instanceof MultiClusterGraph ) {
+			((MultiClusterGraph)this.graph).setSampleGroups( sampleGroups );
+		}
+		this.graph.setMeanGraph( (DefaultMutableTreeNode)
+			this.selectorTree.getTree( ).getModel( ).getRoot( ));
+		this.removeSampleGroupsMenuItem.setEnabled( sampleGroups.size( ) > 1 );
+		this.graph.repaint( );
+	}
+
+	public Collection<SampleGroup> getSampleGroups( ) {
+		return this.sampleGroups;
 	}
 
 	// ============================= PRIVATE CLASSES =============================
@@ -563,12 +633,18 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	private class ClusterGraph extends JPanel
 			implements TreeSelectionListener,TreeCheckingListener {
 		private JFreeChart chart;
+		private SampleGroup samples;
 
 		/**
 		 * Creates a new ClusterGraph.
 		 */
 		public ClusterGraph( ) {
 			super( );
+		}
+
+		public ClusterGraph( SampleGroup samples ) {
+			super( );
+			this.samples = samples;
 		}
 		
 		/**
@@ -584,6 +660,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			Object userObject = node.getUserObject( );
 			List<Sample> samples = 
 				new ArrayList<Sample>( sampleSelectorTree.getSamples( ));
+			if ( this.samples != null )
+				samples.retainAll( this.samples );
 			if ( samples.size( ) < 1 ) {
 				this.chart = null;
 				return false;
@@ -630,40 +708,43 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				this.chart = null;
 				return false;
 			}
+			String chartTitle = (( this.samples == null ) ? "" :
+				this.samples.toString( ) + " " ) + 
+				language.get( "Sample concentrations" );
 			this.chart = ChartFactory.createXYLineChart( 
-					language.get( "Sample concentrations" ), //title
-					language.get( "Sample" ),        // x axis label
-					language.get( "Concentration" ), // y axis label
-					xyDataset,                       // plot data
-					PlotOrientation.VERTICAL,        // Plot Orientation
-					true,                            // show legend
-					false,                           // use tooltips
-					false                            // configure chart to generate URLs
-				);
+				chartTitle,                      //title
+				language.get( "Sample" ),        // x axis label
+				language.get( "Concentration" ), // y axis label
+				xyDataset,                       // plot data
+				PlotOrientation.VERTICAL,        // Plot Orientation
+				true,                            // show legend
+				false,                           // use tooltips
+				false                            // configure chart to generate URLs
+			);
 
-				XYPlot plot = this.chart.getXYPlot( );
-				XYLineAndShapeRenderer renderer = 
-					(XYLineAndShapeRenderer)plot.getRenderer( );
-				plot.setRenderer( renderer );
-				// find the index of this experiment for appropriate coloring.
-				for ( int i=0; i < xyDataset.getSeriesCount( ); i++ ) {
-					renderer.setSeriesStroke( i, new BasicStroke( 2 ));
-					renderer.setSeriesShapesVisible( i, true );
-					renderer.setSeriesPaint( i, 
-						Color.getHSBColor( (float)i/xyDataset.getSeriesCount( ), 1.0f, 0.5f ));
-				}
-				plot.setBackgroundPaint( Color.WHITE );
-				plot.setRangeGridlinePaint( Color.GRAY );
-				plot.setDomainGridlinePaint( Color.GRAY );
-				TickUnits tickUnits = new TickUnits( );
-				double tickIndex = 0.0;
-				for ( Sample sample : samples ) {
-					tickUnits.add( new SampleTickUnit( tickIndex, samples ));
-					tickIndex++;
-				}
-				plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
-				plot.getDomainAxis( ).setVerticalTickLabels( true );
-				return true;
+			XYPlot plot = this.chart.getXYPlot( );
+			XYLineAndShapeRenderer renderer = 
+				(XYLineAndShapeRenderer)plot.getRenderer( );
+			plot.setRenderer( renderer );
+			// find the index of this experiment for appropriate coloring.
+			for ( int i=0; i < xyDataset.getSeriesCount( ); i++ ) {
+				renderer.setSeriesStroke( i, new BasicStroke( 2 ));
+				renderer.setSeriesShapesVisible( i, true );
+				renderer.setSeriesPaint( i, 
+					Color.getHSBColor( (float)i/xyDataset.getSeriesCount( ), 1.0f, 0.5f ));
+			}
+			plot.setBackgroundPaint( Color.WHITE );
+			plot.setRangeGridlinePaint( Color.GRAY );
+			plot.setDomainGridlinePaint( Color.GRAY );
+			TickUnits tickUnits = new TickUnits( );
+			double tickIndex = 0.0;
+			for ( Sample sample : samples ) {
+				tickUnits.add( new SampleTickUnit( tickIndex, samples ));
+				tickIndex++;
+			}
+			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
+			plot.getDomainAxis( ).setVerticalTickLabels( true );
+			return true;
 		}
 
 		/**
@@ -678,6 +759,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			Language language = Settings.getLanguage( );
 			List<Sample> samples = 
 				new ArrayList<Sample>( sampleSelectorTree.getSamples( ));
+			if ( this.samples != null )
+				samples.retainAll( this.samples );
 			if ( samples.size( ) < 1 ) {
 				this.chart = null;
 				return false;
@@ -721,8 +804,11 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				this.chart = null;
 				return false;
 			}
+			String chartTitle = (( this.samples == null ) ? "" :
+				this.samples.toString( ) + " " ) + 
+				language.get( "Sample concentrations" );
 			this.chart = ChartFactory.createXYLineChart( 
-				language.get( "Sample concentrations" ), //title
+				chartTitle,                      //title
 				language.get( "Sample" ),        // x axis label
 				language.get( "Concentration" ), // y axis label
 				xyDataset,                         // plot data
@@ -805,6 +891,60 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}
+	}
+
+	private class MultiClusterGraph extends ClusterGraph {
+		private Collection<ClusterGraph> graphs;
+
+		public MultiClusterGraph( Collection<SampleGroup> groups ) {
+			super( );
+			this.setLayout( new GridLayout( ));
+			this.graphs = new ArrayList<ClusterGraph>( );
+			this.setSampleGroups( groups );
+		}
+
+		public void setSampleGroups( Collection<SampleGroup> groups ) {
+			Logger logger = Logger.getLogger( getClass( ));
+			// clear the old graphs
+			while( this.getComponentCount( ) > 0 ) {
+				this.remove( 0 );
+			}
+			this.graphs.clear( );
+			int rows = (int)Math.ceil( Math.sqrt( groups.size( )));
+			int cols = (int)Math.ceil( groups.size( ) / rows );
+			logger.debug( String.format( "New grid size: %d, %d", rows, cols ));
+			GridLayout layout = (GridLayout)this.getLayout( );
+			layout.setRows( rows );
+			layout.setColumns( cols );
+			for ( SampleGroup group : groups ) {
+				logger.debug( "Adding graph for group: " + group.toString( ));
+				ClusterGraph graph = new ClusterGraph( group );
+				this.graphs.add( graph );
+				this.add( graph );
+			}
+			this.validate( );
+		}
+
+		@Override
+		public boolean setMeanGraph( DefaultMutableTreeNode node ) {
+			boolean returnValue = true;
+			for ( ClusterGraph graph : this.graphs ) {
+				returnValue = returnValue && graph.setMeanGraph( node );
+			}
+			return returnValue;
+		}
+
+		@Override
+		public boolean setGraph( DefaultMutableTreeNode node ) {
+			boolean returnValue = true;
+			for ( ClusterGraph graph : this.graphs ) {
+				returnValue = returnValue && graph.setGraph( node );
+			}
+			return returnValue;
+		}
+
+//		public void valueChanged( TreeSelectionEvent e ) { }
+//		public void valueChanged( TreeCheckingEvent e ) { }
 	}
 }
 

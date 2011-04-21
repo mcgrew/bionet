@@ -51,6 +51,7 @@ import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
@@ -80,7 +81,6 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import java.awt.event.ComponentAdapter;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -143,7 +143,7 @@ import org.apache.log4j.Logger;
 public class CorrelationDisplayPanel extends JPanel 
 		implements ActionListener,ChangeListener,ItemListener,DisplayPanel {
 
-	private JMenuBar menuBar = new JMenuBar( );
+	private JMenuBar menuBar;
 
 	// calculation menu items
 	private JMenu calculationMenu;
@@ -207,6 +207,7 @@ public class CorrelationDisplayPanel extends JPanel
 	 */
 	public CorrelationDisplayPanel ( ) {
 		super( new BorderLayout( ) );
+		this.menuBar = new JMenuBar( );
 		this.graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
 		this.correlationMethod = new MutableNumber( Correlation.PEARSON );
 		this.buildPanel( );
@@ -758,8 +759,7 @@ public class CorrelationDisplayPanel extends JPanel
 					this.graph.addVertex( c.getMolecules( )[ 1 ]);
 				}
 			}
-		}
-		else if ( item == this.chooseSampleGroupsMenuItem ) {
+		} else if ( item == this.chooseSampleGroupsMenuItem ) {
 			Component frame = this;
 			while( !(frame instanceof Frame) && frame != null ) {
 				frame = frame.getParent( );

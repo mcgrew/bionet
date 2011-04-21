@@ -80,7 +80,7 @@ public class SampleGroupingDialog extends JDialog
 	protected JButton okButton;
 	protected JButton cancelButton;
 	protected Pair<GroupPanel> groupPanels;
-	protected Pair<SampleGroup> returnValue;
+	protected SimplePair<SampleGroup> returnValue;
 
 	/**
 	 * Creates a new SampleGroupingDialog. This should probably not be called
@@ -139,7 +139,7 @@ public class SampleGroupingDialog extends JDialog
 	 * @param title The title for the dialog.
 	 * @param samples A group of samples to be sorted into groups.
 	 */
-	public static Pair<SampleGroup> showInputDialog(
+	public static SimplePair<SampleGroup> showInputDialog(
 			Frame owner, String title, Collection<Sample> samples ) {
 
 		SampleGroupingDialog dialog = 
@@ -172,7 +172,7 @@ public class SampleGroupingDialog extends JDialog
 	 * 
 	 * @return The selected groups.
 	 */
-	public Pair<SampleGroup> getReturnValue( ) {
+	public SimplePair<SampleGroup> getReturnValue( ) {
 		return this.returnValue;
 	}
 
