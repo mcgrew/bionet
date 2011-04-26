@@ -26,10 +26,14 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
 /**
  * A base class for A JPanel containing a CheckBoxTree with some convenience
@@ -42,14 +46,20 @@ public abstract class CheckboxTreePanel extends JPanel {
 	 * Creates a new SelectorTreePanel with a BorderLayout
 	 */
 	protected CheckboxTreePanel( ) {
-		super( new BorderLayout( ));
+		this( new DefaultMutableTreeNode( ));
+		this.tree.setRootVisible( false );
 	}
 
 	/**
 	 * Creates a new SelectorTreePanel with the specified LayoutManager.
 	 */
-	protected CheckboxTreePanel( LayoutManager layout ) {
-		super( layout );
+	protected CheckboxTreePanel( TreeNode rootNode ) {
+		super( new BorderLayout( ));
+		this.tree = new CheckboxTree( rootNode );
+		this.tree.setSelectsByChecking( false );
+		this.tree.getCheckingModel( ).setCheckingMode( 
+			TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
+		this.add( new JScrollPane( this.tree ), BorderLayout.CENTER );
 	}
 
 	/**
@@ -59,6 +69,33 @@ public abstract class CheckboxTreePanel extends JPanel {
 	 */
 	public CheckboxTree getTree( ) {
 		return this.tree;
+	}
+
+	/**
+	 * Gets the root node of the contained tree.
+	 * 
+	 * @return The root TreeNode of the tree.
+	 * @throws ClassCastException if the root node cannot be cast as a
+	 *	DefaultMutableTreeNode.
+	 */
+	public DefaultMutableTreeNode getRoot( ) {
+		return (DefaultMutableTreeNode)this.tree.getModel( ).getRoot( );
+	}
+
+	/**
+	 * Causes the tree to recheck it's nodes to look for changes.
+	 */
+	public void reload( ) {
+		((DefaultTreeModel)this.tree.getModel( )).reload( );
+	}
+
+	/**
+	 * Causes the tree to rechedk the children of the give node for changes.
+	 * 
+	 * @param node The node to check the children of.
+	 */
+	public void reload( TreeNode node ) {
+		((DefaultTreeModel)this.tree.getModel( )).reload( node );
 	}
 
 	/**

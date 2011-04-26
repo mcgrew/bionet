@@ -21,46 +21,50 @@ package edu.purdue.cc.jsysnet.ui;
 
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Sample;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.tree.TreePath;
 import javax.swing.JScrollPane;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
-import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
 /**
  * A Panel containing a CheckBoxTree containing the available Samples in this
  * so they can be selected/deselected.
  */
 public class SampleSelectorTreePanel extends CheckboxTreePanel {
-	private DefaultMutableTreeNode rootNode;
+	private static final int EXPERIMENT = 1;
+	private static final int SAMPLE = 2;
 
 	/**
 	 * Creates a new SampleSelectorTreePanel.
 	 * 
 	 * @param samples A Collection of the Samples to be displayed in this panel.
 	 */
-	public SampleSelectorTreePanel ( Collection<Sample> samples ) {
-		super( new BorderLayout( ));
-		Language language = Settings.getLanguage( );
-		this.rootNode = new DefaultMutableTreeNode( language.get( "Samples" ));
-		for ( Sample sample : samples ) {
-			DefaultMutableTreeNode sampleNode = new DefaultMutableTreeNode( sample );
-			this.rootNode.add( sampleNode );
+	public SampleSelectorTreePanel ( Collection<Experiment> experiments ) {
+		super( new DefaultMutableTreeNode( 
+			Settings.getLanguage( ).get( "Samples" )));
+		DefaultMutableTreeNode rootNode = this.getRoot( );
+		for ( Experiment experiment : experiments ) {
+			DefaultMutableTreeNode experimentNode =
+				new DefaultMutableTreeNode( experiment );
+			for ( Sample sample : experiment.getSamples( )) {
+				DefaultMutableTreeNode sampleNode = 
+					new DefaultMutableTreeNode( sample );
+				experimentNode.add( sampleNode );
+			}
+			rootNode.add( experimentNode );
 		}
-		this.tree = new CheckboxTree( this.rootNode );
-		//this.tree.setRootVisible( false );
-		this.check( this.rootNode );
-		this.tree.setSelectsByChecking( false );
-		this.tree.getCheckingModel( ).setCheckingMode( 
-			TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
-		this.add( new JScrollPane( tree ), BorderLayout.CENTER );
+		this.reload( );
+		this.check( rootNode );
 	}
 
 	/**
@@ -70,14 +74,12 @@ public class SampleSelectorTreePanel extends CheckboxTreePanel {
 	 * @return A Collection containing the selected Samples.
 	 */
 	public Collection<Sample> getSamples( ) {
-		DefaultMutableTreeNode sampleNode = 
-			(DefaultMutableTreeNode)this.rootNode.getFirstChild( );
 		Collection<Sample> returnValue = new ArrayList<Sample>( );
-		while( sampleNode != null ) {
-			if ( this.isChecked( sampleNode )) {
-				returnValue.add( (Sample)sampleNode.getUserObject( ));
-			}
-			sampleNode = (DefaultMutableTreeNode)sampleNode.getNextSibling( );
+		Iterator<TreeNode> sampleNodeIter = 
+			this.checkedDescendantIterator( this.getRoot( ), SAMPLE );
+		while( sampleNodeIter.hasNext( )) {
+			returnValue.add( (Sample)
+				((DefaultMutableTreeNode)sampleNodeIter.next( )).getUserObject( ));
 		}
 		return returnValue;
 	}

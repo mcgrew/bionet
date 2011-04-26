@@ -170,7 +170,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		}
 		Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
 		sampleGroups.add( new SampleGroup( "", samples ));
-		this.sampleSelectorTree = new SampleSelectorTreePanel( this.samples );
+		this.sampleSelectorTree = new SampleSelectorTreePanel( this.experiments );
 		
 		this.setClusterer( new SOM(
 				8,                             // number of dimensions on the x axis
@@ -518,18 +518,13 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	 */
 	private class ClusterSelectorTreePanel extends CheckboxTreePanel {
 		private JScrollPane scrollPane;
-		private DefaultMutableTreeNode rootNode;
 
 		/**
 		 * Creates a new emtpy ClusterSelectorTreePanel.
 		 */
 		public ClusterSelectorTreePanel( ) {
-			super( new BorderLayout( ));
-			this.rootNode = new DefaultMutableTreeNode( 
-				Settings.getLanguage( ).get( "Clusters" ));
-			this.tree = new CheckboxTree( this.rootNode );
-			this.scrollPane = new JScrollPane( this.tree );
-			this.add( this.scrollPane );
+			super( new DefaultMutableTreeNode( 
+				Settings.getLanguage( ).get( "Clusters" )));
 		}
 
 		/**
@@ -551,11 +546,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		}
 
 		public void clear( ) {
-			while( this.rootNode.getChildCount( ) > 0 ) {
-				this.rootNode.remove( 0 );
+			DefaultMutableTreeNode rootNode = this.getRoot( );
+			while( rootNode.getChildCount( ) > 0 ) {
+				rootNode.remove( 0 );
 			}
 			((DefaultTreeModel)this.tree.getModel( )).reload( );
-			this.repaint( );
+			this.reload( );
 		}
 
 		/**
@@ -592,14 +588,14 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			}
 
 			((DefaultTreeModel)this.tree.getModel( )).insertNodeInto( 
-				clusterNode, rootNode, rootNode.getChildCount( ));
+				clusterNode, this.getRoot( ), this.getRoot( ).getChildCount( ));
 			if ( checked ) {
-				this.check( this.rootNode );
+				this.check( this.getRoot( ));
 				this.check( clusterNode );
 			} else {
 				this.uncheck( clusterNode );
 			}
-			this.tree.expandPath( new TreePath( rootNode.getPath( )));
+			this.tree.expandPath( new TreePath( this.getRoot( ).getPath( )));
 			this.tree.setSelectsByChecking( false );
 			this.tree.getCheckingModel( ).setCheckingMode( 
 				TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );

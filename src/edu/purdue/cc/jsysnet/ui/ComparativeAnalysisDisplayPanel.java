@@ -238,9 +238,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param experiments The Experiment data to be shown in the tree.
 		 */
 		public ExperimentSelectorTreePanel( Collection <Experiment> experiments ) {
-			super( new BorderLayout( ));
-			DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(	
-				Settings.getLanguage( ).get( "All Experiments" ));
+			super( new DefaultMutableTreeNode(	
+				Settings.getLanguage( ).get( "All Experiments" )));
 
 			// first get all possible group names
 			TreeSet<Molecule> molecules = new TreeSet<Molecule>( );
@@ -261,15 +260,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 					}
 					moleculeNode.add( experimentNode );
 				}
-				rootNode.add( moleculeNode );
+				this.getRoot( ).add( moleculeNode );
 			}
-			this.tree = new CheckboxTree( rootNode );
 			this.tree.setRootVisible( false );
-			this.check( rootNode );
-			this.tree.setSelectsByChecking( false );
-			this.tree.getCheckingModel( ).setCheckingMode( 
-				TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
-			this.add( new JScrollPane( tree ), BorderLayout.CENTER );
+			this.check( this.getRoot( ));
+			this.reload( );
 		}
 
 		/**
@@ -381,7 +376,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param molecule An object whose toString( ) method returns the molecule 
 		 *	id. 
 		 */
-		public void setGraph( DefaultMutableTreeNode node ) {
+		public boolean setGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( ); 
 			Molecule molecule = (Molecule)node.getUserObject( );
 			DefaultBoxAndWhiskerXYDataset boxDataSet = 
@@ -414,6 +409,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 					}
 				}
 				expIndex++;
+			}
+
+			if ( expCount < 1 ) { // nothing to graph.
+				this.chart = null;
+				return false;
 			}
 			// find the equation for the fitting curve
 			this.fitEquation = null;
@@ -474,8 +474,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			} else {
 				plot.setFixedLegendItems( this.singleExperimentLegendItems );
 			}
-
-			
+			return true;
 		}
 
 		/**
@@ -522,6 +521,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param e The event which triggered this action.
 		 */
 		public void valueChanged( TreeCheckingEvent e ) {
+			if ( selectorTree.getTree( ).isSelectionEmpty( )) {
+				selectorTree.getTree( ).setSelectionRow( 0 );
+			}
 			TreePath path = selectorTree.getTree( ).getSelectionPath( );
 			int level = path.getPathCount( );
 			if ( level > MOLECULE ) {
@@ -614,6 +616,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				dataset.addSeries( data );
 
 			} else { 
+				this.chart = null;
+				return false;
+			}
+			if ( dataset.getSeriesCount( ) < 1 ) {
+				this.chart = null;
 				return false;
 			}
 
@@ -630,8 +637,6 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			);
 
 			XYPlot plot = this.chart.getXYPlot( );
-//			XYLineAndShapeRenderer renderer = 
-//				(XYLineAndShapeRenderer)plot.getRenderer( 0 );
 			plot.setRenderer( renderer );
 			// this is a single experiment graph, so pick the color to be consistent
 			// with the multi-experiment graph.
@@ -642,31 +647,36 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
 			renderer.setSeriesShapesVisible( 0, true );
 
-			// set up the colors for the graph items.
-			int experimentIndex = 0;
-			for ( Experiment experiment : experiments ) {
-				int sampleIndex = 0;
-				Paint p = Color.getHSBColor( 
-					(float)experimentIndex/experiments.size( ), 1.0f, 0.5f );
-					// add a legend item for this experiment.
-					legendItems.add( new LegendItem(
-						language.get( "Experiment" ) + " " + experiment.getId( ),// label
-						null,                                          // description
-						null,                                          // toolTipText
-						null,                                          // urlText
-						renderer.getItemShape( 0, samples.size( )/2 ), // shape
-						p,                                             // fillPaint
-						renderer.getSeriesStroke( 0 ),                 // outlineStroke
-						p                                              // outlinePaint
-					));
+			try { 
+				// set up the colors for the graph items.
+				int experimentIndex = 0;
+				for ( Experiment experiment : experiments ) {
+					int sampleIndex = 0;
+					Paint p = Color.getHSBColor( 
+						(float)experimentIndex/experiments.size( ), 1.0f, 0.5f );
+						// add a legend item for this experiment.
+						legendItems.add( new LegendItem(
+							language.get( "Experiment" ) + " " + experiment.getId( ),// label
+							null,                                          // description
+							null,                                          // toolTipText
+							null,                                          // urlText
+							renderer.getItemShape( 0, samples.size( )/2 ), // shape
+							p,                                             // fillPaint
+							renderer.getSeriesStroke( 0 ),                 // outlineStroke
+							p                                              // outlinePaint
+						));
 
-				for ( Sample sample : samples ) {
-					if ( experiment.getSamples( ).contains( sample )) {
-						renderer.setItemShapePaint( 0, sampleIndex, p );
+					for ( Sample sample : samples ) {
+						if ( experiment.getSamples( ).contains( sample )) {
+							renderer.setItemShapePaint( 0, sampleIndex, p );
+						}
+						sampleIndex++;
 					}
-					sampleIndex++;
+					experimentIndex++;
 				}
-				experimentIndex++;
+			} catch ( IndexOutOfBoundsException e ) {
+				this.chart = null;
+				return false;
 			}
 				
 			plot.setBackgroundPaint( Color.WHITE );
@@ -697,15 +707,17 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 */
 		public void valueChanged( TreeSelectionEvent e ) {
 			TreePath path = e.getPath( );
-			int level = path.getPathCount( );
-			if ( level > EXPERIMENT ) {
-				this.setGraph((DefaultMutableTreeNode)path.getPathComponent( EXPERIMENT ));
-			} else if ( level > MOLECULE ) { 
-				this.setGraph((DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
-			} else {
-				this.chart = null;
+				if ( path != null ) {
+				int level = path.getPathCount( );
+				if ( level > EXPERIMENT ) {
+					this.setGraph((DefaultMutableTreeNode)path.getPathComponent( EXPERIMENT ));
+				} else if ( level > MOLECULE ) { 
+					this.setGraph((DefaultMutableTreeNode)path.getPathComponent( MOLECULE ));
+				} else {
+					this.chart = null;
+				}
+				this.repaint( );
 			}
-			this.repaint( );
 		}
 
 		/**
