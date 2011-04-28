@@ -199,9 +199,14 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	public DataReader openCSV( ) {
-		JFileChooser fc = new JFileChooser( 
-			new File( Settings.getSettings( ).getProperty( "lastOpenCSV" ))
-			.getParentFile( ));
+		String lastOpenCSV = Settings.getSettings( ).getProperty( "lastOpenCSV" );
+		JFileChooser fc;
+		if ( lastOpenCSV != null ) {
+			fc = new JFileChooser( 
+				new File( lastOpenCSV ).getParentFile( ));
+		} else {
+			fc = new JFileChooser( );
+		}
 		fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
 		fc.setFileFilter( new CSVFileFilter( ));
 		fc.setFileView( new CSVFileView( ));
