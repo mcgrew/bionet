@@ -44,14 +44,36 @@ public class SampleGroup extends ArrayList<Sample>
 		this.name = name;
 	}
 
+	/**
+	 * Creates a new SampleGroup
+	 * 
+	 * @param name The name of thsi SampleGroup.
+	 * @param The initial capacity of the underlying array.
+	 */
 	public SampleGroup( String name, int initialCapacity ) {
 		super( initialCapacity );
 		this.name = name;
 	}
 
+	/**
+	 * Creates a new SampleGroup
+	 * 
+	 * @param name The name of this SamplGroup.
+	 * @param samples A collection of samples to add to this group.
+	 */
 	public SampleGroup( String name, Collection<Sample> samples ) {
 		super( samples );
 		this.name = name;
+	}
+
+	/**
+	 * Creates a shallow copy of the passed in SampleGroup
+	 * 
+	 * @param group The group to create a copy of.
+	 */
+	public SampleGroup( SampleGroup group ) {
+		super( group );
+		this.name = group.getName( );
 	}
 
 	/**

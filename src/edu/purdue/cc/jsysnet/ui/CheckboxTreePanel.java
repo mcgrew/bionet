@@ -19,28 +19,35 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
-import java.awt.LayoutManager;
 import java.awt.BorderLayout;
+import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.DefaultTreeModel;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingEvent;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
 /**
  * A base class for A JPanel containing a CheckBoxTree with some convenience
  * methods.
  */
-public abstract class CheckboxTreePanel extends JPanel {
+public abstract class CheckboxTreePanel extends JPanel
+			                implements TreeSelectionListener,TreeCheckingListener {
 	protected CheckboxTree tree;
+	private Collection<TreeSelectionListener> treeSelectionListeners;
+	private Collection<TreeCheckingListener> treeCheckingListeners;
 
 	/**
 	 * Creates a new SelectorTreePanel with a BorderLayout
@@ -55,10 +62,14 @@ public abstract class CheckboxTreePanel extends JPanel {
 	 */
 	protected CheckboxTreePanel( TreeNode rootNode ) {
 		super( new BorderLayout( ));
+		this.treeSelectionListeners = new ArrayList<TreeSelectionListener>( );
+		this.treeCheckingListeners = new ArrayList<TreeCheckingListener>( );
 		this.tree = new CheckboxTree( rootNode );
 		this.tree.setSelectsByChecking( false );
 		this.tree.getCheckingModel( ).setCheckingMode( 
 			TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
+		this.tree.addTreeCheckingListener( this );
+		this.tree.addTreeSelectionListener( this );
 		this.add( new JScrollPane( this.tree ), BorderLayout.CENTER );
 	}
 
@@ -213,6 +224,72 @@ public abstract class CheckboxTreePanel extends JPanel {
 			}
 		}
 		return iterList.iterator( );
+	}
+
+	/**
+	 * Adds a TreeSelectionListener to this panel. All listeners will be notified
+	 * of a change to the Selection of the internal tree.
+	 * 
+	 * @param l The TreeSelectionListener to be added.
+	 */
+	public void addTreeSelectionListener( TreeSelectionListener l ) {
+		this.treeSelectionListeners.add( l );
+	}
+
+	/**
+	 * Removes the specified TreeSelectionListener. 
+	 * 
+	 * @param l The listener to be removed.
+	 * @return A boolean indicating whether the operation was successful.
+	 */
+	public boolean removeTreeSelectionListener( TreeSelectionListener l ) {
+		return this.treeSelectionListeners.remove( l );
+	}
+
+	/**
+	 * The valueChanged method of the TreeSelectionListener interface.
+	 * 
+	 * @see TreeSelectionListener#valueChanged( TreeSelectionEvent )
+	 * @param e The event which triggered this action.
+	 */
+	public void valueChanged( TreeSelectionEvent e ) {
+		TreeSelectionEvent myEvent = (TreeSelectionEvent)e.cloneWithSource( this );
+		for ( TreeSelectionListener l : this.treeSelectionListeners ) {
+			l.valueChanged( myEvent );
+		}
+	}
+
+	/**
+	 * Adds a TreeCheckingListener to this panel.
+	 * 
+	 * @param l The listener to be added to this panel.
+	 */
+	public void addTreeCheckingListener( TreeCheckingListener l ) {
+		this.treeCheckingListeners.add( l );
+	}
+
+	/**
+	 * Removes a TreeCheckingListener from this panel. 
+	 * 
+	 * @param l The listener to be removed.
+	 * @return a boolean indicating whether the operation was successful.
+	 */
+	public boolean removeTreeCheckingListener( TreeCheckingListener l ) {
+		return this.treeCheckingListeners.remove( l );
+	}
+
+	/**
+	 * The valueChanged method of the TreeSelectionListener interface.
+	 * 
+	 * @see TreeCheckingListener#valueChanged( TreeCheckingEvent )
+	 * @param e The event which triggered this action.
+	 */
+	public void valueChanged( TreeCheckingEvent e ) {
+		TreeCheckingEvent myEvent = 
+			new TreeCheckingEvent( this, e.getPath( ), e.isCheckedPath( ));
+		for ( TreeCheckingListener l : this.treeCheckingListeners ) {
+			l.valueChanged( myEvent );
+		}
 	}
 }
 

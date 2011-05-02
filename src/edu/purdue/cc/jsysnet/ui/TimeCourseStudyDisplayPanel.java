@@ -41,6 +41,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -54,6 +55,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -62,10 +66,6 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import javax.swing.JMenu;
-import java.awt.event.KeyEvent;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
@@ -73,7 +73,9 @@ import net.sf.javaml.clustering.SOM;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.Instance;
+import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.tools.data.StreamHandler;
+import net.sf.javaml.core.DefaultDataset;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingEvent;
@@ -115,12 +117,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	private JMenuItem chooseSampleGroupsMenuItem;
 	private JMenuItem removeSampleGroupsMenuItem;
 
-	private ClusterSelectorTreePanel selectorTree;
+	private JPanel selectorPanel;
 	private SampleSelectorTreePanel sampleSelectorTree;
 	private JButton recomputeButton;
 	private JSplitPane splitPane;
 	private JSplitPane treeSplitPane;
-	private ClusterGraph graph;
+	private JPanel clusterGraphPanel;
 	private Collection<Experiment> experiments;
 	private List<Sample> samples;
 	private Collection<Molecule> molecules;
@@ -162,7 +164,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	public boolean createView( Collection <Experiment> experiments ) {
 		Logger logger = Logger.getLogger( getClass( ));
 		this.experiments = experiments;
-		this.samples = new ArrayList<Sample>( );
+		this.samples = new SampleGroup( "" );
 		this.molecules = new TreeSet<Molecule>( );
 		for( Experiment experiment : experiments ) {
 			this.samples.addAll( experiment.getSamples( ));
@@ -171,25 +173,6 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
 		sampleGroups.add( new SampleGroup( "", samples ));
 		this.sampleSelectorTree = new SampleSelectorTreePanel( this.experiments );
-		
-		this.setClusterer( new SOM(
-				8,                             // number of dimensions on the x axis
-				8,                             // number of dimensions on the y axis
-				SOM.GridType.RECTANGLES,       // type of grid.
-				10000,                         // number of iterations
-				0.1,                           // learning rate of algorithm
-				10,                             // initial radius
-				SOM.LearningType.LINEAR,       // type of learning to use
-				SOM.NeighbourhoodFunction.STEP // neighborhood function.
-		));
-		Collection<Collection<Molecule>> clusters;
-		try {
-				clusters = this.computeClusters( this.sampleSelectorTree.getSamples( ), 
-				                                 this.molecules, this.clusterer );
-		} catch ( Exception e ) {
-			logger.error( e, e );
-			return false;
-		}
 
 		this.splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.treeSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
@@ -201,48 +184,21 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		treePanel.add( this.treeSplitPane, BorderLayout.CENTER );
 		treePanel.add( this.recomputeButton, BorderLayout.SOUTH );
 		this.splitPane.setLeftComponent( treePanel );
-		this.graph = new MultiClusterGraph( sampleGroups );
-		this.splitPane.setRightComponent( this.graph );
-		this.sampleSelectorTree.getTree( ).addTreeCheckingListener( this.graph );
+//		this.graph = new ClusterGraph( sampleSelectorTree, selectorTree );
+//		this.splitPane.setRightComponent( this.graph );
+		this.clusterGraphPanel = new JPanel( new GridLayout( 1, 1 ));
+		this.splitPane.setRightComponent( this.clusterGraphPanel );
 		this.add( this.splitPane, BorderLayout.CENTER );
 		this.splitPane.setDividerLocation( 250 );
 
-		this.selectorTree = new ClusterSelectorTreePanel( clusters );
-		this.treeSplitPane.setTopComponent( this.selectorTree );
-		this.selectorTree.getTree( ).addTreeSelectionListener( this.graph );
-		this.selectorTree.getTree( ).addTreeCheckingListener( this.graph );
-
+		this.selectorPanel = new JPanel( new GridLayout( 1, 1 ));
+//		ClusterSelectorTreePanel selectorTree = 
+//			new ClusterSelectorTreePanel( clusters );
+//		selectorPanel.add( selectorTree );
+		this.treeSplitPane.setTopComponent( this.selectorPanel );
 		this.setSampleGroups( sampleGroups );
 
 		return true;
-	}
-
-	private Collection<Collection<Molecule>> computeClusters( 
-		Collection<Sample> samples,
-		Collection<Molecule> molecules, 
-		Clusterer clusterer ) throws InterruptedException {
-
-		Logger logger = Logger.getLogger( getClass( ));
-		int len;
-		InputStream dataStream = new JavaMLTranslator( samples, molecules );
-		logger.debug( "Starting Clustering..." );
-		Dataset data = StreamHandler.load( 
-			new InputStreamReader( dataStream ), 0, ",");
-		
-		RunnableClusterer som = new RunnableClusterer( clusterer, data );
-		Thread somThread = new Thread( som );
-		somThread.start( );
-
-		this.setCursor( new Cursor( Cursor.WAIT_CURSOR ));
-		logger.debug( "Waiting for SOM Clustering to complete..." );
-		somThread.join( );
-		this.setCursor( new Cursor( Cursor.DEFAULT_CURSOR ));
-		Collection<Collection<Molecule>> returnValue = 
-			new TreeSet<Collection<Molecule>>( new DatasetComparator( ));
-		for ( Dataset d : som.getResult( )) {
-			returnValue.add( this.getMoleculesForDataset( d ));
-		}
-		return returnValue;
 	}
 
 	/**
@@ -289,8 +245,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	 * @return The Molecule associated with this Instance.
 	 */
 	private Molecule getMoleculeForInstance( Instance i ) {
+		Object classValue = i.classValue( );
+		if ( classValue instanceof Molecule ) {
+			return (Molecule)classValue;
+		}
 		for ( Molecule m : this.molecules ) {
-			if ( m.getId( ).equals( i.classValue( ).toString( ))) {
+			if ( m.getId( ).equals( classValue.toString( ))) {
 				return m;
 			}
 		}
@@ -317,7 +277,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		Language language = Settings.getLanguage( );
 		Object source = e.getSource( );
 		if ( source == this.recomputeButton ) {
-			Collection<Molecule> clusterMolecules = 
+/*			Collection<Molecule> clusterMolecules = 
 				this.selectorTree.getCheckedMolecules( );
 			logger.debug( String.format( "Recomputing with %d selected Molecules...", 
 																	 clusterMolecules.size( )));
@@ -350,7 +310,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 					Settings.getLanguage( ).get( "Unclustered" ),
 					false );
 			}
-		} else if ( source == this.chooseSampleGroupsMenuItem ) {
+*/		} else if ( source == this.chooseSampleGroupsMenuItem ) {
 			// Choose sample groups.
 			Component frame = this;
 			while( !(frame instanceof Frame) && frame != null ) {
@@ -381,13 +341,83 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 
 	public void setSampleGroups( Collection<SampleGroup> sampleGroups ) {
 		this.sampleGroups = sampleGroups;
-		if ( this.graph instanceof MultiClusterGraph ) {
-			((MultiClusterGraph)this.graph).setSampleGroups( sampleGroups );
+		Collection<Molecule> molecules;
+		try {
+			ClusterSelectorTreePanel clusterPanel = 
+				(ClusterSelectorTreePanel)this.selectorPanel.getComponent( 0 );
+			molecules = clusterPanel.getCheckedMolecules( );
+		} catch (ArrayIndexOutOfBoundsException e ) {
+			molecules = this.molecules;
+		} catch ( ClassCastException e ) {
+			molecules = this.molecules;
+			Logger.getLogger( this.getClass( )).error( e, e );
 		}
-		this.graph.setMeanGraph( (DefaultMutableTreeNode)
-			this.selectorTree.getTree( ).getModel( ).getRoot( ));
+		this.selectorPanel.removeAll( );
+		this.clusterGraphPanel.removeAll( );
+		int rows = (int)Math.ceil( Math.sqrt( sampleGroups.size( )));
+		int cols = (int)Math.ceil( sampleGroups.size( ) / rows );
+		Logger.getLogger( getClass( )).debug( 
+			String.format( "New grid size: %d, %d", rows, cols ));
+		GridLayout layout = (GridLayout)this.selectorPanel.getLayout( );
+		layout.setRows( rows );
+		layout.setColumns( cols );
+		layout = (GridLayout)this.clusterGraphPanel.getLayout( );
+		layout.setRows( rows );
+		layout.setColumns( cols );
+
+		Map<Thread,RunnableClusterer> clusterers = 
+			new HashMap<Thread,RunnableClusterer>( );
+		for( SampleGroup group : sampleGroups ) {
+			RunnableClusterer clusterer = new RunnableClusterer( new SOM(
+				5,                             // number of dimensions on the x axis
+				5,                             // number of dimensions on the y axis
+				SOM.GridType.RECTANGLES,       // type of grid.
+				10000,                         // number of iterations
+				0.1,                           // learning rate of algorithm
+				10,                            // initial radius
+				SOM.LearningType.LINEAR,       // type of learning to use
+				SOM.NeighbourhoodFunction.STEP // neighborhood function.
+			));
+			clusterer.setDataset( this.getDataset( molecules, group ));
+			Thread thread = new Thread( clusterer );
+			thread.start( );
+			clusterers.put( thread, clusterer );
+		}
+
+		Iterator<SampleGroup> groupIter = sampleGroups.iterator( );
+		for ( Map.Entry<Thread,RunnableClusterer> clusterer : clusterers.entrySet( )) {
+			try { 
+				clusterer.getKey( ).join( );
+				Dataset[] result = clusterer.getValue( ).getResult( );
+				Collection<Collection<Molecule>> clusters = 
+					new TreeSet<Collection<Molecule>>( new DatasetComparator( ));
+				for ( Dataset dataset : result ) {
+					clusters.add( this.getMoleculesForDataset( dataset ));
+				}
+				ClusterSelectorTreePanel clusterTree = 
+					new ClusterSelectorTreePanel( clusters );
+				this.selectorPanel.add( clusterTree );
+				ClusterGraph graph = new ClusterGraph( this.sampleSelectorTree, 
+				                                       clusterTree, 
+				                                       groupIter.next( ));
+				this.clusterGraphPanel.add( graph );
+				graph.setMeanGraph( clusterTree.getRoot( ));
+			} catch ( InterruptedException e ) {
+				Logger.getLogger( this.getClass( )).debug( e, e );
+			}
+		}
 		this.removeSampleGroupsMenuItem.setEnabled( sampleGroups.size( ) > 1 );
-		this.graph.repaint( );
+		this.clusterGraphPanel.repaint( );
+	}
+
+	public Dataset getDataset( Collection<Molecule> molecules, 
+	                           Collection<Sample> samples ) {
+		Dataset returnValue = new DefaultDataset( );
+		for ( Molecule m : molecules ) {
+			returnValue.add( 
+				new DenseInstance( m.getValues( samples ).toDoubleArray( ), m ));
+		}
+		return returnValue;
 	}
 
 	public Collection<SampleGroup> getSampleGroups( ) {
@@ -633,18 +663,26 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	private class ClusterGraph extends JPanel
 			implements TreeSelectionListener,TreeCheckingListener {
 		private JFreeChart chart;
+		private SampleSelectorTreePanel sampleTree;
+		private ClusterSelectorTreePanel clusterTree;
 		private SampleGroup samples;
 
 		/**
 		 * Creates a new ClusterGraph.
+		 *
+		 * @param sampleTree The SampleSelectorTreePanel used to manipulate
+		 *	this graph.
 		 */
-		public ClusterGraph( ) {
+		public ClusterGraph( SampleSelectorTreePanel sampleTree, 
+		                     ClusterSelectorTreePanel clusterTree,
+												 SampleGroup samples ) {
 			super( );
-		}
-
-		public ClusterGraph( SampleGroup samples ) {
-			super( );
+			this.sampleTree = sampleTree;
+			this.clusterTree = clusterTree;
 			this.samples = samples;
+			this.sampleTree.addTreeCheckingListener( this );
+			this.clusterTree.addTreeCheckingListener( this );
+			this.clusterTree.addTreeSelectionListener( this );
 		}
 		
 		/**
@@ -658,10 +696,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		public boolean setMeanGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( );
 			Object userObject = node.getUserObject( );
-			List<Sample> samples = 
-				new ArrayList<Sample>( sampleSelectorTree.getSamples( ));
-			if ( this.samples != null )
-				samples.retainAll( this.samples );
+			SampleGroup samples = new SampleGroup( this.samples );
+			samples.retainAll( this.sampleTree.getSamples( ));
 			if ( samples.size( ) < 1 ) {
 				this.chart = null;
 				return false;
@@ -681,7 +717,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 					    (DefaultMutableTreeNode)node.getFirstChild( );
 				      datasetNode != null; datasetNode = datasetNode.getNextSibling( )){
 
-					if ( selectorTree.isChecked( datasetNode )) {
+					if ( clusterTree.isChecked( datasetNode )) {
 
 						XYSeries data = new XYSeries( datasetNode.toString( ));
 						// iterate through each of the nodes indicating a Molecule
@@ -691,7 +727,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 									moleculeNode != null; 
 									moleculeNode = moleculeNode.getNextSibling( )) {
 
-							if ( selectorTree.isChecked( moleculeNode )) {
+							if ( clusterTree.isChecked( moleculeNode )) {
 								molecules.add( (Molecule)moleculeNode.getUserObject( ));
 							}
 						}
@@ -708,8 +744,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				this.chart = null;
 				return false;
 			}
-			String chartTitle = (( this.samples == null ) ? "" :
-				this.samples.toString( ) + " " ) + 
+			String chartTitle = (( samples == null ) ? "" :
+				samples.toString( ) + " " ) + 
 				language.get( "Sample concentrations" );
 			this.chart = ChartFactory.createXYLineChart( 
 				chartTitle,                      //title
@@ -757,10 +793,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		public boolean setGraph( DefaultMutableTreeNode node ) {
 			Object userObject = node.getUserObject( );
 			Language language = Settings.getLanguage( );
-			List<Sample> samples = 
-				new ArrayList<Sample>( sampleSelectorTree.getSamples( ));
-			if ( this.samples != null )
-				samples.retainAll( this.samples );
+			SampleGroup samples = new SampleGroup( this.samples );
+			samples.retainAll( this.sampleTree.getSamples( ));
 			if ( samples.size( ) < 1 ) {
 				this.chart = null;
 				return false;
@@ -776,7 +810,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 							 moleculeNode != null;
 							 moleculeNode = moleculeNode.getNextSibling( )) {
 
-						if ( selectorTree.isChecked( moleculeNode )) {
+						if ( clusterTree.isChecked( moleculeNode )) {
 							Molecule molecule = (Molecule)moleculeNode.getUserObject( );
 							data = new XYSeries( molecule.getId( ));
 							int index = 0;
@@ -789,7 +823,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				}
 			} else if ( node.getLevel( ) == MOLECULE ) {
 				// If an instance node is selected, add it if it is checked.
-				if ( selectorTree.isChecked( node )){
+				if ( clusterTree.isChecked( node )){
 					Molecule molecule = (Molecule)userObject;
 					data = new XYSeries( molecule.getId( ));
 					int index = 0;
@@ -804,8 +838,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				this.chart = null;
 				return false;
 			}
-			String chartTitle = (( this.samples == null ) ? "" :
-				this.samples.toString( ) + " " ) + 
+			String chartTitle = (( samples == null ) ? "" :
+				samples.toString( ) + " " ) + 
 				language.get( "Sample concentrations" );
 			this.chart = ChartFactory.createXYLineChart( 
 				chartTitle,                      //title
@@ -867,12 +901,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		 * @param e The event which triggered this action.
 		 */
 		public void valueChanged( TreeCheckingEvent e ) {
-			if ( selectorTree.getTree( ).isSelectionEmpty( )) {
-				selectorTree.getTree( ).setSelectionRow( 0 );
+			if ( clusterTree.getTree( ).isSelectionEmpty( )) {
+				clusterTree.getTree( ).setSelectionRow( 0 );
 			}
 			this.valueChanged( new TreeSelectionEvent( 
 				e.getSource( ),
-				selectorTree.getTree( ).getSelectionPath( ),
+				clusterTree.getTree( ).getSelectionPath( ),
 				false, null, null 
 			));
 		}
@@ -891,60 +925,6 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
 			}
 		}
-	}
-
-	private class MultiClusterGraph extends ClusterGraph {
-		private Collection<ClusterGraph> graphs;
-
-		public MultiClusterGraph( Collection<SampleGroup> groups ) {
-			super( );
-			this.setLayout( new GridLayout( ));
-			this.graphs = new ArrayList<ClusterGraph>( );
-			this.setSampleGroups( groups );
-		}
-
-		public void setSampleGroups( Collection<SampleGroup> groups ) {
-			Logger logger = Logger.getLogger( getClass( ));
-			// clear the old graphs
-			while( this.getComponentCount( ) > 0 ) {
-				this.remove( 0 );
-			}
-			this.graphs.clear( );
-			int rows = (int)Math.ceil( Math.sqrt( groups.size( )));
-			int cols = (int)Math.ceil( groups.size( ) / rows );
-			logger.debug( String.format( "New grid size: %d, %d", rows, cols ));
-			GridLayout layout = (GridLayout)this.getLayout( );
-			layout.setRows( rows );
-			layout.setColumns( cols );
-			for ( SampleGroup group : groups ) {
-				logger.debug( "Adding graph for group: " + group.toString( ));
-				ClusterGraph graph = new ClusterGraph( group );
-				this.graphs.add( graph );
-				this.add( graph );
-			}
-			this.validate( );
-		}
-
-		@Override
-		public boolean setMeanGraph( DefaultMutableTreeNode node ) {
-			boolean returnValue = true;
-			for ( ClusterGraph graph : this.graphs ) {
-				returnValue = returnValue && graph.setMeanGraph( node );
-			}
-			return returnValue;
-		}
-
-		@Override
-		public boolean setGraph( DefaultMutableTreeNode node ) {
-			boolean returnValue = true;
-			for ( ClusterGraph graph : this.graphs ) {
-				returnValue = returnValue && graph.setGraph( node );
-			}
-			return returnValue;
-		}
-
-//		public void valueChanged( TreeSelectionEvent e ) { }
-//		public void valueChanged( TreeCheckingEvent e ) { }
 	}
 }
 
