@@ -43,8 +43,8 @@ import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
  * A base class for A JPanel containing a CheckBoxTree with some convenience
  * methods.
  */
-public abstract class CheckboxTreePanel extends JPanel
-			                implements TreeSelectionListener,TreeCheckingListener {
+public abstract class CheckboxTreePanel extends JPanel {
+
 	protected CheckboxTree tree;
 	private Collection<TreeSelectionListener> treeSelectionListeners;
 	private Collection<TreeCheckingListener> treeCheckingListeners;
@@ -68,10 +68,42 @@ public abstract class CheckboxTreePanel extends JPanel
 		this.tree.setSelectsByChecking( false );
 		this.tree.getCheckingModel( ).setCheckingMode( 
 			TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
-		this.tree.addTreeCheckingListener( this );
-		this.tree.addTreeSelectionListener( this );
+
+		CustomTreeListener customListener = new CustomTreeListener( this );
+		this.tree.addTreeCheckingListener( customListener );
+		this.tree.addTreeSelectionListener( customListener );
+
 		this.add( new JScrollPane( this.tree ), BorderLayout.CENTER );
 	}
+
+	/**
+	 * A private class for handling internal Tree events and notifying any
+	 * outside listeners.
+	 */
+	private class CustomTreeListener 
+	        implements TreeSelectionListener,TreeCheckingListener {
+			private CheckboxTreePanel source;
+
+			public CustomTreeListener( CheckboxTreePanel source ) {
+				this.source = source;
+			}
+
+			public void valueChanged( TreeSelectionEvent e ) {
+				TreeSelectionEvent myEvent = 
+					(TreeSelectionEvent)e.cloneWithSource( this.source );
+				for ( TreeSelectionListener l : treeSelectionListeners ) {
+					l.valueChanged( myEvent );
+				}
+			}
+
+			public void valueChanged( TreeCheckingEvent e ) {
+				TreeCheckingEvent myEvent = 
+					new TreeCheckingEvent( this.source, e.getPath( ), e.isCheckedPath( ));
+				for ( TreeCheckingListener l : treeCheckingListeners ) {
+					l.valueChanged( myEvent );
+				}
+			}
+		}
 
 	/**
 	 * Gets the tree associated with this Panel.
@@ -210,14 +242,47 @@ public abstract class CheckboxTreePanel extends JPanel
 	                                                    int level ) {
 		Collection<TreeNode> iterList = new ArrayList<TreeNode>( );
 		int nodeLevel = this.getNodePath( node ).getPathCount( ) - 1;
+		// if this node is on the right level, add it.
 		if ( isChecked( node ) && ( level < 0 || level == nodeLevel )) {
 			iterList.add( node );
 		}
+		// if node is a parent of the level we are seeking, iterate through the
+		// children of node.
 		if ( level < 0 || nodeLevel < level ) {
 			for ( int i=0; i < node.getChildCount( ); i++ ) {
 				TreeNode childNode = node.getChildAt( i );
 				Iterator<TreeNode> descIter = 
 					this.checkedDescendantIterator( childNode, level );
+				while( descIter.hasNext( )){ 
+					iterList.add( descIter.next( ));
+				}
+			}
+		}
+		return iterList.iterator( );
+	}
+
+	/**
+	 * Gets all checked descendant nodes of this TreeNode
+	 * 
+	 * @param node The node to get the descendants of (including itself)
+	 * @param level The level of the nodes to retrieve or -1 for all.
+	 * @return An iterator over the requested nodes.
+	 */
+	public Iterator<TreeNode> descendantIterator( TreeNode node, int level ) {
+		Collection<TreeNode> iterList = new ArrayList<TreeNode>( );
+		int nodeLevel = this.getNodePath( node ).getPathCount( ) - 1;
+
+		// if this node is on the right level, add it.
+		if ( level < 0 || level == nodeLevel ) {
+			iterList.add( node );
+		}
+		// if node is a parent of the level we are seeking, iterate through the
+		// children of node.
+		if ( level < 0 || nodeLevel < level ) {
+			for ( int i=0; i < node.getChildCount( ); i++ ) {
+				TreeNode childNode = node.getChildAt( i );
+				Iterator<TreeNode> descIter = 
+					this.descendantIterator( childNode, level );
 				while( descIter.hasNext( )){ 
 					iterList.add( descIter.next( ));
 				}
@@ -247,19 +312,6 @@ public abstract class CheckboxTreePanel extends JPanel
 	}
 
 	/**
-	 * The valueChanged method of the TreeSelectionListener interface.
-	 * 
-	 * @see TreeSelectionListener#valueChanged( TreeSelectionEvent )
-	 * @param e The event which triggered this action.
-	 */
-	public void valueChanged( TreeSelectionEvent e ) {
-		TreeSelectionEvent myEvent = (TreeSelectionEvent)e.cloneWithSource( this );
-		for ( TreeSelectionListener l : this.treeSelectionListeners ) {
-			l.valueChanged( myEvent );
-		}
-	}
-
-	/**
 	 * Adds a TreeCheckingListener to this panel.
 	 * 
 	 * @param l The listener to be added to this panel.
@@ -276,20 +328,6 @@ public abstract class CheckboxTreePanel extends JPanel
 	 */
 	public boolean removeTreeCheckingListener( TreeCheckingListener l ) {
 		return this.treeCheckingListeners.remove( l );
-	}
-
-	/**
-	 * The valueChanged method of the TreeSelectionListener interface.
-	 * 
-	 * @see TreeCheckingListener#valueChanged( TreeCheckingEvent )
-	 * @param e The event which triggered this action.
-	 */
-	public void valueChanged( TreeCheckingEvent e ) {
-		TreeCheckingEvent myEvent = 
-			new TreeCheckingEvent( this, e.getPath( ), e.isCheckedPath( ));
-		for ( TreeCheckingListener l : this.treeCheckingListeners ) {
-			l.valueChanged( myEvent );
-		}
 	}
 }
 
