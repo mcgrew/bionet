@@ -660,15 +660,21 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			int level = e.getPath( ).getPathCount( ) - 1;
 
 			if ( level <= MOLECULE )	{
+				// cache the list of Molecule nodes for performance.
+				ArrayList<TreeNode> myMoleculeNodes = new ArrayList<TreeNode>( );
+				Iterator<TreeNode> descIter = 
+					this.descendantIterator( this.getRoot( ), MOLECULE );
+
 				Iterator<TreeNode> otherDescIter = 
 					eventPanel.descendantIterator( eventNode, MOLECULE );
+				while( descIter.hasNext( )) {
+					myMoleculeNodes.add( descIter.next( ));
+				}
+
 				while ( otherDescIter.hasNext( )) {
 					TreeNode otherMoleculeNode = otherDescIter.next( );
 					String changed = eventNode.toString( );
-					Iterator<TreeNode> descIter = 
-						this.descendantIterator( this.getRoot( ), MOLECULE );
-					while( descIter.hasNext( )) {
-						TreeNode node = descIter.next( );
+					for ( TreeNode node : myMoleculeNodes ) {
 						if ( node.toString( ).equals( otherMoleculeNode.toString( ))) {
 							if ( this.isChecked( node ) != checked ) {
 								this.setChecked( node, checked );
