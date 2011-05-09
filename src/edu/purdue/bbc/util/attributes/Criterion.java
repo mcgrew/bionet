@@ -152,5 +152,30 @@ public class Criterion<T extends Attributes>
 		       ( result >  0 && ( this.condition & GREATER ) != 0 ) ||
 		       ( result <  0 && ( this.condition & LESS    ) != 0 );
 	}
+
+	/**
+	 * Returns a string representation of this object.
+	 * 
+	 * @see Object#toString( )
+	 * @return A string representaion of this object.
+	 */
+	public String toString( ) {
+		String conditionString;
+		switch( this.condition ) {
+			case GREATER:
+				conditionString = " > "; break;
+			case LESS:
+				conditionString = " < "; break;
+			case NOT_EQUAL:
+				conditionString = " ≠ "; break;
+			case GREATER | EQUAL:
+				conditionString = " ≥ "; break;
+			case LESS | EQUAL:
+				conditionString = " ≤ "; break;
+			default:
+				conditionString = " = "; 
+		}
+		return this.key + conditionString + this.value;
+	}
 }
 

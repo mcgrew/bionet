@@ -82,6 +82,22 @@ public class AttributesFilterList<T extends Attributes>
 		return returnValue;
 	}
 
+	/**
+	 * Returns a string representation of this set of AttributeFilters
+	 * 
+	 * @return A string representation of this object.
+	 */
+	public String toString( ) {
+		String returnValue = "";
+		for ( AttributesFilter f : this ) {
+			if ( returnValue.length( ) > 0 ) {
+				returnValue += ", ";
+			}
+			returnValue += f.toString( );
+		}
+		return returnValue;
+	}
+
 }
 
 

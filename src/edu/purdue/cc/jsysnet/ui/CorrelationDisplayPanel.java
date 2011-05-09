@@ -1410,7 +1410,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 					int leftMargin = 300;
 					// list the samples in group 1.
-					text = language.get( "Group" ) + " 1";
+					text = sampleGroups.getFirst( ).toString( );
 					g.drawString( text, leftMargin, 50 );
 					g.drawLine( leftMargin, 52, leftMargin + f.stringWidth( text ), 52 );
 					int verticalPos = 70;
@@ -1420,7 +1420,7 @@ public class CorrelationDisplayPanel extends JPanel
 					}
 					
 					// list the samples in group 2.
-					text = language.get( "Group" ) + " 2";
+					text = sampleGroups.getSecond( ).toString( );
 					int col2Margin = leftMargin + 230;
 					int stringWidth = f.stringWidth( text );
 					int rightMargin = col2Margin + stringWidth;

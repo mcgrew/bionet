@@ -26,6 +26,7 @@ import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.SimplePair;
 import edu.purdue.bbc.util.attributes.AttributesFilter;
+import edu.purdue.bbc.util.attributes.AttributesFilterList;
 import edu.purdue.bbc.util.attributes.Criterion;
 import edu.purdue.bbc.util.attributes.NumericalCriterion;
 import edu.purdue.cc.jsysnet.util.Sample;
@@ -280,11 +281,13 @@ public class SampleGroupingDialog extends JDialog
 		 * @return A filtered set of samples.
 		 */
 		public SampleGroup filter( Collection<Sample> all ) {
-			Collection<Sample> filtered = new ArrayList<Sample>( all );
+			AttributesFilterList filter = new AttributesFilterList( );
 			for ( CriterionPanel cp : this.criteria ) {
-				filtered = cp.getCriterion( ).filter( filtered );
+				filter.add( cp.getCriterion( ));
 			}
-			return new SampleGroup( this.title, filtered );
+			return new SampleGroup( 
+				String.format( "%s (%s)", this.title, filter.toString( )),
+				filter.filter( all ));
 		}
 
 		/**
