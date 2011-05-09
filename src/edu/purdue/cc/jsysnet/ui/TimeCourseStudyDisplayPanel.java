@@ -359,13 +359,24 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				Dataset[] result = clusterer.getValue( ).getResult( );
 				Collection<Collection<Molecule>> clusters = 
 					new TreeSet<Collection<Molecule>>( new DatasetComparator( ));
+				Collection<Molecule> unclustered = 
+					new ArrayList<Molecule>( this.molecules );
 				for ( Dataset dataset : result ) {
-					clusters.add( this.getMoleculesForDataset( dataset ));
+					Collection<Molecule> cluster = this.getMoleculesForDataset( dataset );
+					clusters.add( cluster );
+				  unclustered.removeAll( cluster );
 				}
 
 				// create a new clustertree and add the appropriate listeners
 				ClusterSelectorTreePanel clusterTree = 
 					new ClusterSelectorTreePanel( clusters );
+				if ( unclustered.size( ) > 0 ) {
+					clusterTree.add( 
+						unclustered, 
+						String.format( Settings.getLanguage( ).get( "Unclustered" ) + " (%d)",
+							unclustered.size( )),
+						false );
+				}
 				for ( ClusterSelectorTreePanel tree : clusterTreeList ) {
 					tree.addTreeCheckingListener( clusterTree );
 					clusterTree.addTreeCheckingListener( tree );
@@ -383,8 +394,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			}
 		}
 		this.removeSampleGroupsMenuItem.setEnabled( sampleGroups.size( ) > 1 );
-		this.selectorPanel.validate( );
-		this.clusterGraphPanel.validate( );
+		this.validate( );
 	}
 
 	/**
@@ -525,7 +535,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		}
 	}
 
-	// ========================== ClusterSelectorTreePanel ==============================
+	// ======================= ClusterSelectorTreePanel ==========================
 	/**
 	 * A Panel containing a CheckboxTree with all clusters and their associated 
 	 * Molecules.
@@ -544,13 +554,18 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				Settings.getLanguage( ).get( "Clusters" )));
 		}
 
+		public ClusterSelectorTreePanel( TreeNode rootNode ) {
+			super( rootNode );
+		}
+
 		/**
 		 * Creates a new ClusterSelectorTreePanel
 		 * 
 		 * @param clusters The clusters to be displayed in the panel.
 		 */
-		public ClusterSelectorTreePanel( Collection<Collection<Molecule>> clusters )  {
-			this( );
+		public ClusterSelectorTreePanel( TreeNode rootNode,
+		                                 Collection<Collection<Molecule>> clusters )  {
+			this( rootNode );
 			int clusterCount = 0;
 			String clusterString = 
 				Settings.getLanguage( ).get( "Cluster" ) + " %d (%d)";
@@ -560,6 +575,11 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 									               ++clusterCount, 
 																 cluster.size( )));
 			}
+		}
+
+		public ClusterSelectorTreePanel( Collection<Collection<Molecule>> clusters )  {
+			this( new DefaultMutableTreeNode( 
+				Settings.getLanguage( ).get( "Clusters" )), clusters );
 		}
 
 		public void clear( ) {
