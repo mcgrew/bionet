@@ -29,6 +29,7 @@ import edu.purdue.bbc.util.equation.Polynomial;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
+import edu.purdue.cc.jsysnet.util.SampleGroup;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -114,6 +115,9 @@ import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
 import org.apache.log4j.Logger;
 
+/**
+ * A class for comparative analysis view of multiple experiments.
+ */
 public class ComparativeAnalysisDisplayPanel extends JPanel 
 		implements DisplayPanel,ComponentListener {
 
@@ -127,6 +131,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	private JPanel bottomPanel;
 	private ExperimentGraph experimentGraph;
 	private SampleGraph sampleGraph;
+	private Collection<SampleGroup> sampleGroups;
 	private JPanel fitSelectorPanel;
 	private JRadioButton noFitButton;
 	private JRadioButton robustFitButton;
@@ -138,24 +143,38 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	private static final int EXPERIMENT    = 2;
 	private static final int SAMPLE        = 3;
 
+	/**
+	 * Creates a new ComparativeAnalysisDisplayPanel.
+	 */
 	public ComparativeAnalysisDisplayPanel ( ) {
 		super( new BorderLayout( ));
 	}
 
+	/**
+	 * Creates a new view containing the specified experiments.
+	 * 
+	 * @param experiments The experiments to display in this view.
+	 * @return A boolean indicating whether creating the view was successful.
+	 */
 	public boolean createView( Collection<Experiment> experiments ) {
 		this.experiments = experiments;
 		this.molecules = new TreeSet<Molecule>( );
 		this.samples = new TreeSet<Sample>( );
 		for ( Experiment e : experiments ) {
-			molecules.addAll( e.getMolecules( ));
-			samples.addAll( e.getSamples( ));
+			this.molecules.addAll( e.getMolecules( ));
+			this.samples.addAll( e.getSamples( ));
 		}
+		SampleGroup sampleGroup = new SampleGroup( 
+			Settings.getLanguage( ).get( "Samples" ),
+			this.samples );
+		this.sampleGroups = new ArrayList<SampleGroup>( );
+		this.sampleGroups.add( sampleGroup );
 		Language language = Settings.getLanguage( );
 
 		this.topPanel = new JPanel( new BorderLayout( ));
 		this.bottomPanel = new JPanel( new BorderLayout( ));
-		this.experimentGraph = new ExperimentGraph( experiments );
-		this.sampleGraph = new SampleGraph( experiments );
+		this.experimentGraph = new ExperimentGraph( experiments, sampleGroup );
+		this.sampleGraph = new SampleGraph( experiments, sampleGroup );
 		this.fitSelectorPanel = new JPanel( new GridLayout( 4, 1 ));
 		this.noFitButton = new JRadioButton( language.get( "No Fit" ));
 		this.robustFitButton = new JRadioButton( language.get("Robust Linear Fit"));
@@ -200,16 +219,32 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		return true;
 	}
 
+	/**
+	 * Adds an Experiment to this panel.
+	 * 
+	 * @param experiment The experiment to be added.
+	 * @return A boolean indicating whether the operation was successful.
+	 */
 	public boolean addExperiment( Experiment experiment ) {
 		this.molecules.addAll( experiment.getMolecules( ));
 		return experiments.add( experiment );
 	}
 
+	/**
+	 * Removes an experiment from the panel.
+	 * 
+	 * @param experiment The expeiment to be removed.
+	 * @return A boolean indicating whether or not the operation was successful.
+	 */
 	public boolean removeExperiment( Experiment experiment ) {
-
 		return experiments.remove( experiment );
 	}
 
+	/**
+	 * Gets the title for this panel.
+	 * 
+	 * @return The title for this panel.
+	 */
 	public String getTitle( ) {
 		return Settings.getLanguage( ).get( "Comparative Analysis" );
 	}
@@ -230,6 +265,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	 * A class for displaying the selector tree
 	 */
 	private class ExperimentSelectorTreePanel extends CheckboxTreePanel {
+		public static final int MOLECULE = 1;
+		public static final int EXPERIMENT = 2;
+		public static final int SAMPLE = 3;
 
 		/**
 		 * Creates a new ExperimentSelectorTreePanel based on the passed in 
@@ -273,33 +311,12 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param node A tree node which contains the sample nodes to be retrieved.
 		 * @return A Map containing the requested values.
 		 */
-		public Map<Sample,Number> getSamplesFiltered( DefaultMutableTreeNode node ){
-			Map<Sample,Number> returnValue = new HashMap<Sample,Number>( );
-			Object userObj = node.getUserObject( );
-			if ( userObj instanceof Experiment ) {
-				Molecule molecule = (Molecule)
-					((DefaultMutableTreeNode)node.getParent( )).getUserObject( );
-				for ( int i=0; i < node.getChildCount( ); i++ ) {
-					if ( this.isChecked( node.getChildAt( i ) )) {
-						Sample sample = (Sample)
-							((DefaultMutableTreeNode)node.getChildAt( i )).getUserObject( );
-						returnValue.put( sample, sample.getValue( molecule ));
-					}
-				}
-
-			} else if ( userObj instanceof Molecule ) {
-				Molecule molecule = (Molecule)userObj;
-				for( int i=0; i < node.getChildCount( ); i++ ){
-					DefaultMutableTreeNode expNode = 
-						(DefaultMutableTreeNode)node.getChildAt( i );
-					for( int j=0; j < expNode.getChildCount( ); j++ ) {
-						if ( this.isChecked( node.getChildAt( j ))) {
-							Sample sample = (Sample)((DefaultMutableTreeNode)
-								expNode.getChildAt( j )).getUserObject( );
-							returnValue.put( sample, sample.getValue( molecule ));
-						}
-					}
-				}
+		public Collection<Sample> getSamplesFiltered( DefaultMutableTreeNode node ){
+			Collection<Sample> returnValue = new ArrayList<Sample>( );
+			Iterator<TreeNode> nodeIter = this.checkedDescendantIterator( node, SAMPLE );
+			while( nodeIter.hasNext( )) {
+				returnValue.add( (Sample)(
+					(DefaultMutableTreeNode)nodeIter.next( )).getUserObject( ));
 			}
 			return returnValue;
 		}
@@ -313,6 +330,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		implements TreeSelectionListener,TreeCheckingListener,ItemListener {
 		private JFreeChart chart;
 		private SortedSet <Experiment> experiments;
+		private SampleGroup sampleGroup;
 		private XYDataset fitDataset;
 		private Equation fitEquation;
 		private LegendItemCollection legendItems;
@@ -326,9 +344,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * 
 		 * @param experiments A collection of experiments to show data from.
 		 */
-		public ExperimentGraph( Collection <Experiment> experiments ) {
+		public ExperimentGraph( Collection <Experiment> experiments, 
+		                        SampleGroup sampleGroup ) {
 			super( );
 			this.experiments = new TreeSet( experiments );
+			this.sampleGroup = sampleGroup;
 			//this.fitDataset = new XYDataset( );
 			this.stroke = new BasicStroke( 2 );
 			this.singleExperimentLegendItems = new LegendItemCollection( );
@@ -373,8 +393,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * This could be a String with the molecule ID, or an instance of the 
 		 * Molecule.
 		 * 
-		 * @param molecule An object whose toString( ) method returns the molecule 
-		 *	id. 
+		 * @param node The TreeNode containing the molecule object to be graphed.
 		 */
 		public boolean setGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( ); 
@@ -393,10 +412,12 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				if ( selectorTree.isChecked( node )) {
 					expCount++;
 					try {
+						Collection<Sample> samples = 
+							selectorTree.getSamplesFiltered( expNode );
+						samples.retainAll( this.sampleGroup );
 						BoxAndWhiskerItem item = 
 							BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-								new ArrayList<Number>( 
-									selectorTree.getSamplesFiltered( expNode ).values( )));
+								new ArrayList<Number>( molecule.getValues( samples )));
 						boxDataSet.add( new Date((long)expIndex), item );
 
 						// robust fit uses the median instead of the mean.
@@ -406,6 +427,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 							fitValues[ expIndex ] = item.getMean( ).doubleValue( );
 						}
 					} catch ( IllegalArgumentException exc ) { 
+						// ignore this error.
 					}
 				}
 				expIndex++;
@@ -564,12 +586,15 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		implements TreeSelectionListener,TreeCheckingListener {
 
 		private SortedSet <Experiment> experiments;
+		private SampleGroup sampleGroup;
 		private JFreeChart chart;
 		private Object selectedObject;
 
-		public SampleGraph( Collection <Experiment> experiments ) {
+		public SampleGraph( Collection <Experiment> experiments, 
+		                    SampleGroup sampleGroup ) {
 			super( );
 			this.experiments = new TreeSet<Experiment>( experiments );
+			this.sampleGroup = sampleGroup;
 		}
 
 		/**
@@ -605,6 +630,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 					samples.add((Sample)
 						((DefaultMutableTreeNode)sampleNodeIter.next( )).getUserObject( ));
 				}
+				samples.retainAll( this.sampleGroup );
 				for ( Sample sample : samples ) {
 					Number value = molecule.getValue( sample );
 					data.add( index, value );
