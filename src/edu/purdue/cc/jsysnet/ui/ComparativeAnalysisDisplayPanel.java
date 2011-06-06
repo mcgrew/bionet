@@ -81,6 +81,14 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import java.awt.event.KeyEvent;
+import java.awt.Component;
+import java.awt.Frame;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -119,7 +127,12 @@ import org.apache.log4j.Logger;
  * A class for comparative analysis view of multiple experiments.
  */
 public class ComparativeAnalysisDisplayPanel extends JPanel 
-		implements DisplayPanel,ComponentListener {
+		implements DisplayPanel,ComponentListener,ActionListener {
+
+	private JMenuBar menuBar;
+	private JMenu viewMenu;
+	private JMenuItem chooseSampleGroupsMenuItem;
+	private JMenuItem removeSampleGroupsMenuItem;
 
 	private Collection<Experiment> experiments;
 	private Set<Molecule> molecules;
@@ -129,8 +142,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	private ExperimentSelectorTreePanel selectorTree;
 	private JPanel topPanel;
 	private JPanel bottomPanel;
-	private ExperimentGraph experimentGraph;
-	private SampleGraph sampleGraph;
+	private JPanel experimentGraphPanel;
 	private Collection<SampleGroup> sampleGroups;
 	private JPanel fitSelectorPanel;
 	private JRadioButton noFitButton;
@@ -148,6 +160,20 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	 */
 	public ComparativeAnalysisDisplayPanel ( ) {
 		super( new BorderLayout( ));
+		Language language = Settings.getLanguage( );
+		this.menuBar = new JMenuBar( );
+		this.viewMenu = new JMenu( language.get( "View" ));
+		this.viewMenu.setMnemonic( KeyEvent.VK_V );
+		this.removeSampleGroupsMenuItem = 
+			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_G );
+		this.chooseSampleGroupsMenuItem = 
+			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
+		this.viewMenu.add( this.removeSampleGroupsMenuItem );
+		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
+		this.chooseSampleGroupsMenuItem.addActionListener( this );
+		this.removeSampleGroupsMenuItem.addActionListener( this );
+		this.add( menuBar, BorderLayout.NORTH );
+		this.menuBar.add( this.viewMenu );
 	}
 
 	/**
@@ -165,16 +191,15 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			this.samples.addAll( e.getSamples( ));
 		}
 		SampleGroup sampleGroup = new SampleGroup( 
-			Settings.getLanguage( ).get( "Samples" ),
+			Settings.getLanguage( ).get( "All Samples" ),
 			this.samples );
-		this.sampleGroups = new ArrayList<SampleGroup>( );
-		this.sampleGroups.add( sampleGroup );
+		ArrayList <SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
+		sampleGroups.add( sampleGroup );
 		Language language = Settings.getLanguage( );
 
 		this.topPanel = new JPanel( new BorderLayout( ));
-		this.bottomPanel = new JPanel( new BorderLayout( ));
-		this.experimentGraph = new ExperimentGraph( experiments, sampleGroup );
-		this.sampleGraph = new SampleGraph( experiments, sampleGroup );
+		this.bottomPanel = new JPanel( new GridLayout( 1, 1 ));
+		this.experimentGraphPanel = new JPanel( new GridLayout( 1, 1 ));
 		this.fitSelectorPanel = new JPanel( new GridLayout( 4, 1 ));
 		this.noFitButton = new JRadioButton( language.get( "No Fit" ));
 		this.robustFitButton = new JRadioButton( language.get("Robust Linear Fit"));
@@ -193,12 +218,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		this.fitSelectorPanel.add( this.noFitButton );
 		this.fitSelectorPanel.add( this.robustFitButton );
 		this.fitSelectorPanel.add( this.chiSquareFitButton );
-		this.topPanel.add( this.experimentGraph, BorderLayout.CENTER );
 		JPanel topRightPanel = new JPanel( new BorderLayout( ));
 		topRightPanel.add( this.fitSelectorPanel, BorderLayout.NORTH );
 		topRightPanel.add( new JPanel( ), BorderLayout.CENTER );
 		this.topPanel.add( topRightPanel, BorderLayout.EAST );
-		this.bottomPanel.add( this.sampleGraph );
+		this.topPanel.add( this.experimentGraphPanel, BorderLayout.CENTER );
 
 		this.add( mainSplitPane, BorderLayout.CENTER );
 		this.mainSplitPane.setLeftComponent( this.selectorTree );
@@ -206,14 +230,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		this.mainSplitPane.setRightComponent( this.graphSplitPane ); 
 		this.graphSplitPane.setTopComponent( this.topPanel );
 		this.graphSplitPane.setBottomComponent( this.bottomPanel );
+		this.setSampleGroups( sampleGroups );
 
-		this.noFitButton.addItemListener( this.experimentGraph );
-		this.robustFitButton.addItemListener( this.experimentGraph );
-		this.chiSquareFitButton.addItemListener( this.experimentGraph );
-		this.selectorTree.getTree( ).addTreeSelectionListener( this.experimentGraph );
-		this.selectorTree.getTree( ).addTreeSelectionListener( this.sampleGraph );
-		this.selectorTree.getTree( ).addTreeCheckingListener( this.experimentGraph );
-		this.selectorTree.getTree( ).addTreeCheckingListener( this.sampleGraph );
 		this.addComponentListener( this );
 
 		return true;
@@ -249,15 +267,132 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		return Settings.getLanguage( ).get( "Comparative Analysis" );
 	}
 
+	public Collection<SampleGroup> getSampleGroups( ) {
+		return this.sampleGroups;
+	}
+
+	/**
+	 * Sets the SampleGroups for this panel.
+	 * 
+	 * @param sampleGroups The new set of groups
+	 */
+	public void setSampleGroups( Collection<SampleGroup> sampleGroups ) {
+
+		this.sampleGroups = sampleGroups;
+
+		// clear the listeners
+		CheckboxTree tree = this.selectorTree.getTree( );
+		for ( TreeSelectionListener t : tree.getTreeSelectionListeners( )) {
+			tree.removeTreeSelectionListener( t );
+			// CheckboxTree doesn't have a method for getting TreeCheckingListeners,
+			// so we'll try this and catch any exceptions.
+			try {
+				tree.removeTreeCheckingListener( (TreeCheckingListener)t );
+			} catch ( ClassCastException e ){ }
+		}
+		for ( ItemListener i : this.noFitButton.getItemListeners( )) {
+			this.noFitButton.removeItemListener( i );
+		}
+		for ( ItemListener i : this.robustFitButton.getItemListeners( )) {
+			this.robustFitButton.removeItemListener( i );
+		}
+		for ( ItemListener i : this.chiSquareFitButton.getItemListeners( )) {
+			this.chiSquareFitButton.removeItemListener( i );
+		}
+
+		this.experimentGraphPanel.removeAll( );
+		this.bottomPanel.removeAll( );
+		int cols = (int)Math.ceil( Math.sqrt( sampleGroups.size( )));
+		int rows = (int)Math.ceil( sampleGroups.size( ) / cols );
+		GridLayout layout = (GridLayout)this.experimentGraphPanel.getLayout( );
+		layout.setRows( rows );
+		layout.setColumns( cols );
+		layout = (GridLayout)this.bottomPanel.getLayout( );
+		layout.setRows( rows );
+		layout.setColumns( cols );
+
+		if ( selectorTree.getTree( ).isSelectionEmpty( )) {
+			selectorTree.getTree( ).setSelectionRow( 0 );
+		}
+		TreePath path = selectorTree.getTree( ).getSelectionPath( );
+		int level = path.getPathCount( );
+		DefaultMutableTreeNode selectedNode = null;
+		if ( level > MOLECULE ) {
+			selectedNode = (DefaultMutableTreeNode)path.getPathComponent( MOLECULE );
+		}
+
+		for ( SampleGroup sampleGroup : sampleGroups ) {
+			SampleGraph sampleGraph = new SampleGraph( experiments, sampleGroup );
+			ExperimentGraph experimentGraph = new ExperimentGraph( experiments, sampleGroup );
+			this.bottomPanel.add( sampleGraph );
+			this.selectorTree.getTree( ).addTreeSelectionListener( sampleGraph );
+			this.experimentGraphPanel.add( experimentGraph, BorderLayout.CENTER );
+			// add the listeners
+			this.selectorTree.getTree( ).addTreeCheckingListener( sampleGraph );
+			this.selectorTree.getTree( ).addTreeSelectionListener( experimentGraph );
+			this.selectorTree.getTree( ).addTreeCheckingListener( experimentGraph );
+			this.noFitButton.addItemListener( experimentGraph );
+			this.robustFitButton.addItemListener( experimentGraph );
+			this.chiSquareFitButton.addItemListener( experimentGraph );
+			if ( selectedNode != null ) {
+				sampleGraph.setGraph( selectedNode );
+				experimentGraph.setGraph( selectedNode );
+			}
+		}
+		this.experimentGraphPanel.validate( );
+		this.bottomPanel.validate( );
+
+		
+	}
+
 	public void componentHidden( ComponentEvent e ) { } 
 	public void componentMoved( ComponentEvent e ) { } 
 	public void componentResized( ComponentEvent e ) { } 
 	public void componentShown( ComponentEvent e ) { 
-		if ( !graphSplitPaneDividerLocationSet ) {
-			graphSplitPaneDividerLocationSet = true;
+		if ( !this.graphSplitPaneDividerLocationSet ) {
+			this.graphSplitPaneDividerLocationSet = true;
 			this.graphSplitPane.setDividerLocation( 0.5 );
 		}
 	} 
+
+	/**
+	 * The actionPerformed method of the ActionListener interface.
+	 * 
+	 * @see ActionListener#actionPerformed( ActionEvent )
+	 * @param e The event which triggered this action.
+	 */
+	public void actionPerformed( ActionEvent e ) {
+		Logger logger = Logger.getLogger( getClass( ));
+		Language language = Settings.getLanguage( );
+		Object source = e.getSource( );
+		if ( source == this.chooseSampleGroupsMenuItem ) {
+			// Choose sample groups.
+			Component frame = this;
+			while( !(frame instanceof Frame) && frame != null ) {
+				frame = frame.getParent( );
+			}
+			Collection<SampleGroup> groups = 
+				SampleGroupingDialog.showInputDialog( 
+					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
+					this.samples );
+			if ( groups != null ) {
+
+				if ( this.sampleGroups != null ) {
+					for ( SampleGroup group : this.getSampleGroups( )) {
+						logger.debug( group.toString( ));
+						for ( Sample sample : group ) {
+							logger.debug( "\t" + sample.toString( ));
+						}
+					}
+				}
+				this.setSampleGroups( groups );
+			}
+		} else if ( source == this.removeSampleGroupsMenuItem ) {
+			Collection<SampleGroup> groups = new ArrayList<SampleGroup>( );
+			groups.add( new SampleGroup( "", this.samples ));
+			this.setSampleGroups( groups );
+		}
+	}
 
 	// =========================== PRIVATE CLASSES ===============================
 	// ====================== ExperimentSelectorTreePanel ========================
@@ -464,8 +599,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				}
 			}
 			this.chart = ChartFactory.createBoxAndWhiskerChart (
-				String.format( language.get( "%s across experiments" ), 
-					molecule.toString( )), //title
+				String.format( language.get( "%s across experiments" ) + " - %s", 
+					molecule.toString( ),
+					this.sampleGroup.toString( )), //title
 				language.get( "Experiment" ), // x axis label
 				language.get( "Concentration" ), // y axis label
 				boxDataSet, // plot data
@@ -516,7 +652,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 					String notation = "y="+this.fitEquation.toString( );
 					g.drawString( notation, 
 					              size.width - f.stringWidth( notation ) - 20,
-												20 );
+												size.height - 15 );
 				}
 			}
 		}
@@ -651,8 +787,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			}
 
 			this.chart = ChartFactory.createXYLineChart( 
-				String.format( language.get( "%s sample concentrations" ), 
-				node.toString( )),         // title
+				String.format( language.get( "%s sample concentrations" ) + " - %s", 
+				node.toString( ),
+				this.sampleGroup.toString( )),         // title
 				language.get( "Sample" ),        // x axis label
 				language.get( "Concentration" ), // y axis label
 				dataset,                         // plot data

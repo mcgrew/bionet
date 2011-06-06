@@ -320,8 +320,6 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		this.clusterGraphPanel.removeAll( );
 		int rows = (int)Math.ceil( Math.sqrt( sampleGroups.size( )));
 		int cols = (int)Math.ceil( sampleGroups.size( ) / rows );
-		Logger.getLogger( getClass( )).debug( 
-			String.format( "New grid size: %d, %d", rows, cols ));
 		GridLayout layout = (GridLayout)this.selectorPanel.getLayout( );
 		layout.setRows( rows );
 		layout.setColumns( cols );
