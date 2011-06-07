@@ -47,9 +47,9 @@ public class Statistics {
 	 * Returns the Pearson correlation coefficient of the 2 sets of values.
 	 * 
 	 * <PRE>
-	 *    x = sample values in molecule 0
-	 *    y = sample values in molecule 1
-	 *    n = number of samples in each molecule
+	 *    x = sample values in the first set
+	 *    y = sample values in the second set
+	 *    n = number of values in each set
 	 *    Sx = standard deviation of x
 	 *    Sy = standard deviation of y
 	 * 
@@ -104,11 +104,11 @@ public class Statistics {
 	 * Returns the Spearman rank correlation coefficient of the 2 sets of data.
 	 *
 	 * <PRE>
-	 * x = sample values in molecule 0
-	 * y = sample values in molecule 1
-	 * n = number of samples in each molecule
-	 * Rx = rank array of x, ie. the new locations of each element of x if x were sorted
-	 * Ry = rank array of y, ie. the new locations of each element of y if y were sorted
+	 *    x = values in the first set
+	 *    y = values in the second set
+	 *    n = number of values in each set
+	 *    Rx = rank array of x, ie. the new locations of each element of x if x were sorted
+	 *    Ry = rank array of y, ie. the new locations of each element of y if y were sorted
 	 * 
 	 *                         6 * sum( i=0 to n-1, ( Rx[i] - Ry[i] )^2 )
 	 * correlationValue = 1 - --------------------------------------------
@@ -145,15 +145,15 @@ public class Statistics {
 	 * Returns the Kendall tau rank correlation coefficient of the 2 sets of data.
 	 * 
 	 * <PRE>
-	 * x = sample values of molecule 0
-	 * y = sample values of molecule 1
-	 * n = number of samples in each molecule
-	 * Rx = the rank of the samples in molecule 0
-	 * Ry = the rank of the samples in molecule 1
-	 * Tx = the number of ties in x.
-	 * Ty = the number of ties in y.
-	 * concordant = The number of concordant pairs
-	 * discordant = The number of discordant pairs
+	 *    x = values in the first set
+	 *    y = values in the second set
+	 *    n = number of values in each set
+	 *    Rx = the rank of the values in the first set
+	 *    Ry = the rank of the values in the second set
+	 *    Tx = the number of ties in x.
+	 *    Ty = the number of ties in y.
+	 *    concordant = The number of concordant pairs
+	 *    discordant = The number of discordant pairs
 	 *
 	 *                                 concordant - discordant
 	 * correlationValue = ---------------------------------------------
@@ -296,9 +296,9 @@ public class Statistics {
 	}
 
 	/**
-	 * Finds the median of a set of values.
+	 * Finds the median of a set of values. NaN values are omitted.
 	 * 
-	 * @param values The values to find the median of.
+	 * @param values The set to find the median of.
 	 * @return The median of those values.
 	 */
 	public static double median( double [] values ) {
@@ -319,7 +319,7 @@ public class Statistics {
 	}
 
 	/**
-	 * Finds the mean of a set of values.
+	 * Finds the mean of a set of values. NaN values are omitted.
 	 * 
 	 * @param values The set of values.
 	 * @return The mean of those values.
@@ -337,7 +337,7 @@ public class Statistics {
 	}
 
 	/**
-	 * Finds the sum of a set of values.
+	 * Finds the sum of a set of values. NaN values are omitted.
 	 * 
 	 * @param values The set of values.
 	 * @return The sum of those values.
@@ -352,7 +352,7 @@ public class Statistics {
 	}
 
 	/**
-	 * Returns the minimum of a set of values.
+	 * Returns the minimum of a set of values. NaN values are omitted.
 	 * 
 	 * @param values The set of values to find the minimum for.
 	 * @return The minimum value in the array.
@@ -366,7 +366,7 @@ public class Statistics {
 	}
 
 	/**
-	 * Returns the maximum of a set of values.
+	 * Returns the maximum of a set of values. NaN values are omitted.
 	 * 
 	 * @param values the set of values to find the maximum for.
 	 * @return The maximum value in the array.
