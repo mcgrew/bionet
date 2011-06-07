@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -42,10 +43,10 @@ import java.util.Scanner;
  * A class for reading character separated tabular data.
  */
 public class CSVTableReader implements Iterator<Map<String,String>> {
-	protected String delimiter;
+	protected char delimiter;
 	protected String[] keys;
 	protected Scanner scanner;
-	protected boolean stripQuotes;
+	protected boolean useQuotes;
 
 	/**
 	 * Creates a new CSV Reader
@@ -53,7 +54,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 * @param file The file to read data from.
 	 */
 	public CSVTableReader ( File file ) throws FileNotFoundException {
-		this( new FileInputStream( file ), "," );
+		this( new FileInputStream( file ), ',' );
 	}
 
 	/**
@@ -63,9 +64,22 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 * @param delimiter The delimiter between fields, usually a comma, semicolon,
 	 *	or tab character.
 	 */
-	public CSVTableReader ( File file, String delimiter ) 
+	public CSVTableReader ( File file, char delimiter ) 
 	                        throws FileNotFoundException {
-		this( new FileInputStream( file ), delimiter );
+		this( new FileInputStream( file ), delimiter, true );
+	}
+
+	/**
+	 * Creates a new CSV Reader
+	 * 
+	 * @param file The file to read data from.
+	 * @param delimiter The delimiter between fields, usually a comma, semicolon,
+	 *	or tab character.
+	 * @param useQuotes Whether or not to honor quotes when parsing a file.
+	 */
+	public CSVTableReader ( File file, char delimiter, boolean useQuotes )
+	                        throws FileNotFoundException {
+		this( new FileInputStream( file ), delimiter, useQuotes );
 	}
 
 	/**
@@ -75,7 +89,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 *	or tab character.
 	 */
 	public CSVTableReader( InputStream input ) {
-		this( input, "," );
+		this( input, ',', true );
 	}
 
 	/**
@@ -85,14 +99,54 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 * @param delimiter The delimiter between fields, usually a comma, semicolon,
 	 *	or tab character.
 	 */
-	public CSVTableReader ( InputStream input, String delimiter ) {
-		this.delimiter = delimiter;
-		this.scanner = new Scanner( input );
-		this.keys = this.scanner.nextLine( ).split( delimiter );
+	public CSVTableReader ( InputStream input, char delimiter ) {
+		this( input, delimiter, true );
 	}
 
-	public void setQuoteStripping( boolean strip ) {
-		this.stripQuotes = strip;
+	/**
+	 * Creates a new CSV Reader
+	 * 
+	 * @param input The InputStream to read data from.
+	 * @param delimiter The delimiter between fields, usually a comma, semicolon,
+	 *	or tab character.
+	 * @param useQuotes Whether or not to honor quotes when parsing a file.
+	 */
+	public CSVTableReader ( InputStream input, char delimiter, 
+	                        boolean useQuotes ) {
+		this.delimiter = delimiter;
+		this.scanner = new Scanner( input );
+		this.useQuotes = useQuotes;
+		this.keys = this.splitLine( this.scanner.nextLine( ), delimiter, useQuotes );
+	}
+
+	protected String [] splitLine( String input, char delimiter, 
+	                             boolean useQuotes ) {
+		ArrayList<String> returnValue = new ArrayList<String>( );
+		StringBuilder nextValue = new StringBuilder( );
+		boolean inQuotes = false;
+		for ( int i=0; i < input.length( ); i++ ) {
+			if ( input.charAt( i ) == '"' && useQuotes ) {
+				inQuotes = !inQuotes;
+			} else if ( input.charAt( i ) == delimiter && !inQuotes ) {
+				returnValue.add( nextValue.toString( ));
+				nextValue = new StringBuilder( );
+			} else {
+				nextValue.append( input.charAt( i ));
+			}
+		}
+		if ( nextValue.length( ) > 0 ) {
+			returnValue.add( nextValue.toString( ));
+		}
+		return returnValue.toArray( new String[ returnValue.size( ) ]);
+	}
+
+	/**
+	 * Turns on or off the stripping of quotes.
+	 * 
+	 * @param use Whether or not to honor quotes when parsing a file
+	 */
+	public void setUseQuotes( boolean use ) {
+		this.useQuotes = use;
 	}
 
 	/**
@@ -111,13 +165,13 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 */
 	public Map<String,String> next( ) {
 		HashMap<String,String> returnValue = new HashMap<String,String>( );
-		String[] values = this.scanner.nextLine( ).split( this.delimiter,
-		                                                  this.keys.length );
+		String[] values = this.splitLine( this.scanner.nextLine( ), this.delimiter,
+		                                                  this.useQuotes );
 		for ( int i=0; i < this.keys.length; i++ ) {
 			if ( i >= values.length ) {
 				returnValue.put( keys[ i ], null );
 			} else {
-				if ( this.stripQuotes ) {
+				if ( this.useQuotes ) {
 					returnValue.put( keys[ i ].replaceAll( "\"(.*)\"", "$1" ), 
 					                 values[ i ].replaceAll( "\"(.*)\"", "$1" ));
 				} else {

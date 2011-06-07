@@ -38,6 +38,7 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * A class for writing a set of tabular data to a file.
@@ -46,6 +47,9 @@ public class CSVTableWriter {
 	protected Writer output;
 	protected String [] keys;
 	protected String delimiter;
+	protected boolean useQuotes;
+	public static Pattern numberPattern = 
+		Pattern.compile("(\\d+\\.?\\d*|\\.\\d+)([Ee]\\d+)?");
 
 	/**
 	 * Creates a new IdentificationWriter.
@@ -56,7 +60,7 @@ public class CSVTableWriter {
 	public CSVTableWriter( File output, Collection<String> keys ) 
 	                       throws IOException {
 		this( new FileWriter( output ), 
-		      keys.toArray( new String[ keys.size( )]), "," );
+		      keys.toArray( new String[ keys.size( )]), ",", true );
 	}
 
 	/**
@@ -66,9 +70,20 @@ public class CSVTableWriter {
 	 * @param keys The keys for the new CSV table.
 	 */
 	public CSVTableWriter( File output, String[] keys ) throws IOException {
-		this( new FileWriter( output ), keys, "," );
+		this( new FileWriter( output ), keys, ",", true );
 	}
 
+	/**
+	 * Creates a new IdentificationWriter.
+	 * 
+	 * @param output The File to write output to.
+	 * @param keys The keys for the new CSV table.
+	 */
+	public CSVTableWriter( File output, String[] keys, boolean useQuotes ) 
+	                       throws IOException {
+		this( new FileWriter( output ), keys, ",", useQuotes );
+	}
+	
 	/**
 	 * Creates a new IdentificationWriter.
 	 * 
@@ -77,7 +92,7 @@ public class CSVTableWriter {
 	 */
 	public CSVTableWriter( Writer output, Collection<String> keys ) 
 	                       throws IOException{
-		this( output, keys.toArray( new String[ keys.size( )]), "," );
+		this( output, keys.toArray( new String[ keys.size( )]), ",", true );
 	}
 
 	/**
@@ -87,7 +102,7 @@ public class CSVTableWriter {
 	 * @param keys The keys for the new CSV table.
 	 */
 	public CSVTableWriter( Writer output, String[] keys ) throws IOException {
-		this( output, keys, "," );
+		this( output, keys, "," , true);
 	}
 
 	/**
@@ -99,7 +114,7 @@ public class CSVTableWriter {
 	 */
 	public CSVTableWriter( File output, Collection<String> keys, String delimiter ) 
 			throws IOException {
-		this( new FileWriter( output ), keys, delimiter );
+		this( new FileWriter( output ), keys, delimiter, true );
 	}
 
 	/**
@@ -111,7 +126,7 @@ public class CSVTableWriter {
 	 */
 	public CSVTableWriter( File output, String[] keys, String delimiter )
 			throws IOException {
-		this( new FileWriter( output ), keys, delimiter );
+		this( new FileWriter( output ), keys, delimiter, true );
 	}
 
 	/**
@@ -123,7 +138,7 @@ public class CSVTableWriter {
 	 */
 	public CSVTableWriter( Writer output, Collection<String> keys, 
 	                       String delimiter ) throws IOException {
-		this( output, keys.toArray( new String[ keys.size( )]), delimiter );
+		this( output, keys.toArray( new String[ keys.size( )]), delimiter, true );
 	}
 
 	/**
@@ -135,13 +150,42 @@ public class CSVTableWriter {
 	 */
 	public CSVTableWriter( Writer output, String[] keys, String delimiter ) 
 			throws IOException {
+		this( output, keys, delimiter, true );
+	}
+
+	/**
+	 * Creates a new IdentificationWriter.
+	 * 
+	 * @param output The Writer to write output to.
+	 * @param keys The keys for the new CSV table.
+	 * @param delimiter The delimiter for the values in the table.
+	 */
+	public CSVTableWriter( Writer output, Collection<String> keys, String delimiter,
+	                       boolean useQuotes ) throws IOException {
+		this( output, keys.toArray( new String[ keys.size( )]), delimiter, useQuotes );
+	}
+
+	/**
+	 * Creates a new Identification writer with the default headers.
+	 * 
+	 * @param output The Writer to write output to.
+	 * @param keys The keys for the new CSV table.
+	 * @param delimiter The delimiter for the values in the table.
+	 */
+	public CSVTableWriter( Writer output, String[] keys, String delimiter, 
+	                       boolean useQuotes ) throws IOException {
 		this.keys = keys;
 		this.output = output;
 		this.delimiter = delimiter;
+		this.useQuotes = useQuotes;
 		for ( int i=0; i < this.keys.length; i++ ) {
 			if ( i > 0 )
 				output.write( delimiter );
-			output.write( keys[ i ]);
+			if ( useQuotes && !numberPattern.matcher( keys[ i ] ).matches( )) {
+				output.write( "\"" + keys[ i ] + "\"" );
+			} else {
+				output.write( keys[ i ]);
+			}
 		}
 		output.write( "\n" );
 	}
@@ -156,8 +200,13 @@ public class CSVTableWriter {
 			if ( i > 0 )
 				output.write( delimiter );
 			Object value = values.get( keys[ i ]);
-			if ( value != null )
-				output.write( value.toString( ));
+			if ( value != null ) {
+				if ( useQuotes && !numberPattern.matcher( value.toString( )).matches( )) {
+					output.write( "\"" + value.toString( ) + "\"" );
+				} else {
+					output.write( value.toString( ));
+				}
+			}
 		}
 	}
 
@@ -170,8 +219,13 @@ public class CSVTableWriter {
 		for ( int i=0; i < this.keys.length; i++ ) {
 			if ( i > 0 )
 				output.write( delimiter );
-			if ( i <= values.length )
-				output.write( values[ i ].toString( ));
+			if ( i <= values.length && values[ i ] != null ) {
+				if ( useQuotes && !numberPattern.matcher( values[ i ].toString( )).matches( )) {
+					output.write( "\"" + values[ i ].toString( ) + "\"" );
+				} else {
+					output.write( values[ i ].toString( ));
+				}
+			}
 		}
 	}
 
@@ -185,8 +239,13 @@ public class CSVTableWriter {
 			if ( i > 0 )
 				output.write( delimiter );
 			Object value = values.getAttribute( keys[ i ]);
-			if ( value != null )
-				output.write( value.toString( ));
+			if ( value != null ) {
+				if ( useQuotes && !numberPattern.matcher( value.toString( )).matches( )) {
+					output.write( "\"" + value.toString( ) + "\"" );
+				} else {
+					output.write( value.toString( ));
+				}
+			}
 		}
 	}
 

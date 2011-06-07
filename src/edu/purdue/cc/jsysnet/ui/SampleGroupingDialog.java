@@ -371,7 +371,7 @@ public class SampleGroupingDialog extends JDialog
 			JLabel attributeLabel = new JLabel( 
 				Settings.getLanguage( ).get( "Attribute" ) + ":" );
 			JPanel valuePanel;
-			Pattern numberPattern = Pattern.compile("(\\d+\\.?\\d*|\\.\\d+)(e\\d+)?");
+			Pattern numberPattern = Pattern.compile("(\\d+\\.?\\d*|\\.\\d+)([Ee]\\d+)?");
 			private boolean numeric;
 			
 			/**

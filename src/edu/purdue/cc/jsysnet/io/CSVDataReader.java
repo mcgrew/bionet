@@ -118,7 +118,7 @@ public class CSVDataReader extends DataReader {
 			this.experiments = new ArrayList <Experiment>( );
 			return;
 		}
-		file.setQuoteStripping( true );
+		file.setUseQuotes( true );
 		while( file.hasNext( )) {
 			line = file.next( );
 			for ( Experiment experiment : experiments ) {
