@@ -1,0 +1,15 @@
+"Sample Path ","D:\work_xiaoli\MetPP_20110525\MetPP_for_GROUPMEETING",,,
+"Analytical Platform","GCxGC-MS",,,
+"Description","This is my description",,,
+"GC Method",,,,
+"Time Unit",,,,
+,,,,
+"Sample File","Time","Group","F/M","Age"
+"BLANK_1.csv",0,,,
+"Yellow_10_5x_2_420_1600_isotopomeric_score_annotated_1233-211210.csv",0,"G2",,10
+"Yellow_16_5x_420_1600_isotopomeric_score_annotated_1418-211210.csv",0,"G2",,80
+"Yellow_17_5x_420_1600_isotopomeric_score_annotated_1604-211210.csv",0,"G1",,
+"Yellow_18_5x_420_1600_isotopomeric_score_annotated_1743-211210.csv",0,"G2",,
+"Yellow_19_5x_420_1600_isotopomeric_score_annotated_1912-211210.csv",0,"G2",,
+"Yellow_1_5x_420-1600_isotopomeric_score_annotated_2006-211210.csv",0,"G2",,
+"Yellow_20_5x_420_1600_isotopomeric_score_annotated_2157-211210.csv",0,"G2",,

@@ -54,7 +54,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 * @param file The file to read data from.
 	 */
 	public CSVTableReader ( File file ) throws FileNotFoundException {
-		this( new FileInputStream( file ), ',' );
+		this( new Scanner( file ), ',' );
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 */
 	public CSVTableReader ( File file, char delimiter ) 
 	                        throws FileNotFoundException {
-		this( new FileInputStream( file ), delimiter, true );
+		this( new Scanner( file ), delimiter, true );
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 */
 	public CSVTableReader ( File file, char delimiter, boolean useQuotes )
 	                        throws FileNotFoundException {
-		this( new FileInputStream( file ), delimiter, useQuotes );
+		this( new Scanner( file ), delimiter, useQuotes );
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 *	or tab character.
 	 */
 	public CSVTableReader( InputStream input ) {
-		this( input, ',', true );
+		this( new Scanner( input ), ',', true );
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 *	or tab character.
 	 */
 	public CSVTableReader ( InputStream input, char delimiter ) {
-		this( input, delimiter, true );
+		this( new Scanner( input ), delimiter, true );
 	}
 
 	/**
@@ -113,8 +113,42 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 	 */
 	public CSVTableReader ( InputStream input, char delimiter, 
 	                        boolean useQuotes ) {
+		this( new Scanner( input ), delimiter, useQuotes );
+	}
+
+	/**
+	 * Creates a new CSV Reader
+	 * 
+	 * @param input The Scanner to read data from.
+	 *	or tab character.
+	 */
+	public CSVTableReader( Scanner input ) {
+		this( input, ',', true );
+	}
+
+	/**
+	 * Creates a new CSV Reader
+	 * 
+	 * @param input The Scanner to read data from.
+	 * @param delimiter The delimiter between fields, usually a comma, semicolon,
+	 *	or tab character.
+	 */
+	public CSVTableReader ( Scanner input, char delimiter ) {
+		this( input, delimiter, true );
+	}
+
+	/**
+	 * Creates a new CSV Reader
+	 * 
+	 * @param input The Scanner to read data from.
+	 * @param delimiter The delimiter between fields, usually a comma, semicolon,
+	 *	or tab character.
+	 * @param useQuotes Whether or not to honor quotes when parsing a file.
+	 */
+	public CSVTableReader ( Scanner input, char delimiter, 
+	                        boolean useQuotes ) {
 		this.delimiter = delimiter;
-		this.scanner = new Scanner( input );
+		this.scanner = input;
 		this.useQuotes = useQuotes;
 		this.keys = this.splitLine( this.scanner.nextLine( ), delimiter, useQuotes );
 	}
@@ -172,8 +206,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 				returnValue.put( keys[ i ], null );
 			} else {
 				if ( this.useQuotes ) {
-					returnValue.put( keys[ i ].replaceAll( "\"(.*)\"", "$1" ), 
-					                 values[ i ].replaceAll( "\"(.*)\"", "$1" ));
+					returnValue.put( keys[ i ], values[ i ] );
 				} else {
 					returnValue.put( keys[ i ], values[ i ]);
 				}

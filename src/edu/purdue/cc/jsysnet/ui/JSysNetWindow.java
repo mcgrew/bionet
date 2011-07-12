@@ -54,6 +54,7 @@ import javax.swing.filechooser.FileView;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.io.CSVDataReader;
+import edu.purdue.cc.jsysnet.io.MetsignDataReader;
 import edu.purdue.cc.jsysnet.io.DataReader;
 import edu.purdue.cc.jsysnet.util.Experiment;
 
@@ -208,15 +209,22 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			fc = new JFileChooser( );
 		}
 		fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
-		fc.setFileFilter( new CSVFileFilter( ));
-		fc.setFileView( new CSVFileView( ));
+		fc.addChoosableFileFilter( new CSVFileFilter( ));
+		fc.addChoosableFileFilter( new MetsignFileFilter( ));
+		fc.setFileView( new MetsignFileView( ));
 		int options = fc.showOpenDialog( this );
 		if ( options == JFileChooser.APPROVE_OPTION ) {
+			DataReader data;
+			FileFilter fileFilter = fc.getFileFilter( );
 			File selected = fc.getSelectedFile( );
-			if ( !selected.isDirectory( ))
-				selected = selected.getParentFile( );
+			if ( fileFilter instanceof CSVFileFilter ) {
+				if ( !selected.isDirectory( ))
+					selected = selected.getParentFile( );
+				data = new CSVDataReader( selected.getAbsolutePath( ));
+			} else {
+				data = new MetsignDataReader( selected.getAbsolutePath( ) );
+			}
 			Settings.getSettings( ).setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
-			DataReader data = new CSVDataReader( selected.getAbsolutePath( ));
 			data.load( );
 			return data;
 		}
@@ -238,7 +246,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		}
 
 		public String getDescription( ) {
-			return "JSysNet project folder";
+			return "SysNet project folder";
 		}
 
 	}
@@ -260,12 +268,13 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 					projectIcon = new ImageIcon( ImageIO.read( logo )
 						.getScaledInstance( 16, 16, Image.SCALE_SMOOTH ));
 				} catch ( IOException e ) {
-					// insert log message here.
+					Logger.getLogger( getClass( )).debug(
+						"Unable to read JSysNet icon file" );
 					projectIcon = new javax.swing.plaf.metal.MetalIconFactory.FileIcon16( ); 
 				}
 			}
 		}
-
+		
 		public String getDescription( File f ) {
 			if ( isValidProject( f ))
 				return "JSysNet project folder";
@@ -314,6 +323,59 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 					return true;
 			}
 			return false;
+		}
+	}
+
+	/**
+	 * A class for filtering out improper file types from the FileChooser.
+	 */
+	private class MetsignFileFilter extends FileFilter {
+		private MetsignFileView fileView = new MetsignFileView( );
+
+		public boolean accept( File f ) {
+			return ( 
+				f.isDirectory( ) && 
+				( fileView.hasSubdirectories( f ) || fileView.isValidProject( f ))
+			);
+		}
+
+		public String getDescription( ) {
+			return "Metsign normalization file";
+		}
+
+	}
+
+	/**
+	 * A class for indicating to the FileChooser if the directory is a project folder or not.
+	 */
+	private class MetsignFileView extends CSVFileView {
+		Icon projectIcon;
+		
+		public MetsignFileView( ) {
+			super( );
+		}
+		
+		public String getDescription( File f ) {
+			if ( isValidProject( f ))
+				return "Metsign normalization folder";
+			return super.getDescription( f );
+		}
+
+		public String getTypeDescription( File f ) {
+			if ( isValidProject( f ))
+				return "Metsign normalization folder";
+			return super.getTypeDescription( f );
+		}
+
+		public boolean isValidProject( File f ) {
+			if ( !f.isDirectory( ))
+				return false;
+			try {
+				List<String> list = Arrays.asList( f.list( ));
+				return ( list.contains( "Normalization.csv" ));
+			} catch ( NullPointerException e ) {
+				return false;
+			}
 		}
 	}
 
