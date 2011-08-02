@@ -757,7 +757,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 					molecule = (Molecule)((DefaultMutableTreeNode)
 							node.getParent( )).getUserObject( );
 				}
-				samples = new TreeSet<Sample>( new SampleValueComparator( molecule ));
+				samples = new TreeSet<Sample>( new SampleValueComparator( ));
 				Iterator<TreeNode> sampleNodeIter = 
 					selectorTree.checkedDescendantIterator( node, SAMPLE );
 				XYSeries data = new XYSeries( language.get( "Samples" ));
@@ -913,15 +913,15 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 
 		// =============== SampleValueComparator ===========================
 		private class SampleValueComparator implements Comparator<Sample> {
-			private Molecule molecule;
-
-			public SampleValueComparator( Molecule m ) {
-				this.molecule = m;
-			}
 
 			public int compare( Sample s1, Sample s2 ) {
-				return (int)Math.signum( s1.getValue( this.molecule ).doubleValue( ) - 
-																 s2.getValue( this.molecule ).doubleValue( ));
+				int returnValue = (int)Math.signum( 
+					Integer.parseInt( s1.getAttribute( "Time" )) -
+					Integer.parseInt( s2.getAttribute( "Time" )));
+				if ( returnValue == 0 ) {
+					returnValue = s1.toString( ).compareTo( s2.toString( ));
+				}
+				return returnValue;
 			}
 		}
 	}
