@@ -96,8 +96,8 @@ public class SampleGroupingDialog extends JDialog
 		super( owner, title );
 		this.getContentPane( ).setLayout( new BorderLayout( ));
 		this.setBounds( Settings.getSettings( ).getInt( "windowXPosition" ),
-		                  Settings.getSettings( ).getInt( "windowYPosition" ),
-											600, 300 );
+		                Settings.getSettings( ).getInt( "windowYPosition" ),
+										600, 300 );
 		this.pack( );
 		Language language = Settings.getLanguage( );
 		this.samples = samples;
