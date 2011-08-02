@@ -121,9 +121,10 @@ public class MetsignDataReader extends DataReader {
 		// *********************** load Sample Info ***************************
 		file = new CSVTableReader( scanner );
 		file.setUseQuotes( true );
+		Map<Sample,Boolean> samplePresent = new HashMap<Sample,Boolean>( );
 		while( file.hasNext( )) {
 			line = file.next( );
-			System.out.println( line );
+			logger.debug( line.toString( ));
 			Sample sample = 
 				new Sample( line.get( "Sample File" ));
 			sample.setAttributes( line );
@@ -136,6 +137,7 @@ public class MetsignDataReader extends DataReader {
 				experiments.add( experiment );
 			}
 			experiment.addSample( sample );
+			samplePresent.put( sample, Boolean.FALSE );
 		}
 		file.close( );
 
@@ -181,11 +183,23 @@ public class MetsignDataReader extends DataReader {
 						"Adding sample value %f to %s for sample %s", 
 						value, molecule, sample ));
 					sample.setValue( molecule, value );
+					samplePresent.put( sample, Boolean.TRUE );
 				} else {
 					Logger.getLogger( getClass( )).trace( String.format( 
 						"Setting attribute %s for Molecule %s to %s", 
 						entry.getKey( ), molecule, entry.getValue( )));
 					molecule.setAttribute( entry.getKey( ), entry.getValue( ));
+				}
+			}
+		}
+		for ( Experiment experiment : this.experiments ) {
+			ArrayList<Sample> samples = 
+				new ArrayList<Sample>( experiment.getSamples( ));
+			for( Sample sample : samples ) {
+				if ( !samplePresent.get( sample ).booleanValue( )) {
+					logger.debug( 
+						String.format( "Dropping sample %s", sample.toString( )));
+					experiment.removeSample( sample );
 				}
 			}
 		}

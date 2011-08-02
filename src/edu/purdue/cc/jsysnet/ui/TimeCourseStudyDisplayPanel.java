@@ -304,6 +304,18 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	}
 
 	public void setSampleGroups( Collection<SampleGroup> sampleGroups ) {
+		Component frame = this;
+		while( !(frame instanceof Frame) && frame != null ) {
+			frame = frame.getParent( );
+		}
+		ClusterSelectionDialog dialog =
+			new ClusterSelectionDialog( (Frame)frame, 
+				Settings.getLanguage( ).get( "Choose Clustering Method" ),
+				this.sampleGroups != null );
+
+		if ( dialog.getReturnValue( ) == null ) {
+			return;
+		}
 		this.sampleGroups = sampleGroups;
 		Collection<Molecule> molecules;
 		try {
@@ -327,31 +339,11 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		layout.setRows( rows );
 		layout.setColumns( cols );
 
-		Component frame = this;
-		while( !(frame instanceof Frame) && frame != null ) {
-			frame = frame.getParent( );
-		}
-		ClusterSelectionDialog dialog =
-			new ClusterSelectionDialog( (Frame)frame, "" );
 		Map<Thread,RunnableClusterer> clusterers = 
 			new HashMap<Thread,RunnableClusterer>( );
 		for( SampleGroup group : sampleGroups ) {
 			RunnableClusterer clusterer = 
 				new RunnableClusterer( dialog.getReturnValue( ));
-//				new SOM(
-//				5,                             // number of dimensions on the x axis
-//				5,                             // number of dimensions on the y axis
-//				SOM.GridType.RECTANGLES,       // type of grid.
-//				10000,                         // number of iterations
-//				0.1,                           // learning rate of algorithm
-//				10,                            // initial radius
-//				SOM.LearningType.LINEAR,       // type of learning to use
-//				SOM.NeighbourhoodFunction.STEP // neighborhood function.
-//			));
-//			RunnableClusterer clusterer = new RunnableClusterer( new KMeans( 
-//				5,                             // number of clusters
-//				5                              // number of iterations
-//			));
 			SampleGroup filteredGroup = new SampleGroup( group );
 			filteredGroup.retainAll( this.sampleSelectorTree.getSamples( ));
 			clusterer.setDataset( this.getDataset( molecules, filteredGroup ));
@@ -374,7 +366,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				for ( Dataset dataset : result ) {
 					Collection<Molecule> cluster = this.getMoleculesForDataset( dataset );
 					clusters.add( cluster );
-				  unclustered.removeAll( cluster );
+					unclustered.removeAll( cluster );
 				}
 
 				// create a new clustertree and add the appropriate listeners
@@ -395,8 +387,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 
 				this.selectorPanel.add( clusterTree );
 				ClusterGraph graph = new ClusterGraph( this.sampleSelectorTree, 
-				                                       clusterTree, 
-				                                       groupIter.next( ));
+																							 clusterTree, 
+																							 groupIter.next( ));
 				this.clusterGraphPanel.add( graph );
 				graph.setMeanGraph( clusterTree.getRoot( ));
 			} catch ( InterruptedException e ) {
