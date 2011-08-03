@@ -63,6 +63,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.Stroke;
+import java.awt.BasicStroke;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -2168,7 +2170,6 @@ public class CorrelationDisplayPanel extends JPanel
 			range.setRange((( Double )this.minCorrelationSpinner.getValue( )).doubleValue( ),
 											 (( Double )this.maxCorrelationSpinner.getValue( )).doubleValue( ));
 		}
-
 	}
 
 	// ======================= CorrelationGraphVisualizer ======================
@@ -2219,6 +2220,14 @@ public class CorrelationDisplayPanel extends JPanel
 				}
 			};
 			this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
+			this.getRenderContext( ).setVertexStrokeTransformer( 
+				new Transformer<Molecule,Stroke>( ) {
+					Stroke stroke = new BasicStroke( 2 );
+
+					public Stroke transform( Molecule m ) {
+						return this.stroke;
+					}
+				});
 		}
 
 		@Override

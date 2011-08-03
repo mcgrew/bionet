@@ -203,7 +203,7 @@ public class CSVTableReader implements Iterator<Map<String,String>> {
 		                                                  this.useQuotes );
 		for ( int i=0; i < this.keys.length; i++ ) {
 			if ( i >= values.length ) {
-				returnValue.put( keys[ i ], null );
+				returnValue.put( keys[ i ], "" );
 			} else {
 				if ( this.useQuotes ) {
 					returnValue.put( keys[ i ], values[ i ] );
