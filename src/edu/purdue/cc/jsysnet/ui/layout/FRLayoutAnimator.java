@@ -73,7 +73,7 @@ public class FRLayoutAnimator<V,E> extends LayoutAnimator<V,E> {
 	 */
 	protected double getRepulsion( V v1, V v2 ) {
 		double delta = this.getDelta( v1, v2 );
-		if ( Double.compare( delta, 0.0) == 0 ) { 
+		if ( Double.compare( delta, 0.0 ) == 0 ) { 
 			delta = 0.001;
 		}
 		double returnValue = Math.pow( this.getK( ), 2 ) / delta;

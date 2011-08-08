@@ -26,6 +26,7 @@ import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.io.DataReader;
 import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
+import edu.purdue.cc.jsysnet.ui.layout.CenterLayout;
 //import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
 import edu.purdue.cc.jsysnet.ui.layout.RandomLayout;
 import edu.purdue.cc.jsysnet.util.Correlation;
@@ -162,9 +163,10 @@ public class CorrelationDisplayPanel extends JPanel
 	private JRadioButtonMenuItem randomLayoutMenuItem;
 	private JRadioButtonMenuItem heatMapLayoutMenuItem;
 	private JRadioButtonMenuItem kkLayoutMenuItem;
-	private JRadioButtonMenuItem frLayoutMenuItem;
-	private JRadioButtonMenuItem springLayoutMenuItem;
-	private JCheckBoxMenuItem animatedLayoutMenuItem;
+//	private JRadioButtonMenuItem frLayoutMenuItem;
+//	private JRadioButtonMenuItem springLayoutMenuItem;
+	private JRadioButtonMenuItem frSpringLayoutMenuItem;
+//	private JCheckBoxMenuItem animatedLayoutMenuItem;
 
 	// view menu items
 	private JMenu viewMenu;
@@ -266,8 +268,10 @@ public class CorrelationDisplayPanel extends JPanel
 //				new JRadioButtonMenuItem( language.get( "Fruchterman-Reingold" ));
 //		this.springLayoutMenuItem = 
 //					new JRadioButtonMenuItem( language.get( "Spring Layout" ));
-		this.animatedLayoutMenuItem = new JCheckBoxMenuItem( 
-			language.get( "Fruchterman-Reingold Spring Embedding" ));
+		this.frSpringLayoutMenuItem = 
+					new JRadioButtonMenuItem( language.get( "Fruchterman-Reingold" ));
+//		this.animatedLayoutMenuItem = new JCheckBoxMenuItem( 
+//			language.get( "Fruchterman-Reingold Spring Embedding" ));
 
 		// view menu items
 		this.viewMenu = new JMenu( language.get( "View" ));
@@ -342,6 +346,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.layoutMenuButtonGroup.add( this.kkLayoutMenuItem );
 //		this.layoutMenuButtonGroup.add( this.frLayoutMenuItem );
 //		this.layoutMenuButtonGroup.add( this.springLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.frSpringLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		
 		Enumeration<AbstractButton> e = this.layoutMenuButtonGroup.getElements( );
@@ -351,17 +356,18 @@ public class CorrelationDisplayPanel extends JPanel
 		this.layoutMenu.add( this.kkLayoutMenuItem );
 //		this.layoutMenu.add( this.frLayoutMenuItem );
 //		this.layoutMenu.add( this.springLayoutMenuItem );
+		this.layoutMenu.add( this.frSpringLayoutMenuItem );
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
-		this.layoutMenu.addSeparator( );
-		this.layoutMenu.add( this.animatedLayoutMenuItem );
+//		this.layoutMenu.addSeparator( );
+//		this.layoutMenu.add( this.animatedLayoutMenuItem );
 //		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
 		this.singleCircleLayoutMenuItem.addActionListener( lcl );
 		this.randomLayoutMenuItem.addActionListener( lcl );
 		this.kkLayoutMenuItem.addActionListener( lcl );
 //		this.frLayoutMenuItem.addActionListener( lcl );
-//		this.springLayoutMenuItem.addActionListener( lcl );
+		this.frSpringLayoutMenuItem.addActionListener( lcl );
 		this.heatMapLayoutMenuItem.addActionListener( lcl );
-		this.animatedLayoutMenuItem.addActionListener( lcl );
+//		this.animatedLayoutMenuItem.addActionListener( lcl );
 
 		//VIEW MENU
 		this.viewMenu.add( this.colorMenu );
@@ -542,7 +548,7 @@ public class CorrelationDisplayPanel extends JPanel
 			this.hideSelectedViewMenuItem.setEnabled( true );
 			this.hideUnselectedViewMenuItem.setEnabled( true );
 			this.hideUncorrelatedViewMenuItem.setEnabled( true );
-			this.animatedLayoutMenuItem.setEnabled( true );
+//			this.animatedLayoutMenuItem.setEnabled( true );
 			this.validate( );
 			this.graphSplitPane.repaint( );
 		}
@@ -560,7 +566,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.hideSelectedViewMenuItem.setEnabled( false );
 		this.hideUnselectedViewMenuItem.setEnabled( false );
 		this.hideUncorrelatedViewMenuItem.setEnabled( false );
-		this.animatedLayoutMenuItem.setEnabled( false );
+//		this.animatedLayoutMenuItem.setEnabled( false );
 		this.remove( this.graphSplitPane );
 		this.add( this.heatMapPanel.getScrollPane( ), BorderLayout.CENTER );
 		this.visibleGraph = this.heatMapPanel;
@@ -648,9 +654,9 @@ public class CorrelationDisplayPanel extends JPanel
 	 * @param event The event which triggered this action.
 	 */
 	public void stateChanged( ChangeEvent event ) {
-		LayoutAnimator animator = (LayoutAnimator)event.getSource( );
-		if ( animator.isStopped( ))
-			this.animatedLayoutMenuItem.setState( false );
+//		LayoutAnimator animator = (LayoutAnimator)event.getSource( );
+//		if ( animator.isStopped( ))
+//			this.animatedLayoutMenuItem.setState( false );
 	}
 
 	/**
@@ -1377,7 +1383,7 @@ public class CorrelationDisplayPanel extends JPanel
 				randomLayoutMenuItem.addActionListener( this );
 				kkLayoutMenuItem.addActionListener( this );
 //				frLayoutMenuItem.addActionListener( this );
-//				springLayoutMenuItem.addActionListener( this );
+				frSpringLayoutMenuItem.addActionListener( this );
 				pearsonCalculationMenuItem.addActionListener( this );
 				spearmanCalculationMenuItem.addActionListener( this ); 
 				kendallCalculationMenuItem.addActionListener( this );
@@ -1848,27 +1854,30 @@ public class CorrelationDisplayPanel extends JPanel
 			public void actionPerformed( ActionEvent event ) {
 				Component item = ( Component )event.getSource( );
 
-				if ( item == animatedLayoutMenuItem ) {
-					graph.animate( animatedLayoutMenuItem.getState( ));
-				} else {
+//				if ( item == animatedLayoutMenuItem ) {
+//					graph.animate( animatedLayoutMenuItem.getState( ));
+//				} else {
 					graph.animate( false );
 //					if ( item == multipleCirclesLayoutMenuItem )
 //						setGraphLayout( MultipleCirclesLayout.class );
 //					else 
-					if ( item == singleCircleLayoutMenuItem )
+					if ( item == singleCircleLayoutMenuItem ) {
 						setGraphLayout( CircleLayout.class );
-					else if ( item == randomLayoutMenuItem )
+					} else if ( item == randomLayoutMenuItem ) {
 						setGraphLayout( RandomLayout.class );
-					else if ( item == kkLayoutMenuItem )
+					} else if ( item == kkLayoutMenuItem ) {
 						setGraphLayout( KKLayout.class );
-//					else if ( item == frLayoutMenuItem )
+//					} else if ( item == frLayoutMenuItem ) {
 //						setGraphLayout( FRLayout.class );
-//					else if ( item == springLayoutMenuItem )
+//					} else if ( item == springLayoutMenuItem ) {
 //						setGraphLayout( SpringLayout2.class );
-					else if ( item == heatMapLayoutMenuItem )
+					} else if ( item == frSpringLayoutMenuItem ) {
+						setGraphLayout( CircleLayout.class );
+						graph.animate( true );
+					} else if ( item == heatMapLayoutMenuItem ) {
 						heatMap( );
-
-				}
+					}
+//				}
 			}
 	}
 

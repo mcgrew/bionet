@@ -30,7 +30,6 @@ import edu.purdue.cc.jsysnet.util.Correlation;
  * correlated together and separates those which are not.
  * 
  * @author Thomas McGrew
- * @version 1.0
  */
 public class RandomLayout<V,E> extends AbstractLayout<V,E> {
 
@@ -46,7 +45,8 @@ public class RandomLayout<V,E> extends AbstractLayout<V,E> {
 	 * Initializes the location of the Graph vertices.
 	 */
 	public void initialize( ) {
-		int multiplier = Math.max( this.getSize( ).height, this.getSize( ).width ) / 2;
+		int multiplier = 
+			Math.max( this.getSize( ).height, this.getSize( ).width ) / 2;
 		int iterations = multiplier * 16;
 		Point2D vPos, wPos;
 		double x, y, r, theta, newR;
@@ -55,8 +55,9 @@ public class RandomLayout<V,E> extends AbstractLayout<V,E> {
 		boolean moved = true;
 		// put all vertices somewhere random;
 		for ( V vertex : this.graph.getVertices( )) {
-			this.locations.get( vertex ).setLocation( Math.random( ) * this.size.width, 
-				                                        Math.random( ) * this.size.height);
+			this.locations.get( vertex ).setLocation( 
+				Math.random( ) * this.size.width, 
+				Math.random( ) * this.size.height );
 		}
 	}
 	
