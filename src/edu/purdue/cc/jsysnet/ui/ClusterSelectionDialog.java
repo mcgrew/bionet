@@ -134,7 +134,6 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 	 * 
 	 * @param owner The parent of this dialog.
 	 * @param title The title for the dialog.
-	 * @param samples A group of samples to be sorted into groups.
 	 */
 	public static Clusterer showInputDialog(
 			Frame owner, String title ) {

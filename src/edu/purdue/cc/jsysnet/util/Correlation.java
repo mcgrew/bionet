@@ -28,6 +28,7 @@ import java.lang.Double;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * A class for connecting two Molecules and determining their correlation
@@ -35,7 +36,8 @@ import java.util.Arrays;
  *
  * @author Thomas McGrew
  */
-public class Correlation extends SimplePair<Molecule> {
+public class Correlation extends SimplePair<Molecule> 
+                         implements Comparable<Correlation> {
 
 	public static final int PEARSON = 0;
 	public static final int SPEARMAN = 1;
@@ -45,6 +47,8 @@ public class Correlation extends SimplePair<Molecule> {
 	protected double pearsonCorrelation = Double.NaN;
 	protected double spearmanCorrelation = Double.NaN;
 	protected double kendallCorrelation = Double.NaN;
+	private Collection<Sample> samples;
+	@Deprecated
 	protected Experiment experiment;
 
 	/**
@@ -54,10 +58,37 @@ public class Correlation extends SimplePair<Molecule> {
 	 * @param molecule2 The second Molecule of this Correlation.
 	 * @param experiment The experiment this Correlation is associated with.
 	 */
+	@Deprecated
 	public Correlation( Molecule molecule1, Molecule molecule2, 
 	                    Experiment experiment ) {
 		super( molecule1, molecule2 );
+		this.samples = experiment.getSamples( );
 		this.experiment = experiment;
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param molecule1 The first Molecule of this Correlation.
+	 * @param molecule2 The second Molecule of this Correlation.
+	 * @param samples The samples this Correlation is associated with.
+	 */
+	public Correlation( Molecule molecule1, Molecule molecule2, 
+	                    Collection<Sample> samples ) {
+		super( molecule1, molecule2 );
+		this.samples = samples;
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param molecule1 The first Molecule of this Correlation.
+	 * @param molecule2 The second Molecule of this Correlation.
+	 */
+	@Deprecated
+	public Correlation( Molecule molecule1, Molecule molecule2 ) {
+		super( molecule1, molecule2 );
+		this.samples = new ArrayList<Sample>( );
 	}
 
 	/**
@@ -67,12 +98,59 @@ public class Correlation extends SimplePair<Molecule> {
 	 *	ignored.
 	 * @param experiment The experiment this Correlation is associated with.
 	 */
-	public Correlation( Molecule [] molecules,  Experiment experiment ) {
+	@Deprecated
+	public Correlation( Molecule [] molecules, Experiment experiment ) {
 		this( molecules[ 0 ], molecules[ 1 ], experiment );
 	}
 
+	/**
+	 * Constructor which accepts an array of 2 Molecules.
+	 * 
+	 * @param molecules A Molecule array of length 2. Any extra values are
+	 *	ignored.
+	 * @param experiment The experiment this Correlation is associated with.
+	 */
+	public Correlation( Molecule [] molecules ) {
+		this( molecules[ 0 ], molecules[ 1 ]);
+	}
+
+	@Deprecated
 	public Experiment getExperiment( ) {
 		return this.experiment;
+	}
+
+	/**
+	 * Compares this Correlation to another.
+	 * 
+	 * @see Comparable#compareTo( T )
+	 * @param c The Correlation to compare this Correlation to.
+	 * @return An integer indicating the status of the comparison.
+	 */
+	public int compareTo( Correlation c ) {
+
+		if ( c.containsAll( this ) && 
+		     this.getSamples( ).containsAll( c.getSamples( )) &&
+		     c.getSamples( ).containsAll( this.getSamples( ))) {
+			return 0;
+		}
+		int returnValue = this.getFirst( ).compareTo( c.getFirst( ));
+		if ( returnValue == 0 ) {
+			returnValue = this.getSecond( ).compareTo( c.getSecond( ));
+		}
+		if ( returnValue == 0 ) {
+			returnValue = (int)Math.signum( 
+				this.getSamples( ).size( ) - c.getSamples( ).size( ));
+		}
+		return returnValue;
+	}
+
+	/**
+	 * Retrieves the samples being used by this Correlation for calculation.
+	 * 
+	 * @return The samples being used.
+	 */
+	public Collection<Sample> getSamples( ) {
+		return this.samples;
 	}
 
 	/**
@@ -99,13 +177,13 @@ public class Correlation extends SimplePair<Molecule> {
 		
 		switch ( method ) {
 			case PEARSON:
-				return this.getPearsonCorrelation( );
+				return this.getPearsonCorrelation( recalculate );
 
 			case SPEARMAN:
-				return this.getSpearmanCorrelation( );
+				return this.getSpearmanCorrelation( recalculate );
 
 			case KENDALL:
-				return this.getKendallCorrelation( );
+				return this.getKendallCorrelation( recalculate );
 
 			default:
 				return -1;
@@ -158,9 +236,9 @@ public class Correlation extends SimplePair<Molecule> {
 		//See if this value has already been calculated
 		if ( recalculate || Double.isNaN( this.pearsonCorrelation )) {
 			NumberList molecule0Values = new NumberList( 
-				this.first.getValues( this.experiment.getSamples( )));
+				this.first.getValues( this.samples ));
 			NumberList molecule1Values = new NumberList( 
-				this.second.getValues( this.experiment.getSamples( )));
+				this.second.getValues( this.samples ));
 			filterZeros( molecule0Values, molecule1Values );
 			this.pearsonCorrelation = Statistics.getPearsonCorrelation( 
 				molecule0Values.toDoubleArray( ), 
@@ -189,9 +267,9 @@ public class Correlation extends SimplePair<Molecule> {
 		//See if this value has already been calculated
 		if ( recalculate || Double.isNaN( this.spearmanCorrelation ) ) {
 			NumberList molecule0Values = new NumberList( 
-				this.first.getValues( this.experiment.getSamples( )));
+				this.first.getValues( this.samples ));
 			NumberList molecule1Values = new NumberList( 
-				this.second.getValues( this.experiment.getSamples( )));
+				this.second.getValues( this.samples ));
 			filterZeros( molecule0Values, molecule1Values );
 			this.spearmanCorrelation = Statistics.getSpearmanCorrelation( 
 				molecule0Values.toDoubleArray( ), 
@@ -219,9 +297,9 @@ public class Correlation extends SimplePair<Molecule> {
 	public double getKendallCorrelation( boolean recalculate ) {
 		if ( recalculate || Double.isNaN( this.kendallCorrelation )) {
 			NumberList molecule0Values = new NumberList( 
-				this.first.getValues( this.experiment.getSamples( )));
+				this.first.getValues( this.samples ));
 			NumberList molecule1Values = new NumberList( 
-				this.second.getValues( this.experiment.getSamples( )));
+				this.second.getValues( this.samples ));
 			filterZeros( molecule0Values, molecule1Values );
 			this.kendallCorrelation = Statistics.getKendallCorrelation( 
 				molecule0Values.toDoubleArray( ), 

@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JButton;
@@ -42,7 +43,7 @@ import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.util.Correlation;
-import edu.purdue.cc.jsysnet.util.Experiment;
+import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
 
@@ -59,7 +60,7 @@ import org.apache.log4j.Logger;
 
 public class MoleculeDetailPanel extends JPanel implements ActionListener {
 	private DetailWindow detailWindow;
-	private Experiment experiment;
+	private CorrelationSet correlations;
 	private JButton showCorrelationButton;
 	private JButton showElementButton;
 	private JLabel coefLabel;
@@ -76,20 +77,20 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 		super( new BorderLayout( ));
 		Logger logger = Logger.getLogger( getClass( ));
 		this.molecule = molecule;
-		this.experiment = detailWindow.getExperiment( );
+		this.correlations = detailWindow.getCorrelations( );
 		this.correlationMethod = correlationMethod;
 		logger.debug( String.format(
-			"Showing Molecule detail:\n\tExperiment: %s\n" +
+			"Showing Molecule detail:\n" +
 			"\tMolecule:   %s\n\tRange:      %s\n", 
-			this.experiment, this.molecule, range));
+			this.molecule, range));
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 
 		Language language = Settings.getLanguage( );
 		this.moleculeDetailTable = 
-			DataTable.getMoleculeTable( this.experiment, this.molecule );
+			DataTable.getMoleculeTable( this.correlations, this.molecule );
 		this.correlationsTable = 
-			DataTable.getCorrelatedTable( this.experiment, this.molecule,
+			DataTable.getCorrelatedTable( this.correlations, this.molecule,
 			                              this.correlationRange,
 			                              this.correlationMethod );
 		this.selectedMoleculeLabel = new JLabel( language.get( "Selected Molecule" ));
@@ -122,7 +123,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 //		leftPanel.add( correlationPanel, BorderLayout.CENTER );
 
 		JPanel rightPanel = new ConcentrationGraph( 
-			this.molecule.getSampleMap( experiment.getSamples( )));
+			this.molecule.getSampleMap( this.correlations.getSamples( )));
 
 		JSplitPane splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel );
 		splitPane.setDividerLocation( 300 );
@@ -139,7 +140,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			}
 			if ( source == this.showCorrelationButton ) {
 				this.detailWindow.show( 
-					this.experiment.getCorrelation( molecule, 
+					this.correlations.getCorrelation( molecule, 
 						this.getMoleculesInRange( ).get( 
 							this.correlationsTable.getSelectedRow( ))));
 			}
@@ -153,8 +154,8 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 
 	private List <Molecule> getMoleculesInRange( ) {
 		List <Molecule> returnValue = new ArrayList( );
-		for ( Correlation c : this.experiment.getCorrelations( molecule )) {
-			if ( this.correlationRange.contains( 
+		for ( Correlation c : this.correlations ) {
+			if ( c.contains( molecule ) && this.correlationRange.contains( 
 				     Math.abs( c.getValue( this.correlationMethod )))) {
 					returnValue.add( c.getOpposite( this.molecule ));
 			}
@@ -183,7 +184,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			
 			this.chart = ChartFactory.createXYLineChart( 
 				String.format( language.get( "%s sample concentrations" ), 
-				molecule.getId( )),               // title
+				molecule.getId( )),              // title
 				language.get( "Sample" ),        // x axis label
 				language.get( "Concentration" ), // y axis label
 				dataset,                         // plot data

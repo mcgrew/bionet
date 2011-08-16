@@ -22,6 +22,7 @@ package edu.purdue.cc.jsysnet.ui;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Experiment;
 
@@ -30,6 +31,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collection;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 
@@ -42,22 +44,21 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 
 	private JTabbedPane tabPane = new ClosableTabbedPane( );
 	private Range correlationRange;
-	private Experiment experiment;
+	private CorrelationSet correlations;
 	private int correlationMethod;
 
 	/**
 	 * Creates a new DetailWindow with the specified title and Correlation Range.
 	 * 
-	 * @param experiment The experiment this window is associated with.
+	 * @param correlations The correlations this window is associated with.
 	 * @param range The Correlation range for this window.
 	 */
-	public DetailWindow( Experiment experiment, Range range, 
+	public DetailWindow( CorrelationSet correlations, Range range, 
 	                     int correlationMethod ) {
-		super( experiment.getAttribute( "description" ));
+		super( "" );
 		Logger.getLogger( getClass( )).debug( String.format(
-			"Creating detail window:\n\tExperiment: %s\n" +
-			"\tRange:      %s\n", experiment, range));
-		this.experiment = experiment;
+			"Creating detail window:\n\tRange:      %s\n", range));
+		this.correlations = correlations;
 		this.correlationRange = range.clone( );
 		this.correlationMethod = correlationMethod;
 		Settings settings = Settings.getSettings( );
@@ -90,31 +91,28 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	/**
 	 * Creates a new DetailWindow and shows detail about the specified Molecule.
 	 * 
-	 * @param experiment The experiment this window is associated with.
+	 * @param correlations The correlations this window is associated with.
 	 * @param molecule The Molecule to show detail about.
 	 * @param range The correlation range for this DetailWindow.
 	 */
-	public DetailWindow( Experiment experiment, Molecule molecule, 
+	public DetailWindow( CorrelationSet correlations, Molecule molecule, 
 	                     Range range, int correlationMethod ) {
-		this( experiment, range, correlationMethod );
+		this( correlations, range, correlationMethod );
 		this.show( molecule );
 	}
 
 	/**
 	 * Creates a new DetailWindow and shows detail about the specified Correlation.
 	 * 
-	 * @param experiment The experiment this window is associated with.
+	 * @param correlations The correlations this window is associated with.
 	 * @param correlation The Correlation to show detail about.
 	 * @param range The correlation range for this DetailWindow.
 	 */
-	public DetailWindow( Experiment experiment, Correlation correlation,
+	public DetailWindow( CorrelationSet correlations, 
+	                     Correlation correlation,
 	                     Range range, int correlationMethod ) {
-		this( experiment, range, correlationMethod );
+		this( correlations, range, correlationMethod );
 		this.show( correlation );
-	}
-
-	public Experiment getExperiment( ) {
-		return this.experiment;
 	}
 
 	/**
@@ -155,13 +153,22 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	}
 
 	/**
+	 * Returns the correlations associated with this DetailWindow
+	 * 
+	 * @return The correlations associated with this DetailWindow
+	 */
+	public CorrelationSet getCorrelations( ) {
+		return this.correlations;
+	}
+
+	/**
 	 * The newWindow method of the TabbedWindow interface. Creates a new DetailWindow.
 	 * @see edu.purdue.cc.jsysnet.ui.TabbedWindow#newWindow()
 	 * 
 	 * @return A new instance of this class.
 	 */
 	public TabbedWindow newWindow( ) {
-		return new DetailWindow( this.experiment, this.correlationRange,
+		return new DetailWindow( this.correlations, this.correlationRange,
 		                         this.correlationMethod );
 	}
 

@@ -21,7 +21,7 @@ package edu.purdue.cc.jsysnet.ui;
 
 import edu.purdue.bbc.util.Range;
 import edu.purdue.cc.jsysnet.util.Correlation;
-import edu.purdue.cc.jsysnet.util.Experiment;
+import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.MonitorableRange;
 import edu.purdue.cc.jsysnet.util.Spectrum;
@@ -79,17 +79,18 @@ public class HeatMap extends JPanel implements MouseListener,
 	private float currentZoom = 1.0f;
 	private Spectrum spectrum;
 	private SpectrumLegend spectrumLegend;
-	private Experiment experiment;
+	private CorrelationSet correlations;
 	private Number correlationMethod;
 
-	public HeatMap ( Experiment experiment, Number correlationMethod ) {
-		this( "", experiment, new MonitorableRange( 0.0, 1.0 ), correlationMethod );
+	public HeatMap ( CorrelationSet correlations, 
+	                 Number correlationMethod ) {
+		this( "", correlations, new MonitorableRange( 0.0, 1.0 ), correlationMethod );
 	}
 
-	public HeatMap ( String title, Experiment experiment, 
+	public HeatMap ( String title, CorrelationSet correlations,
 	                 MonitorableRange range, Number correlationMethod ) {
 		super( );
-		this.experiment = experiment;
+		this.correlations = correlations;
 		this.scrollPane = new JScrollPane( this );
 		this.title = title;
 		this.range = range;
@@ -99,7 +100,15 @@ public class HeatMap extends JPanel implements MouseListener,
 		this.addMouseWheelListener( this );
 		this.addGraphMouseListener( this );
 		this.addComponentListener( this );
-		this.moleculeList = new Vector( experiment.getMolecules( ));
+		this.moleculeList = new Vector( );
+		for ( Correlation correlation : correlations ) {
+			if ( !this.moleculeList.contains( correlation.getFirst( ))) {
+				moleculeList.add( correlation.getFirst( ));
+			}
+			if ( !this.moleculeList.contains( correlation.getSecond( ))) {
+				moleculeList.add( correlation.getSecond( ));
+			}
+		}
 		this.spectrum = new SplitSpectrum( range, this.getBackground( ));
 		this.spectrum.setOutOfRangePaint( this.getBackground( ));
 		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
@@ -115,13 +124,22 @@ public class HeatMap extends JPanel implements MouseListener,
 			0.0, (double)size );
 		for( int i=0; i < size; i++ ){
 			for( int j=0; j < size; j++ ) {
-
-				returnValue.setZValue( i, j, (i==j)? Double.NaN : 
-					experiment.getCorrelation( moleculeList.get( i ), 
-						moleculeList.get( j )).getValue( this.correlationMethod ));
+				returnValue.setZValue( i, j, ( i == j ) ? Double.NaN :
+					this.getCorrelation( moleculeList.get( i ), 
+						moleculeList.get( j )).getValue( correlationMethod ));
 			}
 		}
 		return returnValue;
+	}
+
+	private Correlation getCorrelation( Molecule m1, Molecule m2 ) {
+		for( Correlation c : this.correlations ) {
+			if ( c.contains( m1 ) && 
+					 c.contains( m2 )) {
+				return c;
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -320,8 +338,8 @@ public class HeatMap extends JPanel implements MouseListener,
 					moleculeList.size( ) / mapPosition.getWidth( ));
 			int yComponent = moleculeList.size( ) - 1 - (int)((p.getY( ) - mapPosition.getY( )) * 
 					moleculeList.size( ) / mapPosition.getHeight( ));
-			return this.experiment.getCorrelation( moleculeList.get( xComponent ),
-			                                       moleculeList.get( yComponent ));
+			return this.getCorrelation( moleculeList.get( xComponent ),
+			                            moleculeList.get( yComponent ));
 		
 	}
 
@@ -373,7 +391,7 @@ public class HeatMap extends JPanel implements MouseListener,
 	 * @param e The MouseEvent which triggered this action.
 	 */
 	public void graphClicked( Correlation c, MouseEvent e ) {
-		new DetailWindow( c.getExperiment( ), c, range, 
+		new DetailWindow( this.correlations, c, range, 
 		                  this.correlationMethod.intValue( ));
 	}
 	/**

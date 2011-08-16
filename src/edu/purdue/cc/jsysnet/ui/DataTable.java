@@ -51,7 +51,7 @@ class DataTable extends JTable {
 	 * @param molecule The molecule to get The attributes of.
 	 * @return A JTable instance containing the appropriate data.
 	 */
-	public static DataTable getMoleculeTable( Experiment experiment,
+	public static DataTable getMoleculeTable( Collection<Correlation> correlations,
 	                                          Molecule molecule ) {
 		Map<String,String> attributes = molecule.getAttributes( );
 		String [][] values = new String[ attributes.size( )][ 2 ];
@@ -75,12 +75,11 @@ class DataTable extends JTable {
 	 * @param correlationRange The range of the valid correlations to display.
 	 * @return 
 	 */
-	public static DataTable getCorrelatedTable( Experiment experiment,
+	public static DataTable getCorrelatedTable( Collection<Correlation> correlations,
 	                                            Molecule molecule, 
 	                                            Range correlationRange,
 	                                            int correlationMethod ) {
 		DefaultTableModel returnValue = new DefaultTableModel( );
-	  Collection<Correlation> correlations = experiment.getCorrelations( molecule );
 		List <String[ ]> data = new ArrayList<String[ ]>( );
 		double value;
 		for ( Correlation c : correlations ) {

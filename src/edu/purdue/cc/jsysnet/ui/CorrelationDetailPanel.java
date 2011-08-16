@@ -55,7 +55,7 @@ import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.util.Correlation;
-import edu.purdue.cc.jsysnet.util.Experiment;
+import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
 
@@ -68,7 +68,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	private DetailWindow detailWindow;
 	private JTable firstMoleculeTable;
 	private JTable secondMoleculeTable;
-	private Experiment experiment;
+	private CorrelationSet correlations;
 	JButton firstMoleculeButton;
 	JButton secondMoleculeButton;
 	List <Number> firstMoleculeSamples;
@@ -89,7 +89,6 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		this.correlation = correlation;
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
-		this.experiment = correlation.getExperiment( );
 		this.correlationMethod = correlationMethod;
 
 		String buttonText = Settings.getLanguage( ).get( "Show Correlated" );
@@ -97,9 +96,9 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		this.secondMoleculeButton = new JButton( buttonText );
 
 		this.firstMoleculeTable = DataTable.getMoleculeTable( 
-			correlation.getExperiment( ), correlation.getFirst( )); 
+			correlations, correlation.getFirst( )); 
 		this.secondMoleculeTable = DataTable.getMoleculeTable( 
-			correlation.getExperiment( ), correlation.getSecond( ));
+			correlations, correlation.getSecond( ));
 		JPanel topMoleculePanel = new JPanel( new BorderLayout( ));
 		JPanel bottomMoleculePanel = new JPanel( new BorderLayout( ));
 		JScrollPane firstMoleculeScrollPane = 
@@ -118,10 +117,10 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		moleculePane.add( bottomMoleculePanel );
 		JPanel moleculePanel = new JPanel( new BorderLayout( ));
 		moleculePanel.add( moleculePane, BorderLayout.CENTER );
-		JPanel graphPanel = new ScatterPlot( correlation, experiment );
+		JPanel graphPanel = new ScatterPlot( correlation, correlations );
 		JPanel infoPanel = new InfoPanel( 
 			this.correlation.getValue( this.correlationMethod ), 
-			experiment.getSamples( ).size( ));
+			correlations.getSamples( ).size( ));
 
 		JPanel mainPanel = new JPanel( new BorderLayout( ));
 		mainPanel.add( moleculePanel, BorderLayout.WEST );
@@ -161,10 +160,10 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		 * 
 		 * @param molecules An array of 2 molecules to display the information of.
 		 */
-		public ScatterPlot ( Pair<Molecule> molecules, Experiment experiment ) {
+		public ScatterPlot ( Pair<Molecule> molecules, CorrelationSet correlations ) {
 			super( );
 			Map sortedMap = new TreeMap<Number,Sample>( );
-			for ( Sample sample : experiment.getSamples( )) {
+			for ( Sample sample : correlations.getSamples( )) {
 				sortedMap.put( sample.getValue( molecules.getFirst( )), sample );
 			}
 			this.samples = new ArrayList<Sample>( sortedMap.values( ));

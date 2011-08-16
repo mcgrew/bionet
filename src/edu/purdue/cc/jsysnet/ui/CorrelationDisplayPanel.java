@@ -30,6 +30,7 @@ import edu.purdue.cc.jsysnet.ui.layout.CenterLayout;
 //import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
 import edu.purdue.cc.jsysnet.ui.layout.RandomLayout;
 import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.MonitorableRange;
@@ -38,6 +39,7 @@ import edu.purdue.cc.jsysnet.util.SampleGroup;
 import edu.purdue.cc.jsysnet.util.Spectrum;
 import edu.purdue.cc.jsysnet.util.SplitSpectrum;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -50,6 +52,7 @@ import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Paint;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -64,8 +67,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.Stroke;
-import java.awt.BasicStroke;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -74,6 +75,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -200,7 +202,10 @@ public class CorrelationDisplayPanel extends JPanel
 	private JSplitPane graphSplitPane;
 	private HeatMap  heatMapPanel;
 
-	private Experiment experiment = null;
+	private Collection<Experiment> experiments;
+	private Collection<Molecule> molecules;
+	private Collection<Sample> samples;
+	private CorrelationSet correlations;
 	private String title;
 	private Scalable visibleGraph;
 	private Pair<SampleGroup> sampleGroups;
@@ -301,7 +306,6 @@ public class CorrelationDisplayPanel extends JPanel
 			new JMenuItem( language.get( "Hide Orphans" ), KeyEvent.VK_P );
 		this.showCorrelatedViewMenuItem = new JMenuItem( 
 			language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
-
 		
 		// color menu items
 		this.colorMenu = new JMenu( language.get( "Color" ));
@@ -423,7 +427,6 @@ public class CorrelationDisplayPanel extends JPanel
 			language.get( "Change the color of the graph" ));
 		this.colorMenuButtonGroup.add( this.normalColorMenuItem );
 		this.colorMenuButtonGroup.add( this.highContrastColorMenuItem );
-//		this.highContrastColorMenuItem.setEnabled( false );
 		this.colorMenu.add( this.normalColorMenuItem );
 		this.colorMenu.add( this.highContrastColorMenuItem );
 		this.normalColorMenuItem.addItemListener( this );
@@ -433,12 +436,10 @@ public class CorrelationDisplayPanel extends JPanel
 		this.menuBar.add( this.layoutMenu );
 		this.menuBar.add( this.viewMenu );
 
-
 		// Add the panels to the main panel
 		this.add( menuBar, BorderLayout.NORTH );
 //		this.add( this.correlationViewPanel, BorderLayout.CENTER );
 		this.add( leftPanel, BorderLayout.WEST );
-			
 	}
 
 	/**
@@ -450,13 +451,15 @@ public class CorrelationDisplayPanel extends JPanel
 		if ( experiments.size( ) == 0 ) {
 			return false;
 		}
-		this.experiment = experiments.iterator( ).next( );
 		this.setVisible( true );
-		this.title = Settings.getLanguage( ).get( "Correlation" ) + " - " + 
-			this.experiment.getAttribute( "description" );
+		this.title = Settings.getLanguage( ).get( "Correlation View" );
+		this.molecules = new TreeSet<Molecule>( );
+		this.samples = new TreeSet<Sample>( );
+		this.correlations = new CorrelationSet( samples );
+		this.experiments = experiments;
 
 		this.graph = new CorrelationGraphVisualizer( 
-			this.experiment, this.correlationFilterPanel.getMonitorableRange( ));
+			this.correlations, this.correlationFilterPanel.getMonitorableRange( ));
 		this.graph.setBackground( Color.WHITE );
 		this.graph.setIndicateCommonNeighbors( true );
 		this.infoPanel = new InfoPanel( );
@@ -468,7 +471,7 @@ public class CorrelationDisplayPanel extends JPanel
 				public void graphClicked( Correlation c, MouseEvent e ) {
 					if ( e.getButton( ) == MouseEvent.BUTTON1 && 
 					     e.getClickCount( ) >= 2 ) {
-						new DetailWindow( c.getExperiment( ), 
+						new DetailWindow( correlations, 
 															c, correlationFilterPanel.getRange( ),
 															correlationMethod.intValue( ));
 					}
@@ -477,15 +480,23 @@ public class CorrelationDisplayPanel extends JPanel
 				public void graphReleased( Correlation c, MouseEvent e ) { }
 		});
 
-		for( Molecule molecule : this.experiment.getMolecules( ))
-			this.moleculeFilterPanel.add( molecule );
+		for( Experiment experiment : this.experiments ) {
+			for( Sample sample : experiment.getSamples( )) {
+				this.samples.add( sample );
+			}
+			for( Molecule molecule : experiment.getMolecules( )) {
+				this.moleculeFilterPanel.add( molecule );
+				this.molecules.add( molecule );
+				this.correlations.add( molecule );
+			}
+		}
 
 		this.add( this.graphSplitPane, BorderLayout.CENTER );
 		this.graphSplitPane.setBottomComponent( this.infoPanel );
 		this.setGraphVisualizer( this.graph );
 
 		this.heatMapPanel = new HeatMap( this.getTitle( ), 
-		                                 this.graph.getExperiment( ), 
+		                                 this.correlations,
 																		 this.getCorrelationRange( ),
 																		 this.correlationMethod );
 		this.graph.addVertexChangeListener( this.heatMapPanel );
@@ -615,8 +626,18 @@ public class CorrelationDisplayPanel extends JPanel
 	 * 
 	 * @return The associated Experiment.
 	 */
+	@Deprecated
 	public Experiment getExperiment( ) {
-		return experiment;
+		return this.experiments.iterator( ).next( );
+	}
+
+	/**
+	 * Returns the Experiments associated with this CorrelationDisplayPanel.
+	 * 
+	 * @return The associated Experiments
+	 */
+	public Collection<Experiment> getExperiments( ) {
+		return this.experiments;
 	}
 
 
@@ -759,7 +780,7 @@ public class CorrelationDisplayPanel extends JPanel
 					this.graph.removeVertex( m );
 			}
 		} else if ( item == this.showCorrelatedViewMenuItem ) {
-			for ( Correlation c : this.experiment.getCorrelations( )){
+			for ( Correlation c : this.correlations ){
 				if ( this.getCorrelationRange( ).contains( c.getValue( this.correlationMethod )) &&
 				     ( vertices.contains( c.getFirst( ) ) ||
 						   vertices.contains( c.getSecond( ) ))) {
@@ -774,7 +795,7 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 			this.sampleGroups = SampleGroupingDialog.showInputDialog( 
 					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
-					this.experiment.getSamples( ));
+					this.samples);
 
 			if ( this.sampleGroups != null ) {
 				this.graph.setSampleGroups( this.sampleGroups );
@@ -885,14 +906,19 @@ public class CorrelationDisplayPanel extends JPanel
 		 * Adds a molecule to the Graph and creates a Checkbox for removing it.
 		 * 
 		 * @param m The Molecule to add.
+		 * @return true if the molecule doesn't already exist in the list.
 		 */
-		public void add( Molecule m ) {
+		public boolean add( Molecule m ) {
+			if ( this.moleculeMap.values( ).contains( m )) {
+				return false;
+			}
 			JCheckBox cb = new JCheckBox( m.toString( ), true );
 			cb.setBackground( Color.WHITE );
 			this.moleculeList.add( cb );
 			this.checkBoxMap.put( m, cb );
 			this.moleculeMap.put( cb, m );
 			cb.addItemListener( this );
+			return true;
 		}
 
 		/**
@@ -916,12 +942,13 @@ public class CorrelationDisplayPanel extends JPanel
 				Molecule molecule = moleculeMap.get( event.getSource( ));
 				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
 					graph.addVertex( molecule );
-					for( Correlation correlation : experiment.getCorrelations( molecule )){
-						if ( graph.isValidEdge( correlation ))
+					for( Correlation correlation : correlations ){
+						if ( graph.isValidEdge( correlation )) {
 							graph.addEdge( correlation,
 								new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
 									correlation.toArray( new Molecule[ 2 ])),
 									EdgeType.UNDIRECTED );
+						}
 					}
 				}
 				else {
@@ -1156,7 +1183,6 @@ public class CorrelationDisplayPanel extends JPanel
 		public void add( Molecule molecule ) {
 			DefaultTableModel tm = (DefaultTableModel)this.moleculeTable.getModel( );
 			Map<String,String> attributes = molecule.getAttributes( );
-			Collection<Sample> samples = experiment.getSamples( );
 			if ( tm.getColumnCount( ) == 0 ) {
 				tm.addColumn( "id" );
 				for ( String key : attributes.keySet( )) {
@@ -1745,7 +1771,7 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 
 			public void getDistributionData( SimpleHistogramDataset distributionData ) {
-				Collection <Correlation> edges = experiment.getCorrelations( );
+				Collection <Correlation> edges = correlations;
 				Range correlationRange = correlationFilterPanel.getRange( );
 				distributionData.clearObservations( );
 				for( Correlation c : edges ) {
@@ -1903,7 +1929,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 				CorrelationGraphVisualizer graph = 
 					(CorrelationGraphVisualizer)e.getComponent( );
-				new DetailWindow( graph.getExperiment( ), m, graph.getRange( ),
+				new DetailWindow( correlations, m, graph.getRange( ),
 													correlationMethod.intValue( ));
 			}
 		}
@@ -1975,7 +2001,7 @@ public class CorrelationDisplayPanel extends JPanel
 				this.molecule = m;
 				Range range =
 					((CorrelationGraphVisualizer)invoker).getRange( );
-				for( Correlation c : experiment.getCorrelations( m )) {
+				for( Correlation c : correlations ) {
 					if ( range.contains( Math.abs( c.getValue( correlationMethod )))) {
 						JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
 						this.correlationMap.put( menuItem, c );
@@ -2000,14 +2026,14 @@ public class CorrelationDisplayPanel extends JPanel
 				Object source = e.getSource( );
 
 				if ( this.correlationMap.containsKey( source )) {
-					new DetailWindow( graph.getExperiment( ),
+					new DetailWindow( correlations,
 					                  this.correlationMap.get( source ), 
 														range, correlationMethod.intValue( ));
 				} else if ( source == this.hideMenuItem ) {
 					graph.removeVertex( this.molecule );
 
 				} else if ( source == this.detailsMenuItem ) {
-					new DetailWindow( graph.getExperiment( ),
+					new DetailWindow( correlations,
 					                  this.molecule, range, correlationMethod.intValue( ));
 
 				} else if ( source == this.selectCorrelatedMenuItem ) {
@@ -2191,7 +2217,7 @@ public class CorrelationDisplayPanel extends JPanel
 				ComponentListener {
 
 		public MonitorableRange range;
-		public Experiment experiment;
+		protected CorrelationSet correlations;
 		protected Spectrum spectrum;
 		protected SpectrumLegend spectrumLegend;
 		protected Pair<SampleGroup> sampleGroups;
@@ -2204,11 +2230,12 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @param range A MonitorableRange object used to determine which 
 		 *  Correlations to show on the graph.
 		 */
-		public CorrelationGraphVisualizer( Experiment experiment, 
+		public CorrelationGraphVisualizer( CorrelationSet correlations, 
 																			 MonitorableRange range ) {
 			super( );
 			this.setRange( range );
-			this.setExperiment( experiment );
+			this.correlations = correlations;
+
 			this.addGraphMouseEdgeListener( this );
 			this.addComponentListener( this );
 
@@ -2254,23 +2281,6 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 
 		/**
-		 * Used to change the experiment which is displayed in this graph.
-		 * 
-		 * @param experiment The new experiment.
-		 */
-		public void setExperiment( Experiment experiment ) {
-			// remove all edges and vertices.
-			for ( Molecule v : this.getVertices( ))
-				this.removeVertex( v );
-			for ( Correlation e : this.getEdges( ))
-				this.removeEdge( e );
-			// add the new data.
-			this.experiment = experiment;
-			this.addVertices( );
-			this.addEdges( );
-		}
-
-		/**
 		 * Sets sample groups for up/downregulation indicators on the display.
 		 * 
 		 * @param sg The selected groups.
@@ -2281,15 +2291,6 @@ public class CorrelationDisplayPanel extends JPanel
 				new RegulationTransformer( 
 					sg, Color.GREEN.darker( ), Color.RED, vertexOutline ));
 			this.repaint( );
-		}
-		
-		/**
-		 * Returns the current Experiment associated with this graph.
-		 * 
-		 * @return The Experiment associated with this graph.
-		 */
-		public Experiment getExperiment( ) {
-			return this.experiment;
 		}
 		
 		/**
@@ -2313,11 +2314,15 @@ public class CorrelationDisplayPanel extends JPanel
 			return this.range;
 		}
 
+		public CorrelationSet getCorrelations( ) {
+			return this.correlations;
+		}
+
 		/**
 		 * Adds the Vertices (Molecules) to the Graph
 		 */
 		protected void addVertices( ) {
-			for( Molecule molecule : this.experiment.getMolecules( ))
+			for( Molecule molecule : molecules )
 				this.graph.addVertex( molecule );
 		}
 
@@ -2325,7 +2330,7 @@ public class CorrelationDisplayPanel extends JPanel
 		 * Adds the Edges (Correlations) to the Graph.
 		 */
 		protected void addEdges( ) {
-			for( Correlation correlation : this.experiment.getCorrelations( )) {
+			for( Correlation correlation : this.correlations ) {
 				if ( this.isValidEdge( correlation )) {
 					this.graph.addEdge( 
 						correlation, 
@@ -2345,7 +2350,7 @@ public class CorrelationDisplayPanel extends JPanel
 		public int filterEdges( ) {
 			
 			int returnValue = 0;
-			for( Correlation correlation : this.experiment.getCorrelations( )) {
+			for( Correlation correlation : this.correlations ) {
 				if ( this.isValidEdge( correlation )) {
 					returnValue++;
 					// this Correlation belongs on the graph, make sure it is there.

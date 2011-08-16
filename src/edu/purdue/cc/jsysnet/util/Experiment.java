@@ -19,7 +19,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.util;
 
-import edu.purdue.bbc.util.Attributes;
+import edu.purdue.bbc.util.attributes.Attributes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,7 +135,8 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	/**
 	 * Gets all attributes for this Experiment.
 	 * 
-	 * @return A HashMap containing all of the attributes for this experiment indexed by
+	 * @return A HashMap containing all of the attributes for this 
+	 * experiment indexed by name.
 	 */
 	public Map <String,String> getAttributes( ) {
 		return this.attributes;
@@ -187,6 +188,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 * 
 	 * @return A Collection containing all of the Correlations.
 	 */
+	@Deprecated
 	public Collection <Correlation> getCorrelations( ) {
 		return this.correlations;
 	}
@@ -198,6 +200,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 * @param molecule2 The other molecule in the Correlation.
 	 * @return The requested correlation.
 	 */
+	@Deprecated
 	public Correlation getCorrelation( Molecule molecule1, Molecule molecule2 ) {
 		for ( Correlation correlation : this.correlations ) {
 			if ( correlation.contains( molecule1 ) && 
@@ -209,11 +212,12 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 
 	/**
 	 * Returns all Correlations associated with the passed in Molecule in this
-	 * esperiment.
+	 * experiment.
 	 * 
 	 * @param molecule The Molecule to get Correlations for.
 	 * @return A Collection containing the requested Correlations.
 	 */
+	@Deprecated
 	public Collection<Correlation> getCorrelations( Molecule molecule ) {
 		Collection<Correlation> returnValue = new ArrayList<Correlation>( );
 		for ( Correlation correlation : this.correlations ) {

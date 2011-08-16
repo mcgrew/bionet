@@ -19,7 +19,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.util;
 
-import edu.purdue.bbc.util.Attributes;
+import edu.purdue.bbc.util.attributes.Attributes;
 import edu.purdue.bbc.util.NumberList;
 
 import java.util.ArrayList;

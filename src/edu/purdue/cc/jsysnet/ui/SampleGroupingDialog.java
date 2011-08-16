@@ -19,7 +19,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
-import edu.purdue.bbc.util.Attributes;
+import edu.purdue.bbc.util.attributes.Attributes;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
