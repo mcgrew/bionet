@@ -23,6 +23,7 @@ import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.util.Correlation;
+import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 
@@ -75,29 +76,36 @@ class DataTable extends JTable {
 	 * @param correlationRange The range of the valid correlations to display.
 	 * @return 
 	 */
-	public static DataTable getCorrelatedTable( Collection<Correlation> correlations,
+	public static DataTable getCorrelatedTable( CorrelationSet correlations,
 	                                            Molecule molecule, 
 	                                            Range correlationRange,
 	                                            int correlationMethod ) {
 		DefaultTableModel returnValue = new DefaultTableModel( );
 		List <String[ ]> data = new ArrayList<String[ ]>( );
 		double value;
-		for ( Correlation c : correlations ) {
+		boolean mz = true;
+		for ( Correlation c : correlations.getCorrelations( molecule )) {
 			value = c.getValue( correlationMethod );
 			if ( correlationRange.contains( Math.abs( value ))) {
 				String [] row = new String [ 3 ];
-				row[ 0 ] = String.format( "%.3f", value );
-				row[ 1 ] = c.getOpposite( molecule ).getAttribute( "group_name" );
-				row[ 2 ] = c.getOpposite( molecule ).getAttribute( "name" );
+				row[ 0 ] = c.getOpposite( molecule ).getId( );
+				row[ 1 ] = c.getOpposite( molecule ).getAttribute( "m/z" );
+				if ( "".equals( row[ 1 ] )) {
+					row[ 1 ] = c.getOpposite( molecule ).getAttribute( "mw" );
+				}
+				if ( !"".equals( row[ 1 ] )) {
+					mz = false;
+				}
+				row[ 2 ] = String.format( "%.3f", value );
 				data.add( row );
 			}
 		}
 		Language language = Settings.getLanguage( );
 		return new DataTable( data.toArray( new String[ data.size( ) ][ 3 ]), 
 			new String[]{ 
-				language.get( "Correlation" ), 
-				language.get( "Group" ), 
-				language.get( "Molecule" )});
+				language.get( "Molecule" ),
+				( mz ) ? language.get( "MW" ) : language.get( "M/Z" ), 
+				language.get( "Correlation" )});
 	}
 }
 

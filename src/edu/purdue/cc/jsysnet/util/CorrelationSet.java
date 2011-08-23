@@ -125,8 +125,8 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	 * @param molecule The Molecule to get Correlations for.
 	 * @return A Collection containing the requested Correlations.
 	 */
-	public CorrelationSet getCorrelations( Molecule molecule ) {
-		CorrelationSet returnValue = new CorrelationSet( this.samples );
+	public Collection<Correlation> getCorrelations( Molecule molecule ) {
+		Collection<Correlation> returnValue = new TreeSet<Correlation>( );
 		for ( Correlation correlation : this ) {
 			if ( correlation.contains( molecule )) {
 				returnValue.add( correlation );

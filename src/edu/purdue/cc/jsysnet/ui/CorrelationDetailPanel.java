@@ -90,6 +90,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 		this.correlationMethod = correlationMethod;
+		this.correlations = this.detailWindow.getCorrelations( );
 
 		String buttonText = Settings.getLanguage( ).get( "Show Correlated" );
 		this.firstMoleculeButton = new JButton( buttonText );
