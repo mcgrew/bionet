@@ -48,7 +48,7 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 
 public class ExperimentSelectionDialog extends JDialog
-		implements ActionListener,ChangeListener {
+		implements ActionListener {
 
 	public static final int CORRELATION_VIEW = 0;
 	public static final int COMPARATIVE_ANALYSIS_VIEW = 1;
@@ -108,9 +108,9 @@ public class ExperimentSelectionDialog extends JDialog
 		this.add( this.comparativeAnalysisButton );
 		this.add( this.timeCourseStudyButton );
 
-		this.correlationButton.addChangeListener( this );
-		this.comparativeAnalysisButton.addChangeListener( this );
-		this.timeCourseStudyButton.addChangeListener( this );
+//		this.correlationButton.addChangeListener( this );
+//		this.comparativeAnalysisButton.addChangeListener( this );
+//		this.timeCourseStudyButton.addChangeListener( this );
 		this.visualizationTypeSelection.add( this.correlationButton );
 		this.visualizationTypeSelection.add( this.comparativeAnalysisButton );
 		this.visualizationTypeSelection.add( this.timeCourseStudyButton );
@@ -124,7 +124,8 @@ public class ExperimentSelectionDialog extends JDialog
 		this.okButton.setBounds( 30, 130, 100, 20 );
 		this.cancelButton.setBounds( 170, 130, 100, 20 );
 		this.experimentList.setBounds( 30, 40, 240, 80 );
-		this.experimentList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+		this.experimentList.setSelectionMode( 
+			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 		if ( experiments.size( ) > 0 )
 			this.experimentList.setSelectedIndex( 0 );
 
@@ -178,15 +179,15 @@ public class ExperimentSelectionDialog extends JDialog
 
 	}
 
-	public void stateChanged( ChangeEvent e ) {
-		Object source = e.getSource( );
-		if ( source == this.correlationButton )
-			this.experimentList.setSelectionMode( 
-				ListSelectionModel.SINGLE_SELECTION );
-		else
-			this.experimentList.setSelectionMode(
-				ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
-	}
+//	public void stateChanged( ChangeEvent e ) {
+//		Object source = e.getSource( );
+//		if ( source == this.correlationButton )
+//			this.experimentList.setSelectionMode( 
+//				ListSelectionModel.SINGLE_SELECTION );
+//		else
+//			this.experimentList.setSelectionMode(
+//				ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
+//	}
 
 	public Map.Entry getReturnValue( ) {
 		return returnValue;
