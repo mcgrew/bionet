@@ -454,8 +454,11 @@ public class CorrelationDisplayPanel extends JPanel
 		this.setVisible( true );
 		this.title = Settings.getLanguage( ).get( "Correlation View" );
 		this.molecules = new TreeSet<Molecule>( );
+		for ( Experiment experiment : experiments ) {
+				this.molecules.addAll( experiment.getMolecules( ));
+		}
 		this.samples = new TreeSet<Sample>( );
-		this.correlations = new CorrelationSet( samples );
+		this.correlations = new CorrelationSet( molecules, samples );
 		this.experiments = experiments;
 
 		this.graph = new CorrelationGraphVisualizer( 
@@ -2218,6 +2221,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 		public MonitorableRange range;
 		protected CorrelationSet correlations;
+		protected Collection<Molecule> molecules;
 		protected Spectrum spectrum;
 		protected SpectrumLegend spectrumLegend;
 		protected Pair<SampleGroup> sampleGroups;
@@ -2234,7 +2238,7 @@ public class CorrelationDisplayPanel extends JPanel
 																			 MonitorableRange range ) {
 			super( );
 			this.setRange( range );
-			this.correlations = correlations;
+			this.setCorrelations( correlations );
 
 			this.addGraphMouseEdgeListener( this );
 			this.addComponentListener( this );
@@ -2281,6 +2285,24 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 
 		/**
+		* Used to change the experiment which is displayed in this graph.
+		* 
+		* @param experiment The new experiment.
+		*/
+		public void setCorrelations( CorrelationSet correlations ) {
+			// remove all edges and vertices.
+			for ( Molecule v : this.getVertices( ))
+				 this.removeVertex( v );
+			for ( Correlation e : this.getEdges( ))
+				 this.removeEdge( e );
+			// add the new data.
+			this.correlations = correlations;
+			this.molecules = correlations.getMolecules( );
+			this.addVertices( );
+			this.addEdges( );
+}
+
+		/**
 		 * Sets sample groups for up/downregulation indicators on the display.
 		 * 
 		 * @param sg The selected groups.
@@ -2322,8 +2344,9 @@ public class CorrelationDisplayPanel extends JPanel
 		 * Adds the Vertices (Molecules) to the Graph
 		 */
 		protected void addVertices( ) {
-			for( Molecule molecule : molecules )
+			for( Molecule molecule : this.correlations.getMolecules( )) {
 				this.graph.addVertex( molecule );
+			}
 		}
 
 		/**

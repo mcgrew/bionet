@@ -139,6 +139,10 @@ public class CorrelationSet extends TreeSet<Correlation> {
 		return this.samples;
 	}
 
+	public Collection<Molecule> getMolecules( ) {
+		return this.molecules;
+	}
+
 	@Override
 	public boolean remove( Object o ) {
 		if ( o instanceof Correlation ) {
