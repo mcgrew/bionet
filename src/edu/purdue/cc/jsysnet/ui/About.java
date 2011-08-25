@@ -46,8 +46,8 @@ public class About extends JFrame {
 	 */
 	public About( ) {
 		super( );
-		int x = Settings.getSettings( ).getInt( "windowXPosition" );
-		int y = Settings.getSettings( ).getInt( "windowYPosition" );
+		int x = Settings.getSettings( ).getInt( "window.main.position.x" );
+		int y = Settings.getSettings( ).getInt( "window.main.position.y" );
 		this.setBounds( x, y, 400, 250 );
 		this.add( this.panel );
 		try { 

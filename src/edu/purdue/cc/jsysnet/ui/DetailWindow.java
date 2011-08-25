@@ -62,14 +62,14 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 		this.correlationRange = range.clone( );
 		this.correlationMethod = correlationMethod;
 		Settings settings = Settings.getSettings( );
-		int width  = settings.getInt( "detailWindowWidth"  );
-		int height = settings.getInt( "detailWindowHeight" );
+		int width  = settings.getInt( "window.detail.width"  );
+		int height = settings.getInt( "window.detail.height" );
 		int x = Math.max( 0, Math.min( 
-		  settings.getInt( "detailWindowXPosition" ), 
-			settings.getInt( "desktopWidth" ) - width ));
+		  settings.getInt( "window.detail.position.x" ), 
+			settings.getInt( "desktop.width" ) - width ));
 		int y = Math.max( 0, Math.min( 
-		  settings.getInt( "detailWindowYPosition" ), 
-			settings.getInt( "desktopHeight" ) - height ));
+		  settings.getInt( "window.detail.position.y" ), 
+			settings.getInt( "desktop.height" ) - height ));
 		
 		this.setBounds( x, y, width, height );
 		this.setLayout( new BorderLayout( ));
@@ -80,10 +80,10 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 		  public void windowClosing( WindowEvent e ) {
 				JFrame f = (JFrame)e.getSource( );
 				Settings settings = Settings.getSettings( );
-				settings.setInt( "detailWindowXPosition", f.getX( ));
-				settings.setInt( "detailWindowYPosition", f.getY( ));
-				settings.setInt( "detailWindowWidth", f.getWidth( ));
-				settings.setInt( "detailWindowHeight", f.getHeight( ));
+				settings.setInt( "window.detail.position.x", f.getX( ));
+				settings.setInt( "window.detail.position.y", f.getY( ));
+				settings.setInt( "window.detail.width", f.getWidth( ));
+				settings.setInt( "window.detail.height", f.getHeight( ));
 			}
 		});
 	}

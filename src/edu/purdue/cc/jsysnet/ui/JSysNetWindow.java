@@ -88,14 +88,14 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		this.setBackground( Color.WHITE );
 		this.setLayout( new BorderLayout( ));
 		Settings settings = Settings.getSettings( );
-		int width = settings.getInt( "windowWidth" );
-		int height = settings.getInt( "windowHeight" );
+		int width = settings.getInt( "window.main.width" );
+		int height = settings.getInt( "window.main.height" );
 		int x = Math.max( 0, Math.min( 
-		  settings.getInt( "windowXPosition" ), 
-			settings.getInt( "desktopWidth" ) - width ));
+		  settings.getInt( "window.main.position.x" ), 
+			settings.getInt( "desktop.width" ) - width ));
 		int y = Math.max( 0, Math.min( 
-		  settings.getInt( "windowYPosition" ), 
-			settings.getInt( "desktopHeight" ) - height ));
+		  settings.getInt( "window.main.position.y" ), 
+			settings.getInt( "desktop.height" ) - height ));
 		
 		this.setBounds( x, y, width, height );
 
@@ -111,10 +111,10 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 		  public void windowClosing( WindowEvent e ) {
 				JFrame f = (JFrame)e.getSource( );
 				Settings settings = Settings.getSettings( );
-				settings.setInt( "windowXPosition", f.getX( ));
-				settings.setInt( "windowYPosition", f.getY( ));
-				settings.setInt( "windowWidth", f.getWidth( ));
-				settings.setInt( "windowHeight", f.getHeight( ));
+				settings.setInt( "window.main.position.x", f.getX( ));
+				settings.setInt( "window.main.position.y", f.getY( ));
+				settings.setInt( "window.main.width", f.getWidth( ));
+				settings.setInt( "window.main.height", f.getHeight( ));
 				if ( this.getWindowCount( ) == 1 )
 			    System.exit( 0 );
 			}
@@ -200,7 +200,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	public DataReader openCSV( ) {
-		String lastOpenCSV = Settings.getSettings( ).getProperty( "lastOpenCSV" );
+		String lastOpenCSV = Settings.getSettings( ).getProperty( "history.open.last" );
 		JFileChooser fc;
 		if ( lastOpenCSV != null ) {
 			fc = new JFileChooser( 
@@ -224,7 +224,7 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			} else {
 				data = new MetsignDataReader( selected.getAbsolutePath( ) );
 			}
-			Settings.getSettings( ).setProperty( "lastOpenCSV", selected.getAbsolutePath( ));
+			Settings.getSettings( ).setProperty( "history.open.last", selected.getAbsolutePath( ));
 			data.load( );
 			return data;
 		}

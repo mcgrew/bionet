@@ -74,8 +74,8 @@ public class ExperimentSelectionDialog extends JDialog
 																		Collection experiments ) {
 		super( owner, title );
 		this.getContentPane( ).setLayout( null );
-		this.setBounds( Settings.getSettings( ).getInt( "windowXPosition" ),
-		                Settings.getSettings( ).getInt( "windowYPosition" ),
+		this.setBounds( Settings.getSettings( ).getInt( "window.main.position.x" ),
+		                Settings.getSettings( ).getInt( "window.main.position.y" ),
 		                500, 200 );
 
 		Language language = Settings.getLanguage( );

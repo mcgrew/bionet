@@ -25,6 +25,8 @@ import edu.purdue.bbc.util.Language;
 
 import gnu.getopt.Getopt;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import java.util.Properties;
@@ -52,7 +54,23 @@ public class JSysNet {
 			ConsoleAppender.SYSTEM_ERR ));
 		rootLogger.addAppender( new DialogAppender( Level.ERROR ));
 
-		Settings settings = Settings.getSettings( );
+		Properties defaultSettings = new Properties( );
+		defaultSettings.setProperty( "window.main.width", "1024" );
+		defaultSettings.setProperty( "window.main.height", "768" );
+		Dimension desktopSize = Toolkit.getDefaultToolkit( ).getScreenSize( );
+		defaultSettings.setProperty( "desktop.width", Integer.toString( desktopSize.width ));
+		defaultSettings.setProperty( "desktop.height", Integer.toString( desktopSize.height ));
+		defaultSettings.setProperty( "window.main.position.x", Integer.toString(( desktopSize.width - 1024 ) / 2 ));
+		defaultSettings.setProperty( "window.main.position.y", Integer.toString(( desktopSize.height - 768 ) / 2 ));
+		defaultSettings.setProperty( "window.detail.width", "850" );
+		defaultSettings.setProperty( "window.detail.height", "350" );
+		defaultSettings.setProperty( "window.detail.position.x", "100" );
+		defaultSettings.setProperty( "window.detail.position.y", "40" );
+		defaultSettings.setProperty( "debug", "false" );
+		defaultSettings.setProperty( "verbose", "false" );
+
+		Settings settings = new Settings( defaultSettings,
+			System.getProperty( "user.home" ) + "/.jsysnet/settings.xml" );
 		Language language = Settings.getLanguage( );
 
 		while (( c = g.getopt( )) != -1 ) {
@@ -64,8 +82,8 @@ public class JSysNet {
 				case 'g':
 					try {
 						String[] size = g.getOptarg( ).split( "x" );
-						settings.setInt( "windowWidth", Integer.parseInt( size[ 0 ] ));
-						settings.setInt( "windowHeight", Integer.parseInt( size[ 1 ] ));
+						settings.setInt( "window.main.width", Integer.parseInt( size[ 0 ] ));
+						settings.setInt( "window.main.height", Integer.parseInt( size[ 1 ] ));
 					} catch( NumberFormatException e ) {
 						System.out.println( language.get( "You specified an invalid value for" ) +
 							" -g.\n"+ 
@@ -81,8 +99,8 @@ public class JSysNet {
 					System.out.println( "-d          "+ language.get( "Runs JSysnet in debug mode" ));
 					System.out.printf ( "-g          "+ language.get( "Overrides the default window size of" ) 
 						+ " %dx%d\n",
-						settings.getInt( "windowWidth" ), 
-						settings.getInt( "windowHeight" ));
+						settings.getInt( "window.main.width" ), 
+						settings.getInt( "window.main.height" ));
 					System.out.println( "-h          "+ language.get( "Prints this message and exits" ));
 					System.exit( 0 );
 				case 'v':

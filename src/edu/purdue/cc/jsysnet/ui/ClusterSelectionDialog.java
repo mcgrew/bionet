@@ -73,8 +73,8 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		super( owner, title );
 		this.setVisible( false );
 		this.getContentPane( ).setLayout( new BorderLayout( hgap, vgap ));
-		this.setBounds( Settings.getSettings( ).getInt( "windowXPosition" ),
-		                Settings.getSettings( ).getInt( "windowYPosition" ),
+		this.setBounds( Settings.getSettings( ).getInt( "window.main.position.x" ),
+		                Settings.getSettings( ).getInt( "window.main.position.y" ),
 		                500, 200 );
 
 		Language language = Settings.getLanguage( );
