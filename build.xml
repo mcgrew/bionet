@@ -121,8 +121,8 @@
 			<bottom><![CDATA[<i>Copyright &#169; 2010 ${vendor}. All Rights Reserved.</i>]]></bottom>
 			<tag name="todo" scope="all" description="To do:"/>
 			<group title="Packages" packages="${pkg_base}.*"/>
-			<link offline="false" href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
-			<link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+			<link offline="false" href="http://download.oracle.com/javase/6/docs/api/"/>
+<!--			<link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/> -->
 		</javadoc>
 	</target>
 
