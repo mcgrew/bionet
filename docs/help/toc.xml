@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<toc>
+  <tocitem text="General">
+    <tocitem text="Introduction"       target="general/introduction.html" home="true"/>
+    <tocitem text="License Agreement"  target="general/license.html"/>
+    <tocitem text="Contacts"           target="general/contacts.html"/>
+    <tocitem text="Features"           target="general/features.html"/>
+  </tocitem>
+</toc>
