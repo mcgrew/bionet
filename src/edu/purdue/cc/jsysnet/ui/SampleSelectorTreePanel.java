@@ -47,7 +47,7 @@ public class SampleSelectorTreePanel extends CheckboxTreePanel {
 	/**
 	 * Creates a new SampleSelectorTreePanel.
 	 * 
-	 * @param samples A Collection of the Samples to be displayed in this panel.
+	 * @param experiments A Collection of the Samples to be displayed in this panel.
 	 */
 	public SampleSelectorTreePanel ( Collection<Experiment> experiments ) {
 		super( new DefaultMutableTreeNode( 

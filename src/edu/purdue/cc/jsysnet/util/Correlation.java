@@ -108,7 +108,6 @@ public class Correlation extends SimplePair<Molecule>
 	 * 
 	 * @param molecules A Molecule array of length 2. Any extra values are
 	 *	ignored.
-	 * @param experiment The experiment this Correlation is associated with.
 	 */
 	public Correlation( Molecule [] molecules ) {
 		this( molecules[ 0 ], molecules[ 1 ]);

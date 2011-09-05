@@ -48,7 +48,7 @@ public class SampleGroup extends ArrayList<Sample>
 	 * Creates a new SampleGroup
 	 * 
 	 * @param name The name of thsi SampleGroup.
-	 * @param The initial capacity of the underlying array.
+	 * @param initialCapacity The initial capacity of the underlying array.
 	 */
 	public SampleGroup( String name, int initialCapacity ) {
 		super( initialCapacity );
