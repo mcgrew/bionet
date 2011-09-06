@@ -48,6 +48,14 @@ import javax.swing.WindowConstants;
 
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.clustering.SOM;
+import net.sf.javaml.clustering.KMedoids;
+import net.sf.javaml.clustering.FarthestFirst;
+import net.sf.javaml.clustering.mcl.MCL;
+import net.sf.javaml.distance.PearsonCorrelationCoefficient;
+import net.sf.javaml.distance.SpearmanRankCorrelation;
+import net.sf.javaml.distance.LinearKernel;
+import net.sf.javaml.distance.EuclideanDistance;
+import net.sf.javaml.distance.DistanceMeasure;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
@@ -92,7 +100,9 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		this.parameterPanel = new SOMClusterParameterPanel( );
 		this.clusterSelectorComboBox = new JComboBox( new Object[] {
 			this.parameterPanel,
-			new KMeansClusterParameterPanel( )
+			new KMeansClusterParameterPanel( ),
+			new KMedoidsClusterParameterPanel( ),
+			new FarthestFirstClusterParameterPanel( )
 			});
 		this.clusterSelectorComboBox.addActionListener( this );
 
@@ -162,6 +172,37 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		}
 	}
 
+	//======================== PRIVATE CLASSES ==================================
+	//==================== DistanceMeasureComboBox ==============================
+
+	private class DistanceMeasureComboBox extends JComboBox {
+
+		public DistanceMeasureComboBox( ) {
+			super( new Object [] {
+				"Pearson Correlation",
+				"Spearman Rank Correlation",
+				"Euclidian Distance",
+				"Linear Kernel"
+			});
+		}
+
+		public DistanceMeasure getSelectedDistanceMeasure( ) {
+			if ( "Pearson Correlation".equals( this.getSelectedItem( ).toString( )))
+				return new PearsonCorrelationCoefficient( );
+
+			if ( "Spearman Rank Correlation".equals( this.getSelectedItem( ).toString( )))
+				return new SpearmanRankCorrelation( );
+
+			if ( "Euclidian Distance".equals( this.getSelectedItem( ).toString( )))
+				return new EuclideanDistance( );
+
+			if ( "Linear Kernel".equals( this.getSelectedItem( ).toString( )))
+				return new LinearKernel( );
+
+			return null;
+		}
+	}
+	// ======================== ClusterParameterPanel ===========================
 	private abstract class ClusterParameterPanel extends JPanel {
 		protected Clusterer clusterer;
 
@@ -176,6 +217,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		public abstract Clusterer getClusterer( );
 	}
 
+	// ======================== SOMClusterParameterPanel ========================
 	private class SOMClusterParameterPanel extends ClusterParameterPanel {
 		private JSpinner xDimensionSpinner;
 		private JSpinner yDimensionSpinner;
@@ -257,6 +299,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		}
 	}
 
+	// ===================== KMeansClusterParameterPanel ========================
 	private class KMeansClusterParameterPanel extends ClusterParameterPanel {
 		private JSpinner clustersSpinner;
 		private JSpinner iterationsSpinner;
@@ -268,7 +311,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 				new SpinnerNumberModel( 5, 0, 25, 1 ));
 			iterationsSpinner    = new JSpinner( 
 				new SpinnerNumberModel( 5, 0, 25, 1 ));
-			this.add( new JLabel( language.get( "Number of Clusters" )));
+			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
 			this.add( this.clustersSpinner );
 			this.add( new JLabel( language.get( "Number of Iterations" )));
 				this.add( this.iterationsSpinner );
@@ -285,6 +328,112 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 
 		public String toString( ) {
 			return "K-Means";
+		}
+	}
+
+	// ======================== MCLClusterParameterPanel =======================
+//	private class MCLClusterParameterPanel extends ClusterParameterPanel {
+//		private JSpinner maxResidualSpinner;
+//		private JSpinner pGammaSpinner;
+//		private JSpinner loopGainSpinner;
+//		private JSpinner maxZeroSpinner;
+//		private DistanceMeasureComboBox distanceMeasure;
+//
+//		public MCLClusterParameterPanel ( ) {
+//			super( new GridLayout( 2, 4 ));
+//			Language language = Settings.getLanguage( );
+//			this.maxResidualSpinner = new JSpinner( );
+//			this.pGammaSpinner = new JSpinner( );
+//			this.loopGainSpinner = new JSpinner( );
+//			this.maxZeroSpinner = new JSpinner( );
+//			this.distanceMeasure = new DistanceMeasureComboBox( );
+//			this.add( new JLabel( language.get( "Distance Measure" ));
+//			this.add( this.distanceMeasure );
+//			this.add( new JLabel( language.get( "Max Residual" )));
+//			this.add( this.maxResidualSpinner );
+//			this.add( new JLabel( language.get( "P Gamma" )));
+//			this.add( this.pGammaSpinner );
+//			this.add( new JLabel( language.get( "Loop Gain" )));
+//			this.add( this.loopGainSpinner );
+//			this.add( new JLabel( language.get( "Max Zero" )));
+//			this.add( this.maxZeroSpinner );
+//		}
+//
+//		public Clusterer getClusterer( ) {
+//			return new MCL( 
+//				this.distanceMeasure.getSelectedDistanceMeasure( ),
+//				Double.parseDouble( this.maxResidualSpinner.getValue( ).toString( )),
+//				Double.parseDouble( this.pGammaSpinner.getValue( ).toString( )),
+//				Double.parseDouble( this.loopGainSpinner.getValue( ).toString( )),
+//				Double.parseDouble( this.maxZeroSpinner.getValue( ).toString( )),
+//		}
+//		public String toString( ) {
+//			return "MCL";
+//		}
+//	}
+
+	private class KMedoidsClusterParameterPanel extends ClusterParameterPanel {
+		private DistanceMeasureComboBox distanceMeasure;
+		private JSpinner clustersSpinner;
+		private JSpinner iterationsSpinner;
+
+		public KMedoidsClusterParameterPanel( ) {
+			super( new GridLayout( 3, 2, hgap, vgap ));
+			Language language = Settings.getLanguage( );
+			this.distanceMeasure = new DistanceMeasureComboBox( );
+			clustersSpinner    = new JSpinner( 
+				new SpinnerNumberModel( 5, 0, 25, 1 ));
+			iterationsSpinner    = new JSpinner( 
+				new SpinnerNumberModel( 5, 0, 25, 1 ));
+			this.add( new JLabel( language.get( "Distance Measure" )));
+			this.add( this.distanceMeasure );
+			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
+			this.add( this.clustersSpinner );
+			this.add( new JLabel( language.get( "Number of Iterations" )));
+				this.add( this.iterationsSpinner );
+		}
+
+		public Clusterer getClusterer( ) {
+			return new KMedoids(
+				// number of clusters
+				Integer.parseInt( this.clustersSpinner.getValue( ).toString( )),
+				// number of iterations
+				Integer.parseInt( this.iterationsSpinner.getValue( ).toString( )),
+				this.distanceMeasure.getSelectedDistanceMeasure( )
+			);
+		}
+
+		public String toString( ) {
+			return "K-Medoids";
+		}
+	}
+
+	private class FarthestFirstClusterParameterPanel extends ClusterParameterPanel {
+		private DistanceMeasureComboBox distanceMeasure;
+		private JSpinner clustersSpinner;
+
+		public FarthestFirstClusterParameterPanel( ) {
+			super( new GridLayout( 2, 2, hgap, vgap ));
+			Language language = Settings.getLanguage( );
+			this.distanceMeasure = new DistanceMeasureComboBox( );
+			clustersSpinner    = new JSpinner( 
+				new SpinnerNumberModel( 5, 0, 25, 1 ));
+			this.add( new JLabel( language.get( "Distance Measure" )));
+			this.add( this.distanceMeasure );
+			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
+			this.add( this.clustersSpinner );
+		}
+
+		public Clusterer getClusterer( ) {
+			return new FarthestFirst(
+				// number of clusters
+				Integer.parseInt( this.clustersSpinner.getValue( ).toString( )),
+				this.distanceMeasure.getSelectedDistanceMeasure( )
+			);
+		}
+
+		public String toString( ) {
+			return "Farthest First";
 		}
 	}
 }

@@ -572,10 +572,12 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			String clusterString = 
 				Settings.getLanguage( ).get( "Cluster" ) + " %d (%d)";
 			for ( Collection<Molecule> cluster : clusters ) {
-				this.add( cluster, 
-				          String.format( clusterString, 
-									               ++clusterCount, 
-																 cluster.size( )));
+				if ( cluster.size( ) > 0 ) {
+					this.add( cluster, 
+										String.format( clusterString, 
+																	 ++clusterCount, 
+																	 cluster.size( )));
+				}
 			}
 		}
 
