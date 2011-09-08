@@ -134,7 +134,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	private static final int MOLECULE = 2;
 
 	/**
-	 * A class for displaying information about a Time Course Study
+	 * A class for displaying information about a Clustering
 	 */
 	public TimeCourseStudyDisplayPanel( ) {
 		super( new BorderLayout( ));
@@ -259,7 +259,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	 * @return The title of this panel as a String.
 	 */
 	public String getTitle( ) {
-		return "Time Course Study";
+		return "Clustering";
 	}
 
 	/**

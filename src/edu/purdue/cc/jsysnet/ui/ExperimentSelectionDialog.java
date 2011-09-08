@@ -81,7 +81,7 @@ public class ExperimentSelectionDialog extends JDialog
 		Language language = Settings.getLanguage( );
 		this.chooseText = language.get( "Choose an Experiment" );
 		this.correlationButtonText = language.get( "Correlation" );
-		this.timeCourseStudyButtonText = language.get( "Time Course Study" );
+		this.timeCourseStudyButtonText = language.get( "Clustering" );
 		this.comparativeAnalysisButtonText = language.get( "Comparative Analysis" );
 		this.okButtonText = language.get( "Select" );
 		this.cancelButtonText = language.get( "Cancel" );
