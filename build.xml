@@ -122,7 +122,12 @@
 			<tag name="todo" scope="all" description="To do:"/>
 			<group title="Packages" packages="${pkg_base}.*"/>
 			<link offline="false" href="http://download.oracle.com/javase/6/docs/api/"/>
-<!--			<link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/> -->
+			<link offline="false" href="http://mcgrew.github.com/bbc-util/docs/api/"/>
+			<link offline="false" href="http://jung.sourceforge.net/doc/api/"/>
+			<link offline="false" href="http://java-ml.sourceforge.net/api/0.1.6/"/>
+			<link offline="false" href="http://logging.apache.org/log4j/1.2/apidocs/"/>
+			<link offline="false" href="http://www.jfree.org/jfreechart/api/javadoc/"/>
+			<link offline="false" href="https://svn.omdoc.org/repos/omdoc/projects/dgc/lib/collections-generic-4.01/docs/apidocs/"/>
 		</javadoc>
 	</target>
 

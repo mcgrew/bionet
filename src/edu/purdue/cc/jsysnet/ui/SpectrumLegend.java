@@ -87,7 +87,6 @@ public class SpectrumLegend extends JPanel {
 
 		// reset the font
 		g.setFont( origFont );
-
 	}
 
 	protected void placeLabel( Graphics g, Rectangle area, double percent, int scaleSpace ) {
@@ -100,7 +99,7 @@ public class SpectrumLegend extends JPanel {
 		              (int)tickX, legendBottom + Math.min( scaleSpace, 4 ));
 		}
 		if ( scaleSpace > 0 ) {
-			String s = numberFormat.format( range.getMin( ) + (range.getMax( ) - range.getMin( ))*percent);
+			String s = numberFormat.format( range.getMin( ) + ( range.getMax( ) - range.getMin( ))*percent);
 			int width = f.stringWidth( s );
 			g.drawString( 
 				s,

@@ -24,10 +24,11 @@ import edu.purdue.bbc.util.MutableNumber;
 import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.bbc.util.SimplePair;
 import edu.purdue.cc.jsysnet.io.DataReader;
 import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
 import edu.purdue.cc.jsysnet.ui.layout.CenterLayout;
-//import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
+import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
 import edu.purdue.cc.jsysnet.ui.layout.RandomLayout;
 import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.CorrelationSet;
@@ -67,11 +68,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -208,7 +212,7 @@ public class CorrelationDisplayPanel extends JPanel
 	private CorrelationSet correlations;
 	private String title;
 	private Scalable visibleGraph;
-	private Pair<SampleGroup> sampleGroups;
+	private Collection<SampleGroup> sampleGroups;
 	private MutableNumber correlationMethod;
 
 	/**
@@ -493,6 +497,8 @@ public class CorrelationDisplayPanel extends JPanel
 				this.correlations.add( molecule );
 			}
 		}
+		this.sampleGroups = new ArrayList<SampleGroup>( );
+		this.sampleGroups.add( new SampleGroup( "", this.samples ));
 
 		this.add( this.graphSplitPane, BorderLayout.CENTER );
 		this.graphSplitPane.setBottomComponent( this.infoPanel );
@@ -800,16 +806,17 @@ public class CorrelationDisplayPanel extends JPanel
 					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
 					this.samples);
 
-			if ( this.sampleGroups != null ) {
+			if ( this.sampleGroups.size( ) > 1 ) {
 				this.graph.setSampleGroups( this.sampleGroups );
 				this.infoPanel.repaint( );
 				Logger logger = Logger.getLogger( getClass( ));
-				SampleGroup group = this.sampleGroups.getFirst( );
+				Iterator<SampleGroup> iterator = this.sampleGroups.iterator( );
+				SampleGroup group = iterator.next( );
 				logger.debug( group.toString( ));
 				for ( Sample sample : group ) {
 					logger.debug( "\t" + sample.toString( ));
 				}
-				group = this.sampleGroups.getSecond( );
+				group = iterator.next( );
 				logger.debug( group.toString( ));
 				for ( Sample sample : group ) {
 					logger.debug( "\t" +  sample.toString( ));
@@ -1443,28 +1450,31 @@ public class CorrelationDisplayPanel extends JPanel
 				text = String.format( language.get( "Correlation Method" ) + ": %s",
 					Correlation.NAME[ correlationMethod.intValue( )]);
 				g.drawString( text, 20, 50 );
-				if ( sampleGroups != null ) {
+				if ( sampleGroups.size( ) > 1 ) {
 
 					int leftMargin = 300;
 					// list the samples in group 1.
-					text = sampleGroups.getFirst( ).toString( );
+					Iterator<SampleGroup> groupIterator = sampleGroups.iterator( );
+					SampleGroup group1 = groupIterator.next( );
+					text = group1.toString( );
 					g.drawString( text, leftMargin, 50 );
 					g.drawLine( leftMargin, 52, leftMargin + f.stringWidth( text ), 52 );
 					int verticalPos = 70;
-					for ( Sample s : sampleGroups.getFirst( )) {
+					for ( Sample s : group1 ) {
 						g.drawString( s.toString( ), leftMargin, verticalPos );
 						verticalPos += 20;
 					}
 					
 					// list the samples in group 2.
-					text = sampleGroups.getSecond( ).toString( );
+					SampleGroup group2 = groupIterator.next( );
+					text = group2.toString( );
 					int col2Margin = leftMargin + 230;
 					int stringWidth = f.stringWidth( text );
 					int rightMargin = col2Margin + stringWidth;
 					g.drawString( text, col2Margin, 50 );
 					g.drawLine( col2Margin, 52, col2Margin + stringWidth, 52 );
 					verticalPos = 70;
-					for ( Sample s : sampleGroups.getSecond( )) {
+					for ( Sample s : group2 ) {
 						g.drawString( s.toString( ), col2Margin, verticalPos );
 						verticalPos += 20;
 					}
@@ -2224,7 +2234,12 @@ public class CorrelationDisplayPanel extends JPanel
 		protected Collection<Molecule> molecules;
 		protected Spectrum spectrum;
 		protected SpectrumLegend spectrumLegend;
-		protected Pair<SampleGroup> sampleGroups;
+		protected RegulationLegend regulationLegend;
+		protected Collection<SampleGroup> sampleGroups;
+		protected Color upRegulationOutline = Color.GREEN.darker( );
+		protected Color downRegulationOutline = Color.RED;
+		protected Color vertexColor = Color.ORANGE;
+
 
 		/**
 		 * Creates a new CorrelationGraphVisualizer.
@@ -2239,6 +2254,9 @@ public class CorrelationDisplayPanel extends JPanel
 			super( );
 			this.setRange( range );
 			this.setCorrelations( correlations );
+			ArrayList<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
+			sampleGroups.add( new SampleGroup( "", correlations.getSamples( )));
+			this.setSampleGroups( sampleGroups );
 
 			this.addGraphMouseEdgeListener( this );
 			this.addComponentListener( this );
@@ -2247,6 +2265,10 @@ public class CorrelationDisplayPanel extends JPanel
 			this.spectrum.setOutOfRangePaint( Color.WHITE );
 			this.spectrumLegend = 
 				new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
+			this.regulationLegend = 
+				new RegulationLegend( this.upRegulationOutline,
+				                      this.downRegulationOutline,
+															this.vertexColor );
 			this.setLayout( null );
 			this.add( this.spectrumLegend );
 			Transformer e = new Transformer<Correlation,Paint>( ) {
@@ -2275,6 +2297,8 @@ public class CorrelationDisplayPanel extends JPanel
 			super.setBackground( color );
 			if ( this.spectrumLegend != null )
 				this.spectrumLegend.setBackground( color );
+			if ( this.regulationLegend != null )
+				this.regulationLegend.setBackground( color );
 		}
 
 		@Override
@@ -2282,6 +2306,8 @@ public class CorrelationDisplayPanel extends JPanel
 			super.setForeground( color );
 			if ( this.spectrumLegend != null )
 				this.spectrumLegend.setForeground( color );
+			if ( this.regulationLegend != null )
+				this.regulationLegend.setForeground( color );
 		}
 
 		/**
@@ -2300,18 +2326,27 @@ public class CorrelationDisplayPanel extends JPanel
 			this.molecules = correlations.getMolecules( );
 			this.addVertices( );
 			this.addEdges( );
-}
+		}
 
 		/**
 		 * Sets sample groups for up/downregulation indicators on the display.
 		 * 
 		 * @param sg The selected groups.
 		 */
-		public void setSampleGroups( Pair<SampleGroup> sg ) {
+		public void setSampleGroups( Collection<SampleGroup> sg ) {
 			this.sampleGroups = sg;
 			this.getRenderContext( ).setVertexDrawPaintTransformer(
 				new RegulationTransformer( 
-					sg, Color.GREEN.darker( ), Color.RED, vertexOutline ));
+					sg, this.upRegulationOutline, 
+					this.downRegulationOutline, null ));
+			if ( sg.size( ) > 1 ) {
+				this.add( this.regulationLegend );
+				this.componentMoved( new ComponentEvent( this, -1 ));
+			} else {
+				if ( this.regulationLegend != null ) {
+					this.remove( this.regulationLegend );
+				}
+			}
 			this.repaint( );
 		}
 		
@@ -2470,18 +2505,25 @@ public class CorrelationDisplayPanel extends JPanel
 		// ComponentListener Methods
 		public void componentHidden( ComponentEvent e ) { }
 		public void componentMoved( ComponentEvent e ) {
-			int h, w;
+			int bottom, left, right;
 			if ( this.scrollPane != null ) {
 				Rectangle view = this.scrollPane.getViewport( ).getViewRect( );
-				w = view.x;
-				h = view.y + view.height;
+				left = view.x;
+				bottom = view.y + view.height;
+				right = view.x + view.width;
 			} else {
-				w = 0;
-				h = this.getHeight( );
+				left = 0;
+				bottom = this.getHeight( );
+				right = this.getWidth( );
 			}
-			Rectangle legendArea = new Rectangle( w + 20, h - 35, 150, 20);
+			Rectangle legendArea = new Rectangle( left + 20, bottom - 35, 150, 20);
 			this.spectrumLegend.setBounds( legendArea );
 			this.spectrumLegend.repaint( );
+			if ( this.sampleGroups.size( ) > 1 ) {
+				legendArea = new Rectangle( right - 110, bottom - 90, 90, 90);
+				this.regulationLegend.setBounds( legendArea );
+				this.regulationLegend.repaint( );
+			}
 		}
 		public void componentResized( ComponentEvent e ) { 
 			componentMoved( e );
@@ -2521,29 +2563,137 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 
 			/**
+			 * Creates a new RegulationTransformer.
+			 * 
+			 * @param sg A Collection of SampleGroups to be used for determining up or
+			 *  downregulation. The Collection should contain at least 2 Samplegroups.
+			 * @param upPaint The Paint to be used for outlining upregulated 
+			 *	Molecules.
+			 * @param downPaint The Paint to be used for outlining downregulated
+			 *  Molecules.
+			 * @param neutralPaint The Paint to be used for outlining Molecules which
+			 *  are neither up or downregulated.
+			 */
+			private RegulationTransformer ( Collection<SampleGroup> sg, 
+																		 Paint upPaint,
+																		 Paint downPaint, 
+																		 Paint neutralPaint ) {
+				if ( sg instanceof Pair ) {
+					this.sampleGroups = (Pair<SampleGroup>)sg;
+				} else {
+					if ( sg.size( ) >= 2 ) {
+						Iterator<SampleGroup> iterator = sg.iterator( );
+						this.sampleGroups = 
+							new SimplePair( iterator.next( ), iterator.next( ));
+					}
+				}
+				this.upPaint = upPaint;
+				this.downPaint = downPaint;
+				this.neutralPaint = neutralPaint;
+			}
+
+			/**
 			 * Returns the appropriate Paint for the indicated molecule.
 			 * 
 			 * @param m The Molecule to determine the outline Paint for.
 			 * @return The Paint to use.
 			 */
 			public Paint transform( Molecule m ) {
-				Logger logger = Logger.getLogger( getClass( ));
-				if ( sampleGroups.getFirst( ).size( ) == 0  || 
-						 sampleGroups.getSecond( ).size( ) == 0 ) {
-					return this.neutralPaint;
-				}
-				double mean1 = m.getValues( sampleGroups.getFirst( )).getMean( );
-				double mean2 = m.getValues( sampleGroups.getSecond( )).getMean( );
-				if ( mean1 < mean2 ) {
-					return this.upPaint;
-				}
-				if ( mean2 < mean1 ) {
-					return this.downPaint;
+				if ( this.sampleGroups != null ) {
+					if ( this.sampleGroups.getFirst( ).size( ) == 0  || 
+							 this.sampleGroups.getSecond( ).size( ) == 0 ) {
+						return this.neutralPaint;
+					}
+					double mean1 = m.getValues( sampleGroups.getFirst( )).getMean( );
+					double mean2 = m.getValues( sampleGroups.getSecond( )).getMean( );
+					if ( mean1 < mean2 ) {
+						return this.upPaint;
+					}
+					if ( mean2 < mean1 ) {
+						return this.downPaint;
+					}
 				}
 				return this.neutralPaint;
 			}
 		}
+	}
 
+	// ====================== RegulationLegend =================================
+	private class RegulationLegend extends JPanel {
+		private Color upColor;
+		private Color downColor;
+		private Color nodeColor;
+		private int scaleSpace = 13;
+		private boolean drawBorder = true;
+		private NumberFormat numberFormat = new DecimalFormat( "0.##" );
+
+		/**
+		 * Creates a new RegulationLegend
+		 * 
+		 * @param spectrum The Spectrum to create a legend for.
+		 * @param range The range of values to show on the legend.
+		 */
+		public RegulationLegend ( Color upColor, Color downColor, 
+		                          Color nodeColor ) {
+			super( );
+			this.upColor = upColor;
+			this.downColor = downColor;
+			this.nodeColor = nodeColor;
+			this.setForeground( Color.BLACK );
+		}
+
+		protected void paintComponent( Graphics g ) {
+			super.paintComponent( g );
+			stamp( g, new Rectangle( 0, 0, this.getWidth( ), this.getHeight( )));
+		}
+
+		/**
+		 * "Stamps" the Graphics instance with the legend in the area specified.
+		 * 
+		 * @param g The Graphics object to "stamp"
+		 * @param area The area of the Graphics object to stamp.
+		 */
+		public void stamp( Graphics g, Rectangle area ) {
+			// set up a smaller font
+			Font origFont = g.getFont( );
+			Language language = Settings.getLanguage( );
+			int bottom = area.x + area.height;
+			int right = area.y + area.width;
+
+			g.setFont( new Font( Font.SANS_SERIF, Font.PLAIN, 12 ));
+			FontMetrics f = g.getFontMetrics( );
+			String s = language.get( "Regulation" );
+			g.drawString( s, 
+				area.x + area.width / 2 - f.stringWidth( s ) / 2, 20 );
+			s = language.get( "Up" );
+			g.drawString( s, 20 - f.stringWidth( s ) / 2, bottom - 30 );
+			s = language.get( "Down" );
+			g.drawString( s, right - 20 - f.stringWidth( s ) / 2, bottom - 30 );
+
+			// reset the font
+			g.setFont( origFont );
+
+			// draw the legend
+			g.setColor( this.nodeColor );
+			g.fillOval( 10, bottom - 60, 20, 20 );
+			g.fillOval( right - 30, bottom - 60, 20, 20 );
+			((Graphics2D)g).setStroke( new BasicStroke( 2 ));
+			g.setColor( this.upColor );
+			g.drawOval( 10, bottom - 60, 20, 20 );
+			g.setColor( this.downColor );
+			g.drawOval( right - 30, bottom - 60, 20, 20 );
+			g.setColor( this.getForeground( ));
+
+		}
+
+		public void setBounds( Rectangle rect ) {
+			Graphics g = this.getGraphics( );
+			if ( g != null ) {
+				g.setColor( this.getParent( ).getBackground( ));
+				g.fillRect( 0, 0, this.getWidth( ), this.getHeight( ));
+			}
+			super.setBounds( rect );
+		}
 	}
 }
 

@@ -46,16 +46,16 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
 
-import net.sf.javaml.clustering.KMeans;
-import net.sf.javaml.clustering.SOM;
-import net.sf.javaml.clustering.KMedoids;
 import net.sf.javaml.clustering.FarthestFirst;
+import net.sf.javaml.clustering.KMeans;
+import net.sf.javaml.clustering.KMedoids;
+import net.sf.javaml.clustering.SOM;
 import net.sf.javaml.clustering.mcl.MCL;
+import net.sf.javaml.distance.DistanceMeasure;
+import net.sf.javaml.distance.EuclideanDistance;
+import net.sf.javaml.distance.LinearKernel;
 import net.sf.javaml.distance.PearsonCorrelationCoefficient;
 import net.sf.javaml.distance.SpearmanRankCorrelation;
-import net.sf.javaml.distance.LinearKernel;
-import net.sf.javaml.distance.EuclideanDistance;
-import net.sf.javaml.distance.DistanceMeasure;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
