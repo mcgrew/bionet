@@ -804,7 +804,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			this.chart = ChartFactory.createXYLineChart( 
 				chartTitle,                      //title
 				language.get( "Sample" ),        // x axis label
-				language.get( "Concentration" ), // y axis label
+				language.get( "Response" ), // y axis label
 				xyDataset,                       // plot data
 				PlotOrientation.VERTICAL,        // Plot Orientation
 				true,                            // show legend
@@ -898,10 +898,10 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			this.chart = ChartFactory.createXYLineChart( 
 				chartTitle,                      //title
 				language.get( "Sample" ),        // x axis label
-				language.get( "Concentration" ), // y axis label
-				xyDataset,                         // plot data
+				language.get( "Response" ),      // y axis label
+				xyDataset,                       // plot data
 				PlotOrientation.VERTICAL,        // Plot Orientation
-				true,                           // show legend
+				true,                            // show legend
 				false,                           // use tooltips
 				false                            // configure chart to generate URLs (?)
 			);

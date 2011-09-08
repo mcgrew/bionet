@@ -603,7 +603,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 					molecule.toString( ),
 					this.sampleGroup.toString( )), //title
 				language.get( "Experiment" ), // x axis label
-				language.get( "Concentration" ), // y axis label
+				language.get( "Response" ),   // y axis label
 				boxDataSet, // plot data
 				true // show legend
 			);
@@ -791,7 +791,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				node.toString( ),
 				this.sampleGroup.toString( )),         // title
 				language.get( "Sample" ),        // x axis label
-				language.get( "Concentration" ), // y axis label
+				language.get( "Response" ),      // y axis label
 				dataset,                         // plot data
 				PlotOrientation.VERTICAL,        // Plot Orientation
 				true,                            // show legend

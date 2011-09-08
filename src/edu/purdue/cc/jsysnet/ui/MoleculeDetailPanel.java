@@ -122,7 +122,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 //		leftPanel.add( moleculePanel, BorderLayout.NORTH );
 //		leftPanel.add( correlationPanel, BorderLayout.CENTER );
 
-		JPanel rightPanel = new ConcentrationGraph( 
+		JPanel rightPanel = new ResponseGraph( 
 			this.molecule.getSampleMap( this.correlations.getSamples( )));
 
 		JSplitPane splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel );
@@ -163,10 +163,10 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 		return returnValue;
 	}
 
-	private class ConcentrationGraph extends JPanel {
+	private class ResponseGraph extends JPanel {
 		private JFreeChart chart;
 
-		public ConcentrationGraph( Map<Sample,Number> sampleMap ) {
+		public ResponseGraph( Map<Sample,Number> sampleMap ) {
 			super( );
 			Language language = Settings.getLanguage( );
 			XYSeriesCollection dataset = new XYSeriesCollection( );
@@ -186,7 +186,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 				String.format( language.get( "%s sample concentrations" ), 
 				molecule.getId( )),              // title
 				language.get( "Sample" ),        // x axis label
-				language.get( "Concentration" ), // y axis label
+				language.get( "Response" ),      // y axis label
 				dataset,                         // plot data
 				PlotOrientation.VERTICAL,        // Plot Orientation
 				false,                           // show legend
