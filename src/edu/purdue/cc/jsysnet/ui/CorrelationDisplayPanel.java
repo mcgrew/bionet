@@ -1744,6 +1744,7 @@ public class CorrelationDisplayPanel extends JPanel
 				super( );
 //				graph.addVertexChangeListener( this );
 //				graph.addEdgeChangeListener( this );
+				Language language = Settings.getLanguage( );
 				pearsonCalculationMenuItem.addItemListener( this );
 				spearmanCalculationMenuItem.addItemListener( this ); 
 				kendallCalculationMenuItem.addItemListener( this );
@@ -1751,8 +1752,8 @@ public class CorrelationDisplayPanel extends JPanel
 					new SimpleHistogramDataset( "Correlation Distribution"  );
 				distributionChart = ChartFactory.createHistogram(
 					null, //title
-					"", // category axis label
-					"", // value axis label
+					language.get( "Correlation Value" ), // category axis label
+					language.get( "Number of Correlations" ), // value axis label
 					distributionData, // plot data
 					PlotOrientation.VERTICAL, // Plot Orientation
 					false, // show legend

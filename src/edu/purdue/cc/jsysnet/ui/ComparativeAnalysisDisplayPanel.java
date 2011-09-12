@@ -602,7 +602,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				String.format( language.get( "%s across experiments" ) + " - %s", 
 					molecule.toString( ),
 					this.sampleGroup.toString( )), //title
-				language.get( "Experiment" ), // x axis label
+				language.get( "Time" ), // x axis label
 				language.get( "Response" ),   // y axis label
 				boxDataSet, // plot data
 				true // show legend
