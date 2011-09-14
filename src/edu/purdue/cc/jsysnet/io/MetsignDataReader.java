@@ -155,11 +155,13 @@ public class MetsignDataReader extends DataReader {
 		}
 		while( file.hasNext( )) {
 			line = file.next( );
-			String id = line.remove( "ID" );
+			String id = line.remove( "id" );
+      if ( id == null )
+        id = line.remove( "ID" );
 			Molecule molecule;
 			molecule = new Molecule( id );
 			for ( Experiment experiment : this.experiments ) {
-						experiment.addMolecule( molecule );
+        experiment.addMolecule( molecule );
 			}
 			// add the remaining attributes to the molecule.
 			for( Map.Entry<String,String> entry : line.entrySet( )) {
