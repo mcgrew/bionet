@@ -25,6 +25,7 @@ import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.SimplePair;
+import edu.purdue.cc.jsysnet.io.ChartWriter;
 import edu.purdue.cc.jsysnet.io.DataReader;
 import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
 import edu.purdue.cc.jsysnet.ui.layout.CenterLayout;
@@ -40,6 +41,7 @@ import edu.purdue.cc.jsysnet.util.SampleGroup;
 import edu.purdue.cc.jsysnet.util.Spectrum;
 import edu.purdue.cc.jsysnet.util.SplitSpectrum;
 
+import java.io.IOException;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -189,6 +191,7 @@ public class CorrelationDisplayPanel extends JPanel
 	private JMenuItem hideUncorrelatedViewMenuItem;
 	private JMenuItem hideOrphansViewMenuItem;
 	private JMenuItem showCorrelatedViewMenuItem;
+	private JMenuItem saveImageViewMenuItem;
 
 	
 	// color menu items
@@ -310,6 +313,8 @@ public class CorrelationDisplayPanel extends JPanel
 			new JMenuItem( language.get( "Hide Orphans" ), KeyEvent.VK_P );
 		this.showCorrelatedViewMenuItem = new JMenuItem( 
 			language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
+		this.saveImageViewMenuItem = new JMenuItem( 
+			language.get( "Save Network Graph Image" ), KeyEvent.VK_V );
 		
 		// color menu items
 		this.colorMenu = new JMenu( language.get( "Color" ));
@@ -398,6 +403,8 @@ public class CorrelationDisplayPanel extends JPanel
 		this.viewMenu.add( this.hideUncorrelatedViewMenuItem );
 		this.viewMenu.add( this.hideOrphansViewMenuItem );
 		this.viewMenu.add( this.showCorrelatedViewMenuItem );
+		this.viewMenu.addSeparator( );
+		this.viewMenu.add( this.saveImageViewMenuItem );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.zoomOutViewMenuItem.addActionListener( this );
 		this.zoomInViewMenuItem.addActionListener( this );
@@ -411,6 +418,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.hideUncorrelatedViewMenuItem.addActionListener( this );
 		this.hideOrphansViewMenuItem.addActionListener( this );
 		this.showCorrelatedViewMenuItem.addActionListener( this );
+		this.saveImageViewMenuItem.addActionListener( this );
 		this.selectAllViewMenuItem.setAccelerator(
 			KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK ));
 		this.clearSelectionViewMenuItem.setAccelerator(
@@ -796,6 +804,12 @@ public class CorrelationDisplayPanel extends JPanel
 					this.graph.addVertex( c.getFirst( ));
 					this.graph.addVertex( c.getSecond( ));
 				}
+			}
+		} else if ( item == this.saveImageViewMenuItem ) {
+			try {
+				new ChartWriter( this.graph ).write( );
+			} catch ( IOException e ) {
+				Logger.getLogger( getClass( )).error( e, e );
 			}
 		} else if ( item == this.chooseSampleGroupsMenuItem ) {
 			Component frame = this;
@@ -1710,6 +1724,16 @@ public class CorrelationDisplayPanel extends JPanel
 
 				distributionChart.getCategoryPlot( ).getRangeAxis( )
 					.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+				ContextMenu contextMenu = new ContextMenu( this );
+				JMenuItem saveImageMenuItem = 
+					new JMenuItem( Language.get( "Save Image" ));
+				contextMenu.add( saveImageMenuItem );
+				JPanel panel = this;
+				saveImageMenuItem.addActionListener( new ActionListener( ){
+					public void actionPerformed( ActionEvent e ) {
+						new ChartWriter( panel ).write( );
+					}
+				});
 			}
 
 			public void getDistributionData( 
@@ -1926,7 +1950,7 @@ public class CorrelationDisplayPanel extends JPanel
 	 * A class for implementing a context menu on network nodes.
 	 */
 	private class CorrelationGraphMouseListener 
-	                                 implements GraphMouseListener<Molecule> {
+	              implements GraphMouseListener<Molecule> {
 		MoleculePopup popup = new MoleculePopup( );
 
 		/**
@@ -2016,7 +2040,8 @@ public class CorrelationDisplayPanel extends JPanel
 				Range range =
 					((CorrelationGraphVisualizer)invoker).getRange( );
 				for( Correlation c : correlations ) {
-					if ( range.contains( Math.abs( c.getValue( correlationMethod )))) {
+					if ( c.contains( m ) && 
+						   range.contains( Math.abs( c.getValue( correlationMethod )))) {
 						JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
 						this.correlationMap.put( menuItem, c );
 						this.exploreCorrelationsMenu.add( menuItem );
