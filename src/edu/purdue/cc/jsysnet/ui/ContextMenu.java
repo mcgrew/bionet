@@ -19,17 +19,31 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.ui;
 
+import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import javax.swing.JPopupMenu;
+
+import org.apache.log4j.Logger;
+
 public class ContextMenu extends JPopupMenu implements MouseListener {
-	private Component component;
+	protected Component target;
+	protected int mouseButton;
 	
-	public ContextMenu( Component component ) {
-		this.component = component;
-		component.addMouseListener( this );
+	public ContextMenu( Component target ) {
+		this( target, MouseEvent.BUTTON3 );
+	}
+
+	public ContextMenu( Component target, int mouseButton ) {
+		super( );
+		this.target = target;
+		this.mouseButton = mouseButton;
+		this.target.addMouseListener( this );
 	}
 
 	public void mouseClicked( MouseEvent e ) { 
-		if ( event.getButton( ) == MouseEvent.BUTTON2 ) {
-			this.show( this.component, e.getX( ), e.getY( ));
+		if ( e.getButton( ) == this.mouseButton ) {
+			this.show( (Component)e.getSource( ), e.getX( ), e.getY( ));
 		}
 	}
 
@@ -37,6 +51,16 @@ public class ContextMenu extends JPopupMenu implements MouseListener {
 	public void mouseExited( MouseEvent e ) { }
 	public void mousePressed( MouseEvent e ) { }
 	public void mouseReleased( MouseEvent e ) { }
+
+	public void setTarget( Component target ) {
+		this.target.removeMouseListener( this );
+		this.target = target;
+		target.addMouseListener( this );
+	}
+
+	public Component getTarget( ) {
+		return this.target;
+	}
 
 }
 	

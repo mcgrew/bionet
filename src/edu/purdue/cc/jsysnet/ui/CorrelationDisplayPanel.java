@@ -25,8 +25,8 @@ import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.SimplePair;
-import edu.purdue.cc.jsysnet.io.ChartWriter;
 import edu.purdue.cc.jsysnet.io.DataReader;
+import edu.purdue.cc.jsysnet.io.SaveImageAction;
 import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
 import edu.purdue.cc.jsysnet.ui.layout.CenterLayout;
 import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
@@ -86,6 +86,7 @@ import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -191,7 +192,7 @@ public class CorrelationDisplayPanel extends JPanel
 	private JMenuItem hideUncorrelatedViewMenuItem;
 	private JMenuItem hideOrphansViewMenuItem;
 	private JMenuItem showCorrelatedViewMenuItem;
-	private JMenuItem saveImageViewMenuItem;
+	private SaveImageAction saveImageAction;
 
 	
 	// color menu items
@@ -313,8 +314,8 @@ public class CorrelationDisplayPanel extends JPanel
 			new JMenuItem( language.get( "Hide Orphans" ), KeyEvent.VK_P );
 		this.showCorrelatedViewMenuItem = new JMenuItem( 
 			language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
-		this.saveImageViewMenuItem = new JMenuItem( 
-			language.get( "Save Network Graph Image" ), KeyEvent.VK_V );
+		this.saveImageAction = new SaveImageAction( 
+			language.get( "Save Network Graph Image" ), null );
 		
 		// color menu items
 		this.colorMenu = new JMenu( language.get( "Color" ));
@@ -404,7 +405,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.viewMenu.add( this.hideOrphansViewMenuItem );
 		this.viewMenu.add( this.showCorrelatedViewMenuItem );
 		this.viewMenu.addSeparator( );
-		this.viewMenu.add( this.saveImageViewMenuItem );
+		this.viewMenu.add( this.saveImageAction );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.zoomOutViewMenuItem.addActionListener( this );
 		this.zoomInViewMenuItem.addActionListener( this );
@@ -418,7 +419,6 @@ public class CorrelationDisplayPanel extends JPanel
 		this.hideUncorrelatedViewMenuItem.addActionListener( this );
 		this.hideOrphansViewMenuItem.addActionListener( this );
 		this.showCorrelatedViewMenuItem.addActionListener( this );
-		this.saveImageViewMenuItem.addActionListener( this );
 		this.selectAllViewMenuItem.setAccelerator(
 			KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK ));
 		this.clearSelectionViewMenuItem.setAccelerator(
@@ -475,6 +475,7 @@ public class CorrelationDisplayPanel extends JPanel
 
 		this.graph = new CorrelationGraphVisualizer( 
 			this.correlations, this.correlationFilterPanel.getMonitorableRange( ));
+		this.saveImageAction.setComponent( this.graph );
 		this.graph.setBackground( Color.WHITE );
 		this.graph.setIndicateCommonNeighbors( true );
 		this.infoPanel = new InfoPanel( );
@@ -568,7 +569,7 @@ public class CorrelationDisplayPanel extends JPanel
 		if ( this.heatMapPanel != null && this.visibleGraph == this.heatMapPanel ) {
 			this.remove( this.heatMapPanel.getScrollPane( ));
 			this.add( this.graphSplitPane, BorderLayout.CENTER );
-			this.visibleGraph = this.graph;
+			this.setVisibleGraph( this.graph );
 			this.selectAllViewMenuItem.setEnabled( true );
 			this.clearSelectionViewMenuItem.setEnabled( true );
 			this.invertSelectionViewMenuItem.setEnabled( true );
@@ -597,7 +598,7 @@ public class CorrelationDisplayPanel extends JPanel
 //		this.animatedLayoutMenuItem.setEnabled( false );
 		this.remove( this.graphSplitPane );
 		this.add( this.heatMapPanel.getScrollPane( ), BorderLayout.CENTER );
-		this.visibleGraph = this.heatMapPanel;
+		this.setVisibleGraph( this.heatMapPanel );
 		this.validate( );
 		this.heatMapPanel.getScrollPane( ).repaint( );
 	}
@@ -614,7 +615,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.correlationFilterPanel.getMonitorableRange( ).addChangeListener( v );
 		// add labels to the graph
 		this.graphSplitPane.setTopComponent( this.graph.getScrollPane( ));
-		this.visibleGraph = this.graph;
+		this.setVisibleGraph( this.graph );
 		this.graph.addAnimationListener( this );
 		this.graph.addVertexChangeListener( this.moleculeFilterPanel );
 		v.addPickedVertexStateChangeListener( 
@@ -636,6 +637,11 @@ public class CorrelationDisplayPanel extends JPanel
 				}
 		});
 
+	}
+
+	private void setVisibleGraph( Scalable graph ) {
+		this.visibleGraph = graph;
+		this.saveImageAction.setComponent( (Component)graph );
 	}
 	
 	/**
@@ -805,12 +811,6 @@ public class CorrelationDisplayPanel extends JPanel
 					this.graph.addVertex( c.getSecond( ));
 				}
 			}
-		} else if ( item == this.saveImageViewMenuItem ) {
-			try {
-				new ChartWriter( this.graph ).write( );
-			} catch ( IOException e ) {
-				Logger.getLogger( getClass( )).error( e, e );
-			}
 		} else if ( item == this.chooseSampleGroupsMenuItem ) {
 			Component frame = this;
 			while( !(frame instanceof Frame) && frame != null ) {
@@ -974,8 +974,7 @@ public class CorrelationDisplayPanel extends JPanel
 									EdgeType.UNDIRECTED );
 						}
 					}
-				}
-				else {
+				} else {
 					graph.getPickedVertexState( ).pick( molecule, false );
 					graph.removeVertex( molecule );
 				}
@@ -1695,7 +1694,8 @@ public class CorrelationDisplayPanel extends JPanel
 				plot.setBackgroundPaint( Color.WHITE );
 				plot.setRangeGridlinePaint( Color.GRAY );
 				plot.setDomainGridlinePaint( Color.GRAY );
-
+				// add a context menu for saving the graph to an image
+				new ContextMenu( this ).add( new SaveImageAction( this ));
 			}
 
 			public abstract void getDistributionData ( 
@@ -1724,16 +1724,8 @@ public class CorrelationDisplayPanel extends JPanel
 
 				distributionChart.getCategoryPlot( ).getRangeAxis( )
 					.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
-				ContextMenu contextMenu = new ContextMenu( this );
-				JMenuItem saveImageMenuItem = 
-					new JMenuItem( Language.get( "Save Image" ));
-				contextMenu.add( saveImageMenuItem );
-				JPanel panel = this;
-				saveImageMenuItem.addActionListener( new ActionListener( ){
-					public void actionPerformed( ActionEvent e ) {
-						new ChartWriter( panel ).write( );
-					}
-				});
+				// add a context menu for saving the graph to an image
+				new ContextMenu( this ).add( new SaveImageAction( this ));
 			}
 
 			public void getDistributionData( 
@@ -1753,7 +1745,6 @@ public class CorrelationDisplayPanel extends JPanel
 					distributionData.addValue( dist[ i ], "", new Integer( i ));
 				}
 			}
-
 		}
 
 	// ===================== CorrelationDistributionPanel ======================
@@ -1772,6 +1763,8 @@ public class CorrelationDisplayPanel extends JPanel
 				pearsonCalculationMenuItem.addItemListener( this );
 				spearmanCalculationMenuItem.addItemListener( this ); 
 				kendallCalculationMenuItem.addItemListener( this );
+				// add a context menu for saving the graph to an image
+				new ContextMenu( this ).add( new SaveImageAction( this ));
 				this.distributionData = 
 					new SimpleHistogramDataset( "Correlation Distribution"  );
 				distributionChart = ChartFactory.createHistogram(
@@ -1999,11 +1992,13 @@ public class CorrelationDisplayPanel extends JPanel
 			protected Molecule molecule;
 			protected HashMap <JMenuItem,Correlation> correlationMap = 
 				new HashMap <JMenuItem,Correlation>( );
+			protected SaveImageAction saveImageAction;
 			
 			/**
 			 * Creates a new instance of the PopupMenu
 			 */
 			public MoleculePopup ( ) {
+				super( );
 				Language language = Settings.getLanguage( );
 				this.hideMenuItem = new JMenuItem( language.get( "Hide" ));
 				this.detailsMenuItem = new JMenuItem( language.get( "Details" ));
@@ -2018,6 +2013,9 @@ public class CorrelationDisplayPanel extends JPanel
 				this.add( this.selectCorrelatedMenuItem );
 				this.add( this.selectSubnetworkMenuItem );
 				this.add( this.exploreCorrelationsMenu );
+				this.addSeparator( );
+				this.saveImageAction = new SaveImageAction( graph );
+				this.add( this.saveImageAction );
 				this.hideMenuItem.addActionListener( this );
 				this.detailsMenuItem.addActionListener( this );
 				this.selectSubnetworkMenuItem.addActionListener( this );
@@ -2037,6 +2035,7 @@ public class CorrelationDisplayPanel extends JPanel
 				this.exploreCorrelationsMenu.removeAll( );
 				this.correlationMap.clear( );
 				this.molecule = m;
+				this.saveImageAction.setComponent( graph );
 				Range range =
 					((CorrelationGraphVisualizer)invoker).getRange( );
 				for( Correlation c : correlations ) {

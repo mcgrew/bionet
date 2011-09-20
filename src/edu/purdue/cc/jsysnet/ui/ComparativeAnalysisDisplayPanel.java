@@ -26,6 +26,7 @@ import edu.purdue.bbc.util.SparseMatrix;
 import edu.purdue.bbc.util.Statistics;
 import edu.purdue.bbc.util.equation.Equation;
 import edu.purdue.bbc.util.equation.Polynomial;
+import edu.purdue.cc.jsysnet.io.SaveImageAction;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
@@ -518,7 +519,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			this.legendItems.add( medianLegendItem );
 			this.legendItems.add( minMaxLegendItem2 );
 			this.legendItems.add( outlierLegendItem );
-
+			// add a context menu for saving the graph to an image
+			new ContextMenu( this ).add( new SaveImageAction( this ));
 		}
 
 		/**
@@ -731,6 +733,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			super( );
 			this.experiments = new TreeSet<Experiment>( experiments );
 			this.sampleGroup = sampleGroup;
+			// add a context menu for saving the graph to an image
+			new ContextMenu( this ).add( new SaveImageAction( this ));
 		}
 
 		/**

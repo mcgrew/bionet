@@ -22,6 +22,7 @@ package edu.purdue.cc.jsysnet.ui;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.jsysnet.io.SaveImageAction;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
@@ -737,6 +738,8 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			this.sampleTree.addTreeCheckingListener( this );
 			this.clusterTree.addTreeCheckingListener( this );
 			this.clusterTree.addTreeSelectionListener( this );
+			// add a context menu for saving the graph to an image
+			new ContextMenu( this ).add( new SaveImageAction( this ));
 		}
 		
 		/**

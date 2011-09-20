@@ -54,6 +54,7 @@ import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.jsysnet.io.SaveImageAction;
 import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Molecule;
@@ -163,6 +164,8 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		 */
 		public ScatterPlot ( Pair<Molecule> molecules, CorrelationSet correlations ) {
 			super( );
+			// add a context menu for saving the graph to an image
+			new ContextMenu( this ).add( new SaveImageAction( this ));
 			Map sortedMap = new TreeMap<Number,Sample>( );
 			for ( Sample sample : correlations.getSamples( )) {
 				sortedMap.put( sample.getValue( molecules.getFirst( )), sample );

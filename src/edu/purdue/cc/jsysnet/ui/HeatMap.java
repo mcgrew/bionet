@@ -20,6 +20,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.jsysnet.ui;
 
 import edu.purdue.bbc.util.Range;
+import edu.purdue.cc.jsysnet.io.SaveImageAction;
 import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Molecule;
@@ -90,6 +91,8 @@ public class HeatMap extends JPanel implements MouseListener,
 	public HeatMap ( String title, CorrelationSet correlations,
 	                 MonitorableRange range, Number correlationMethod ) {
 		super( );
+		// add a context menu for saving the graph to an image
+		new ContextMenu( this ).add( new SaveImageAction( this ));
 		this.correlations = correlations;
 		this.scrollPane = new JScrollPane( this );
 		this.title = title;

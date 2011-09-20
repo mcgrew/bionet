@@ -42,6 +42,7 @@ import javax.swing.JTable;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.jsysnet.io.SaveImageAction;
 import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Molecule;
@@ -169,6 +170,8 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 		public ResponseGraph( Map<Sample,Number> sampleMap ) {
 			super( );
 			Language language = Settings.getLanguage( );
+			// add a context menu for saving the graph to an image
+			new ContextMenu( this ).add( new SaveImageAction( this ));
 			XYSeriesCollection dataset = new XYSeriesCollection( );
 
 			List<Sample> sampleList = new ArrayList<Sample>( sampleMap.keySet( ));
