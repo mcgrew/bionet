@@ -315,7 +315,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.showCorrelatedViewMenuItem = new JMenuItem( 
 			language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
 		this.saveImageAction = new SaveImageAction( 
-			language.get( "Save Network Graph Image" ), null );
+			language.get( "Save Main Graph Image" ), null );
 		
 		// color menu items
 		this.colorMenu = new JMenu( language.get( "Color" ));

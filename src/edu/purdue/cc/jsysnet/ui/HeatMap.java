@@ -64,6 +64,9 @@ import org.jfree.ui.RectangleEdge;
 
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 
+/**
+ * A class for displaying a heat map of correlation values.
+ */
 public class HeatMap extends JPanel implements MouseListener, 
 		GraphMouseListener<Correlation>, ChangeListener, 
 		GraphItemChangeListener<Molecule>, Scalable, MouseWheelListener, 
@@ -88,6 +91,17 @@ public class HeatMap extends JPanel implements MouseListener,
 		this( "", correlations, new MonitorableRange( 0.0, 1.0 ), correlationMethod );
 	}
 
+	/**
+	 * Creates a new HeatMap with the given parameters.
+	 * 
+	 * @param title The title for this HeatMap.
+	 * @param correlations A CorrelationSet containing the correlations to be
+	 *	displayed in this HeatMap.
+	 * @param range A MonitorableRange containing the values to be displayed in
+	 *	the HeatMap.
+	 * @param correlationMethod The correlation method to be used for determining
+	 *	the correlation value.
+	 */
 	public HeatMap ( String title, CorrelationSet correlations,
 	                 MonitorableRange range, Number correlationMethod ) {
 		super( );
@@ -119,6 +133,11 @@ public class HeatMap extends JPanel implements MouseListener,
 		this.add( this.spectrumLegend );
 	}
 
+	/**
+	 * Returns a new DefaultHeatMapDataset for use in drawing the HeatMap.
+	 * 
+	 * @return The DefaultHeatMapDataset.
+	 */
 	private DefaultHeatMapDataset getDataset( ) {
 		int size = moleculeList.size( );
 		DefaultHeatMapDataset returnValue = new DefaultHeatMapDataset( 
@@ -128,23 +147,18 @@ public class HeatMap extends JPanel implements MouseListener,
 		for( int i=0; i < size; i++ ){
 			for( int j=0; j < size; j++ ) {
 				returnValue.setZValue( i, j, ( i == j ) ? Double.NaN :
-					this.getCorrelation( moleculeList.get( i ), 
+					this.correlations.getCorrelation( moleculeList.get( i ), 
 						moleculeList.get( j )).getValue( correlationMethod ));
 			}
 		}
 		return returnValue;
 	}
 
-	private Correlation getCorrelation( Molecule m1, Molecule m2 ) {
-		for( Correlation c : this.correlations ) {
-			if ( c.contains( m1 ) && 
-					 c.contains( m2 )) {
-				return c;
-			}
-		}
-		return null;
-	}
-
+	/**
+	 * Sets a new background color for this HeatMap.
+	 * 
+	 * @param color The new Color to use for the background.
+	 */
 	@Override
 	public void setBackground( Color color ) {
 		super.setBackground( color );
@@ -154,6 +168,11 @@ public class HeatMap extends JPanel implements MouseListener,
 			this.spectrumLegend.setBackground( color );
 	}
 
+	/**
+	 * Sets a new foreground Color for this HeatMap.
+	 * 
+	 * @param color The new color to be used for drawing the foreground.
+	 */
 	@Override
 	public void setForeground( Color color ){
 		super.setForeground( color );
@@ -341,8 +360,8 @@ public class HeatMap extends JPanel implements MouseListener,
 					moleculeList.size( ) / mapPosition.getWidth( ));
 			int yComponent = moleculeList.size( ) - 1 - (int)((p.getY( ) - mapPosition.getY( )) * 
 					moleculeList.size( ) / mapPosition.getHeight( ));
-			return this.getCorrelation( moleculeList.get( xComponent ),
-			                            moleculeList.get( yComponent ));
+			return this.correlations.getCorrelation( moleculeList.get( xComponent ),
+			                                         moleculeList.get( yComponent ));
 		
 	}
 
@@ -446,7 +465,23 @@ public class HeatMap extends JPanel implements MouseListener,
 		this.scale((float)Math.pow( 1.25, -e.getWheelRotation( )), e.getPoint( ));
 	}
 
+	/**
+	 * The componentHidden method of the ComponentListener interface. 
+	 * Not Implemented.
+	 * 
+	 * @see ComponentListener#componentResized( ComponentEvent )
+	 * @param e The event which triggered this action.
+	 */
 	public void componentHidden( ComponentEvent e ) { }
+
+	/**
+	 * The componentMoved method of the ComponentListener interface. 
+	 * Moves the legend to the appropriate position when the HeatMap is scrolled
+	 * or resized.
+	 * 
+	 * @see ComponentListener#componentResized( ComponentEvent )
+	 * @param e The event which triggered this action.
+	 */
 	public void componentMoved( ComponentEvent e ) {
 		// place the legend
 		int h, w;
@@ -469,10 +504,24 @@ public class HeatMap extends JPanel implements MouseListener,
 		this.spectrumLegend.repaint( );
 	}
 
+	/**
+	 * The componentResized method of the ComponentListener interface. 
+	 * Not Implemented.
+	 * 
+	 * @see ComponentListener#componentResized( ComponentEvent )
+	 * @param e The event which triggered this action.
+	 */
 	public void componentResized( ComponentEvent e ) { 
 		componentMoved( e );
 	}
 
+	/**
+	 * The componentShown method of the ComponentListener interface. 
+	 * Not Implemented.
+	 * 
+	 * @see ComponentListener#componentShown( ComponentEvent )
+	 * @param e The event which triggered this action.
+	 */
 	public void componentShown( ComponentEvent e ) { }
 
 }
