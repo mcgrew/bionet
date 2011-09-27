@@ -167,7 +167,7 @@ public class CorrelationDisplayPanel extends JPanel
 	// layout menu itmes
 	private JMenu layoutMenu;
 	private ButtonGroup layoutMenuButtonGroup;
-//	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem;
+	private JRadioButtonMenuItem multipleCirclesLayoutMenuItem;
 	private JRadioButtonMenuItem singleCircleLayoutMenuItem;
 	private JRadioButtonMenuItem randomLayoutMenuItem;
 	private JRadioButtonMenuItem heatMapLayoutMenuItem;
@@ -267,7 +267,7 @@ public class CorrelationDisplayPanel extends JPanel
 		// layout menu itmes
 		this.layoutMenu = new JMenu( language.get( "Layout" ));
 		this.layoutMenuButtonGroup = new ButtonGroup( );
-//		this.multipleCirclesLayoutMenuItem = 
+		this.multipleCirclesLayoutMenuItem = 
 			new JRadioButtonMenuItem( language.get( "Multiple Circles" ));
 		this.singleCircleLayoutMenuItem = 
 			new JRadioButtonMenuItem( language.get( "Single Circle" ), true);
@@ -354,7 +354,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.layoutMenu.setMnemonic( KeyEvent.VK_L );
 		this.layoutMenu.getAccessibleContext( ).setAccessibleDescription(
 			language.get( "Change the layout of the graph" ));
-//		this.layoutMenuButtonGroup.add( this.multipleCirclesLayoutMenuItem );
+		this.layoutMenuButtonGroup.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.randomLayoutMenuItem );
 		this.layoutMenuButtonGroup.add( this.kkLayoutMenuItem );
@@ -364,7 +364,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.layoutMenuButtonGroup.add( this.heatMapLayoutMenuItem );
 		
 		Enumeration<AbstractButton> e = this.layoutMenuButtonGroup.getElements( );
-//		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
+		this.layoutMenu.add( this.multipleCirclesLayoutMenuItem );
 		this.layoutMenu.add( this.singleCircleLayoutMenuItem );
 		this.layoutMenu.add( this.randomLayoutMenuItem );
 		this.layoutMenu.add( this.kkLayoutMenuItem );
@@ -374,7 +374,8 @@ public class CorrelationDisplayPanel extends JPanel
 		this.layoutMenu.add( this.heatMapLayoutMenuItem );
 //		this.layoutMenu.addSeparator( );
 //		this.layoutMenu.add( this.animatedLayoutMenuItem );
-//		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
+		this.multipleCirclesLayoutMenuItem.addActionListener( lcl );
+		this.multipleCirclesLayoutMenuItem.setEnabled( false );
 		this.singleCircleLayoutMenuItem.addActionListener( lcl );
 		this.randomLayoutMenuItem.addActionListener( lcl );
 		this.kkLayoutMenuItem.addActionListener( lcl );
@@ -1426,8 +1427,8 @@ public class CorrelationDisplayPanel extends JPanel
 			public ConditionPanel( ) {
 				super( );
 				// listen for changes to layout/calculation
-//				multipleCirclesLayoutMenuItem.addActionListener( this );
-//				multipleCirclesLayoutMenuItem.addActionListener( this );
+				multipleCirclesLayoutMenuItem.addActionListener( this );
+				multipleCirclesLayoutMenuItem.addActionListener( this );
 				singleCircleLayoutMenuItem.addActionListener( this );
 				randomLayoutMenuItem.addActionListener( this );
 				kkLayoutMenuItem.addActionListener( this );
@@ -1915,10 +1916,19 @@ public class CorrelationDisplayPanel extends JPanel
 //					graph.animate( animatedLayoutMenuItem.getState( ));
 //				} else {
 					graph.animate( false );
-//					if ( item == multipleCirclesLayoutMenuItem )
-//						setGraphLayout( MultipleCirclesLayout.class );
-//					else 
-					if ( item == singleCircleLayoutMenuItem ) {
+					if ( item == multipleCirclesLayoutMenuItem ) {
+						// MultipleCircleLayout needs a copy of the sampleGroups 
+						// to initialize.
+						setGraphLayout( MultipleCirclesLayout.class );
+						Layout layout = graph.getGraphLayout( );
+						while ( layout instanceof LayoutDecorator ) {
+							layout = ((LayoutDecorator)layout).getDelegate( );
+						}
+						MultipleCirclesLayout mclayout = (MultipleCirclesLayout)layout;
+						mclayout.setSampleGroups(
+							new SimplePair<SampleGroup>( sampleGroups ));
+						mclayout.initialize( );
+					} else if ( item == singleCircleLayoutMenuItem ) {
 						setGraphLayout( CircleLayout.class );
 					} else if ( item == randomLayoutMenuItem ) {
 						setGraphLayout( RandomLayout.class );
@@ -2367,12 +2377,17 @@ public class CorrelationDisplayPanel extends JPanel
 			if ( sg.size( ) > 1 ) {
 				this.add( this.regulationLegend );
 				this.componentMoved( new ComponentEvent( this, -1 ));
+				multipleCirclesLayoutMenuItem.setEnabled( true );
 			} else {
 				if ( this.regulationLegend != null ) {
 					this.remove( this.regulationLegend );
 				}
 			}
 			this.repaint( );
+		}
+
+		public Collection<SampleGroup> getSampleGroups( ) {
+			return this.sampleGroups;
 		}
 		
 		/**
@@ -2388,7 +2403,7 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 
 		/**
-		 * Gets the current MOnitorableRange object being used.
+		 * Gets the current MonitorableRange object being used.
 		 * 
 		 * @return The current MonitorableRange.
 		 */

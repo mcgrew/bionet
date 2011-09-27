@@ -25,18 +25,20 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
  */
 package edu.purdue.cc.jsysnet.ui.layout;
 
+import edu.purdue.bbc.util.Pair;
+import edu.purdue.bbc.util.SimplePair;
 import edu.purdue.cc.jsysnet.util.Molecule;
+import edu.purdue.cc.jsysnet.util.SampleGroup;
 import edu.purdue.cc.jsysnet.util.PolarPoint2D;
+import edu.purdue.cc.jsysnet.ui.CorrelationDisplayPanel;
 
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 import org.apache.commons.collections15.Factory;
 import org.apache.commons.collections15.map.LazyMap;
@@ -53,6 +55,7 @@ import edu.uci.ics.jung.algorithms.layout.*;
 public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 
 	private double radius;
+	Pair<SampleGroup> sampleGroups;
 	
 	/**
 	 * Creates an instance for the specified graph.
@@ -83,55 +86,61 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 		initialize();
 	}
 
+	public void setSampleGroups( Pair<SampleGroup> sampleGroups ) {
+		this.sampleGroups = sampleGroups;
+	}
+
 	/**
 	 * Sets the initial position of the Graph nodes.
 	 */
 	public void initialize() {
-
-		Dimension d = this.getSize();
-		HashMap <String,List<V>> groups = new HashMap<String,List<V>>( );
-		
-		if (d != null) {
-			double height = d.getHeight();
-			double width = d.getWidth();
-
-			String groupName;
-			for ( V v : this.getGraph( ).getVertices( )) {
-				groupName = (( Molecule )v).getAttribute( "group_name" );
-				if ( !groups.containsKey( groupName )) {
-					groups.put( groupName, new ArrayList<V>( ));
-				}
-				groups.get( groupName ).add( v );
-
-			}
+		if ( this.sampleGroups != null ) {
+			Dimension d = this.getSize();
+			SimplePair<List<V>> moleculeGroups = 
+				new SimplePair<List<V>>( new ArrayList<V>( ),
+																	new ArrayList<V>( ));
 			
-			this.radius = ( Math.min( height, width )) * 0.3;
-			int groupRadius = (int)( this.radius / Math.sqrt( groups.size( )) );
+			if (d != null) {
+				double height = d.getHeight();
+				double width = d.getWidth();
 
-			int j = 0, x, y;
-			Point2D.Double graphCenter = new Point2D.Double( width/2.0, height/2.0 );
-			PolarPoint2D center = new PolarPoint2D( 0, 0, graphCenter );
-			PolarPoint2D coord = new PolarPoint2D( 0, 0, center );
-			List<V> group;
-			double theta;
+				String groupName;
+				for ( V v : this.getGraph( ).getVertices( )) {
+					if ( this.isUpRegulated( sampleGroups, v ))
+						moleculeGroups.getFirst( ).add( v );
+					else
+						moleculeGroups.getSecond( ).add( v );
+				}
+				
+				this.radius = ( Math.min( height, width )) * 0.3;
+				int groupRadius = (int)( this.radius / Math.sqrt( moleculeGroups.size( )) );
 
-			for ( String key : groups.keySet( )) {
-				group = groups.get( key );
-				theta = ( 2 * Math.PI * j ) / groups.size( );
-				j++;
-				center.setLocation( this.radius, theta, PolarPoint2D.POLAR );
-				int i = 0;
-				for ( V vertex : group )
-				{
-	
-					theta = ( 2 * Math.PI * i ) / group.size();
-	
-					coord.setLocation( groupRadius, theta, PolarPoint2D.POLAR );
-					this.setLocation( vertex, coord );
-	
-					i++;
+				int j = 0, x, y;
+				Point2D.Double graphCenter = new Point2D.Double( width/2.0, height/2.0 );
+				PolarPoint2D center = new PolarPoint2D( 0, 0, graphCenter );
+				PolarPoint2D coord = new PolarPoint2D( 0, 0, center );
+				double theta;
+
+				for ( List<V> group : moleculeGroups ) {
+					theta = ( 2 * Math.PI * j ) / moleculeGroups.size( );
+					j++;
+					center.setLocation( this.radius, theta, PolarPoint2D.POLAR );
+					int i = 0;
+					for ( V vertex : group ) {
+						theta = ( 2 * Math.PI * i ) / group.size();
+						coord.setLocation( groupRadius, theta, PolarPoint2D.POLAR );
+						this.setLocation( vertex, coord );
+						i++;
+					}
 				}
 			}
 		}
 	}
+
+	private boolean isUpRegulated( Pair<SampleGroup> pair, V v ) {
+		Molecule m = (Molecule)v;
+		return m.getValues( pair.getFirst( )).getMean( ) <
+			m.getValues( pair.getSecond( )).getMean( );
+	}
 }
+
