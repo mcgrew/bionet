@@ -23,6 +23,7 @@ import edu.purdue.bbc.util.Settings;
 
 import java.awt.Component;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -120,7 +121,8 @@ public class SaveImageAction extends AbstractAction {
 			String filetype = filename.substring( filename.lastIndexOf( "." ) + 1 );
 			if ( !ImageIO.write( this, filetype, file )) {
 				Logger.getLogger( getClass( )).error( String.format( 
-					"Unrecognized file type for file '%s'\nThe image was not saved", file.getName( )));
+					"Unrecognized file type for file '%s'\nThe image was not saved", 
+					file.getName( )));
 			}
 		}
 
@@ -139,28 +141,76 @@ public class SaveImageAction extends AbstractAction {
 		public void write( ) throws IOException {
 			JFileChooser fc = new JFileChooser( );
 			fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
-			fc.setFileFilter( new ImageFileFilter( ));
+			fc.addChoosableFileFilter( new JpgFileFilter( ));
+			fc.addChoosableFileFilter( new GifFileFilter( ));
+			fc.addChoosableFileFilter( new PngFileFilter( ));
 			int options = fc.showSaveDialog( this.component );
+			File file = fc.getSelectedFile( );
+			String filename = file.getAbsolutePath( );
+			if ( !file.getName( ).contains( "." )) {
+				FileFilter ff = fc.getFileFilter( );
+				if ( ff instanceof PngFileFilter ) {
+					filename += ".png";
+				} else if ( ff instanceof JpgFileFilter ) {
+					filename += ".jpg";
+				} else if ( ff instanceof GifFileFilter ) {
+					filename += ".gif";
+				}
+			}
 			if ( options == JFileChooser.APPROVE_OPTION ) {
-				this.write( fc.getSelectedFile( ).getAbsolutePath( ));
+				this.write( filename );
 			}
 		}
 
-		private class ImageFileFilter extends FileFilter {
+		private class PngFileFilter extends FileFilter {
 
-			public ImageFileFilter( ) {
+			public PngFileFilter( ) {
 				super( );
 			}
 
 			public boolean accept( File f ) {
 				String filename = f.getName( );
 				String filetype = filename.substring( filename.lastIndexOf( "." ) + 1 );
-				return "png".equals( filetype ) || "jpg".equals( filetype ) || 
-				       "gif".equals( filetype ) || "jpeg".equals( filetype );
+				return f.isDirectory( ) || "png".equals( filetype );
 			}
 
 			public String getDescription( ) {
-				return "Image Files";
+				return "PNG Image";
+			}
+		}
+
+		private class JpgFileFilter extends FileFilter {
+
+			public JpgFileFilter( ) {
+				super( );
+			}
+
+			public boolean accept( File f ) {
+				String filename = f.getName( );
+				String filetype = filename.substring( filename.lastIndexOf( "." ) + 1 );
+				return f.isDirectory( ) || 
+					"jpg".equals( filetype ) || "jpeg".equals( filetype );
+			}
+
+			public String getDescription( ) {
+				return "Jpeg Image";
+			}
+		}
+		
+		private class GifFileFilter extends FileFilter {
+
+			public GifFileFilter( ) {
+				super( );
+			}
+
+			public boolean accept( File f ) {
+				String filename = f.getName( );
+				String filetype = filename.substring( filename.lastIndexOf( "." ) + 1 );
+				return f.isDirectory( ) || "gif".equals( filetype );
+			}
+
+			public String getDescription( ) {
+				return "GIF Image";
 			}
 		}
 	}
