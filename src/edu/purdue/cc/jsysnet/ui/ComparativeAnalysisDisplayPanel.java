@@ -72,7 +72,7 @@ import java.util.TreeSet;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
@@ -146,9 +146,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	private JPanel experimentGraphPanel;
 	private Collection<SampleGroup> sampleGroups;
 	private JPanel fitSelectorPanel;
-	private JRadioButton noFitButton;
-	private JRadioButton robustFitButton;
-	private JRadioButton chiSquareFitButton;
+	private JRadioButtonMenuItem noFitButton;
+	private JRadioButtonMenuItem robustFitButton;
+	private JRadioButtonMenuItem chiSquareFitButton;
 	private ButtonGroup fitButtonGroup;
 	private boolean graphSplitPaneDividerLocationSet = false;
 
@@ -169,8 +169,21 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_G );
 		this.chooseSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
+		this.fitSelectorPanel = new JPanel( new GridLayout( 4, 1 ));
+		this.noFitButton = new JRadioButtonMenuItem( language.get( "No Fit" ));
+		this.robustFitButton = new JRadioButtonMenuItem( language.get("Robust Linear Fit"));
+		this.chiSquareFitButton = new JRadioButtonMenuItem( language.get("Chi Square Fit"));
+		this.fitButtonGroup = new ButtonGroup( );
+		this.fitButtonGroup.add( this.noFitButton );
+		this.fitButtonGroup.add( this.robustFitButton );
+		this.fitButtonGroup.add( this.chiSquareFitButton );
+		this.noFitButton.setSelected( true );
 		this.viewMenu.add( this.removeSampleGroupsMenuItem );
 		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
+		this.viewMenu.addSeparator( );
+		this.viewMenu.add( this.noFitButton );
+		this.viewMenu.add( this.robustFitButton );
+		this.viewMenu.add( this.chiSquareFitButton );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.removeSampleGroupsMenuItem.addActionListener( this );
 		this.add( menuBar, BorderLayout.NORTH );
@@ -201,24 +214,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		this.topPanel = new JPanel( new BorderLayout( ));
 		this.bottomPanel = new JPanel( new GridLayout( 1, 1 ));
 		this.experimentGraphPanel = new JPanel( new GridLayout( 1, 1 ));
-		this.fitSelectorPanel = new JPanel( new GridLayout( 4, 1 ));
-		this.noFitButton = new JRadioButton( language.get( "No Fit" ));
-		this.robustFitButton = new JRadioButton( language.get("Robust Linear Fit"));
-		this.chiSquareFitButton = new JRadioButton( language.get("Chi Square Fit"));
-		this.fitButtonGroup = new ButtonGroup( );
-		this.fitButtonGroup.add( this.noFitButton );
-		this.fitButtonGroup.add( this.robustFitButton );
-		this.fitButtonGroup.add( this.chiSquareFitButton );
-		this.noFitButton.setSelected( true );
 
 		this.selectorTree = new ExperimentSelectorTreePanel( experiments );
 		this.mainSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
 
-		this.fitSelectorPanel.add( new JLabel( language.get( "Visual Analysis" )));
-		this.fitSelectorPanel.add( this.noFitButton );
-		this.fitSelectorPanel.add( this.robustFitButton );
-		this.fitSelectorPanel.add( this.chiSquareFitButton );
 		JPanel topRightPanel = new JPanel( new BorderLayout( ));
 		topRightPanel.add( this.fitSelectorPanel, BorderLayout.NORTH );
 		topRightPanel.add( new JPanel( ), BorderLayout.CENTER );
