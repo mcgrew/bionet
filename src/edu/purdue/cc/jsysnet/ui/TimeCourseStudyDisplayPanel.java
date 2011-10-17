@@ -117,10 +117,10 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	private JMenu viewMenu;
 	private JMenuItem chooseSampleGroupsMenuItem;
 	private JMenuItem removeSampleGroupsMenuItem;
+	private JMenuItem recomputeMenuItem;
 
 	private JPanel selectorPanel;
 	private SampleSelectorTreePanel sampleSelectorTree;
-	private JButton recomputeButton;
 	private JSplitPane splitPane;
 	private JSplitPane treeSplitPane;
 	private JPanel clusterGraphPanel;
@@ -148,12 +148,16 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_G );
 		this.chooseSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
+		this.recomputeMenuItem = 
+			new JMenuItem( Settings.getLanguage( ).get( "Recompute/Set Parameters" ));
+		this.recomputeMenuItem.addActionListener( this );
 		this.viewMenu.add( this.removeSampleGroupsMenuItem );
 		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.removeSampleGroupsMenuItem.addActionListener( this );
 		this.add( menuBar, BorderLayout.NORTH );
 		this.menuBar.add( this.viewMenu );
+		this.menuBar.add( this.recomputeMenuItem );
 	}
 		
 	/**
@@ -177,13 +181,9 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 
 		this.splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.treeSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
-		this.recomputeButton = 
-			new JButton( Settings.getLanguage( ).get( "Recompute" ));
-		this.recomputeButton.addActionListener( this );
 		JPanel treePanel = new JPanel( new BorderLayout( ));
 		this.treeSplitPane.setBottomComponent( this.sampleSelectorTree );
 		treePanel.add( this.treeSplitPane, BorderLayout.CENTER );
-		treePanel.add( this.recomputeButton, BorderLayout.SOUTH );
 		this.splitPane.setLeftComponent( treePanel );
 		this.clusterGraphPanel = new JPanel( new GridLayout( 1, 1, 3, 3 ));
 		this.clusterGraphPanel.setBackground( Color.LIGHT_GRAY );
@@ -273,7 +273,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		Logger logger = Logger.getLogger( getClass( ));
 		Language language = Settings.getLanguage( );
 		Object source = e.getSource( );
-		if ( source == this.recomputeButton ) {
+		if ( source == this.recomputeMenuItem ) {
 			this.setSampleGroups( this.sampleGroups );
 		} else if ( source == this.chooseSampleGroupsMenuItem ) {
 			// Choose sample groups.
