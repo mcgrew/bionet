@@ -72,6 +72,12 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 	private static int vgap = 10;
 	private boolean okPressed = false;
 
+	private final static int SOM_METHOD = 0;
+	private final static int KMEANS_METHOD = 1;
+	private final static int KMEDOIDS_METHOD = 2;
+	private final static int FARTHESTFIRST_METHOD = 3;
+
+
 	public ClusterSelectionDialog( Frame owner, String title ) {
 		this( owner, title, true );
 	}
@@ -97,14 +103,15 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		JPanel topPanel = new JPanel( new BorderLayout( hgap, vgap ));
 		JLabel clusterSelectorLabel = new JLabel( 
 			language.get( "Clustering Method" ));
-		this.parameterPanel = new SOMClusterParameterPanel( );
 		this.clusterSelectorComboBox = new JComboBox( new Object[] {
-			this.parameterPanel,
+			new SOMClusterParameterPanel( ),
 			new KMeansClusterParameterPanel( ),
 			new KMedoidsClusterParameterPanel( ),
 			new FarthestFirstClusterParameterPanel( )
 			});
 		this.clusterSelectorComboBox.addActionListener( this );
+		this.clusterSelectorComboBox.setSelectedIndex( 
+			Settings.getSettings( ).getInt( "history.clustering.lastMethod", 0 ));
 
 		topPanel.add( clusterSelectorLabel, BorderLayout.WEST );
 		topPanel.add( this.clusterSelectorComboBox, BorderLayout.CENTER );
@@ -132,6 +139,8 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 
 	public Clusterer getReturnValue( ) {
 		if ( this.okPressed ) {
+			Settings.getSettings( ).setInt( "history.clustering.lastMethod", 
+				this.clusterSelectorComboBox.getSelectedIndex( ));
 			return this.parameterPanel.getClusterer( );
 		} else {
 			return null;
@@ -158,7 +167,9 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		if ( source == this.clusterSelectorComboBox ) {
 			ClusterParameterPanel selected = 
 				(ClusterParameterPanel)((JComboBox)source).getSelectedItem( );
-			this.remove( this.parameterPanel );
+			if ( this.parameterPanel != null ) {
+				this.remove( this.parameterPanel );
+			}
 			this.parameterPanel = selected;
 			this.add( this.parameterPanel, BorderLayout.CENTER );
 			this.validate( );
@@ -231,29 +242,37 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		public SOMClusterParameterPanel( ) {
 			super( new GridLayout( 8, 2, hgap, vgap ));
 			Language language = Settings.getLanguage( );
-			xDimensionSpinner    = new JSpinner( 
-				new SpinnerNumberModel( 5, 0, 25, 1 ));
-			yDimensionSpinner    = new JSpinner( 
-				new SpinnerNumberModel( 5, 0, 25, 1 ));
-			iterationSpinner     = new JSpinner( 
-				new SpinnerNumberModel( 10000, 0, 100000, 5000 ));
-			learningRateSpinner  = new JSpinner( 
-				new SpinnerNumberModel( 0.1, 0, 1, 0.1 ));
-			initialRadiusSpinner = new JSpinner( 
-				new SpinnerNumberModel( 10, 0, 25, 1 ));
+			Settings settings = Settings.getSettings( );
+
+			xDimensionSpinner    = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.som.xDimension", 5 ), 0, 25, 1 ));
+			yDimensionSpinner    = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.som.yDimension", 5 ), 0, 25, 1 ));
+			iterationSpinner     = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.som.iterations", 10000 ), 0, 100000, 5000 ));
+			learningRateSpinner  = new JSpinner( new SpinnerNumberModel( 
+				settings.getDouble( "history.clustering.som.learningRate", 0.1 ), 0, 1, 0.1 ));
+			initialRadiusSpinner = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.som.initialRadius", 10 ), 0, 25, 1 ));
 			this.gridTypeComboBox = new JComboBox( new Object[] {
 				SOM.GridType.HEXAGONAL,
 				SOM.GridType.RECTANGLES
 			});
+			this.gridTypeComboBox.setSelectedIndex( 
+				settings.getInt( "history.clustering.som.gridType", 0 ));
 			this.learningTypeComboBox = new JComboBox( new Object[] {
 				SOM.LearningType.EXPONENTIAL,
 				SOM.LearningType.INVERSE,
 				SOM.LearningType.LINEAR
 			});
+			this.learningTypeComboBox.setSelectedIndex( 
+				settings.getInt( "history.clustering.som.learningType", 0 ));
 			this.neighborhoodFunctionComboBox = new JComboBox( new Object[] {
 				SOM.NeighbourhoodFunction.GAUSSIAN,
 				SOM.NeighbourhoodFunction.STEP
 			});
+			this.neighborhoodFunctionComboBox.setSelectedIndex( 
+				settings.getInt( "history.clustering.som.neighborhoodFunction", 0 ));
 			this.add( new JLabel( language.get( "X axis dimensions" )));
 			this.add( this.xDimensionSpinner );
 			this.add( new JLabel( language.get( "Y axis dimensions" )));
@@ -273,6 +292,23 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		}
 
 		public Clusterer getClusterer( ) {
+			Settings settings = Settings.getSettings( );
+			settings.set( "history.clustering.som.xDimension", 
+				this.xDimensionSpinner.getValue( ).toString( ));
+			settings.set( "history.clustering.som.yDimension",
+				this.yDimensionSpinner.getValue( ).toString( ));
+			settings.setInt( "history.clustering.som.gridType",
+				this.gridTypeComboBox.getSelectedIndex( ));
+			settings.set( "history.clustering.som.iterations",
+				this.iterationSpinner.getValue( ).toString( ));
+			settings.set( "history.clustering.som.learningRate",
+				this.learningRateSpinner.getValue( ).toString( ));
+			settings.set( "history.clustering.som.initialRadius",
+				this.initialRadiusSpinner.getValue( ).toString( ));
+			settings.setInt( "history.clustering.som.learningType",
+				this.learningTypeComboBox.getSelectedIndex( ));
+			settings.setInt( "history.clustering.som.neighborhoodFunction",
+				this.neighborhoodFunctionComboBox.getSelectedIndex( ));
 			return new SOM(
 				// number of dimensions on the x axis
 				Integer.parseInt( this.xDimensionSpinner.getValue( ).toString( )),
@@ -307,10 +343,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		public KMeansClusterParameterPanel( ) {
 			super( new GridLayout( 2, 2, hgap, vgap ));
 			Language language = Settings.getLanguage( );
-			clustersSpinner    = new JSpinner( 
-				new SpinnerNumberModel( 5, 0, 25, 1 ));
-			iterationsSpinner    = new JSpinner( 
-				new SpinnerNumberModel( 5, 0, 25, 1 ));
+			Settings settings = Settings.getSettings( );
+			clustersSpinner    = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.kmeans.clusters", 5 ), 0, 25, 1 ));
+			iterationsSpinner    = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.kmeans.iterations", 5 ), 0, 25, 1 ));
 			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
 			this.add( this.clustersSpinner );
 			this.add( new JLabel( language.get( "Number of Iterations" )));
@@ -318,6 +355,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		}
 
 		public Clusterer getClusterer( ) {
+			Settings settings = Settings.getSettings( );
+			settings.set( "history.clustering.kmeans.clusters", 
+				this.clustersSpinner.getValue( ).toString( ));
+			settings.set( "history.clustering.kmeans.iterations", 
+				this.iterationsSpinner.getValue( ).toString( ));
 			return new KMeans(
 				// number of clusters
 				Integer.parseInt( this.clustersSpinner.getValue( ).toString( )),
@@ -380,11 +422,12 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		public KMedoidsClusterParameterPanel( ) {
 			super( new GridLayout( 3, 2, hgap, vgap ));
 			Language language = Settings.getLanguage( );
+			Settings settings = Settings.getSettings( );
 			this.distanceMeasure = new DistanceMeasureComboBox( );
-			clustersSpinner    = new JSpinner( 
-				new SpinnerNumberModel( 5, 0, 25, 1 ));
-			iterationsSpinner    = new JSpinner( 
-				new SpinnerNumberModel( 5, 0, 25, 1 ));
+			clustersSpinner    = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.kmedoids.clusters", 5 ), 0, 25, 1 ));
+			iterationsSpinner    = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.kmedoids.iterations", 5 ), 0, 25, 1 ));
 			this.add( new JLabel( language.get( "Distance Measure" )));
 			this.add( this.distanceMeasure );
 			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
@@ -394,6 +437,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		}
 
 		public Clusterer getClusterer( ) {
+			Settings settings = Settings.getSettings( );
+			settings.set( "history.clustering.kmedoids.clusters", 
+				this.clustersSpinner.getValue( ).toString( ));
+			settings.set( "history.clustering.kmedoids.iterations", 
+				this.iterationsSpinner.getValue( ).toString( ));
 			return new KMedoids(
 				// number of clusters
 				Integer.parseInt( this.clustersSpinner.getValue( ).toString( )),
@@ -410,24 +458,32 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 
 	private class FarthestFirstClusterParameterPanel extends ClusterParameterPanel {
 		private DistanceMeasureComboBox distanceMeasure;
-		private JSpinner clustersSpinner;
+		private JSpinner distanceSpinner;
 
 		public FarthestFirstClusterParameterPanel( ) {
 			super( new GridLayout( 2, 2, hgap, vgap ));
 			Language language = Settings.getLanguage( );
+			Settings settings = Settings.getSettings( );
 			this.distanceMeasure = new DistanceMeasureComboBox( );
-			clustersSpinner    = new JSpinner( 
-				new SpinnerNumberModel( 5, 0, 25, 1 ));
+			this.distanceMeasure.setSelectedIndex( 
+				settings.getInt( "history.clustering.farthestFirst.distanceMeasure", 0 ));
+			this.distanceSpinner = new JSpinner( new SpinnerNumberModel( 
+				settings.getInt( "history.clustering.farthestFirst.distance", 5 ), 0, 25, 1 ));
 			this.add( new JLabel( language.get( "Distance Measure" )));
 			this.add( this.distanceMeasure );
 			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
-			this.add( this.clustersSpinner );
+			this.add( this.distanceSpinner );
 		}
 
 		public Clusterer getClusterer( ) {
+				Settings settings = Settings.getSettings( );
+				settings.setInt( "history.clustering.farthestFirst.distanceMeasure",
+					this.distanceMeasure.getSelectedIndex( ));
+				settings.set( "history.clustering.farthestFirst.distance", 
+					this.distanceSpinner.getValue( ).toString( ));
 			return new FarthestFirst(
 				// number of clusters
-				Integer.parseInt( this.clustersSpinner.getValue( ).toString( )),
+				Integer.parseInt( this.distanceSpinner.getValue( ).toString( )),
 				this.distanceMeasure.getSelectedDistanceMeasure( )
 			);
 		}
