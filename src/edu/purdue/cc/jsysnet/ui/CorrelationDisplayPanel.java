@@ -157,9 +157,9 @@ public class CorrelationDisplayPanel extends JPanel
 
 	private JMenuBar menuBar;
 
-	// calculation menu items
-	private JMenu calculationMenu;
-	private ButtonGroup calculationMenuButtonGroup;
+	// correlationMethod menu items
+	private JMenu correlationMethodMenu;
+	private ButtonGroup correlationMethodMenuButtonGroup;
 	private JRadioButtonMenuItem pearsonCalculationMenuItem;
 	private JRadioButtonMenuItem spearmanCalculationMenuItem;
 	private JRadioButtonMenuItem kendallCalculationMenuItem;
@@ -255,8 +255,8 @@ public class CorrelationDisplayPanel extends JPanel
 	private void buildPanel ( ) {
 
 		Language language = Settings.getLanguage( );
-		this.calculationMenu = new JMenu( language.get( "Calculation" ));
-		this.calculationMenuButtonGroup = new ButtonGroup( );
+		this.correlationMethodMenu = new JMenu( language.get( "Correlation Method" ));
+		this.correlationMethodMenuButtonGroup = new ButtonGroup( );
 		this.pearsonCalculationMenuItem = 
 			new JRadioButtonMenuItem( language.get( "Pearson" ), true );
 		this.spearmanCalculationMenuItem = 
@@ -333,18 +333,18 @@ public class CorrelationDisplayPanel extends JPanel
 		leftPanel.add( this.correlationFilterPanel, BorderLayout.SOUTH );
 
 		//CALCULATION MENU
-		this.calculationMenu.setMnemonic( KeyEvent.VK_C );
-		this.calculationMenu.getAccessibleContext( ).setAccessibleDescription(
+		this.correlationMethodMenu.setMnemonic( KeyEvent.VK_C );
+		this.correlationMethodMenu.getAccessibleContext( ).setAccessibleDescription(
 			language.get( "Perform Data Calculations" ));
-		this.calculationMenuButtonGroup.add( this.pearsonCalculationMenuItem );
-		this.calculationMenuButtonGroup.add( this.spearmanCalculationMenuItem );
-		this.calculationMenuButtonGroup.add( this.kendallCalculationMenuItem );
+		this.correlationMethodMenuButtonGroup.add( this.pearsonCalculationMenuItem );
+		this.correlationMethodMenuButtonGroup.add( this.spearmanCalculationMenuItem );
+		this.correlationMethodMenuButtonGroup.add( this.kendallCalculationMenuItem );
 		this.pearsonCalculationMenuItem.setMnemonic( KeyEvent.VK_P );
 		this.spearmanCalculationMenuItem.setMnemonic( KeyEvent.VK_S );
 		this.kendallCalculationMenuItem.setMnemonic( KeyEvent.VK_K );
-		this.calculationMenu.add( this.pearsonCalculationMenuItem );
-		this.calculationMenu.add( this.spearmanCalculationMenuItem );
-		this.calculationMenu.add( this.kendallCalculationMenuItem );
+		this.correlationMethodMenu.add( this.pearsonCalculationMenuItem );
+		this.correlationMethodMenu.add( this.spearmanCalculationMenuItem );
+		this.correlationMethodMenu.add( this.kendallCalculationMenuItem );
 		this.pearsonCalculationMenuItem.addItemListener( this );
 		this.spearmanCalculationMenuItem.addItemListener( this ); 
 		this.kendallCalculationMenuItem.addItemListener( this );
@@ -445,7 +445,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.normalColorMenuItem.addItemListener( this );
 		this.highContrastColorMenuItem.addItemListener( this );
 
-		this.menuBar.add( this.calculationMenu );
+		this.menuBar.add( this.correlationMethodMenu );
 		this.menuBar.add( this.layoutMenu );
 		this.menuBar.add( this.viewMenu );
 
@@ -465,7 +465,7 @@ public class CorrelationDisplayPanel extends JPanel
 			return false;
 		}
 		this.setVisible( true );
-		this.title = Settings.getLanguage( ).get( "Correlation View" );
+		this.title = Settings.getLanguage( ).get( "Correlation Network" );
 		this.molecules = new TreeSet<Molecule>( );
 		for ( Experiment experiment : experiments ) {
 				this.molecules.addAll( experiment.getMolecules( ));
