@@ -22,6 +22,9 @@ package edu.purdue.cc.jsysnet.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -30,6 +33,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import javax.imageio.ImageIO;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -64,7 +69,7 @@ import org.apache.log4j.Logger;
 
 public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow {
 
-	private JTabbedPane tabPane = new ClosableTabbedPane( );
+	private JTabbedPane tabPane = new IntroPane( );
 	
 	// Menu elements
 	private JMenuBar menuBar;
@@ -144,14 +149,21 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 
 		this.menuBar = new JMenuBar( );
 		this.fileMenu = new JMenu( language.get( "File" ));
-		this.newWindowFileMenuItem = new JMenuItem( language.get( "New Window" ), KeyEvent.VK_N );
-		this.openFileMenuItem = new JMenuItem( language.get( "Open" ) + "...", KeyEvent.VK_O );
-		this.saveFileMenuItem = new JMenuItem( language.get( "Save" ) + "...", KeyEvent.VK_S );
-		this.printFileMenuItem = new JMenuItem( language.get( "Print" ) + "...", KeyEvent.VK_P );
-		this.exitFileMenuItem = new JMenuItem( language.get( "Close" ), KeyEvent.VK_C );
+		this.newWindowFileMenuItem = new JMenuItem( 
+			language.get( "New Window" ), KeyEvent.VK_N );
+		this.openFileMenuItem = new JMenuItem( 
+			language.get( "Open" ) + "...", KeyEvent.VK_O );
+		this.saveFileMenuItem = new JMenuItem( 
+			language.get( "Save" ) + "...", KeyEvent.VK_S );
+		this.printFileMenuItem = new JMenuItem( 
+			language.get( "Print" ) + "...", KeyEvent.VK_P );
+		this.exitFileMenuItem = new JMenuItem( 
+			language.get( "Close" ), KeyEvent.VK_C );
 		this.helpMenu = new JMenu( language.get( "Help" ));
-		this.contentsHelpMenuItem = new JMenuItem( language.get( "Contents" ), KeyEvent.VK_C );
-		this.aboutHelpMenuItem = new JMenuItem( language.get( "About" ), KeyEvent.VK_A );
+		this.contentsHelpMenuItem = new JMenuItem( 
+			language.get( "Contents" ), KeyEvent.VK_C );
+		this.aboutHelpMenuItem = new JMenuItem( 
+			language.get( "About" ), KeyEvent.VK_A );
 
 		// FILE MENU
 		this.fileMenu.setMnemonic( KeyEvent.VK_F );
@@ -200,7 +212,8 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 	}
 
 	public DataReader openCSV( ) {
-		String lastOpenCSV = Settings.getSettings( ).getProperty( "history.open.last" );
+		String lastOpenCSV = Settings.getSettings( ).getProperty( 
+			"history.open.last" );
 		JFileChooser fc;
 		if ( lastOpenCSV != null ) {
 			fc = new JFileChooser( 
@@ -224,12 +237,72 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 			} else {
 				data = new MetsignDataReader( selected.getAbsolutePath( ) );
 			}
-			Settings.getSettings( ).setProperty( "history.open.last", selected.getAbsolutePath( ));
+			Settings.getSettings( ).setProperty( "history.open.last", 
+				selected.getAbsolutePath( ));
 			data.load( );
 			return data;
 		}
 		return null;
 	
+	}
+
+	private class IntroPane extends ClosableTabbedPane {
+		private BufferedImage logo;
+
+		public IntroPane( ) {
+			super( );
+			try { 
+				this.logo = ImageIO.read( getClass( ).getResourceAsStream( 
+					"/resources/images/logo.png" ));
+			} catch ( IOException e ) { }
+		}
+
+		@Override
+		public void paintComponent( Graphics g ) {
+			super.paintComponent( g );
+			if ( this.getTabCount( ) < 1 ) {
+				String text;
+				FontMetrics f = g.getFontMetrics( );
+				Language language = Settings.getLanguage( );
+				int verticalCenter = this.getHeight( ) / 2;
+				int horizontalCenter = this.getWidth( ) / 2;
+
+				g.setFont( new Font( "Arial", Font.BOLD, 14 ));
+				text = language.get( "Copyright 2011" ); 
+				g.drawString( text, 
+					horizontalCenter - (f.stringWidth( text ) / 2), 
+					verticalCenter + 10 );
+
+				text = language.get( "JSysNet is distributed under the GNU GPL license" );
+				g.drawString( text, 
+					horizontalCenter - (f.stringWidth( text ) / 2), 
+					verticalCenter + 30 );
+
+				text = language.get( "This project is funded by NIH Grant 5R01GM087735" );
+				g.drawString( text,
+					horizontalCenter - (f.stringWidth( text ) / 2), 
+					verticalCenter + 50 );
+
+				text = language.get( "Press Ctrl+O to open a project" );
+				g.drawString( text,
+					horizontalCenter - (f.stringWidth( text ) / 2), 
+					verticalCenter + 70 );
+
+				g.setFont( new Font( "Arial Black", Font.BOLD, 48 ));
+				f = g.getFontMetrics( );
+
+				text = "JSysNet";
+				g.drawString( text, 
+					horizontalCenter + 70 - (f.stringWidth( text ) / 2), 
+					verticalCenter - 40 );
+
+				g.drawImage( logo, 
+					horizontalCenter - 25 - (f.stringWidth( text ) / 2), 
+					verticalCenter - 90, null );
+
+			}
+		}
+
 	}
 
 	/**

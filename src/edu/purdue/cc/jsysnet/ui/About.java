@@ -52,8 +52,7 @@ public class About extends JFrame {
 		this.add( this.panel );
 		try { 
 			this.logo = ImageIO.read( getClass( ).getResourceAsStream( "/resources/images/logo.png" ));
-		} catch ( IOException e ) {
-		}
+		} catch ( IOException e ) { }
 	}
 
 	private class AboutPanel extends JPanel {
@@ -62,24 +61,36 @@ public class About extends JFrame {
 			String text;
 			FontMetrics f = g.getFontMetrics( );
 			Language language = Settings.getLanguage( );
+			int verticalCenter = this.getHeight( ) / 2;
+			int horizontalCenter = this.getWidth( ) / 2 - 40;
 
-			text = language.get( "Copyright 2010 Purdue University" ); 
-			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 130 );
+			g.setFont( new Font( "Arial", Font.BOLD, 14 ));
+			text = language.get( "Copyright 2011" ); 
+			g.drawString( text, 
+				horizontalCenter - (f.stringWidth( text ) / 2), 
+				verticalCenter + 10 );
 
 			text = language.get( "JSysNet is distributed under the GNU GPL license" );
-			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 150 );
+			g.drawString( text, 
+				horizontalCenter - (f.stringWidth( text ) / 2), 
+				verticalCenter + 30 );
 
 			text = language.get( "This project is funded by NIH Grant 5R01GM087735" );
-			g.drawString( text, 200 - (f.stringWidth( text ) / 2), 170 );
+			g.drawString( text,
+				horizontalCenter - (f.stringWidth( text ) / 2), 
+				verticalCenter + 50 );
 
-			g.setFont( new Font( "Serif", Font.BOLD, 42 ));
+			g.setFont( new Font( "Arial Black", Font.BOLD, 48 ));
 			f = g.getFontMetrics( );
 
 			text = "JSysNet";
-			g.drawString( text, 230 - (f.stringWidth( text ) / 2), 80 );
+			g.drawString( text, 
+				horizontalCenter + 70 - (f.stringWidth( text ) / 2), 
+				verticalCenter - 40 );
 
-			g.drawImage( logo, 50, 30, null );
-
+			g.drawImage( logo, 
+				horizontalCenter - 25 - (f.stringWidth( text ) / 2), 
+				verticalCenter - 90, null );
 		}
 	}
 

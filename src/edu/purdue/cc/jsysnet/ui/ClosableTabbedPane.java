@@ -100,7 +100,8 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	 * Makes a tab closable.
 	 * 
 	 * @param index the index of the tab to make closable.
-	 * @param closable true to make the tab closable, false otherwise. Currently ignored.
+	 * @param closable true to make the tab closable, false otherwise. Currently 
+	 *	ignored.
 	 */
 	private void makeClosable( int index, boolean closable ) {
 		JPanel tabComponent = new JPanel( new BorderLayout( ));
