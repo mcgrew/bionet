@@ -69,6 +69,10 @@ public class Spectrum implements PaintScale,Cloneable {
 	}
 
 	public Paint getPaint( double value ) throws IllegalArgumentException {
+		return this.getPaint( (float)value );
+	}
+
+	public Paint getPaint( float value ) throws IllegalArgumentException {
 		if ( !this.inRange( value )) {
 			if ( this.outOfRangePaint != null ) {
 				return this.outOfRangePaint;
@@ -95,12 +99,13 @@ public class Spectrum implements PaintScale,Cloneable {
 	 * @param value The value to be checked.
 	 * @return Whether the value is in range or not.
 	 */
-	protected boolean inRange( double value ) {
-		return ( value != Double.NaN && this.range.contains( value ));
+	protected boolean inRange( float value ) {
+		return ( value != Float.NaN && this.range.contains( value ));
 	}
 
-	protected double normalize( double value ) {
-		return ( value - this.range.getMin( )) / ( this.range.getSize( ));
+	protected float normalize( float value ) {
+		return ( value - (float)this.range.getMin( )) / 
+			( (float)this.range.getSize( ));
 	}
 
 	public float getRed( double v ) {
@@ -108,7 +113,7 @@ public class Spectrum implements PaintScale,Cloneable {
 	}
 
 	public float getRed( float v ) {
-		return (float)( Math.min( 1, Math.max( 0, 4 * v - 2 )));
+		return ( Math.min( 1f, Math.max( 0f, 4 * v - 2 )));
 	}
 
 	public float getGreen( double v ) {
@@ -116,7 +121,7 @@ public class Spectrum implements PaintScale,Cloneable {
 	}
 
 	public float getGreen( float v ) {
-		return (float)( Math.min( 1, Math.max( 0, -4 * Math.abs( v - 0.5 ) + 1.5 )));
+		return ( Math.min( 1f, Math.max( 0f, -4 * Math.abs( v - 0.5f ) + 1.5f )));
 	}
 
 	public float getBlue( double v ) {
@@ -124,7 +129,7 @@ public class Spectrum implements PaintScale,Cloneable {
 	}
 
 	public float getBlue( float v ) {
-		return (float)( Math.min( 1, Math.max( 0, -3 * v + 1.5 )));
+		return ( Math.min( 1f, Math.max( 0f, -3 * v + 1.5f )));
 	}
 
 	public void setOutOfRangePaint( Paint p ) {

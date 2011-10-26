@@ -54,10 +54,11 @@ public class SplitSpectrum extends Spectrum {
 	 * @param value The value to be normalized.
 	 * @return The normalized value.
 	 */
-	protected double normalize( double value ) {
-		double returnValue = 0.5 + 
-			( Math.abs( value ) - this.range.getMin( )) / ( this.range.getSize( ) * 2 );
-		return ( value < 0 ) ? 1 - returnValue : returnValue;
+	protected float normalize( float value ) {
+		float returnValue = (float)( 0.5f + 
+			( Math.abs( value ) - this.range.getMin( )) / 
+				( this.range.getSize( ) * 2 ));
+		return ( value < 0f ) ? 1f - returnValue : returnValue;
 	}
 
 	/**
@@ -66,8 +67,8 @@ public class SplitSpectrum extends Spectrum {
 	 * @param value The value to be checked.
 	 * @return Whether the value is in range or not.
 	 */
-	protected boolean inRange( double value ) {
-		return ( value != Double.NaN && this.range.contains( Math.abs( value )));
+	protected boolean inRange( float value ) {
+		return ( value != Float.NaN && this.range.contains( Math.abs( value )));
 	}
 
 	/**
