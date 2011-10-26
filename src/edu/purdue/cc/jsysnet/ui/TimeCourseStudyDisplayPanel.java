@@ -142,7 +142,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		Language language = Settings.getLanguage( );
 		this.addComponentListener( new InitialSetup( ));
 		this.menuBar = new JMenuBar( );
-		this.groupsMenu = new JMenu( language.get( "View" ));
+		this.groupsMenu = new JMenu( language.get( "Groups" ));
 		this.groupsMenu.setMnemonic( KeyEvent.VK_G );
 		this.removeSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_R );

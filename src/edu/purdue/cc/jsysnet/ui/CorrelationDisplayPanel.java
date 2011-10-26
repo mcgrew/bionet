@@ -193,7 +193,7 @@ public class CorrelationDisplayPanel extends JPanel
 	private JMenuItem showCorrelatedViewMenuItem;
 	private SaveImageAction saveImageAction;
 
-	// groups emnu items
+	// groups menu items
 	private JMenu groupsMenu;
 	private JMenuItem resetSampleGroupsMenuItem;
 	private JMenuItem chooseSampleGroupsMenuItem;
@@ -778,7 +778,7 @@ public class CorrelationDisplayPanel extends JPanel
 		} else if ( item == this.zoomOutViewMenuItem ) {
 			this.visibleGraph.scale( 0.8f );
 		} else if ( item == this.fitToWindowViewMenuItem ) {
-			this.visibleGraph.scale( 0.99f );
+			this.visibleGraph.scaleTo( 0.99f );
 		} else if ( item == this.invertSelectionViewMenuItem ) {
 			for ( Molecule m : vertices )
 				pickedVertexState.pick( m, !pickedVertexState.isPicked( m ));
