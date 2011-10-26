@@ -131,7 +131,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		implements DisplayPanel,ComponentListener,ActionListener {
 
 	private JMenuBar menuBar;
-	private JMenu viewMenu;
+	private JMenu curveFittingMenu;
+	private JMenu groupsMenu;
 	private JMenuItem chooseSampleGroupsMenuItem;
 	private JMenuItem removeSampleGroupsMenuItem;
 
@@ -163,31 +164,37 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		super( new BorderLayout( ));
 		Language language = Settings.getLanguage( );
 		this.menuBar = new JMenuBar( );
-		this.viewMenu = new JMenu( language.get( "View" ));
-		this.viewMenu.setMnemonic( KeyEvent.VK_V );
+		this.curveFittingMenu = new JMenu( 
+			language.get( "Curve Fitting" ));
+		this.curveFittingMenu.setMnemonic( KeyEvent.VK_C );
+		this.groupsMenu = new JMenu( language.get( "Groups" ));
+		this.groupsMenu.setMnemonic( KeyEvent.VK_G );
 		this.removeSampleGroupsMenuItem = 
-			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_G );
+			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_R );
 		this.chooseSampleGroupsMenuItem = 
-			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
+			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_C );
 		this.fitSelectorPanel = new JPanel( new GridLayout( 4, 1 ));
-		this.noFitButton = new JRadioButtonMenuItem( language.get( "No Fit" ));
-		this.robustFitButton = new JRadioButtonMenuItem( language.get("Robust Linear Fit"));
-		this.chiSquareFitButton = new JRadioButtonMenuItem( language.get("Chi Square Fit"));
+		this.noFitButton = new JRadioButtonMenuItem( 
+			language.get( "No Fit" ));
+		this.robustFitButton = new JRadioButtonMenuItem( 
+			language.get("Robust Linear Fit"));
+		this.chiSquareFitButton = new JRadioButtonMenuItem( 
+			language.get("Chi Square Fit"));
 		this.fitButtonGroup = new ButtonGroup( );
 		this.fitButtonGroup.add( this.noFitButton );
 		this.fitButtonGroup.add( this.robustFitButton );
 		this.fitButtonGroup.add( this.chiSquareFitButton );
 		this.noFitButton.setSelected( true );
-		this.viewMenu.add( this.removeSampleGroupsMenuItem );
-		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
-		this.viewMenu.addSeparator( );
-		this.viewMenu.add( this.noFitButton );
-		this.viewMenu.add( this.robustFitButton );
-		this.viewMenu.add( this.chiSquareFitButton );
+		this.curveFittingMenu.add( this.noFitButton );
+		this.curveFittingMenu.add( this.robustFitButton );
+		this.curveFittingMenu.add( this.chiSquareFitButton );
+		this.groupsMenu.add( this.removeSampleGroupsMenuItem );
+		this.groupsMenu.add( this.chooseSampleGroupsMenuItem );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.removeSampleGroupsMenuItem.addActionListener( this );
 		this.add( menuBar, BorderLayout.NORTH );
-		this.menuBar.add( this.viewMenu );
+		this.menuBar.add( this.curveFittingMenu );
+		this.menuBar.add( this.groupsMenu );
 	}
 
 	/**
@@ -340,6 +347,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				experimentGraph.setGraph( selectedNode );
 			}
 		}
+		this.removeSampleGroupsMenuItem.setEnabled( 
+			sampleGroups != null && sampleGroups.size( ) > 1 );
 		this.experimentGraphPanel.validate( );
 		this.bottomPanel.validate( );
 

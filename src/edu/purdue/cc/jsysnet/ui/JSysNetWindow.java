@@ -283,13 +283,17 @@ public class JSysNetWindow extends JFrame implements ActionListener,TabbedWindow
 					horizontalCenter - (f.stringWidth( text ) / 2), 
 					verticalCenter + 50 );
 
-				text = language.get( "Press Ctrl+O to open a project" );
+				g.setFont( new Font( "Arial", Font.BOLD, 18 ));
+				g.setColor( Color.RED );
+
+				text = language.get( "Go to File -> Open to open a project" );
 				g.drawString( text,
 					horizontalCenter - (f.stringWidth( text ) / 2), 
-					verticalCenter + 70 );
+					verticalCenter - 160 );
 
 				g.setFont( new Font( "Arial Black", Font.BOLD, 48 ));
 				f = g.getFontMetrics( );
+				g.setColor( Color.BLACK );
 
 				text = "JSysNet";
 				g.drawString( text, 

@@ -179,7 +179,6 @@ public class CorrelationDisplayPanel extends JPanel
 
 	// view menu items
 	private JMenu viewMenu;
-	private JMenuItem chooseSampleGroupsMenuItem;
 	private JMenuItem zoomInViewMenuItem;
 	private JMenuItem zoomOutViewMenuItem;
 	private JMenuItem fitToWindowViewMenuItem;
@@ -193,6 +192,11 @@ public class CorrelationDisplayPanel extends JPanel
 	private JMenuItem hideOrphansViewMenuItem;
 	private JMenuItem showCorrelatedViewMenuItem;
 	private SaveImageAction saveImageAction;
+
+	// groups emnu items
+	private JMenu groupsMenu;
+	private JMenuItem resetSampleGroupsMenuItem;
+	private JMenuItem chooseSampleGroupsMenuItem;
 
 	
 	// color menu items
@@ -288,8 +292,6 @@ public class CorrelationDisplayPanel extends JPanel
 
 		// view menu items
 		this.viewMenu = new JMenu( language.get( "View" ));
-		this.chooseSampleGroupsMenuItem = 
-			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
 		this.zoomInViewMenuItem = 
 			new JMenuItem( language.get( "Zoom In" ), KeyEvent.VK_I );
 		this.zoomOutViewMenuItem = 
@@ -316,6 +318,13 @@ public class CorrelationDisplayPanel extends JPanel
 			language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
 		this.saveImageAction = new SaveImageAction( 
 			language.get( "Save Main Graph Image" ), null );
+
+		// groups menu items
+		this.groupsMenu = new JMenu( language.get( "Groups" ));
+		this.resetSampleGroupsMenuItem = 
+			new JMenuItem( language.get( "Rest Sample Groups" ), KeyEvent.VK_R );
+		this.chooseSampleGroupsMenuItem = 
+			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_C );
 		
 		// color menu items
 		this.colorMenu = new JMenu( language.get( "Color" ));
@@ -386,7 +395,6 @@ public class CorrelationDisplayPanel extends JPanel
 
 		//VIEW MENU
 		this.viewMenu.add( this.colorMenu );
-		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
 		this.viewMenu.addSeparator( );
 		this.viewMenu.setMnemonic( KeyEvent.VK_V );
 		this.viewMenu.getAccessibleContext( ).setAccessibleDescription(
@@ -407,6 +415,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.viewMenu.add( this.showCorrelatedViewMenuItem );
 		this.viewMenu.addSeparator( );
 		this.viewMenu.add( this.saveImageAction );
+		this.resetSampleGroupsMenuItem.addActionListener( this );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.zoomOutViewMenuItem.addActionListener( this );
 		this.zoomInViewMenuItem.addActionListener( this );
@@ -424,6 +433,11 @@ public class CorrelationDisplayPanel extends JPanel
 			KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK ));
 		this.clearSelectionViewMenuItem.setAccelerator(
 			KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0 ));
+
+		// GROUPS MENU
+		this.groupsMenu.setMnemonic( KeyEvent.VK_G );
+		this.groupsMenu.add( this.resetSampleGroupsMenuItem );
+		this.groupsMenu.add( this.chooseSampleGroupsMenuItem );
 
 		this.zoomOutViewMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK ));
@@ -448,6 +462,7 @@ public class CorrelationDisplayPanel extends JPanel
 		this.menuBar.add( this.correlationMethodMenu );
 		this.menuBar.add( this.layoutMenu );
 		this.menuBar.add( this.viewMenu );
+		this.menuBar.add( this.groupsMenu );
 
 		// Add the panels to the main panel
 		this.add( menuBar, BorderLayout.NORTH );
@@ -837,6 +852,12 @@ public class CorrelationDisplayPanel extends JPanel
 					logger.debug( "\t" +  sample.toString( ));
 				}
 			}
+		} else if ( item == this.resetSampleGroupsMenuItem ) {
+			this.sampleGroups = new ArrayList<SampleGroup>( );
+			this.sampleGroups.add( new SampleGroup( 
+				Settings.getLanguage( ).get( "All samples" ), this.samples ));
+			this.graph.setSampleGroups( this.sampleGroups );
+			this.infoPanel.repaint( );
 		}
 	}
 
@@ -2375,6 +2396,7 @@ public class CorrelationDisplayPanel extends JPanel
 					sg, this.upRegulationOutline, 
 					this.downRegulationOutline, null ));
 			if ( sg.size( ) > 1 ) {
+				resetSampleGroupsMenuItem.setEnabled( true );
 				this.add( this.regulationLegend );
 				this.componentMoved( new ComponentEvent( this, -1 ));
 				multipleCirclesLayoutMenuItem.setEnabled( true );
@@ -2382,6 +2404,7 @@ public class CorrelationDisplayPanel extends JPanel
 				if ( this.regulationLegend != null ) {
 					this.remove( this.regulationLegend );
 				}
+				resetSampleGroupsMenuItem.setEnabled( false );
 			}
 			this.repaint( );
 		}
@@ -2646,10 +2669,12 @@ public class CorrelationDisplayPanel extends JPanel
 					}
 					double mean1 = m.getValues( sampleGroups.getFirst( )).getMean( );
 					double mean2 = m.getValues( sampleGroups.getSecond( )).getMean( );
-					if ( mean1 < mean2 ) {
+					double foldChange = Settings.getSettings( ).getDouble( 
+						"preferences.correlation.foldChange", 2.0 );
+					if ( mean1 / mean2 > foldChange ) {
 						return this.upPaint;
 					}
-					if ( mean2 < mean1 ) {
+					if ( mean2 / mean1  > foldChange ) {
 						return this.downPaint;
 					}
 				}
@@ -2715,13 +2740,13 @@ public class CorrelationDisplayPanel extends JPanel
 
 			// draw the legend
 			g.setColor( this.nodeColor );
-			g.fillOval( 10, bottom - 60, 20, 20 );
-			g.fillOval( right - 30, bottom - 60, 20, 20 );
+			g.fillOval( 10, bottom - 63, 20, 20 );
+			g.fillOval( right - 30, bottom - 63, 20, 20 );
 			((Graphics2D)g).setStroke( new BasicStroke( 2 ));
 			g.setColor( this.upColor );
-			g.drawOval( 10, bottom - 60, 20, 20 );
+			g.drawOval( 10, bottom - 63, 20, 20 );
 			g.setColor( this.downColor );
-			g.drawOval( right - 30, bottom - 60, 20, 20 );
+			g.drawOval( right - 30, bottom - 63, 20, 20 );
 			g.setColor( this.getForeground( ));
 
 		}

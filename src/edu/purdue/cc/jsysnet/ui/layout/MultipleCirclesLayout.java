@@ -26,7 +26,7 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.jsysnet.ui.layout;
 
 import edu.purdue.bbc.util.Pair;
-import edu.purdue.bbc.util.SimplePair;
+import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.SampleGroup;
 import edu.purdue.cc.jsysnet.util.PolarPoint2D;
@@ -56,12 +56,15 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 
 	private double radius;
 	Pair<SampleGroup> sampleGroups;
+	private double foldChange;
 	
 	/**
 	 * Creates an instance for the specified graph.
 	 */
 	public MultipleCirclesLayout(Graph<V,E> g) {
 		super(g);
+		this.foldChange = Settings.getSettings( ).getDouble( 
+			"preferences.correlation.foldChange", 2.0 );
 	}
 
 	/**
@@ -96,10 +99,10 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 	public void initialize() {
 		if ( this.sampleGroups != null ) {
 			Dimension d = this.getSize();
-			SimplePair<List<V>> moleculeGroups = 
-				new SimplePair<List<V>>( new ArrayList<V>( ),
-																	new ArrayList<V>( ));
-			
+			List<List<V>> moleculeGroups = new ArrayList<List<V>>( );
+			for ( int i=0; i < 3; i++ ) {
+				moleculeGroups.add( new ArrayList<V>( ));
+			}
 			if (d != null) {
 				double height = d.getHeight();
 				double width = d.getWidth();
@@ -107,9 +110,11 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 				String groupName;
 				for ( V v : this.getGraph( ).getVertices( )) {
 					if ( this.isUpRegulated( sampleGroups, v ))
-						moleculeGroups.getFirst( ).add( v );
+						moleculeGroups.get( 2 ).add( v );
+					else if ( this.isDownRegulated( sampleGroups, v ))
+						moleculeGroups.get( 1 ).add( v );
 					else
-						moleculeGroups.getSecond( ).add( v );
+						moleculeGroups.get( 0 ).add( v );
 				}
 				
 				this.radius = ( Math.min( height, width )) * 0.3;
@@ -139,8 +144,14 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 
 	private boolean isUpRegulated( Pair<SampleGroup> pair, V v ) {
 		Molecule m = (Molecule)v;
-		return m.getValues( pair.getFirst( )).getMean( ) <
-			m.getValues( pair.getSecond( )).getMean( );
+		return m.getValues( pair.getFirst( )).getMean( ) /
+			m.getValues( pair.getSecond( )).getMean( ) > this.foldChange;
+	}
+
+	private boolean isDownRegulated( Pair<SampleGroup> pair, V v ) {
+		Molecule m = (Molecule)v;
+		return m.getValues( pair.getSecond( )).getMean( ) /
+			m.getValues( pair.getFirst( )).getMean( ) > this.foldChange;
 	}
 }
 

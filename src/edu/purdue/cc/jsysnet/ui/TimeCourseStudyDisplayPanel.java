@@ -114,7 +114,7 @@ import org.apache.log4j.Logger;
 public class TimeCourseStudyDisplayPanel extends JPanel 
                                 implements DisplayPanel, ActionListener {
 	private JMenuBar menuBar;
-	private JMenu viewMenu;
+	private JMenu groupsMenu;
 	private JMenuItem chooseSampleGroupsMenuItem;
 	private JMenuItem removeSampleGroupsMenuItem;
 	private JMenuItem recomputeMenuItem;
@@ -142,21 +142,21 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		Language language = Settings.getLanguage( );
 		this.addComponentListener( new InitialSetup( ));
 		this.menuBar = new JMenuBar( );
-		this.viewMenu = new JMenu( language.get( "View" ));
-		this.viewMenu.setMnemonic( KeyEvent.VK_V );
+		this.groupsMenu = new JMenu( language.get( "View" ));
+		this.groupsMenu.setMnemonic( KeyEvent.VK_G );
 		this.removeSampleGroupsMenuItem = 
-			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_G );
+			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_R );
 		this.chooseSampleGroupsMenuItem = 
-			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_G );
+			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_C );
 		this.recomputeMenuItem = 
 			new JMenuItem( Settings.getLanguage( ).get( "Recompute/Set Parameters" ));
 		this.recomputeMenuItem.addActionListener( this );
-		this.viewMenu.add( this.removeSampleGroupsMenuItem );
-		this.viewMenu.add( this.chooseSampleGroupsMenuItem );
+		this.groupsMenu.add( this.removeSampleGroupsMenuItem );
+		this.groupsMenu.add( this.chooseSampleGroupsMenuItem );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.removeSampleGroupsMenuItem.addActionListener( this );
 		this.add( menuBar, BorderLayout.NORTH );
-		this.menuBar.add( this.viewMenu );
+		this.menuBar.add( this.groupsMenu );
 		this.menuBar.add( this.recomputeMenuItem );
 	}
 		
