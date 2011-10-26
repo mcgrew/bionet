@@ -31,6 +31,7 @@ import edu.purdue.cc.jsysnet.ui.layout.LayoutAnimator;
 import edu.purdue.cc.jsysnet.ui.layout.CenterLayout;
 import edu.purdue.cc.jsysnet.ui.layout.MultipleCirclesLayout;
 import edu.purdue.cc.jsysnet.ui.layout.RandomLayout;
+import edu.purdue.cc.jsysnet.ui.renderer.FastEdgeRenderer;
 import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Experiment;
@@ -2339,6 +2340,8 @@ public class CorrelationDisplayPanel extends JPanel
 					}
 				}
 			};
+			this.getRenderer( ).setEdgeRenderer( 
+				new FastEdgeRenderer<Molecule,Correlation>( ));
 			this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
 			this.getRenderContext( ).setVertexStrokeTransformer( 
 				new Transformer<Molecule,Stroke>( ) {
