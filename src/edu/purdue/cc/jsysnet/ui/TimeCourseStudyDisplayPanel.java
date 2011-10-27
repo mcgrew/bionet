@@ -23,6 +23,7 @@ import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.jsysnet.io.SaveImageAction;
+import edu.purdue.cc.jsysnet.util.SampleComparator;
 import edu.purdue.cc.jsysnet.util.Experiment;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
@@ -47,6 +48,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -759,6 +761,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				this.chart = null;
 				return false;
 			}
+			Collections.sort( samples, new SampleComparator( ));
 			XYSeriesCollection xyDataset = new XYSeriesCollection( );
 			Collection <Dataset> clusters = null;
 			// If the root node is selected (which should be the only time this
@@ -856,6 +859,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				this.chart = null;
 				return false;
 			}
+			Collections.sort( samples, new SampleComparator( ));
 			XYSeriesCollection xyDataset = new XYSeriesCollection( );
 			XYSeries data;
 			if ( node.getLevel( ) == CLUSTER ) {

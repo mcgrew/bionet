@@ -29,6 +29,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JButton;
@@ -47,6 +48,7 @@ import edu.purdue.cc.jsysnet.util.Correlation;
 import edu.purdue.cc.jsysnet.util.CorrelationSet;
 import edu.purdue.cc.jsysnet.util.Molecule;
 import edu.purdue.cc.jsysnet.util.Sample;
+import edu.purdue.cc.jsysnet.util.SampleComparator;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -175,6 +177,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			XYSeriesCollection dataset = new XYSeriesCollection( );
 
 			List<Sample> sampleList = new ArrayList<Sample>( sampleMap.keySet( ));
+			Collections.sort( sampleList, new SampleComparator( ));
 			XYSeries data = new XYSeries( molecule.getId( ));
 			TickUnits tickUnits = new TickUnits( );
 			int index = 0;
