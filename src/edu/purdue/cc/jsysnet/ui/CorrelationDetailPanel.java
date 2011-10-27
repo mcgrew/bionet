@@ -189,6 +189,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 				false, // use tooltips
 				false  // configure chart to generate URLs (?!)
 			);
+//			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 
 			XYPlot plot = this.chart.getXYPlot( );
 			plot.setBackgroundPaint( Color.WHITE );

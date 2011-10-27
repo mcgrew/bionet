@@ -35,6 +35,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GridLayout;
@@ -86,9 +87,11 @@ import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartTheme;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
+import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.TickUnits;
@@ -817,6 +820,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				false,                           // use tooltips
 				false                            // configure chart to generate URLs
 			);
+			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 
 			XYPlot plot = this.chart.getXYPlot( );
 			XYLineAndShapeRenderer renderer = 
@@ -913,6 +917,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				false                            // configure chart to generate URLs (?)
 			);
 
+			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 			XYPlot plot = this.chart.getXYPlot( );
 			XYLineAndShapeRenderer renderer = 
 				(XYLineAndShapeRenderer)plot.getRenderer( );

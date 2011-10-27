@@ -36,6 +36,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Graphics;
@@ -618,6 +619,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				boxDataSet, // plot data
 				true // show legend
 			);
+			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 			XYSeriesCollection fitDataset = new XYSeriesCollection( );
 			fitDataset.addSeries( fitSeries );
 			XYPlot plot = this.chart.getXYPlot( );
@@ -812,6 +814,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				false                            // configure chart to generate URLs (?)
 			);
 
+			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 			XYPlot plot = this.chart.getXYPlot( );
 			plot.setRenderer( renderer );
 			// this is a single experiment graph, so pick the color to be consistent

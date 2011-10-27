@@ -23,6 +23,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -199,6 +200,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 				false,                           // use tooltips
 				false                            // configure chart to generate URLs (?)
 			);
+			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 			XYPlot plot = this.chart.getXYPlot( );
 			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer( );
 			renderer.setSeriesPaint( 0, Color.getHSBColor( 0.5f, 1.0f, 0.5f ));

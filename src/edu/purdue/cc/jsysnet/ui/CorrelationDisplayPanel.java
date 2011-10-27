@@ -1712,6 +1712,7 @@ public class CorrelationDisplayPanel extends JPanel
 					false, // use tooltips
 					false // configure chart to generate URLs
 				);
+//				this.distributionChart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 				CategoryPlot plot = distributionChart.getCategoryPlot( );
 				plot.setBackgroundPaint( Color.WHITE );
 				plot.setRangeGridlinePaint( Color.GRAY );
@@ -1799,6 +1800,7 @@ public class CorrelationDisplayPanel extends JPanel
 					false, // use tooltips
 					false // configure chart to generate URLs
 				);
+//				this.distributionChart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 				boolean includeLower = false, includeUpper = true;
 				for( int i=-100; i < 100; i++ ) {
 					if ( i == -1 )
