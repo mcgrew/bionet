@@ -862,6 +862,10 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 	}
 
+	public Graph getGraph( ) {
+		return this.graph;
+	}
+
 	// =================== PRIVATE/PROTECTED CLASSES ==========================
 	// ====================== MoleculeFilterPanel =============================
 
@@ -869,7 +873,8 @@ public class CorrelationDisplayPanel extends JPanel
 	 * A UI class for hiding/showing moledules (nodes)
 	 */
 	private class MoleculeFilterPanel extends JPanel implements 
-			ItemListener,ActionListener,GraphItemChangeListener<Molecule>,KeyListener{
+			ItemListener, ActionListener, GraphItemChangeListener<Molecule>,
+			KeyListener {
 
 		private HashMap<Molecule,JCheckBox> checkBoxMap = 
 			new HashMap<Molecule,JCheckBox>( );
@@ -880,6 +885,7 @@ public class CorrelationDisplayPanel extends JPanel
 		private JButton noneButton;
 		private JButton allButton;
 		private JTextField filterBox = new JTextField( );
+		private MoleculePopup popup = new MoleculePopup( );
 
 		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 )) {
 			// Inserts the checkboxes in alphabetical order
@@ -956,14 +962,13 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @return true if the molecule doesn't already exist in the list.
 		 */
 		public boolean add( Molecule m ) {
-			if ( this.moleculeMap.values( ).contains( m )) {
+			if ( this.checkBoxMap.keySet( ).contains( m )) {
 				return false;
 			}
-			JCheckBox cb = new JCheckBox( m.toString( ), true );
+			JCheckBox cb = new MoleculeCheckBox( m, this.popup, true );
 			cb.setBackground( Color.WHITE );
 			this.moleculeList.add( cb );
 			this.checkBoxMap.put( m, cb );
-			this.moleculeMap.put( cb, m );
 			cb.addItemListener( this );
 			return true;
 		}
@@ -986,7 +991,8 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		public void itemStateChanged( ItemEvent event ) {
 			synchronized( graph.getGraph( )) {
-				Molecule molecule = moleculeMap.get( event.getSource( ));
+				Molecule molecule = 
+					((MoleculeCheckBox)event.getSource( )).getMolecule( );
 				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
 					graph.addVertex( molecule );
 					for( Correlation correlation : correlations ){
@@ -1159,7 +1165,33 @@ public class CorrelationDisplayPanel extends JPanel
 			else if ( change == GraphItemChangeEvent.ADDED )
 				cb.setSelected( true );
 		}
-		
+
+		private class MoleculeCheckBox extends JCheckBox implements MouseListener {
+			private Molecule molecule;
+			private MoleculePopup popup;
+
+			public MoleculeCheckBox ( Molecule m, MoleculePopup popup,
+			                          boolean checked ) {
+				super( m.toString( ), checked );
+				this.molecule = m;
+				this.popup = popup;
+				this.addMouseListener( this );
+			}
+
+			public Molecule getMolecule( ) {
+				return this.molecule;
+			}
+
+			public void mouseClicked( MouseEvent e ) { 
+				if ( e.getButton( ) == MouseEvent.BUTTON3 ) {
+					this.popup.show( this, e.getX( ), e.getY( ), this.molecule );
+				}
+			}
+			public void mouseEntered( MouseEvent e ) { }
+			public void mouseExited( MouseEvent e ) { }
+			public void mousePressed( MouseEvent e ) { }
+			public void mouseReleased( MouseEvent e ) { }
+		}
 	}
 
 	// ============================ InfoPanel ===================================
@@ -2012,150 +2044,170 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @param e The event which triggered this action.
 		 */
 		public void graphReleased( Molecule m, MouseEvent e ) { }
-
-		// =========================== MoleculePopup ============================
+	}
+	// =========================== MoleculePopup ============================
+	/**
+	 * A class for implementing the context menu.
+	 */
+	private class MoleculePopup extends JPopupMenu implements ActionListener {
+		protected JMenuItem hideMenuItem;
+		protected JMenuItem detailsMenuItem;
+		protected JMenuItem selectMenuItem;
+		protected JMenuItem selectCorrelatedMenuItem;
+		protected JMenuItem selectSubnetworkMenuItem;
+		protected JMenuItem exploreCorrelationsMenu;
+		protected Molecule molecule;
+		protected HashMap <JMenuItem,Correlation> correlationMap = 
+			new HashMap <JMenuItem,Correlation>( );
+		protected SaveImageAction saveImageAction;
+		
 		/**
-		 * A class for implementing the context menu.
+		 * Creates a new instance of the PopupMenu
 		 */
-		private class MoleculePopup extends JPopupMenu implements ActionListener {
-			protected JMenuItem hideMenuItem;
-			protected JMenuItem detailsMenuItem;
-			protected JMenuItem selectCorrelatedMenuItem;
-			protected JMenuItem selectSubnetworkMenuItem;
-			protected JMenuItem exploreCorrelationsMenu;
-			protected Molecule molecule;
-			protected HashMap <JMenuItem,Correlation> correlationMap = 
-				new HashMap <JMenuItem,Correlation>( );
-			protected SaveImageAction saveImageAction;
-			
-			/**
-			 * Creates a new instance of the PopupMenu
-			 */
-			public MoleculePopup ( ) {
-				super( );
-				Language language = Settings.getLanguage( );
-				this.hideMenuItem = new JMenuItem( language.get( "Hide" ));
-				this.detailsMenuItem = new JMenuItem( language.get( "Details" ));
-				this.selectCorrelatedMenuItem = 
-					new JMenuItem( language.get( "Select Directly Correlated" ));
-				this.selectSubnetworkMenuItem =
-					new JMenuItem( language.get( "Select Subnetwork" ));
-				this.exploreCorrelationsMenu =
-					new JMenu( language.get( "Explore Correlations" ));
-				this.add( this.hideMenuItem );
-				this.add( this.detailsMenuItem );
-				this.add( this.selectCorrelatedMenuItem );
-				this.add( this.selectSubnetworkMenuItem );
-				this.add( this.exploreCorrelationsMenu );
-				this.addSeparator( );
-				this.saveImageAction = new SaveImageAction( graph );
-				this.add( this.saveImageAction );
-				this.hideMenuItem.addActionListener( this );
-				this.detailsMenuItem.addActionListener( this );
-				this.selectSubnetworkMenuItem.addActionListener( this );
-				this.selectCorrelatedMenuItem.addActionListener( this );
-			}
+		public MoleculePopup ( ) {
+			super( );
+			Language language = Settings.getLanguage( );
+			this.hideMenuItem = new JMenuItem( language.get( "Hide" ));
+			this.detailsMenuItem = new JMenuItem( language.get( "Details" ));
+			this.selectMenuItem = new JMenuItem( language.get( "Toggle selection" ));
+			this.selectCorrelatedMenuItem = 
+				new JMenuItem( language.get( "Select Directly Correlated" ));
+			this.selectSubnetworkMenuItem =
+				new JMenuItem( language.get( "Select Subnetwork" ));
+			this.exploreCorrelationsMenu =
+				new JMenu( language.get( "Explore Correlations" ));
+			this.add( this.hideMenuItem );
+			this.add( this.detailsMenuItem );
+			this.add( this.selectMenuItem );
+			this.add( this.selectCorrelatedMenuItem );
+			this.add( this.selectSubnetworkMenuItem );
+			this.add( this.exploreCorrelationsMenu );
+			this.addSeparator( );
+			this.saveImageAction = new SaveImageAction( graph );
+			this.add( this.saveImageAction );
+			this.hideMenuItem.addActionListener( this );
+			this.detailsMenuItem.addActionListener( this );
+			this.selectMenuItem.addActionListener( this );
+			this.selectSubnetworkMenuItem.addActionListener( this );
+			this.selectCorrelatedMenuItem.addActionListener( this );
+		}
 
-			/**
-			 * Causes the JPopupMenu to be displayed at the given coordinates.
-			 * @see JPopupMenu#show(Component,int,int)
-			 * 
-			 * @param invoker The component which invoked this menu.
-			 * @param x The x position to display this menu.
-			 * @param y The y position to display this menu.
-			 * @param m The molecule which was clicked on to trigger this popup.
-			 */
-			public void show( Component invoker, int x, int y, Molecule m ) {
-				this.exploreCorrelationsMenu.removeAll( );
-				this.correlationMap.clear( );
-				this.molecule = m;
-				this.saveImageAction.setComponent( graph );
-				Range range =
-					((CorrelationGraphVisualizer)invoker).getRange( );
-				for( Correlation c : correlations ) {
-					if ( c.contains( m ) && 
-						   range.contains( Math.abs( c.getValue( correlationMethod )))) {
-						JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
-						this.correlationMap.put( menuItem, c );
-						this.exploreCorrelationsMenu.add( menuItem );
-						menuItem.addActionListener( this );
-					}
+		/**
+		 * Causes the JPopupMenu to be displayed at the given coordinates.
+		 * @see JPopupMenu#show(Component,int,int)
+		 * 
+		 * @param invoker The component which invoked this menu.
+		 * @param x The x position to display this menu.
+		 * @param y The y position to display this menu.
+		 * @param m The molecule which was clicked on to trigger this popup.
+		 */
+		public void show( Component invoker, int x, int y, Molecule m ) {
+			this.exploreCorrelationsMenu.removeAll( );
+			this.correlationMap.clear( );
+			this.molecule = m;
+			this.saveImageAction.setComponent( graph );
+			boolean containsVertex = graph.containsVertex( m );
+			this.selectMenuItem.setEnabled( containsVertex );
+			this.selectSubnetworkMenuItem.setEnabled( containsVertex );
+			this.selectCorrelatedMenuItem.setEnabled( containsVertex );
+			Component displayPanel = invoker;
+			while ( displayPanel != null && 
+				      !( displayPanel instanceof CorrelationDisplayPanel )) {
+				displayPanel = displayPanel.getParent( );
+			}
+			Range range =
+				((CorrelationDisplayPanel)displayPanel).getCorrelationRange( );
+			for( Correlation c : correlations ) {
+				if ( c.contains( m ) && 
+						 range.contains( Math.abs( c.getValue( correlationMethod )))) {
+					JMenuItem menuItem = new JMenuItem( c.getOpposite( m ).toString( ));
+					this.correlationMap.put( menuItem, c );
+					this.exploreCorrelationsMenu.add( menuItem );
+					menuItem.addActionListener( this );
 				}
-				this.show( invoker, x, y );
 			}
+			this.show( invoker, x, y );
+		}
 
 
-			/**
-			 * The actionPerformed method of the ActionListener interface.
-			 * @see ActionListner#actionPerformed(ActionEvent)
-			 * 
-			 * @param e the event which triggered this action.
-			 */
-			public void actionPerformed ( ActionEvent e ) {
-				CorrelationGraphVisualizer graph = 
-					(CorrelationGraphVisualizer)this.getInvoker( );
-				Range range = graph.getRange( );
-				Object source = e.getSource( );
+		/**
+		 * The actionPerformed method of the ActionListener interface.
+		 * @see ActionListner#actionPerformed(ActionEvent)
+		 * 
+		 * @param e the event which triggered this action.
+		 */
+		public void actionPerformed ( ActionEvent e ) {
+			Component displayPanel = this.getInvoker( );
+			while( displayPanel != null &&
+						!(displayPanel instanceof CorrelationDisplayPanel )) {
+				displayPanel = displayPanel.getParent( );
+			}
+			CorrelationGraphVisualizer graph = (CorrelationGraphVisualizer)
+				((CorrelationDisplayPanel)displayPanel).getGraph( );
+			Range range = graph.getRange( );
+			Object source = e.getSource( );
 
-				if ( this.correlationMap.containsKey( source )) {
-					new DetailWindow( correlations,
-					                  this.correlationMap.get( source ), 
-														range, correlationMethod.intValue( ));
-				} else if ( source == this.hideMenuItem ) {
-					graph.removeVertex( this.molecule );
+			if ( this.correlationMap.containsKey( source )) {
+				new DetailWindow( correlations,
+													this.correlationMap.get( source ), 
+													range, correlationMethod.intValue( ));
+			} else if ( source == this.hideMenuItem ) {
+				graph.removeVertex( this.molecule );
 
-				} else if ( source == this.detailsMenuItem ) {
-					new DetailWindow( correlations,
-					                  this.molecule, range, correlationMethod.intValue( ));
+			} else if ( source == this.detailsMenuItem ) {
+				new DetailWindow( correlations,
+													this.molecule, range, correlationMethod.intValue( ));
 
-				} else if ( source == this.selectCorrelatedMenuItem ) {
-					PickedState<Molecule> state = graph.getPickedVertexState( );
-					state.pick( this.molecule, true );
-					for ( Molecule m : graph.getNeighbors( this.molecule )) {
-						state.pick( m, true );
-					}
-					PickedState<Correlation> edgeState = graph.getPickedEdgeState( );
-					for ( Correlation c : graph.getIncidentEdges( this.molecule )) {
+			} else if ( source == this.selectMenuItem ) {
+				PickedState<Molecule> state = graph.getPickedVertexState( );
+				state.pick( this.molecule, !state.isPicked( this.molecule ));
+			} else if ( source == this.selectCorrelatedMenuItem ) {
+				PickedState<Molecule> state = graph.getPickedVertexState( );
+				state.pick( this.molecule, !state.isPicked( molecule ));
+				for ( Molecule m : graph.getNeighbors( this.molecule )) {
+					state.pick( m, true );
+				}
+				PickedState<Correlation> edgeState = graph.getPickedEdgeState( );
+				for ( Correlation c : graph.getIncidentEdges( this.molecule )) {
+					edgeState.pick( c, true );
+				}
+
+			} else if ( source == this.selectSubnetworkMenuItem ) {
+				PickedState<Molecule> state = graph.getPickedVertexState( );
+				PickedState<Correlation> edgeState = graph.getPickedEdgeState( );
+				Collection <Molecule> subnetwork = 
+					this.getSubnetwork( this.molecule, graph, null);
+				for( Molecule m : subnetwork ) {
+					state.pick( m, true );
+					for ( Correlation c : graph.getIncidentEdges( m )) {
 						edgeState.pick( c, true );
 					}
-
-				} else if ( source == this.selectSubnetworkMenuItem ) {
-					PickedState<Molecule> state = graph.getPickedVertexState( );
-					PickedState<Correlation> edgeState = graph.getPickedEdgeState( );
-					Collection <Molecule> subnetwork = this.getSubnetwork( this.molecule, 
-						(CorrelationGraphVisualizer)this.getInvoker( ), null);
-					for( Molecule m : subnetwork ) {
-						state.pick( m, true );
-						for ( Correlation c : graph.getIncidentEdges( m )) {
-							edgeState.pick( c, true );
-						}
-					}
 				}
 			}
-
-			/**
-			 * Recursive function for selecting connected nodes.
-			 * 
-			 * @param molecule The central molcule to select all connected nodes for.
-			 * @param graph The graph the molecule belongs to.
-			 */
-			private Collection<Molecule> getSubnetwork( 
-			                                      Molecule molecule, 
-																						CorrelationGraphVisualizer graph, 
-																						Collection<Molecule> collection ) {
-				if ( collection == null ) 
-					collection = new ArrayList<Molecule>( );
-				if ( collection.contains( molecule ))
-					return collection;
-
-				collection.add( molecule );
-				for ( Molecule m : graph.getNeighbors( molecule )) {
-					this.getSubnetwork( m, graph, collection );
-				}
-				return collection;
-			}
-			
 		}
+
+		/**
+		 * Recursive function for selecting connected nodes.
+		 * 
+		 * @param molecule The central molcule to select all connected nodes for.
+		 * @param graph The graph the molecule belongs to.
+		 */
+		private Collection<Molecule> getSubnetwork( 
+																					Molecule molecule, 
+																					CorrelationGraphVisualizer graph, 
+																					Collection<Molecule> collection ) {
+			if ( collection == null ) 
+				collection = new ArrayList<Molecule>( );
+			if ( collection.contains( molecule ))
+				return collection;
+
+			collection.add( molecule );
+			for ( Molecule m : graph.getNeighbors( molecule )) {
+				this.getSubnetwork( m, graph, collection );
+			}
+			return collection;
+		}
+		
 	}
 
 	// ====================== CorrelationFilterPanel =============================
