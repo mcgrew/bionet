@@ -876,10 +876,8 @@ public class CorrelationDisplayPanel extends JPanel
 			ItemListener, ActionListener, GraphItemChangeListener<Molecule>,
 			KeyListener {
 
-		private HashMap<Molecule,JCheckBox> checkBoxMap = 
-			new HashMap<Molecule,JCheckBox>( );
-		private HashMap<JCheckBox,Molecule> moleculeMap =
-			new HashMap<JCheckBox,Molecule>( );
+		private HashMap<Molecule,MoleculeCheckBox> checkBoxMap = 
+			new HashMap<Molecule,MoleculeCheckBox>( );
 		private JLabel filterLabel;
 		private JButton clearButton;
 		private JButton noneButton;
@@ -893,9 +891,9 @@ public class CorrelationDisplayPanel extends JPanel
 				int index = 0;
 				// find where the new checkBox should go.
 				try {
-					for ( Component c : this.getComponents( )) {
-						if ( ((JCheckBox)c).getText( ).compareTo( 
-							((JCheckBox)component).getText( )) > 0 )
+					for ( JCheckBox c : getCheckBoxes( )) {
+						if (((MoleculeCheckBox)c).getText( ).compareTo( 
+							((MoleculeCheckBox)component).getText( )) > 0 )
 							break;
 						index++;
 					}
@@ -965,7 +963,7 @@ public class CorrelationDisplayPanel extends JPanel
 			if ( this.checkBoxMap.keySet( ).contains( m )) {
 				return false;
 			}
-			JCheckBox cb = new MoleculeCheckBox( m, this.popup, true );
+			MoleculeCheckBox cb = new MoleculeCheckBox( m, this.popup, true );
 			cb.setBackground( Color.WHITE );
 			this.moleculeList.add( cb );
 			this.checkBoxMap.put( m, cb );
@@ -979,7 +977,7 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @return an ArrayList of MoleculeCheckBoxes from the display panel
 		 */
 		public Collection <JCheckBox> getCheckBoxes( ) {
-			return this.checkBoxMap.values( );
+			return new ArrayList<JCheckBox>( this.checkBoxMap.values( ));
 		}
 
 		//for the checkboxes
@@ -1020,11 +1018,13 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		public void actionPerformed( ActionEvent e ) {
 			Object source = e.getSource( );
-			if ( source == this.allButton )
+			if ( source == this.allButton ) {
+				System.out.println( "Showing all" );
 				this.setAllVisible( true );
-			else if ( source == this.noneButton )
+			} else if ( source == this.noneButton ) {
+				System.out.println( "Hiding all" );
 				this.setAllVisible( false );
-			else if ( source == this.clearButton ) {
+			} else if ( source == this.clearButton ) {
 				this.filterBox.setText( "" );
 				// simulate a key press of backspace.
 				KeyEvent keyEvent = new KeyEvent( this.filterBox, -1,
@@ -1071,7 +1071,7 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		private void setAllVisible( boolean state ) {
 			for ( Component c : this.moleculeList.getComponents( )) {
-				Molecule m = this.moleculeMap.get( c );
+				Molecule m = ((MoleculeCheckBox)c).getMolecule( );
 				if ( m != null )
 					this.set( m, state );
 			}
@@ -1095,7 +1095,7 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @param state The new state for the checkbox.
 		 */
 		private void set( Molecule m, boolean state ) {
-			JCheckBox cb = this.checkBoxMap.get( m );
+			MoleculeCheckBox cb = this.checkBoxMap.get( m );
 			cb.setSelected( state );
 			// fire the listeners
 			for ( ItemListener i : cb.getItemListeners( )) {
@@ -1137,13 +1137,13 @@ public class CorrelationDisplayPanel extends JPanel
 				}
 
 			for( JCheckBox cb : this.getCheckBoxes( )) {
-				if ( cb.isVisible( ) && 
-					   !p.matcher( this.moleculeMap.get( cb ).toString( ) ).matches( )) {
+				if ( cb.isVisible( ) && !p.matcher(
+							((MoleculeCheckBox)cb).getMolecule( ).toString( ) ).matches( )) {
 					this.moleculeList.remove( cb );
 					cb.setVisible( false );
 					
-				} else if ( !cb.isVisible( ) && 
-					p.matcher( this.moleculeMap.get( cb ).toString( )).matches( )) {
+				} else if ( !cb.isVisible( ) && p.matcher( 
+						((MoleculeCheckBox)cb).getMolecule( ).toString( ) ).matches( )) {
 					this.moleculeList.add( cb );
 					cb.setVisible( true );
 				}

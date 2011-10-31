@@ -74,7 +74,6 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	JButton secondMoleculeButton;
 	List <Number> firstMoleculeSamples;
 	List <Number> secondMoleculeSamples;
-	List <Sample> samples;
 	private int correlationMethod;
 
 	/**
@@ -122,7 +121,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		JPanel graphPanel = new ScatterPlot( correlation, correlations );
 		JPanel infoPanel = new InfoPanel( 
 			this.correlation.getValue( this.correlationMethod ), 
-			correlations.getSamples( ).size( ));
+			((ScatterPlot)graphPanel).getSamples( ).size( ));
 
 		JPanel mainPanel = new JPanel( new BorderLayout( ));
 		mainPanel.add( moleculePanel, BorderLayout.WEST );
@@ -173,9 +172,15 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			this.samples = new ArrayList<Sample>( sortedMap.values( ));
 			XYSeries data = new XYSeries( 
 				Settings.getLanguage( ).get( "Sample Data" ));
-			for ( Sample sample : this.samples ) {
-				data.add( sample.getValue( molecules.getFirst( )),
-									sample.getValue( molecules.getSecond( )));
+			for ( Sample sample : new ArrayList<Sample>( this.samples )) {
+				Double first = (Double)sample.getValue( molecules.getFirst( ));
+				Double second = (Double)sample.getValue( molecules.getSecond( ));
+				Double zero = new Double( 0.0 );
+				if ( first.compareTo( zero ) == 0 || second.compareTo( zero ) == 0 ) {
+					this.samples.remove( sample );
+					continue;
+				}
+				data.add( first, second );
 			}
 			XYSeriesCollection dataset = new XYSeriesCollection( );
 			dataset.addSeries( data );
@@ -223,6 +228,10 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			BufferedImage drawing = 
 				this.chart.createBufferedImage( size.width, size.height );
 			g.drawImage( drawing, 0, 0, Color.WHITE, this );
+		}
+
+		public List<Sample> getSamples( ) {
+			return this.samples;
 		}
 	}
 	
