@@ -140,24 +140,24 @@ public class SaveImageAction extends AbstractAction {
 		 */
 		public void write( ) throws IOException {
 			JFileChooser fc = new JFileChooser( );
-			fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
+			fc.setFileSelectionMode( JFileChooser.FILES_ONLY );
 			fc.addChoosableFileFilter( new JpgFileFilter( ));
 			fc.addChoosableFileFilter( new GifFileFilter( ));
 			fc.addChoosableFileFilter( new PngFileFilter( ));
 			int options = fc.showSaveDialog( this.component );
 			File file = fc.getSelectedFile( );
-			String filename = file.getAbsolutePath( );
-			if ( !file.getName( ).contains( "." )) {
-				FileFilter ff = fc.getFileFilter( );
-				if ( ff instanceof PngFileFilter ) {
-					filename += ".png";
-				} else if ( ff instanceof JpgFileFilter ) {
-					filename += ".jpg";
-				} else if ( ff instanceof GifFileFilter ) {
-					filename += ".gif";
-				}
-			}
 			if ( options == JFileChooser.APPROVE_OPTION ) {
+				String filename = file.getAbsolutePath( );
+				if ( !file.getName( ).contains( "." )) {
+					FileFilter ff = fc.getFileFilter( );
+					if ( ff instanceof PngFileFilter ) {
+						filename += ".png";
+					} else if ( ff instanceof JpgFileFilter ) {
+						filename += ".jpg";
+					} else if ( ff instanceof GifFileFilter ) {
+						filename += ".gif";
+					}
+				}
 				this.write( filename );
 			}
 		}
