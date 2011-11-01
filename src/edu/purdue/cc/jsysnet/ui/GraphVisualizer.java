@@ -27,6 +27,7 @@ import java.util.Vector;
 import java.util.HashMap;
 import java.util.List;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.geom.Point2D;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.ItemListener;
@@ -101,6 +102,7 @@ import org.apache.log4j.Logger;
 	protected Paint commonNeighborOutline = new Color( 1.0f, 0.3f, 0.3f );
 	protected boolean commonNeighborIndicator;
 	protected NeighborCollection<V,E> commonNeighbors;
+	private static final long repaintDelay = 1000L;
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -993,17 +995,53 @@ import org.apache.log4j.Logger;
 		}
 	}
 
+  // *** Experimental stuff for performance ***
+//	@Override
+//	protected void paintComponent( Graphics g ) {
+//		if ( !this.getIgnoreRepaint( )) {
+//			super.paintComponent( g );
+//		}
+//	}
+//
+//	@Override
+//	public void paint( Graphics g ) {
+//		if ( !this.getIgnoreRepaint( )) {
+//			super.paint( g );
+//		}
+//	}
+//
+//	@Override
+//	public void paintAll( Graphics g ) {
+//		if ( !this.getIgnoreRepaint( )) {
+//			super.paintAll( g );
+//		}
+//	}
+//
+//	@Override
+//	public void repaint( ) {
+//		if ( !this.getIgnoreRepaint( )) {
+//			super.repaint( );
+//		}
+//	}
+//
+//	@Override
+//	public void update( Graphics g ) {
+//		if ( !this.getIgnoreRepaint( )) {
+//			super.update( g );
+//		}
+//	}
+  // *** End experimental stuff ***
 
 	// Graph interface Methods
 	public boolean addEdge( E e, V v1, V v2 ) {
 		boolean returnValue = this.graph.addEdge( e, v1, v2 );
-		this.repaint( );
+		this.repaint( repaintDelay );
 		return returnValue;
 	}
 
 	public boolean addEdge( E e, V v1, V v2, EdgeType edgetype ) {
 		boolean returnValue = this.graph.addEdge( e, v1, v2, edgetype );
-		this.repaint( );
+		this.repaint( repaintDelay );
 		return returnValue;
 	}
 
@@ -1074,14 +1112,14 @@ import org.apache.log4j.Logger;
 	// Hypergraph interface methods
 	public boolean addEdge( E edge, Collection<? extends V> vertices ) {
 		boolean returnValue = this.graph.addEdge( edge, vertices );
-		this.repaint( );
+		this.repaint( repaintDelay );
 		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.ADDED );
 		return returnValue;
 	}
 
 	public boolean addEdge( E edge, Collection<? extends V> vertices, EdgeType edge_type ) {
 		boolean returnValue = this.graph.addEdge( edge, vertices, edge_type );
-		this.repaint( );
+		this.repaint( repaintDelay );
 		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.ADDED );
 		return returnValue;
 	}
@@ -1089,7 +1127,7 @@ import org.apache.log4j.Logger;
 	public boolean addVertex( V vertex ) {
 		this.fireVertexChangeEvent( vertex, GraphItemChangeEvent.ADDED );
 		boolean returnValue = this.graph.addVertex( vertex );
-		this.repaint( );
+		this.repaint( repaintDelay  );
 		return returnValue;
 	}
 
@@ -1177,14 +1215,14 @@ import org.apache.log4j.Logger;
 	public boolean removeEdge( E edge ) {
 		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.REMOVED );
 		boolean returnValue = this.graph.removeEdge( edge );
-		this.repaint( );
+		this.repaint( repaintDelay );
 		return returnValue;
 	}
 
 	public boolean removeVertex( V vertex ) {
 		this.fireVertexChangeEvent( vertex, GraphItemChangeEvent.REMOVED );
 		boolean returnValue = this.graph.removeVertex( vertex );
-		this.repaint( );
+		this.repaint( repaintDelay );
 		return returnValue;
 	}
 
@@ -1192,7 +1230,7 @@ import org.apache.log4j.Logger;
 	public boolean addEdge( E edge, Pair<? extends V> endpoints, EdgeType edgeType ) {
 		this.fireEdgeChangeEvent( edge, GraphItemChangeEvent.ADDED );
 		boolean returnValue = this.graph.addEdge( edge, endpoints, edgeType );
-		this.repaint( );
+		this.repaint( repaintDelay );
 		return returnValue;
 	}
 

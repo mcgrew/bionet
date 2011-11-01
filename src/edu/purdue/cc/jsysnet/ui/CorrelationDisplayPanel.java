@@ -820,14 +820,17 @@ public class CorrelationDisplayPanel extends JPanel
 					this.graph.removeVertex( m );
 			}
 		} else if ( item == this.showCorrelatedViewMenuItem ) {
+			this.graph.setIgnoreRepaint( true );
 			for ( Correlation c : this.correlations ){
-				if ( this.getCorrelationRange( ).contains( c.getValue( this.correlationMethod )) &&
+				if ( this.getCorrelationRange( ).contains( 
+					   c.getValue( this.correlationMethod )) &&
 				     ( vertices.contains( c.getFirst( ) ) ||
 						   vertices.contains( c.getSecond( ) ))) {
 					this.graph.addVertex( c.getFirst( ));
 					this.graph.addVertex( c.getSecond( ));
 				}
 			}
+			this.graph.setIgnoreRepaint( false );
 		} else if ( item == this.chooseSampleGroupsMenuItem ) {
 			Component frame = this;
 			while( !(frame instanceof Frame) && frame != null ) {
@@ -1019,10 +1022,8 @@ public class CorrelationDisplayPanel extends JPanel
 		public void actionPerformed( ActionEvent e ) {
 			Object source = e.getSource( );
 			if ( source == this.allButton ) {
-				System.out.println( "Showing all" );
 				this.setAllVisible( true );
 			} else if ( source == this.noneButton ) {
-				System.out.println( "Hiding all" );
 				this.setAllVisible( false );
 			} else if ( source == this.clearButton ) {
 				this.filterBox.setText( "" );
@@ -1071,10 +1072,17 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		private void setAllVisible( boolean state ) {
 			for ( Component c : this.moleculeList.getComponents( )) {
-				Molecule m = ((MoleculeCheckBox)c).getMolecule( );
-				if ( m != null )
-					this.set( m, state );
+				MoleculeCheckBox cb = (MoleculeCheckBox)c;
+				Molecule m = cb.getMolecule( );
+				if ( m != null ) {
+					cb.setSelected( state );
+					if ( state )
+						graph.addVertex( m );
+					else
+						graph.removeVertex( m );
+				}
 			}
+			graph.filterEdges( );
 		}
 
 		/**
@@ -1083,9 +1091,19 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @param state True for checked, false for unchecked.
 		 */
 		private void setAll( boolean state ) {
-			for ( Molecule m : this.checkBoxMap.keySet( )) {
-				this.set( m, state );
+			graph.setIgnoreRepaint( true );
+			for ( MoleculeCheckBox cb : this.checkBoxMap.values( )) {
+				Molecule m = cb.getMolecule( );
+				if ( m != null ) {
+					cb.setSelected( state );
+					if ( state )
+						graph.addVertex( m );
+					else
+						graph.removeVertex( m );
+				}
 			}
+			graph.filterEdges( );
+			graph.setIgnoreRepaint( false );
 		}
 
 		/**
@@ -2538,8 +2556,7 @@ public class CorrelationDisplayPanel extends JPanel
 														correlation.toArray( new Molecule[ 2 ])),
 													EdgeType.UNDIRECTED );
 					}
-				}
-				else {
+				} else {
 					// this Correlation does not belong on the graph, make sure it is 
 					// not there.
 					if ( this.containsEdge( correlation )) {
@@ -2594,16 +2611,6 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 		}
 
-		/**
-		 * Called when the component is repainted.
-		 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
-		 * 
-		 * @param g The Graphics object associated with this Component.
-		 */
-		public void paintComponent( Graphics g ) {
-			super.paintComponent( g );
-		}
-		
 		/**
 		 * The graphPressed method of the GraphMouseListener interface. Not 
 		 * implemented.
