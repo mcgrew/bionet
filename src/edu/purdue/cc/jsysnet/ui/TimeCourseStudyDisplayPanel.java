@@ -130,7 +130,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	private JSplitPane treeSplitPane;
 	private JPanel clusterGraphPanel;
 	private Collection<Experiment> experiments;
-	private List<Sample> samples;
+	private Collection<Sample> samples;
 	private Collection<Molecule> molecules;
 	private Clusterer clusterer;
 	private Collection<SampleGroup> sampleGroups;
@@ -764,7 +764,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				this.chart = null;
 				return false;
 			}
-			Collections.sort( samples, new SampleComparator( ));
+//			Collections.sort( samples, new SampleComparator( ));
 			XYSeriesCollection xyDataset = new XYSeriesCollection( );
 			Collection <Dataset> clusters = null;
 			// If the root node is selected (which should be the only time this
@@ -838,8 +838,9 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			plot.setDomainGridlinePaint( Color.GRAY );
 			TickUnits tickUnits = new TickUnits( );
 			double tickIndex = 0.0;
+			List<Sample> sampleList = new ArrayList<Sample>( samples );
 			for ( Sample sample : samples ) {
-				tickUnits.add( new SampleTickUnit( tickIndex, samples ));
+				tickUnits.add( new SampleTickUnit( tickIndex, sampleList ));
 				tickIndex++;
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
@@ -863,7 +864,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				this.chart = null;
 				return false;
 			}
-			Collections.sort( samples, new SampleComparator( ));
+//			Collections.sort( samples, new SampleComparator( ));
 			XYSeriesCollection xyDataset = new XYSeriesCollection( );
 			XYSeries data;
 			if ( node.getLevel( ) == CLUSTER ) {
@@ -934,8 +935,9 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 			plot.setDomainGridlinePaint( Color.GRAY );
 			TickUnits tickUnits = new TickUnits( );
 			double tickIndex = 0.0;
+			List<Sample> sampleList = new ArrayList<Sample>( samples );
 			for ( Sample sample : samples ) {
-				tickUnits.add( new SampleTickUnit( tickIndex, samples ));
+				tickUnits.add( new SampleTickUnit( tickIndex, sampleList ));
 				tickIndex++;
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );

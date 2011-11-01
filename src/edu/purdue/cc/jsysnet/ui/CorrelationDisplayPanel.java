@@ -2248,7 +2248,7 @@ public class CorrelationDisplayPanel extends JPanel
 		 * (0.6-1.0) a step of 0.5, min of 0.0 and max of 1.0
 		 */
 		public CorrelationFilterPanel( ) {
-			this( 0.6, 1.0 );
+			this( 0.8, 1.0 );
 		}
 
 		/**

@@ -19,8 +19,9 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.io;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
 import edu.purdue.cc.jsysnet.util.*;
 
 /**
@@ -28,7 +29,7 @@ import edu.purdue.cc.jsysnet.util.*;
  */
 public abstract class DataReader {
 
-	protected ArrayList <Experiment> experiments;
+	protected Collection<Experiment> experiments;
 	protected String resource;
 
 	/**
@@ -63,17 +64,17 @@ public abstract class DataReader {
 	/**
 	 * Returns the Experiments read from the data.
 	 * 
-	 * @return A List of the experiments.
+	 * @return A Collection of the experiments.
 	 */
-	public List <Experiment> getExperiments( ) {
+	public Collection<Experiment> getExperiments( ) {
 		return this.experiments;
 	}
 
 	/**
 	 * Returns the Molecules read from the data.
 	 */
-	public List <Molecule>getMolecules( ){
-		ArrayList <Molecule> returnValue = new ArrayList<Molecule>( );
+	public Collection<Molecule>getMolecules( ){
+		Set<Molecule> returnValue = new TreeSet<Molecule>( );
 		for ( Experiment e : this.getExperiments( )) {
 			returnValue.addAll( e.getMolecules( ));
 		}
@@ -87,16 +88,6 @@ public abstract class DataReader {
 	 */
 	public void addExperiment( Experiment experiment ) {
 		this.experiments.add( experiment );
-	}
-
-	/**
-	 * Removes an Experiment from the data set.
-	 * 
-	 * @param index The index of the Experiment to remove.
-	 * @return The Experiment which was removed.
-	 */
-	public Experiment removeExperiment( int index ) {
-		return this.experiments.remove( index );
 	}
 
 	/**

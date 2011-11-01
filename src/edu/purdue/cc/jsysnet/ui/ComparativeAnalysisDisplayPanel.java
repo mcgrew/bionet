@@ -555,6 +555,10 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				DefaultMutableTreeNode expNode = 
 					(DefaultMutableTreeNode)node.getChildAt( i );
 				Experiment e = (Experiment)expNode.getUserObject( );
+//				Sample sample = e.getSamples( ).iterator( ).next( );
+//				long axisValue = sample.hasAttribute( "time" ) ? 
+//					Long.parseLong( sample.getAttribute( "time" )) : expIndex;
+				long axisValue = expIndex;
 				fitValues[ expIndex ] = Double.NaN;
 				if ( selectorTree.isChecked( node )) {
 					expCount++;
@@ -565,7 +569,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 						BoxAndWhiskerItem item = 
 							BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
 								new ArrayList<Number>( molecule.getValues( samples )));
-						boxDataSet.add( new Date((long)expIndex), item );
+						boxDataSet.add( new Date(axisValue), item );
 
 						// robust fit uses the median instead of the mean.
 						if ( robustFitButton.isSelected( )) { 

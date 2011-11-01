@@ -32,7 +32,7 @@
 	<target name="compile">
 		<mkdir dir="${class_dir}"/>
 		<javac srcdir="${src_dir}" target="1.5" destdir="${class_dir}" debug="on" 
-			debuglevel="lines,vars,source" deprecation="false" 
+			debuglevel="lines,vars,source" deprecation="true" 
 			includeantruntime="false">
 			<classpath>
 				<path refid="build_classpath"/>

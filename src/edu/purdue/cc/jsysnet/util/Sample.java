@@ -105,6 +105,10 @@ public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 		return this.attributes.remove( attribute );
 	}
 
+	public boolean hasAttribute( String attribute ) {
+		return this.attributes.containsKey( attribute );
+	}
+
 	/**
 	 * Compares this sample to another.
 	 * 
@@ -113,7 +117,18 @@ public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 	 *	sample.
 	 */
 	public int compareTo( Sample o ) {
-		int returnValue = this.name.compareTo( o.toString( ));
+		int returnValue = 0;
+		if ( this.hasAttribute( "time" ) && o.hasAttribute( "time" )) {
+			double s1Time = Double.parseDouble( this.getAttribute( "time" ));
+			double s2Time = Double.parseDouble( o.getAttribute( "time" ));
+			if ( s1Time < s2Time )
+				returnValue = -1;
+			else if ( s2Time < s1Time )
+				returnValue = 1;
+		}
+		if ( returnValue == 0 ) {
+			returnValue = this.name.compareTo( o.toString( ));
+		}
 		if ( returnValue == 0 ) {
 			Iterator<Molecule> myMolecules = this.getMolecules( ).iterator( );
 			Iterator<Molecule> hisMolecules = o.getMolecules( ).iterator( );

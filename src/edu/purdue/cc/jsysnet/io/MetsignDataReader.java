@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
@@ -76,7 +77,7 @@ public class MetsignDataReader extends DataReader {
 		HashMap <String,String> sampleData = new HashMap <String,String> ( );
 		String [ ] headings;
 		String [ ] columns;
-		this.experiments = new ArrayList <Experiment>( );
+		this.experiments = new TreeSet<Experiment>( );
 		Map<String,String> line;
 		Language language = Settings.getLanguage( );
 		CSVTableReader file;

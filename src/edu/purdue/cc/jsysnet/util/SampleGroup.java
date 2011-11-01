@@ -19,17 +19,16 @@ along with JSysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.jsysnet.util;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
+import java.util.TreeSet;
 
 /**
  * A class for holding data about a group of Samples.
  *
  * @author Thomas McGrew
  */
-public class SampleGroup extends ArrayList<Sample> 
+public class SampleGroup extends TreeSet<Sample> 
                          implements Comparable<SampleGroup> {
 
 	private String name;
@@ -41,17 +40,6 @@ public class SampleGroup extends ArrayList<Sample>
 	 */
 	public SampleGroup( String name ) {
 		super( );
-		this.name = name;
-	}
-
-	/**
-	 * Creates a new SampleGroup
-	 * 
-	 * @param name The name of thsi SampleGroup.
-	 * @param initialCapacity The initial capacity of the underlying array.
-	 */
-	public SampleGroup( String name, int initialCapacity ) {
-		super( initialCapacity );
 		this.name = name;
 	}
 
