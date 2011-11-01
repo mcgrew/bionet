@@ -30,12 +30,24 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	Collection<Molecule> molecules;
 	Collection<Sample> samples;
 
+	/**
+	 * Creates a new CorrelationSet with the specified samples.
+	 * 
+	 * @param samples The samples to be used to calculate the correlation.
+	 */
 	public CorrelationSet( Collection<Sample> samples ) {
 		super( );
 		this.samples = samples;
 		this.molecules = new TreeSet<Molecule>( );
 	}
 
+	/**
+	 * Creates a new CorrelationSet based on the passed in CorrelationSet, but
+	 * using the newly passed in samples.
+	 * 
+	 * @param c The CorrelationSet to base this new CorrelationSet on.
+	 * @param  samples The new samples to be used in correlation calculations.
+	 */
 	public CorrelationSet( CorrelationSet c,
 	                       Collection<Sample> samples ) {
 		super( c );
@@ -43,6 +55,12 @@ public class CorrelationSet extends TreeSet<Correlation> {
 		this.molecules = new TreeSet<Molecule>( );
 	}
 
+	/**
+	 * Creates a new CorrelationSet using the specified Comparator.
+	 * 
+	 * @param c The Comparator to be used to order the Correlations
+	 * @param samples The new samples to be used in correlation calculations.
+	 */
 	public CorrelationSet( Comparator<? super Correlation> c,
 	                       Collection<Sample> samples ) {
 		super( c );
@@ -50,6 +68,12 @@ public class CorrelationSet extends TreeSet<Correlation> {
 		this.molecules = new TreeSet<Molecule>( );
 	}
 
+	/**
+	 * Creates a new CorrelationSet based on the passed in SortedSet.
+	 * 
+	 * @param s The SortedSet to use to populate the initial Correlations.
+	 * @param samples The new samples to be used in correlation calculations.
+	 */
 	public CorrelationSet( SortedSet<Correlation> s,
 	                       Collection<Sample> samples ) {
 		super( s );
@@ -57,6 +81,13 @@ public class CorrelationSet extends TreeSet<Correlation> {
 		this.molecules = new TreeSet<Molecule>( );
 	}
 
+	/**
+	 * Creates a enw CorrelationSet containing the passed in molecules and samples.
+	 * 
+	 * @param molecules The molecules to use for all correlations in this set.
+	 * @param sample The samples to use for all correlation calculations in this 
+	 *	set.
+	 */
 	public CorrelationSet( Collection<Molecule> molecules,
 	                       Collection<Sample> samples ) {
 		super( );
@@ -88,6 +119,12 @@ public class CorrelationSet extends TreeSet<Correlation> {
 		return true;
 	}
 
+	/**
+	 * Adds a correlation to this CorrelationSet.
+	 * 
+	 * @param correlation The correlation to be added to this set.
+	 * @return A boolean indicating whether the set was changed or not.
+	 */
 	@Override
 	public boolean add( Correlation correlation ) {
 		boolean returnValue = this.add( correlation.getFirst( ));
@@ -95,6 +132,12 @@ public class CorrelationSet extends TreeSet<Correlation> {
 		return returnValue;
 	}
 
+	/**
+	 * Adds a set of correlations to this CorrelationSet.
+	 * 
+	 * @param correlations A Collection of Correlations to be added to this set.
+	 * @return A boolean indicating whether the set was changed or not.
+	 */
 	public boolean addAll( Collection<? extends Correlation> correlations ) {
 		boolean returnValue = false;
 		for ( Correlation correlation : correlations ) {
@@ -135,14 +178,30 @@ public class CorrelationSet extends TreeSet<Correlation> {
 		return returnValue;
 	}
 
+	/**
+	 * Gets the samples being used in this CorrelationSet.
+	 * 
+	 * @return The samples being used for correlation calculations.
+	 */
 	public Collection<Sample> getSamples( ) {
 		return this.samples;
 	}
 
+	/**
+	 * Gets the molecules contained in this CorrelationSet.
+	 * 
+	 * @return The molecules available for correlation values.
+	 */
 	public Collection<Molecule> getMolecules( ) {
 		return this.molecules;
 	}
 
+	/**
+	 * Removes a Correlation or Molecule from this set.
+	 * 
+	 * @param o The object to be removed.
+	 * @return A boolean indicating whether the set was changed or not.
+	 */
 	@Override
 	public boolean remove( Object o ) {
 		if ( o instanceof Correlation ) {
@@ -155,12 +214,24 @@ public class CorrelationSet extends TreeSet<Correlation> {
 		}
 	}
 
+	/**
+	 * Removes the specified correlation and it's molecules from the CorrelationSet.
+	 * 
+	 * @param c The Correlation to be removed.
+	 * @return A boolean indicating whether the set was chanted or not.
+	 */
 	private boolean removeCorrelation( Correlation c ) {
 		boolean returnValue = this.removeMolecule( c.getFirst( ));
 		returnValue = returnValue && this.removeMolecule( c.getSecond( ));
 		return returnValue;
 	}
 
+	/**
+	 * Removes the specified molecule and it's correlations from this CorrelationSet.
+	 * 
+	 * @param m The Molecule to be removed.
+	 * @return A boolean indicating whether the set was changed or not.
+	 */
 	private boolean removeMolecule( Molecule m ) {
 		boolean returnValue = false;
 		if ( !this.molecules.contains( m )) {

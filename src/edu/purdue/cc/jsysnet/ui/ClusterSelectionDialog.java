@@ -62,14 +62,18 @@ import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.clustering.SOM;
 
 
+/**
+ * A class for selecting the clustering algorithm and parameters to use for 
+ * Clustering.
+ */
 public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 	protected JButton clusterButton;
 	protected JButton cancelButton;
 	protected ClusterParameterPanel parameterPanel;
 	protected JComboBox clusterSelectorComboBox;
 	private Clusterer returnValue;
-	private static int hgap = 10;
-	private static int vgap = 10;
+	private final static int hgap = 10;
+	private final static int vgap = 10;
 	private boolean okPressed = false;
 
 	private final static int SOM_METHOD = 0;
@@ -78,10 +82,27 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 	private final static int FARTHESTFIRST_METHOD = 3;
 
 
+	/**
+	 * Creates a new ClusterSelectionDialog with the given Frame as it's parent.
+	 * 
+	 * @param owner The parent Frame of this Dialog. This frame will not be able
+	 *	to receive input until the dialog is closed.
+	 * @param title The title for this dialog.
+	 */
 	public ClusterSelectionDialog( Frame owner, String title ) {
 		this( owner, title, true );
 	}
 
+	/**
+	 * Creates a new ClusterSelectionDialog with the given Frame as it's parent.
+	 * 
+	 * @param owner The parent Frame of this Dialog. This frame will not be able
+	 *	to receive input until the dialog is closed.
+	 * @param title The title for this dialog.
+	 * @param cancelEnabled whether or not the dialog should have the 'Cancel' 
+	 *	button enabled to allow the user to cancel. This option is true if not
+	 *	supplied.
+	 */
 	public ClusterSelectionDialog( Frame owner, String title, 
 	                               boolean cancelEnabled ) {
 		super( owner, title );
@@ -137,6 +158,12 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		this.pack( );
 	}
 
+	/**
+	 * Gets the return value for this dialog. This will return the Clusterer
+	 *	selected by the user.
+	 * 
+	 * @return The Clusterer to be used based on the user selections.
+	 */
 	public Clusterer getReturnValue( ) {
 		if ( this.okPressed ) {
 			Settings.getSettings( ).setInt( "history.clustering.lastMethod", 
@@ -162,6 +189,12 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		return dialog.getReturnValue( );
 	}
 
+	/**
+	 * The actionPerformed method of the ActionListener interface.
+	 * 
+	 * @see ActionListener#ActionPerformed( ActionEvent )
+	 * @param event The event which produced this action.
+	 */
 	public void actionPerformed( ActionEvent event ) {
 		Component source = (Component)event.getSource( );
 		if ( source == this.clusterSelectorComboBox ) {
@@ -186,8 +219,14 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 	//======================== PRIVATE CLASSES ==================================
 	//==================== DistanceMeasureComboBox ==============================
 
+	/**
+	 * A class for selecting a distance measure. Used by several of the clusterers.
+	 */
 	private class DistanceMeasureComboBox extends JComboBox {
 
+		/**
+		 * Creates a new DistanceMeasureComboBox.
+		 */
 		public DistanceMeasureComboBox( ) {
 			super( new Object [] {
 				"Pearson Correlation",
@@ -197,6 +236,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			});
 		}
 
+		/**
+		 * Returns the DistanceMeasure selected by the user in the dialog.
+		 * 
+		 * @return The selected DistanceMeasure.
+		 */
 		public DistanceMeasure getSelectedDistanceMeasure( ) {
 			if ( "Pearson Correlation".equals( this.getSelectedItem( ).toString( )))
 				return new PearsonCorrelationCoefficient( );
@@ -214,21 +258,41 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		}
 	}
 	// ======================== ClusterParameterPanel ===========================
+	/**
+	 * An abstract class for creating a panel for use in selecting cluster 
+	 * parameters.
+	 */
 	private abstract class ClusterParameterPanel extends JPanel {
 		protected Clusterer clusterer;
 
+		/**
+		 * Creates a new ClusterParameterPanel.
+		 */
 		protected ClusterParameterPanel( ) {
 			super( );
 		}
 
+		/**
+		 * Creates a new ClusterParameterPanel with the specified layout.
+		 * 
+		 * @param layout The LayoutManager to be used.
+		 */
 		protected ClusterParameterPanel( LayoutManager layout ) {
 			super( layout );
 		}
 		
+		/**
+		 * Returns the Clusterer selected by the user.
+		 * 
+		 * @return The selected Clusterer.
+		 */
 		public abstract Clusterer getClusterer( );
 	}
 
 	// ======================== SOMClusterParameterPanel ========================
+	/**
+	 * A ParameterPanel for choosing SOM Clusterer parameters.
+	 */
 	private class SOMClusterParameterPanel extends ClusterParameterPanel {
 		private JSpinner xDimensionSpinner;
 		private JSpinner yDimensionSpinner;
@@ -239,6 +303,9 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		private JComboBox learningTypeComboBox;
 		private JComboBox neighborhoodFunctionComboBox;
 
+		/**
+		 * Creates a new SOMClusterParameterPanel
+		 */
 		public SOMClusterParameterPanel( ) {
 			super( new GridLayout( 8, 2, hgap, vgap ));
 			Language language = Settings.getLanguage( );
@@ -291,6 +358,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			this.add( this.neighborhoodFunctionComboBox );
 		}
 
+		/**
+		 * Returns a new SOM Clusterer with the parameters selected by the user.
+		 * 
+		 * @return The new SOM Clusterer.
+		 */
 		public Clusterer getClusterer( ) {
 			Settings settings = Settings.getSettings( );
 			settings.set( "history.clustering.som.xDimension", 
@@ -330,12 +402,20 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			);
 		}
 
+		/**
+		 * Gets the name of this clusterer.
+		 * 
+		 * @return The String "Self Organizing Map"
+		 */
 		public String toString( ) {
 			return "Self Organizing Map";
 		}
 	}
 
 	// ===================== KMeansClusterParameterPanel ========================
+	/**
+	 * A ParameterPanel for selecting KMeans parameters
+	 */
 	private class KMeansClusterParameterPanel extends ClusterParameterPanel {
 		private JSpinner clustersSpinner;
 		private JSpinner iterationsSpinner;
@@ -354,6 +434,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 				this.add( this.iterationsSpinner );
 		}
 
+		/**
+		 * Returns a new KMeans Clusterer with the parameters selected by the user.
+		 * 
+		 * @return The new KMeans Clusterer.
+		 */
 		public Clusterer getClusterer( ) {
 			Settings settings = Settings.getSettings( );
 			settings.set( "history.clustering.kmeans.clusters", 
@@ -368,6 +453,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			);
 		}
 
+		/**
+		 * Gets the name of this clusterer.
+		 * 
+		 * @return The String "K-Means"
+		 */
 		public String toString( ) {
 			return "K-Means";
 		}
@@ -414,6 +504,9 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 //		}
 //	}
 
+	/**
+	 * A ParameterPanel for selecting parameters for KMedoids clustering.
+	 */
 	private class KMedoidsClusterParameterPanel extends ClusterParameterPanel {
 		private DistanceMeasureComboBox distanceMeasure;
 		private JSpinner clustersSpinner;
@@ -436,6 +529,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 				this.add( this.iterationsSpinner );
 		}
 
+		/**
+		 * Returns a new KMedoids Clusterer with the parameters selected by the user.
+		 * 
+		 * @return The new KMedoids Clusterer.
+		 */
 		public Clusterer getClusterer( ) {
 			Settings settings = Settings.getSettings( );
 			settings.set( "history.clustering.kmedoids.clusters", 
@@ -451,11 +549,19 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			);
 		}
 
+		/**
+		 * Gets the name of this clusterer.
+		 * 
+		 * @return The String "K-Medoids"
+		 */
 		public String toString( ) {
 			return "K-Medoids";
 		}
 	}
 
+	/**
+	 * A ParameterPanel for selecting parameters for FarthestFirst clustering.
+	 */
 	private class FarthestFirstClusterParameterPanel extends ClusterParameterPanel {
 		private DistanceMeasureComboBox distanceMeasure;
 		private JSpinner distanceSpinner;
@@ -475,6 +581,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			this.add( this.distanceSpinner );
 		}
 
+		/**
+		 * Returns a new FarthestFirst Clusterer with the parameters selected by the user.
+		 * 
+		 * @return The new FarthestFirst Clusterer.
+		 */
 		public Clusterer getClusterer( ) {
 				Settings settings = Settings.getSettings( );
 				settings.setInt( "history.clustering.farthestFirst.distanceMeasure",
@@ -488,6 +599,11 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			);
 		}
 
+		/**
+		 * Gets the name of this clusterer.
+		 * 
+		 * @return The String "Farthest First"
+		 */
 		public String toString( ) {
 			return "Farthest First";
 		}

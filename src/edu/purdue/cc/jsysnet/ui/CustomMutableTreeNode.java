@@ -21,23 +21,48 @@ package edu.purdue.cc.jsysnet.ui;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
+/**
+ * A customized version of DefaultMutableTreeNode for a JTree.
+ */
 public class CustomMutableTreeNode extends DefaultMutableTreeNode {
 	private String stringValue;	
 
+	/**
+	 * Creates a new empty CustomMutableTreeNode.
+	 */
 	public CustomMutableTreeNode( ) {
 		super( );
 	}
 
+	/**
+	 * Creates a new CustomMutableTreeNode containing the specified userObject.
+	 * The stringValue for this TreeNode is determined by calling the userObject's
+	 * toString( ) method.
+	 * 
+	 * @param userObject The object to be contained in this TreeNode.
+	 */
 	public CustomMutableTreeNode( Object userObject ) {
 		super( userObject );
 		this.stringValue = userObject.toString( );
 	}
 
+	/**
+	 * Creates a new CustomMutableTreeNode containing the specified userObject
+	 * and having the specified stringValue.
+	 * 
+	 * @param userObject The object to be contained in this TreeNode.
+	 * @param stringValue value to be returned by the toString( ) method.
+	 */
 	public CustomMutableTreeNode( Object userObject, String stringValue  ) {
 		super( userObject );
 		this.stringValue = stringValue;
 	}
 
+	/**
+	 * Returns the string value of this TreeNode.
+	 * 
+	 * @return A String representation of this TreeNode.
+	 */
 	public String toString( ) {
 		return stringValue;
 	}

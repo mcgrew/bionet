@@ -47,6 +47,9 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Creates a dialog for choosing from the available Experiments.
+ */
 public class ExperimentSelectionDialog extends JDialog
 		implements ActionListener {
 
@@ -61,7 +64,7 @@ public class ExperimentSelectionDialog extends JDialog
 	protected ButtonGroup visualizationTypeSelection;
 	protected JLabel instructionLabel;
 	protected JList experimentList;
-	protected Map.Entry <Integer,List> returnValue;
+	protected Map.Entry <Integer,List<Experiment>> returnValue;
 	protected final String chooseText;
 	protected final String correlationButtonText;
 	protected final String timeCourseStudyButtonText;
@@ -69,6 +72,14 @@ public class ExperimentSelectionDialog extends JDialog
 	protected final String okButtonText;
 	protected final String cancelButtonText;
 
+	/**
+	 * Creates a new ExperimentSelectionDialog.
+	 * 
+	 * @param owner The parent frame of this Dialog. The parent frame will not
+	 *	accept user input until the dialog is closed.
+	 * @param title The title to be displayed in the title bar of this dialog.
+	 * @param experiments The available experiments to be selected from.
+	 */
 	public ExperimentSelectionDialog( Frame owner, 
 	                                  String title, 
 																		Collection experiments ) {
@@ -141,6 +152,15 @@ public class ExperimentSelectionDialog extends JDialog
 		this.setVisible( true );
 	}
 
+	/**
+	 * Shows the input dialog and returns the selection.
+	 * 
+	 * @param owner The parent frame of this Dialog. The parent frame will not
+	 *	accept user input until the dialog is closed.
+	 * @param title The title to be displayed in the title bar of this dialog.
+	 * @param experiments The available experiments to be selected from.
+	 * @return 
+	 */
 	public static Map.Entry<Integer,List> showInputDialog( 
 		Frame owner, String title, Collection experiments ) {
 
@@ -153,7 +173,7 @@ public class ExperimentSelectionDialog extends JDialog
 		Object source = event.getSource( );
 		Object selection = this.visualizationTypeSelection.getSelection( );
 		if ( source == this.cancelButton ) {
-			returnValue = null;
+			this.returnValue = null;
 			this.setVisible( false );
 		} else if ( source == this.okButton ) {
 			Integer returnCode = null;
@@ -172,7 +192,7 @@ public class ExperimentSelectionDialog extends JDialog
 				return;
 			}
 
-			returnValue = new ReturnValue( returnCode,
+			this.returnValue = new ReturnValue( returnCode,
 				Arrays.asList( experimentList.getSelectedValues( )));
 			this.setVisible( false );
 		}
@@ -189,6 +209,11 @@ public class ExperimentSelectionDialog extends JDialog
 //				ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 //	}
 
+	/**
+	 * Gets the return value from this dialog based on the user selection.
+	 * 
+	 * @return The selected experiments.
+	 */
 	public Map.Entry getReturnValue( ) {
 		return returnValue;
 	}
@@ -196,33 +221,67 @@ public class ExperimentSelectionDialog extends JDialog
 	/**
 	 * A class for holding a key/value pair (View type,Data)
 	 */
-	private class ReturnValue implements Map.Entry <Integer,List> {
+	private class ReturnValue implements Map.Entry <Integer,List<Experiment>> {
 		Integer visualizationType;
 		List experiments;
 
+		/**
+		 * Creates a new ReturnValue
+		 * 
+		 * @param 
+		 * @return 
+		 */
 		public ReturnValue( int visualizationType, List experiments ) {
 			this.visualizationType = visualizationType;
 			this.experiments = experiments;
 		}
 
+		/**
+		 * Gets the key for this ReturnValue a.k.a. The view type selected.
+		 * 
+		 * @return The selected visualization type.
+		 */
 		public Integer getKey( ) {
 			return visualizationType;
 		}
 
-		public List setValue( List value ) {
+		/**
+		 * Sets the value for this ReturnValue, a.k.a The list of experiments.
+		 * 
+		 * @param value the new Value for this ReturnValue.
+		 * @return The old value for this ReturnValue.
+		 */
+		public List<Experiment> setValue( List value ) {
 			List tmp = this.experiments;
 			this.experiments = value;
 			return tmp;
 		}
 
-		public List getValue( ) {
+		/**
+		 * Gets the value for this ReturnValue, a.k.a The list of experiment
+		 * selected.
+		 * 
+		 * @return The list of Experiments.
+		 */
+		public List<Experiment> getValue( ) {
 			return this.experiments;
 		}
 
+		/**
+		 * Compares this ReturnValue to the object for equality.
+		 * 
+		 * @param o The object to compare this ReturnValue to.
+		 * @return A boolean indicating if the 2 objects are equal.
+		 */
 		public boolean equals( Object o ) {
 			return this.experiments.equals( o );
 		}
 
+		/**
+		 * Returns a hash code for identifying this object.
+		 * 
+		 * @return An integer containing a hash code for this object.
+		 */
 		public int hashCode( ) {
 			return  (( this.getKey( )   == null ? 0 : this.getKey( ).hashCode( )) ^
 			         ( this.getValue( ) == null ? 0 : this.getValue( ).hashCode( )));

@@ -32,8 +32,21 @@ import edu.uci.ics.jung.visualization.RenderContext;
 import edu.uci.ics.jung.visualization.Layer;
 import edu.uci.ics.jung.graph.Graph;
 
+/**
+ * A class for rendering edges in the JUNG network graph. This renderer
+ * is faster than the default edge renderer, which improves performance,
+ * but it is less flexible.
+ */
 public class FastEdgeRenderer<V,E> extends BasicEdgeRenderer<V,E> {
 
+	/**
+	 * i Draws the edge e, whose endpoints are at (x1,y1) and (x2,y2), on the 
+	 * graphics context.
+	 * 
+	 * @param rc The RenderContext to use.
+	 * @param layout The Layout of the Graph.
+	 * @param e The edge to be drawn.
+	 */
 	protected void drawSimpleEdge(RenderContext<V,E> rc, Layout<V,E> layout, E e) {
 		GraphicsDecorator g = rc.getGraphicsContext();
 		Paint oldPaint = g.getPaint( );

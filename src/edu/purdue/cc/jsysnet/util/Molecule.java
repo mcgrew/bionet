@@ -160,6 +160,13 @@ public class Molecule implements Comparable<Molecule> {
 		return returnValue;
 	}
 
+	/**
+	 * Returns the concentratios associated with this Molecule in each sample
+	 * as a Map.
+	 * 
+	 * @param samples The samples to get the concentration values for.
+	 * @return A Map containing the samples and concentration values.
+	 */
 	public Map<Sample,Number> getSampleMap( Collection<Sample> samples ) {
 		Map<Sample,Number> returnValue = new TreeMap<Sample,Number>( );
 		for ( Sample sample : samples ) {
@@ -168,19 +175,44 @@ public class Molecule implements Comparable<Molecule> {
 		return returnValue;
 	}
 
+	/**
+	 * Returns the concentration of this Molecule in the specified Sample.
+	 * 
+	 * @param sample The sample to retrieve the concentration value for.
+	 * @return The value of the concentration of this Molecule.
+	 */
 	public Number getValue( Sample sample ) {
 		return sample.getValue( this );
 	}
 
+	/**
+	 * Returns a string representation of this Molecule, which is the same
+	 * as calling getId( ).
+	 * 
+	 * @return A string representation of this Molecule.
+	 */
 	public String toString( ) {
 		return this.getId( );
 	}
 
+	/**
+	 * Compares this Molecule to another.
+	 * 
+	 * @param m The Molecule to compare this one to.
+	 * @return An integer indicating which order the two Molecules should be in
+	 *	in a sorted list.
+	 */
 	public int compareTo( Molecule m ) {
 		int returnValue = this.getId( ).compareTo( m.getId( ));
 		return returnValue;
 	}
 
+	/**
+	 * Compares this molecule to another object.
+	 * 
+	 * @param m The Object to compare this Molecule to.
+	 * @return A boolean indicating if the 2 Objects are equal.
+	 */
 	public boolean equals( Object m ) {
 		if ( m instanceof Molecule )
 			return ( this.compareTo((Molecule)m ) == 0 );
