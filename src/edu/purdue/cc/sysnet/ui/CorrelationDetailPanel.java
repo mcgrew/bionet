@@ -291,7 +291,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			g.drawString( language.get( 
 				"One-tailed level of significance" ), 10, 160 );
 			g.drawString( language.get( 
-				"Two-tailed levelof significance" ), 10, 200 );
+				"Two-tailed level of significance" ), 10, 200 );
 			for( int i=0; i < 4; i++ ) {
 				if ( this.criticalValues[ i ] < 0 )
 					g.drawString( "-", xpos[ i ], 260 );

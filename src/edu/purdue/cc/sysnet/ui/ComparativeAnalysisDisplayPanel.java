@@ -273,7 +273,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	 * @return The title for this panel.
 	 */
 	public String getTitle( ) {
-		return Settings.getLanguage( ).get( "Comparative Analysis" );
+		return Settings.getLanguage( ).get( "Distribution Analysis" );
 	}
 
 	public Collection<SampleGroup> getSampleGroups( ) {
