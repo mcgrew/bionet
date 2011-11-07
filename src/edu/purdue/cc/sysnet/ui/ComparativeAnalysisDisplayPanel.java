@@ -760,9 +760,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		public boolean setGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( );
 			XYSeriesCollection dataset = new XYSeriesCollection( );
-			LegendItemCollection legendItems = new LegendItemCollection( );
+//			LegendItemCollection legendItems = new LegendItemCollection( );
 			CustomXYLineAndShapeRenderer renderer = 
-				new CustomXYLineAndShapeRenderer( true, true );
+				new CustomXYLineAndShapeRenderer( false, true );
 			int nodeLevel = node.getLevel( );
 			Logger.getLogger( getClass( )).debug( 
 				"Selected Node level: " + nodeLevel );
@@ -779,19 +779,37 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				samples = new TreeSet<Sample>( new SampleValueComparator( ));
 				Iterator<TreeNode> sampleNodeIter = 
 					selectorTree.checkedDescendantIterator( node, SAMPLE );
-				XYSeries data = new XYSeries( language.get( "Samples" ));
 				int index = 0;
 				while( sampleNodeIter.hasNext( )) {
 					samples.add((Sample)
 						((DefaultMutableTreeNode)sampleNodeIter.next( )).getUserObject( ));
 				}
 				samples.retainAll( this.sampleGroup );
+				XYSeries data = null;
+				int time = Integer.MIN_VALUE;
+				int series = 0;
+				TreeSet currentSamples = new TreeSet<Sample>( );
 				for ( Sample sample : samples ) {
+					int newTime = sample.getIntAttribute( "time" );
+
+					if ( time != newTime ) {
+						if ( data != null ) {
+							dataset.addSeries( data );
+							renderer.setSeriesOutlierInfo( series,
+								BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
+									molecule.getValues( currentSamples )));
+							series++;
+						}
+						time = newTime;
+						currentSamples = new TreeSet<Sample>( );
+						data = new XYSeries( language.get( "Time " + time ));
+					}
+					currentSamples.add( sample );
 					Number value = molecule.getValue( sample );
 					data.add( index, value );
 					index++;
 				}
-				renderer.setSeriesOutlierInfo( dataset.getSeriesCount( ),
+				renderer.setSeriesOutlierInfo( series,
 					BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
 						molecule.getValues( samples )));
 				dataset.addSeries( data );
@@ -805,7 +823,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				return false;
 			}
 
-			this.chart = ChartFactory.createXYLineChart( 
+			this.chart = ChartFactory.createScatterPlot( 
 				String.format( language.get( "%s sample concentrations" ) + " - %s", 
 				node.toString( ),
 				this.sampleGroup.toString( )),         // title
@@ -830,37 +848,37 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
 			renderer.setSeriesShapesVisible( 0, true );
 
-			try { 
-				// set up the colors for the graph items.
-				int experimentIndex = 0;
-				for ( Experiment experiment : experiments ) {
-					int sampleIndex = 0;
-					Paint p = Color.getHSBColor( 
-						(float)experimentIndex/experiments.size( ), 1.0f, 0.5f );
-						// add a legend item for this experiment.
-						legendItems.add( new LegendItem(
-							language.get( "Experiment" ) + " " + experiment.getId( ),// label
-							null,                                          // description
-							null,                                          // toolTipText
-							null,                                          // urlText
-							renderer.getItemShape( 0, samples.size( )/2 ), // shape
-							p,                                             // fillPaint
-							renderer.getSeriesStroke( 0 ),                 // outlineStroke
-							p                                              // outlinePaint
-						));
-
-					for ( Sample sample : samples ) {
-						if ( experiment.getSamples( ).contains( sample )) {
-							renderer.setItemShapePaint( 0, sampleIndex, p );
-						}
-						sampleIndex++;
-					}
-					experimentIndex++;
-				}
-			} catch ( IndexOutOfBoundsException e ) {
-				this.chart = null;
-				return false;
-			}
+//			try { 
+//				// set up the colors for the graph items.
+//				int experimentIndex = 0;
+//				for ( Experiment experiment : experiments ) {
+//					int sampleIndex = 0;
+//					Paint p = Color.getHSBColor( 
+//						(float)experimentIndex/experiments.size( ), 1.0f, 0.5f );
+//						// add a legend item for this experiment.
+//						legendItems.add( new LegendItem(
+//							language.get( "Experiment" ) + " " + experiment.getId( ),// label
+//							null,                                          // description
+//							null,                                          // toolTipText
+//							null,                                          // urlText
+//							renderer.getItemShape( 0, samples.size( )/2 ), // shape
+//							p,                                             // fillPaint
+//							renderer.getSeriesStroke( 0 ),                 // outlineStroke
+//							p                                              // outlinePaint
+//						));
+//
+//					for ( Sample sample : samples ) {
+//						if ( experiment.getSamples( ).contains( sample )) {
+//							renderer.setItemShapePaint( 0, sampleIndex, p );
+//						}
+//						sampleIndex++;
+//					}
+//					experimentIndex++;
+//				}
+//			} catch ( IndexOutOfBoundsException e ) {
+//				this.chart = null;
+//				return false;
+//			}
 				
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
@@ -874,10 +892,10 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
 			plot.getDomainAxis( ).setVerticalTickLabels( true );
-//			LegendItemCollection legendItems = plot.getLegendItems( );
-//			if ( legendItems == null ) {
-//				legendItems = new LegendItemCollection( );
-//			}
+			LegendItemCollection legendItems = plot.getLegendItems( );
+			if ( legendItems == null ) {
+				legendItems = new LegendItemCollection( );
+			}
 			legendItems.add( renderer.getOutlierLegendItem( ));
 			plot.setFixedLegendItems( legendItems );
 			return true;
@@ -1019,7 +1037,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param item A BoxandWhiskerItem which will be used to determine outliers.
 		 */
 		public void setSeriesOutlierInfo( int index, BoxAndWhiskerItem item ) {
-			while ( index >= outlierInfo.size( )){
+			System.out.println( "Setting outlier info for series " + index );
+			while ( index >= outlierInfo.size( )) {
 				outlierInfo.add( null );
 			}
 			outlierInfo.set( index, item );
@@ -1032,6 +1051,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @return The BoxAndWhiskerItem used to calculate outliers.
 		 */
 		public BoxAndWhiskerItem getSeriesOutlierInfo( int index ) {
+			System.out.println( "Getting outlier info for series " + index );
 			if ( index >= outlierInfo.size( ))
 				return null;
 			return outlierInfo.get( index );
@@ -1080,21 +1100,21 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param column The item to get the Paint  for.
 		 * @return The appropriate Paint for this item.
 		 */
-	 @Override
-		public Paint getItemPaint( int row, int column ) {
-			if ( this.isItemPass( this.currentPass )) {
-				if ( this.isOutlier( row, column )) {
-					return this.outlierPaint;
-				} else {
-					Paint returnValue = this.itemShapePaints.get( row, column );
-					if ( returnValue == null )
-						return super.getItemPaint( row, column );
-					return returnValue;
-				}
-			} else {
-				return super.getItemPaint( row, column );
-			}
-		}
+//	 @Override
+//		public Paint getItemPaint( int row, int column ) {
+//			if ( this.isItemPass( this.currentPass )) {
+//				if ( this.isOutlier( row, column )) {
+//					return this.outlierPaint;
+//				} else {
+//					Paint returnValue = this.itemShapePaints.get( row, column );
+//					if ( returnValue == null )
+//						return super.getItemPaint( row, column );
+//					return returnValue;
+//				}
+//			} else {
+//				return super.getItemPaint( row, column );
+//			}
+//		}
 
 		/**
 		 * Sets the shape color for a particular item

@@ -189,7 +189,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			}
 			dataset.addSeries( data );
 			
-			this.chart = ChartFactory.createXYLineChart( 
+			this.chart = ChartFactory.createScatterPlot( 
 				String.format( language.get( "%s sample concentrations" ), 
 				molecule.getId( )),              // title
 				language.get( "Sample" ),        // x axis label
