@@ -480,7 +480,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		private XYDataset fitDataset;
 		private Equation fitEquation;
 		private LegendItemCollection legendItems;
-		private LegendItemCollection singleExperimentLegendItems;
+//		private LegendItemCollection singleExperimentLegendItems;
 		private Stroke stroke;
 
 
@@ -497,38 +497,38 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			this.sampleGroup = sampleGroup;
 			//this.fitDataset = new XYDataset( );
 			this.stroke = new BasicStroke( 2 );
-			this.singleExperimentLegendItems = new LegendItemCollection( );
+//			this.singleExperimentLegendItems = new LegendItemCollection( );
 			this.legendItems = new LegendItemCollection( );
-			LegendItem meanLegendItem = 
-				new LegendItem( "Mean", null, null, null,
-				                 new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
-				                 Color.BLACK, 
-				                 this.stroke, Color.BLACK);
-			LegendItem medianLegendItem = 
-				new LegendItem( "Median", null, null, null,
-				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-				                this.stroke, Color.BLACK );
-			LegendItem minMaxLegendItem1 = 
-				new LegendItem( "Min/Max without Outliers", null, null, null,
-				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-				                this.stroke, Color.RED );
-			LegendItem minMaxLegendItem2 = 
-				new LegendItem( "Min/Max without Outliers", null, null, null,
-				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-				                this.stroke, Color.BLUE );
-			LegendItem outlierLegendItem = 
-				new LegendItem( "Outlier", null, null, null,
-				                new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
-				                Color.WHITE, 
-				                this.stroke, Color.BLACK);
-			this.singleExperimentLegendItems.add( meanLegendItem );
-			this.singleExperimentLegendItems.add( medianLegendItem );
-			this.singleExperimentLegendItems.add( minMaxLegendItem1 );
-			this.singleExperimentLegendItems.add( outlierLegendItem );
-			this.legendItems.add( meanLegendItem );
-			this.legendItems.add( medianLegendItem );
-			this.legendItems.add( minMaxLegendItem2 );
-			this.legendItems.add( outlierLegendItem );
+//			LegendItem meanLegendItem = 
+//				new LegendItem( "Mean", null, null, null,
+//				                 new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
+//				                 Color.BLACK, 
+//				                 this.stroke, Color.BLACK);
+//			LegendItem medianLegendItem = 
+//				new LegendItem( "Median", null, null, null,
+//				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
+//				                this.stroke, Color.BLACK );
+//			LegendItem minMaxLegendItem1 = 
+//				new LegendItem( "Min/Max without Outliers", null, null, null,
+//				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
+//				                this.stroke, Color.RED );
+//			LegendItem minMaxLegendItem2 = 
+//				new LegendItem( "Min/Max without Outliers", null, null, null,
+//				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
+//				                this.stroke, Color.BLUE );
+//			LegendItem outlierLegendItem = 
+//				new LegendItem( "Outlier", null, null, null,
+//				                new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
+//				                Color.WHITE, 
+//				                this.stroke, Color.BLACK);
+//			this.singleExperimentLegendItems.add( meanLegendItem );
+//			this.singleExperimentLegendItems.add( medianLegendItem );
+//			this.singleExperimentLegendItems.add( minMaxLegendItem1 );
+//			this.singleExperimentLegendItems.add( outlierLegendItem );
+//			this.legendItems.add( meanLegendItem );
+//			this.legendItems.add( medianLegendItem );
+//			this.legendItems.add( minMaxLegendItem2 );
+//			this.legendItems.add( outlierLegendItem );
 			// add a context menu for saving the graph to an image
 			new ContextMenu( this ).add( new SaveImageAction( this ));
 		}
@@ -598,12 +598,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			}
 			XYSeries fitSeries = new XYSeries( language.get( "Fit Line" ));
 			int xMax = this.experiments.size( );
-			if ( fitEquation == null ) {
-				for ( int i=1; i <= xMax; i++ ) {
-					if ( !Double.isNaN( fitValues[ i ] ))
-						fitSeries.add( i, fitValues[ i ]);
-					}
-			} else {
+			if ( fitEquation != null ) {
 				for ( double i=1; i <= xMax; i+= 0.01 ) {
 					try {
 						fitSeries.add( i, fitEquation.solve( i ));
@@ -613,6 +608,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 							fitEquation.toString( ) + " where x=" + i, exc );
 					}
 				}
+//			} else {
+//				for ( int i=1; i <= xMax; i++ ) {
+//					if ( !Double.isNaN( fitValues[ i ] ))
+//						fitSeries.add( i, fitValues[ i ]);
+//					}
 			}
 			this.chart = ChartFactory.createBoxAndWhiskerChart (
 				String.format( language.get( "%s across experiments" ) + " - %s", 
@@ -644,11 +644,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			lineRenderer.setSeriesStroke( 0, this.stroke );
 			plot.setRenderer( 1, lineRenderer );
 
-			if ( expCount > 1 ) {
+//			if ( expCount > 1 ) {
 				plot.setFixedLegendItems( this.legendItems );
-			} else {
-				plot.setFixedLegendItems( this.singleExperimentLegendItems );
-			}
+	//		} else {
+//				plot.setFixedLegendItems( this.singleExperimentLegendItems );
+	//		}
 			return true;
 		}
 
