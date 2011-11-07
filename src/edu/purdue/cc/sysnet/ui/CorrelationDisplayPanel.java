@@ -70,6 +70,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RectangularShape;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -145,6 +146,11 @@ import org.jfree.data.statistics.SimpleHistogramBin;
 import org.jfree.data.statistics.SimpleHistogramDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.RectangleEdge;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.chart.renderer.xy.StandardXYBarPainter;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
 
 import org.apache.commons.collections15.Transformer;
 import org.apache.log4j.Logger;
@@ -1765,6 +1771,9 @@ public class CorrelationDisplayPanel extends JPanel
 				);
 //				this.distributionChart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 				CategoryPlot plot = distributionChart.getCategoryPlot( );
+				BarRenderer renderer = (BarRenderer)plot.getRenderer( );
+				renderer.setBarPainter( new StandardBarPainter( ));
+				renderer.setShadowVisible( false );
 				plot.setBackgroundPaint( Color.WHITE );
 				plot.setRangeGridlinePaint( Color.GRAY );
 				plot.setDomainGridlinePaint( Color.GRAY );
@@ -1863,6 +1872,9 @@ public class CorrelationDisplayPanel extends JPanel
 					distributionData.addBin( s );
 				}
 				XYPlot plot = distributionChart.getXYPlot( );
+				XYBarRenderer renderer = (XYBarRenderer)plot.getRenderer( );
+				renderer.setBarPainter( new StandardXYBarPainter( ));
+				renderer.setShadowVisible( false );
 				plot.setBackgroundPaint( Color.WHITE );
 				plot.setRangeGridlinePaint( Color.GRAY );
 				plot.setDomainGridlinePaint( Color.GRAY );
