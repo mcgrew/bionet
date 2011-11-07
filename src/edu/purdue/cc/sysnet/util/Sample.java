@@ -19,7 +19,7 @@ along with SysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.sysnet.util;
 
-import edu.purdue.bbc.util.attributes.Attributes;
+import edu.purdue.bbc.util.attributes.StringAttributes;
 import edu.purdue.bbc.util.NumberList;
 
 import java.util.ArrayList;
@@ -34,8 +34,7 @@ import org.apache.log4j.Logger;
 /**
  * A class for keeping information about a particular sample in an experiment.
  */
-public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
-	protected Map<String,String> attributes;
+public class Sample  extends StringAttributes implements Comparable<Sample>,Cloneable {
 	protected String name;
 	protected Map<Molecule,Number> valueMap;
 
@@ -45,6 +44,7 @@ public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 	 * @param name The name of this Sample.
 	 */
 	public Sample( String name ) {
+		super( false );
 		this.name = name;
 		Logger.getLogger( getClass( )).debug( "Creating Sample: " + name );
 		this.attributes = new HashMap<String,String>( );
@@ -58,55 +58,6 @@ public class Sample implements Comparable<Sample>,Attributes<String>,Cloneable {
 	 */
 	public String toString( ) {
 		return name;
-	}
-
-	/**
-	 * Sets an attribute for this sample.
-	 * 
-	 * @param attribute The name of the attribute.
-	 * @param value The attribute's value as a String.
-	 */
-	public void setAttribute( String attribute, String value ) {
-		this.attributes.put( attribute.toLowerCase( ), value );
-	}
-
-	/**
-	 * Sets a group of attributes for this sample.
-	 * 
-	 * @param attributes A Map containing the attributes to be set.
-	 */
-	public void setAttributes( Map<String,String> attributes ) {
-		for ( Map.Entry<String,String> attribute : attributes.entrySet( )) {
-			this.attributes.put( 
-				attribute.getKey( ).toLowerCase( ), attribute.getValue( ) );
-		}
-	}
-
-	/**
-	 * Retrieves an attribute for this sample.
-	 * 
-	 * @param attribute The name of the attribute to retrieve.
-	 * @return The value of the attribute.
-	 */
-	public String getAttribute( String attribute ) {
-		return this.attributes.get( attribute.toLowerCase( ));
-	}
-
-	/**
-	 * Retrieves all attributes for this sample.
-	 * 
-	 * @return A Map containing the attributes of this Sample.
-	 */
-	public Map<String,String> getAttributes( ) {
-		return this.attributes;
-	}
-
-	public String removeAttribute( String attribute ) {
-		return this.attributes.remove( attribute );
-	}
-
-	public boolean hasAttribute( String attribute ) {
-		return this.attributes.containsKey( attribute );
 	}
 
 	/**

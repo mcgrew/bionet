@@ -19,7 +19,7 @@ along with SysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.sysnet.util;
 
-import edu.purdue.bbc.util.attributes.Attributes;
+import edu.purdue.bbc.util.attributes.StringAttributes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,9 +38,8 @@ import org.apache.log4j.Logger;
  * 
  * @author Thomas McGrew
  */
-public class Experiment implements Comparable<Experiment>,Attributes<String> {
+public class Experiment extends StringAttributes implements Comparable<Experiment> {
 
-	private Map <String,String> attributes;
 	private Collection <Molecule> molecules;
 	private Collection <Correlation> correlations;
 	private SortedSet <Sample> sampleSet;
@@ -62,6 +61,7 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 	 * @param attributes A Map containing this Experiment's attributes.
 	 */
 	public Experiment( String id, Map <String,String> attributes ) {
+		super( false );
 		this.attributes = attributes;
 		this.molecules = new TreeSet<Molecule>( );
 		this.correlations = new ArrayList <Correlation>( );
@@ -130,57 +130,6 @@ public class Experiment implements Comparable<Experiment>,Attributes<String> {
 				"Experiment %s already contains Molecule %s", 
 				this.getId( ), molecule.getId( )));
 		}
-	}
-
-	/**
-	 * Gets all attributes for this Experiment.
-	 * 
-	 * @return A HashMap containing all of the attributes for this 
-	 * experiment indexed by name.
-	 */
-	public Map <String,String> getAttributes( ) {
-		return this.attributes;
-	}
-
-	/**
-	 * Gets a particular attribute from this Experiment.
-	 * 
-	 * @param attr The name of the attribute to retrieve.
-	 * @return A String containing the requested Attribute.
-	 */
-	public String getAttribute( String attr ){
-		return this.attributes.get( attr );
-	}
-
-	/**
-	 * Sets a particular attribute for this Experiment.
-	 * 
-	 * @param attribute The name of the attribute to set.
-	 * @param value The value for this attribute.
-	 */
-	public void setAttribute( String attribute, String value ) {
-		this.attributes.put( attribute, value );
-	}
-
-	/**
-	 * Sets a group of attributes specified by the passed in map.
-	 * 
-	 * @param map A Map containing the attributes to be added.
-	 */
-	public void setAttributes( Map<String,String> map ) {
-		for ( Map.Entry<String,String> entry : map.entrySet( )) {
-			this.setAttribute( entry.getKey( ), entry.getValue( ));
-		}
-	}
-
-	/**
-	 * Removes a particular attribute from this Experiment.
-	 * 
-	 * @param attr The name of the attribute to remove.
-	 * @return A String containing the removed Attribute.
-	 */
-	public String removeAttribute( String attr ){
-		return this.attributes.remove( attr );
 	}
 
 	/**

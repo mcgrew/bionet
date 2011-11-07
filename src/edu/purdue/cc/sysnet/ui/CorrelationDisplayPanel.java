@@ -2735,10 +2735,10 @@ public class CorrelationDisplayPanel extends JPanel
 					double mean2 = m.getValues( sampleGroups.getSecond( )).getMean( );
 					double foldChange = Settings.getSettings( ).getDouble( 
 						"preferences.correlation.foldChange", 2.0 );
-					if ( mean1 / mean2 > foldChange ) {
+					if ( mean2 / mean1 > foldChange ) {
 						return this.upPaint;
 					}
-					if ( mean2 / mean1  > foldChange ) {
+					if ( mean1 / mean2  > foldChange ) {
 						return this.downPaint;
 					}
 				}

@@ -361,6 +361,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 		Iterator<SampleGroup> groupIter = sampleGroups.iterator( );
 		Collection<ClusterSelectorTreePanel> clusterTreeList = 
 			new ArrayList<ClusterSelectorTreePanel>( );
+		this.clusterGraphPanel.removeAll( );
 		for ( Map.Entry<Thread,RunnableClusterer> clusterer : clusterers.entrySet( )) {
 			try { 
 				clusterer.getKey( ).join( );

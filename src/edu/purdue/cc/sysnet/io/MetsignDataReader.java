@@ -123,22 +123,27 @@ public class MetsignDataReader extends DataReader {
 		file = new CSVTableReader( scanner );
 		file.setUseQuotes( true );
 		Map<Sample,Boolean> samplePresent = new HashMap<Sample,Boolean>( );
-		while( file.hasNext( )) {
-			line = file.next( );
-			logger.debug( line.toString( ));
-			Sample sample = 
-				new Sample( line.get( "Sample File" ));
-			sample.setAttributes( line );
-			String expId = Settings.getLanguage( ).get( "Time" ) + " " +
-					sample.getAttribute( "Time" );
-			Experiment experiment = 
-				this.getExperiment( expId );
-			if ( experiment == null ) {
-				experiment = new Experiment( expId );
-				experiments.add( experiment );
+		try {
+			while( file.hasNext( )) {
+				line = file.next( );
+				logger.debug( line.toString( ));
+				Sample sample = 
+					new Sample( line.get( "Sample File" ));
+				sample.setAttributes( line );
+				String expId = Settings.getLanguage( ).get( "Time" ) + " " +
+						sample.getAttribute( "Time" );
+				Experiment experiment = 
+					this.getExperiment( expId );
+				if ( experiment == null ) {
+					experiment = new Experiment( expId );
+					experiments.add( experiment );
+				}
+				experiment.addSample( sample );
+				samplePresent.put( sample, Boolean.FALSE );
 			}
-			experiment.addSample( sample );
-			samplePresent.put( sample, Boolean.FALSE );
+		} catch ( Exception e ) {
+			logger.error( "An error occurred while reading the project info file.\n" +
+			              "This file may not be in the correct format." );
 		}
 		file.close( );
 
@@ -154,46 +159,51 @@ public class MetsignDataReader extends DataReader {
 			this.experiments = new ArrayList <Experiment>( );
 			return;
 		}
-		while( file.hasNext( )) {
-			line = file.next( );
-			String id = line.remove( "id" );
-      if ( id == null )
-        id = line.remove( "ID" );
-			Molecule molecule;
-			molecule = new Molecule( id );
-			for ( Experiment experiment : this.experiments ) {
-        experiment.addMolecule( molecule );
-			}
-			// add the remaining attributes to the molecule.
-			for( Map.Entry<String,String> entry : line.entrySet( )) {
-				// see if this column is a sample value
-				Sample sample = null;
-				for ( Experiment e : this.experiments ) {
-					sample = e.getSample( entry.getKey( ));
-					if ( sample != null )
-						break;
+		try {
+			while( file.hasNext( )) {
+				line = file.next( );
+				String id = line.remove( "id" );
+				if ( id == null )
+					id = line.remove( "ID" );
+				Molecule molecule;
+				molecule = new Molecule( id );
+				for ( Experiment experiment : this.experiments ) {
+					experiment.addMolecule( molecule );
 				}
-				if ( sample != null ) {
-					Number value = new Double( Double.NaN );
-					try {
-						value = new Double( entry.getValue( ));
-					} catch ( NumberFormatException exc ) {
-						Logger.getLogger( getClass( )).trace( String.format( 
-							"Invalid number format for sample value: %s", 
-							entry.getValue( )), exc );
+				// add the remaining attributes to the molecule.
+				for( Map.Entry<String,String> entry : line.entrySet( )) {
+					// see if this column is a sample value
+					Sample sample = null;
+					for ( Experiment e : this.experiments ) {
+						sample = e.getSample( entry.getKey( ));
+						if ( sample != null )
+							break;
 					}
-					Logger.getLogger( getClass( )).trace( String.format( 
-						"Adding sample value %f to %s for sample %s", 
-						value, molecule, sample ));
-					sample.setValue( molecule, value );
-					samplePresent.put( sample, Boolean.TRUE );
-				} else {
-					Logger.getLogger( getClass( )).trace( String.format( 
-						"Setting attribute %s for Molecule %s to %s", 
-						entry.getKey( ), molecule, entry.getValue( )));
-					molecule.setAttribute( entry.getKey( ), entry.getValue( ));
+					if ( sample != null ) {
+						Number value = new Double( Double.NaN );
+						try {
+							value = new Double( entry.getValue( ));
+						} catch ( NumberFormatException exc ) {
+							Logger.getLogger( getClass( )).trace( String.format( 
+								"Invalid number format for sample value: %s", 
+								entry.getValue( )), exc );
+						}
+						Logger.getLogger( getClass( )).trace( String.format( 
+							"Adding sample value %f to %s for sample %s", 
+							value, molecule, sample ));
+						sample.setValue( molecule, value );
+						samplePresent.put( sample, Boolean.TRUE );
+					} else {
+						Logger.getLogger( getClass( )).trace( String.format( 
+							"Setting attribute %s for Molecule %s to %s", 
+							entry.getKey( ), molecule, entry.getValue( )));
+						molecule.setAttribute( entry.getKey( ), entry.getValue( ));
+					}
 				}
 			}
+		} catch ( Exception e ) {
+			logger.error( "An error occurred while reading the normalization file.\n" +
+			              "This file may not be in the correct format." );
 		}
 		for ( Experiment experiment : this.experiments ) {
 			ArrayList<Sample> samples = 
