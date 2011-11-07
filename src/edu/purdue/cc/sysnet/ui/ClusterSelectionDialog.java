@@ -46,9 +46,12 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
 
+import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.FarthestFirst;
 import net.sf.javaml.clustering.KMeans;
+import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.clustering.KMedoids;
+import net.sf.javaml.clustering.SOM;
 import net.sf.javaml.clustering.SOM;
 import net.sf.javaml.clustering.mcl.MCL;
 import net.sf.javaml.distance.DistanceMeasure;
@@ -56,11 +59,11 @@ import net.sf.javaml.distance.EuclideanDistance;
 import net.sf.javaml.distance.LinearKernel;
 import net.sf.javaml.distance.PearsonCorrelationCoefficient;
 import net.sf.javaml.distance.SpearmanRankCorrelation;
+import net.sf.javaml.tools.weka.WekaClusterer;
 
-import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.clustering.KMeans;
-import net.sf.javaml.clustering.SOM;
+import weka.clusterers.SimpleKMeans;
 
+import org.apache.log4j.Logger;
 
 /**
  * A class for selecting the clustering algorithm and parameters to use for 
@@ -126,7 +129,8 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			language.get( "Clustering Method" ));
 		this.clusterSelectorComboBox = new JComboBox( new Object[] {
 			new SOMClusterParameterPanel( ),
-			new KMeansClusterParameterPanel( ),
+//			new KMeansClusterParameterPanel( ),
+			new SimpleKMeansClusterParameterPanel( ),
 			new KMedoidsClusterParameterPanel( ),
 			new FarthestFirstClusterParameterPanel( )
 			});
@@ -316,7 +320,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			yDimensionSpinner    = new JSpinner( new SpinnerNumberModel( 
 				settings.getInt( "history.clustering.som.yDimension", 5 ), 0, 25, 1 ));
 			iterationSpinner     = new JSpinner( new SpinnerNumberModel( 
-				settings.getInt( "history.clustering.som.iterations", 10000 ), 0, 100000, 5000 ));
+				settings.getInt( "history.clustering.som.iterations", 1000 ), 1, 100000, 1000 ));
 			learningRateSpinner  = new JSpinner( new SpinnerNumberModel( 
 				settings.getDouble( "history.clustering.som.learningRate", 0.1 ), 0, 1, 0.1 ));
 			initialRadiusSpinner = new JSpinner( new SpinnerNumberModel( 
@@ -412,22 +416,76 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		}
 	}
 
+	// There is a problem with the KMeans Clusterer in java-ml which occasionaly
+	// causes it to hang. I am removing this clusterer and replacing with Weka's
+	// SimpleKMeans clusterer until this can be resolved.
 	// ===================== KMeansClusterParameterPanel ========================
 	/**
 	 * A ParameterPanel for selecting KMeans parameters
 	 */
-	private class KMeansClusterParameterPanel extends ClusterParameterPanel {
+//	private class KMeansClusterParameterPanel extends ClusterParameterPanel {
+//		private JSpinner clustersSpinner;
+//		private JSpinner iterationsSpinner;
+//
+//		public KMeansClusterParameterPanel( ) {
+//			super( new GridLayout( 2, 2, hgap, vgap ));
+//			Language language = Settings.getLanguage( );
+//			Settings settings = Settings.getSettings( );
+//			clustersSpinner    = new JSpinner( new SpinnerNumberModel( 
+//				settings.getInt( "history.clustering.kmeans.clusters", 5 ), 0, 500, 1 ));
+//			iterationsSpinner    = new JSpinner( new SpinnerNumberModel( 
+//				settings.getInt( "history.clustering.kmeans.iterations", 100 ), 1, 10000, 50 ));
+//			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
+//			this.add( this.clustersSpinner );
+//			this.add( new JLabel( language.get( "Number of Iterations" )));
+//				this.add( this.iterationsSpinner );
+//		}
+//
+//		/**
+//		 * Returns a new KMeans Clusterer with the parameters selected by the user.
+//		 * 
+//		 * @return The new KMeans Clusterer.
+//		 */
+//		public Clusterer getClusterer( ) {
+//			Settings settings = Settings.getSettings( );
+//			settings.set( "history.clustering.kmeans.clusters", 
+//				this.clustersSpinner.getValue( ).toString( ));
+//			settings.set( "history.clustering.kmeans.iterations", 
+//				this.iterationsSpinner.getValue( ).toString( ));
+//			return new KMeans(
+//				// number of clusters
+//				Integer.parseInt( this.clustersSpinner.getValue( ).toString( )),
+//				// number of iterations
+//				Integer.parseInt( this.iterationsSpinner.getValue( ).toString( ))
+//			);
+//		}
+//
+//		/**
+//		 * Gets the name of this clusterer.
+//		 * 
+//		 * @return The String "K-Means"
+//		 */
+//		public String toString( ) {
+//			return "K-Means";
+//		}
+//	}
+
+	// ===================== SimpleKMeansClusterParameterPanel ========================
+	/**
+	 * A ParameterPanel for selecting KMeans parameters
+	 */
+	private class SimpleKMeansClusterParameterPanel extends ClusterParameterPanel {
 		private JSpinner clustersSpinner;
 		private JSpinner iterationsSpinner;
 
-		public KMeansClusterParameterPanel( ) {
+		public SimpleKMeansClusterParameterPanel( ) {
 			super( new GridLayout( 2, 2, hgap, vgap ));
 			Language language = Settings.getLanguage( );
 			Settings settings = Settings.getSettings( );
 			clustersSpinner    = new JSpinner( new SpinnerNumberModel( 
-				settings.getInt( "history.clustering.kmeans.clusters", 5 ), 0, 25, 1 ));
+				settings.getInt( "history.clustering.simpleKmeans.clusters", 5 ), 0, 500, 1 ));
 			iterationsSpinner    = new JSpinner( new SpinnerNumberModel( 
-				settings.getInt( "history.clustering.kmeans.iterations", 5 ), 0, 25, 1 ));
+				settings.getInt( "history.clustering.simpleKmeans.iterations", 500 ), 1, 10000, 50 ));
 			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
 			this.add( this.clustersSpinner );
 			this.add( new JLabel( language.get( "Number of Iterations" )));
@@ -441,16 +499,36 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		 */
 		public Clusterer getClusterer( ) {
 			Settings settings = Settings.getSettings( );
-			settings.set( "history.clustering.kmeans.clusters", 
+			Logger logger = Logger.getLogger( getClass( ));
+			settings.set( "history.clustering.simpleKmeans.clusters", 
 				this.clustersSpinner.getValue( ).toString( ));
-			settings.set( "history.clustering.kmeans.iterations", 
+			settings.set( "history.clustering.simpleKmeans.iterations", 
 				this.iterationsSpinner.getValue( ).toString( ));
-			return new KMeans(
-				// number of clusters
-				Integer.parseInt( this.clustersSpinner.getValue( ).toString( )),
-				// number of iterations
-				Integer.parseInt( this.iterationsSpinner.getValue( ).toString( ))
-			);
+			SimpleKMeans kmeans = new SimpleKMeans( );
+			// set the number of iterations
+			StringBuilder optionString = new StringBuilder( );
+			String[] options = kmeans.getOptions( );
+			boolean iterationOption = false;
+			for ( int i=0; i < options.length; i++ ) {
+				if ( iterationOption ) {
+					options[ i ] = this.iterationsSpinner.getValue( ).toString( );
+				}
+				iterationOption = "-I".equals( options[ i ] );
+				optionString.append( options[ i ] + " " );
+			}
+			logger.debug( "Simple K-Means options: " + optionString );
+			try {
+				kmeans.setOptions( options );
+				kmeans.setNumClusters( 
+					// number of clusters
+					Integer.parseInt( this.clustersSpinner.getValue( ).toString( ))
+				);
+			} catch ( Exception e ) {
+				logger.error( 
+				"An invalid option was specified. Using the default of " + kmeans.getNumClusters( ) +
+				" instead\nThe following error was returned", e );
+			}
+			return new WekaClusterer( kmeans );
 		}
 
 		/**
@@ -459,7 +537,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 		 * @return The String "K-Means"
 		 */
 		public String toString( ) {
-			return "K-Means";
+			return "Simple K-Means";
 		}
 	}
 
@@ -520,7 +598,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			clustersSpinner    = new JSpinner( new SpinnerNumberModel( 
 				settings.getInt( "history.clustering.kmedoids.clusters", 5 ), 0, 25, 1 ));
 			iterationsSpinner    = new JSpinner( new SpinnerNumberModel( 
-				settings.getInt( "history.clustering.kmedoids.iterations", 5 ), 0, 25, 1 ));
+				settings.getInt( "history.clustering.kmedoids.iterations", 100 ), 0, 10000, 50 ));
 			this.add( new JLabel( language.get( "Distance Measure" )));
 			this.add( this.distanceMeasure );
 			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));
