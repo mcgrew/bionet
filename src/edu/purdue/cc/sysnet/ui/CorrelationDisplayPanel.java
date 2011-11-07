@@ -909,7 +909,12 @@ public class CorrelationDisplayPanel extends JPanel
 				} catch ( ClassCastException e ) {
 					return super.add( component );
 				}
-				return this.add( component, index );
+				try {
+					return this.add( component, index );
+				} catch ( IllegalArgumentException e ) {
+					// add it to the end instead.
+					return super.add( component );
+				}
 			}
 		};
 		private JScrollPane moleculeScrollPane = 
