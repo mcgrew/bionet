@@ -1,6 +1,6 @@
-edu.purdue.cc.jsysnet
-edu.purdue.cc.jsysnet.io
-edu.purdue.cc.jsysnet.ui
-edu.purdue.cc.jsysnet.ui.layout
-edu.purdue.cc.jsysnet.ui.renderer
-edu.purdue.cc.jsysnet.util
+edu.purdue.cc.sysnet
+edu.purdue.cc.sysnet.io
+edu.purdue.cc.sysnet.ui
+edu.purdue.cc.sysnet.ui.layout
+edu.purdue.cc.sysnet.ui.renderer
+edu.purdue.cc.sysnet.util
