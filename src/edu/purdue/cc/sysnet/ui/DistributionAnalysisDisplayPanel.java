@@ -130,8 +130,8 @@ import org.apache.log4j.Logger;
 /**
  * A class for comparative analysis view of multiple experiments.
  */
-public class DistributionAnalysisDisplayPanel extends JPanel 
-		implements DisplayPanel,ComponentListener,ActionListener {
+public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel 
+		                               implements ComponentListener,ActionListener {
 
 	private JMenuBar menuBar;
 	private JMenu curveFittingMenu;
@@ -153,7 +153,6 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 	private JPanel topPanel;
 	private JPanel bottomPanel;
 	private JPanel experimentGraphPanel;
-	private Collection<SampleGroup> sampleGroups;
 	private JPanel fitSelectorPanel;
 	private ButtonGroup fitButtonGroup;
 	private boolean graphSplitPaneDividerLocationSet = false;
@@ -287,10 +286,6 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 		return Settings.getLanguage( ).get( "Distribution Analysis" );
 	}
 
-	public Collection<SampleGroup> getSampleGroups( ) {
-		return this.sampleGroups;
-	}
-
 	/**
 	 * Sets the SampleGroups for this panel.
 	 * 
@@ -298,7 +293,7 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 	 */
 	public void setSampleGroups( Collection<SampleGroup> sampleGroups ) {
 
-		this.sampleGroups = sampleGroups;
+		super.setSampleGroups( sampleGroups );
 
 		// clear the listeners
 		CheckboxTree tree = this.selectorTree.getTree( );
@@ -388,7 +383,8 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 						(DefaultMutableTreeNode)sampleIterator.next( );
 					sampleSet.add( (Sample)sampleNode.getUserObject( ));
 				}
-				for ( SampleGroup group : this.sampleGroups ) {
+
+				for ( SampleGroup group : this.getSampleGroups( )) {
 					Collection<Sample> sampleUnion = new TreeSet<Sample>( group );
 					sampleUnion.retainAll( sampleSet );
 					BoxAndWhiskerItem bwItem = 
@@ -441,12 +437,12 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 				frame = frame.getParent( );
 			}
 			Collection<SampleGroup> groups = 
-				SampleGroupingDialog.showInputDialog( 
+				SampleGroupDialog.showInputDialog( 
 					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
 					this.samples );
 			if ( groups != null ) {
 
-				if ( this.sampleGroups != null ) {
+				if ( this.getSampleGroups( ) != null ) {
 					for ( SampleGroup group : this.getSampleGroups( )) {
 						logger.debug( group.toString( ));
 						for ( Sample sample : group ) {

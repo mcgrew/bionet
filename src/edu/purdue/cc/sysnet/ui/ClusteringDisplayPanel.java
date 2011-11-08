@@ -116,8 +116,8 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import org.apache.log4j.Logger;
 
-public class ClusteringDisplayPanel extends JPanel 
-                                implements DisplayPanel, ActionListener {
+public class ClusteringDisplayPanel extends AbstractDisplayPanel 
+                                    implements ActionListener {
 	private JMenuBar menuBar;
 	private JMenu groupsMenu;
 	private JMenuItem chooseSampleGroupsMenuItem;
@@ -133,7 +133,6 @@ public class ClusteringDisplayPanel extends JPanel
 	private Collection<Sample> samples;
 	private Collection<Molecule> molecules;
 	private Clusterer clusterer;
-	private Collection<SampleGroup> sampleGroups;
 
 	private static final int ROOT = 0;
 	private static final int CLUSTER = 1;
@@ -279,7 +278,8 @@ public class ClusteringDisplayPanel extends JPanel
 		Language language = Settings.getLanguage( );
 		Object source = e.getSource( );
 		if ( source == this.recomputeMenuItem ) {
-			this.setSampleGroups( this.sampleGroups );
+			// don't change the groups, just trigger the clusterer
+			this.setSampleGroups( this.getSampleGroups( ));
 		} else if ( source == this.chooseSampleGroupsMenuItem ) {
 			// Choose sample groups.
 			Component frame = this;
@@ -287,12 +287,12 @@ public class ClusteringDisplayPanel extends JPanel
 				frame = frame.getParent( );
 			}
 			Collection<SampleGroup> groups = 
-				SampleGroupingDialog.showInputDialog( 
+				SampleGroupDialog.showInputDialog( 
 					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
 					this.samples );
 			if ( groups != null ) {
 
-				if ( this.sampleGroups != null ) {
+				if ( this.getSampleGroups( ) != null ) {
 					for ( SampleGroup group : this.getSampleGroups( )) {
 						logger.debug( group.toString( ));
 						for ( Sample sample : group ) {
@@ -317,12 +317,12 @@ public class ClusteringDisplayPanel extends JPanel
 		ClusterSelectionDialog dialog =
 			new ClusterSelectionDialog( (Frame)frame, 
 				Settings.getLanguage( ).get( "Choose Clustering Method" ),
-				this.sampleGroups != null );
+				this.getSampleGroups( ) != null );
 
 		if ( dialog.getReturnValue( ) == null ) {
 			return;
 		}
-		this.sampleGroups = sampleGroups;
+		super.setSampleGroups( sampleGroups );
 		Collection<Molecule> molecules;
 		try {
 			ClusterSelectorTreePanel clusterPanel = 
@@ -334,6 +334,7 @@ public class ClusteringDisplayPanel extends JPanel
 			molecules = this.molecules;
 			Logger.getLogger( this.getClass( )).error( e, e );
 		}
+		// clear the panels and set new layouts based on the new groups.
 		this.selectorPanel.removeAll( );
 		this.clusterGraphPanel.removeAll( );
 		int rows = (int)Math.ceil( Math.sqrt( sampleGroups.size( )));
@@ -345,6 +346,7 @@ public class ClusteringDisplayPanel extends JPanel
 		layout.setRows( rows );
 		layout.setColumns( cols );
 
+		// start the clusterer(s) in parallel.
 		Map<Thread,RunnableClusterer> clusterers = 
 			new HashMap<Thread,RunnableClusterer>( );
 		for( SampleGroup group : sampleGroups ) {
@@ -358,6 +360,7 @@ public class ClusteringDisplayPanel extends JPanel
 			clusterers.put( thread, clusterer );
 		}
 
+		// iterate through each group and join the threads
 		Iterator<SampleGroup> groupIter = sampleGroups.iterator( );
 		Collection<ClusterSelectorTreePanel> clusterTreeList = 
 			new ArrayList<ClusterSelectorTreePanel>( );
@@ -421,10 +424,6 @@ public class ClusteringDisplayPanel extends JPanel
 				new DenseInstance( m.getValues( samples ).toDoubleArray( ), m ));
 		}
 		return returnValue;
-	}
-
-	public Collection<SampleGroup> getSampleGroups( ) {
-		return this.sampleGroups;
 	}
 
 	// ============================= PRIVATE CLASSES =============================

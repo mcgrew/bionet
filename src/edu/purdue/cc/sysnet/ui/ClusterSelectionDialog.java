@@ -596,7 +596,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			Settings settings = Settings.getSettings( );
 			this.distanceMeasure = new DistanceMeasureComboBox( );
 			clustersSpinner    = new JSpinner( new SpinnerNumberModel( 
-				settings.getInt( "history.clustering.kmedoids.clusters", 5 ), 0, 25, 1 ));
+				settings.getInt( "history.clustering.kmedoids.clusters", 5 ), 0, 500, 1 ));
 			iterationsSpinner    = new JSpinner( new SpinnerNumberModel( 
 				settings.getInt( "history.clustering.kmedoids.iterations", 100 ), 0, 10000, 50 ));
 			this.add( new JLabel( language.get( "Distance Measure" )));
@@ -652,7 +652,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 			this.distanceMeasure.setSelectedIndex( 
 				settings.getInt( "history.clustering.farthestFirst.distanceMeasure", 0 ));
 			this.distanceSpinner = new JSpinner( new SpinnerNumberModel( 
-				settings.getInt( "history.clustering.farthestFirst.distance", 5 ), 0, 25, 1 ));
+				settings.getInt( "history.clustering.farthestFirst.clusters", 5 ), 0, 500, 1 ));
 			this.add( new JLabel( language.get( "Distance Measure" )));
 			this.add( this.distanceMeasure );
 			this.add( new JLabel( language.get( "Maximum Number of Clusters" )));

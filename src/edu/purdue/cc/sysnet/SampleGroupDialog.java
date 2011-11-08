@@ -73,7 +73,7 @@ import org.apache.log4j.Logger;
 /**
  * A class which displays a dialog for choosing 2 sample groups.
  */
-public class SampleGroupingDialog extends JDialog 
+public class SampleGroupDialog extends JDialog 
                                   implements ActionListener,ChangeListener {
 
 	protected Collection<Sample> samples;
@@ -84,14 +84,14 @@ public class SampleGroupingDialog extends JDialog
 	protected SimplePair<SampleGroup> returnValue;
 
 	/**
-	 * Creates a new SampleGroupingDialog. This should probably not be called
+	 * Creates a new SampleGroupDialog. This should probably not be called
 	 * directly, instead use showInputDialog( ).
 	 * 
 	 * @param owner The parent of this dialog.
 	 * @param title The title for the dialog.
 	 * @param samples A group of samples to be sorted into groups.
 	 */
-	public SampleGroupingDialog( Frame owner, String title,
+	public SampleGroupDialog( Frame owner, String title,
 	                             Collection<Sample> samples ) {
 		super( owner, title );
 		this.getContentPane( ).setLayout( new BorderLayout( ));
@@ -133,7 +133,7 @@ public class SampleGroupingDialog extends JDialog
 	}
 
 	/**
-	 * Creates a new SampleGroupingDialog and returns the SampleGroups once the
+	 * Creates a new SampleGroupDialog and returns the SampleGroups once the
 	 * selection is made.
 	 * 
 	 * @param owner The parent of this dialog.
@@ -143,8 +143,8 @@ public class SampleGroupingDialog extends JDialog
 	public static SimplePair<SampleGroup> showInputDialog(
 			Frame owner, String title, Collection<Sample> samples ) {
 
-		SampleGroupingDialog dialog = 
-			new SampleGroupingDialog( owner, title, samples );
+		SampleGroupDialog dialog = 
+			new SampleGroupDialog( owner, title, samples );
 		return dialog.getReturnValue( );
 	}
 

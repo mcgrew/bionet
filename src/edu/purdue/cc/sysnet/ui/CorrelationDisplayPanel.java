@@ -39,6 +39,8 @@ import edu.purdue.cc.sysnet.util.Molecule;
 import edu.purdue.cc.sysnet.util.MonitorableRange;
 import edu.purdue.cc.sysnet.util.Sample;
 import edu.purdue.cc.sysnet.util.SampleGroup;
+import edu.purdue.cc.sysnet.util.SampleGroupChangeEvent;
+import edu.purdue.cc.sysnet.util.SampleGroupChangeListener;
 import edu.purdue.cc.sysnet.util.Spectrum;
 import edu.purdue.cc.sysnet.util.SplitSpectrum;
 
@@ -159,8 +161,8 @@ import org.apache.log4j.Logger;
  * A class for displaying and interacting with Correlation data for a set of 
  * molecules.
  */
-public class CorrelationDisplayPanel extends JPanel 
-		implements ActionListener,ChangeListener,ItemListener,DisplayPanel {
+public class CorrelationDisplayPanel extends AbstractDisplayPanel 
+		implements ActionListener,ChangeListener,ItemListener {
 
 	private JMenuBar menuBar;
 
@@ -227,7 +229,6 @@ public class CorrelationDisplayPanel extends JPanel
 	private CorrelationSet correlations;
 	private String title;
 	private Scalable visibleGraph;
-	private Collection<SampleGroup> sampleGroups;
 	private MutableNumber correlationMethod;
 
 	/**
@@ -498,10 +499,12 @@ public class CorrelationDisplayPanel extends JPanel
 
 		this.graph = new CorrelationGraphVisualizer( 
 			this.correlations, this.correlationFilterPanel.getMonitorableRange( ));
+		this.addSampleGroupChangeListener( this.graph );
 		this.saveImageAction.setComponent( this.graph );
 		this.graph.setBackground( Color.WHITE );
 		this.graph.setIndicateCommonNeighbors( true );
 		this.infoPanel = new InfoPanel( );
+		this.addSampleGroupChangeListener( this.infoPanel );
 		this.graph.addGraphMouseListener( new CorrelationGraphMouseListener( ));
 
 		this.graph.addGraphMouseEdgeListener( 
@@ -529,8 +532,9 @@ public class CorrelationDisplayPanel extends JPanel
 				this.correlations.add( molecule );
 			}
 		}
-		this.sampleGroups = new ArrayList<SampleGroup>( );
-		this.sampleGroups.add( new SampleGroup( "", this.samples ));
+		Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
+		sampleGroups.add( new SampleGroup( "All Samples", this.samples ));
+		this.setSampleGroups( sampleGroups );
 
 		this.add( this.graphSplitPane, BorderLayout.CENTER );
 		this.graphSplitPane.setBottomComponent( this.infoPanel );
@@ -842,15 +846,13 @@ public class CorrelationDisplayPanel extends JPanel
 			while( !(frame instanceof Frame) && frame != null ) {
 				frame = frame.getParent( );
 			}
-			this.sampleGroups = SampleGroupingDialog.showInputDialog( 
+			this.setSampleGroups( SampleGroupDialog.showInputDialog( 
 					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
-					this.samples);
-
-			if ( this.sampleGroups.size( ) > 1 ) {
-				this.graph.setSampleGroups( this.sampleGroups );
+					this.samples));
+			if ( this.getSampleGroups( ).size( ) > 1 ) {
 				this.infoPanel.repaint( );
 				Logger logger = Logger.getLogger( getClass( ));
-				Iterator<SampleGroup> iterator = this.sampleGroups.iterator( );
+				Iterator<SampleGroup> iterator = this.getSampleGroups( ).iterator( );
 				SampleGroup group = iterator.next( );
 				logger.debug( group.toString( ));
 				for ( Sample sample : group ) {
@@ -863,10 +865,10 @@ public class CorrelationDisplayPanel extends JPanel
 				}
 			}
 		} else if ( item == this.resetSampleGroupsMenuItem ) {
-			this.sampleGroups = new ArrayList<SampleGroup>( );
-			this.sampleGroups.add( new SampleGroup( 
+			Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
+			sampleGroups.add( new SampleGroup( 
 				Settings.getLanguage( ).get( "All samples" ), this.samples ));
-			this.graph.setSampleGroups( this.sampleGroups );
+			this.setSampleGroups( sampleGroups );
 			this.infoPanel.repaint( );
 		}
 	}
@@ -1254,8 +1256,9 @@ public class CorrelationDisplayPanel extends JPanel
 	/**
 	 * A class for displaying the table below the graph.
 	 */
-	private class InfoPanel extends JTabbedPane implements ChangeListener {
-		private JPanel conditionPanel;
+	private class InfoPanel extends JTabbedPane 
+	                        implements ChangeListener,SampleGroupChangeListener {
+		private ConditionPanel conditionPanel;
 		private JPanel topologyPanel;
 		private JPanel degreeDistributionPanel;
 		private JPanel correlationDistributionPanel;
@@ -1493,6 +1496,10 @@ public class CorrelationDisplayPanel extends JPanel
 			correlationTable.repaint( );	
 		}
 
+		public void groupStateChanged( SampleGroupChangeEvent event ) {
+			this.conditionPanel.groupStateChanged( event );
+		}
+
 		// ====================== PickedColumnRenderer ==========================
 		/**
 		 * A class for highlighting the selected correlation in the InfoTable
@@ -1529,15 +1536,20 @@ public class CorrelationDisplayPanel extends JPanel
 		 * A UI class for displaying the current graph conditions.
 		 */
 		private class ConditionPanel extends JPanel 
-		                             implements ActionListener {
-			private JScrollPane sampleGroupingScrollPane = new JScrollPane( );
+					  implements ActionListener,SampleGroupChangeListener {
+			private JScrollPane sampleGroupingScrollPane;
+			private JTable sampleGroupingTable;
 
 			/**
 			 * Creates a new ConditionPanel
 			 */
 			public ConditionPanel( ) {
 				super( );
+				this.sampleGroupingTable = new JTable( );
+				this.sampleGroupingScrollPane = 
+					new JScrollPane( this.sampleGroupingTable );
 				this.setLayout( new BorderLayout( ));
+				this.add( this.sampleGroupingScrollPane, BorderLayout.EAST );
 				// listen for changes to layout/calculation
 				multipleCirclesLayoutMenuItem.addActionListener( this );
 				multipleCirclesLayoutMenuItem.addActionListener( this );
@@ -1558,7 +1570,6 @@ public class CorrelationDisplayPanel extends JPanel
 			 * @param g The graphics component associated with this panel
 			 */
 			public void paintComponent( Graphics g ) {
-				this.removeAll( );
 				super.paintComponent( g );
 
 				Language language = Settings.getLanguage( );
@@ -1577,8 +1588,8 @@ public class CorrelationDisplayPanel extends JPanel
 				text = String.format( language.get( "Correlation Method" ) + ": %s",
 					Correlation.NAME[ correlationMethod.intValue( )]);
 				g.drawString( text, 20, 50 );
-				if ( sampleGroups.size( ) > 1 ) {
-
+//				if ( sampleGroups.size( ) > 1 ) {
+//
 //					int leftMargin = 300;
 //					// list the samples in group 1.
 //					Iterator<SampleGroup> groupIterator = sampleGroups.iterator( );
@@ -1612,28 +1623,7 @@ public class CorrelationDisplayPanel extends JPanel
 //					stringWidth = f.stringWidth( text );
 //					g.drawString( text, center - stringWidth/2, 30 );
 //					g.drawLine( center - stringWidth/2, 32, center + stringWidth/2, 32 );
-					Vector<String> columnNames = new Vector<String>( sampleGroups.size( ));
-					Vector<Vector<String>> rowData = new Vector<Vector<String>>( 30 );
-					Vector<Iterator<Sample>> groups = new Vector<Iterator<Sample>>( sampleGroups.size( ));
-					for ( SampleGroup group : sampleGroups ) {
-						groups.add( group.iterator( ));
-						columnNames.add( group.toString( ));
-					}
-					for( boolean done=false; !done; ) {
-						Vector<String> thisRow = new Vector<String>( sampleGroups.size( ));
-						for( Iterator<Sample> group : groups ) {
-							thisRow.add( group.hasNext( ) ? group.next( ).toString( ) : "" );
-						}
-						rowData.add( thisRow );
-						for( Iterator<Sample> group : groups )
-							done = done || !group.hasNext( );
-					}
-					JTable table = new JTable( rowData, columnNames );
-					this.add( this.sampleGroupingScrollPane, BorderLayout.EAST );
-					this.sampleGroupingScrollPane.setViewportView( table );
-				} else if ( this.getComponentCount( ) > 0 ) {
-					this.remove( this.sampleGroupingScrollPane );
-				}
+//			}
 			}
 
 			/**
@@ -1643,6 +1633,34 @@ public class CorrelationDisplayPanel extends JPanel
 			 * @param e The event which triggered this action.
 			 */
 			public void actionPerformed( ActionEvent e ) {
+				if ( this.isVisible( ))
+					this.repaint( );
+			}
+
+			public void groupStateChanged( SampleGroupChangeEvent e ) {
+				Collection<SampleGroup> sampleGroups = e.getGroups( );
+				DefaultTableModel tableModel = 
+					(DefaultTableModel)this.sampleGroupingTable.getModel( );
+				tableModel.setColumnCount( 0 );
+				tableModel.setRowCount( 0 );
+				int columnCount = sampleGroups.size( );
+				Iterator[] groups = new Iterator[ columnCount ];
+				int j = 0;
+				for ( SampleGroup group : sampleGroups ) {
+					tableModel.addColumn( group.toString( ));
+					groups[ j++ ] = group.iterator( );
+				}
+				Object[] row = new Object[ columnCount ];
+				boolean done = false;
+				do {
+					done = true;
+					for( int i=0; i < columnCount; i++ ) {
+						row[ i ] = groups[ i ].hasNext( ) ? 
+							groups[ i ].next( ).toString( ) : "";
+						done = done && !groups[ i ].hasNext( );
+					}
+					tableModel.addRow( row );
+				} while ( !done );
 				if ( this.isVisible( ))
 					this.repaint( );
 			}
@@ -2098,7 +2116,7 @@ public class CorrelationDisplayPanel extends JPanel
 						}
 						MultipleCirclesLayout mclayout = (MultipleCirclesLayout)layout;
 						mclayout.setSampleGroups(
-							new SimplePair<SampleGroup>( sampleGroups ));
+							new SimplePair<SampleGroup>( getSampleGroups( )));
 						mclayout.initialize( );
 					} else if ( item == singleCircleLayoutMenuItem ) {
 						setGraphLayout( CircleLayout.class );
@@ -2454,7 +2472,7 @@ public class CorrelationDisplayPanel extends JPanel
 	private class CorrelationGraphVisualizer 
 			extends GraphVisualizer<Molecule,Correlation> 
 			implements ChangeListener,GraphMouseListener<Correlation>, 
-				ComponentListener {
+				ComponentListener,SampleGroupChangeListener {
 
 		public MonitorableRange range;
 		protected CorrelationSet correlations;
@@ -2558,6 +2576,17 @@ public class CorrelationDisplayPanel extends JPanel
 		}
 
 		/**
+		 * The sampleGroupsChanged method of the SampleGroupChangeListener
+		 * interface.
+		 * 
+		 * @param event The event which triggered this action.
+		 */
+		 public void groupStateChanged( SampleGroupChangeEvent event ) {
+			 this.setSampleGroups( event.getGroups( ));
+		 }
+
+
+		/**
 		 * Sets sample groups for up/downregulation indicators on the display.
 		 * 
 		 * @param sg The selected groups.
@@ -2582,10 +2611,6 @@ public class CorrelationDisplayPanel extends JPanel
 			this.repaint( );
 		}
 
-		public Collection<SampleGroup> getSampleGroups( ) {
-			return this.sampleGroups;
-		}
-		
 		/**
 		 * Sets a new range to be used for filtering.
 		 * 
