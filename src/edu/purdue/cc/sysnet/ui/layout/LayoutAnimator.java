@@ -107,17 +107,21 @@ public abstract class LayoutAnimator<V,E> implements Runnable {
 				}
 			}
 		}
-		for ( E edge : new Vector<E>( this.getEdges( ))) {
-			// do something.
-			V [] pair = (V[])this.graph.getIncidentVertices( edge ).toArray( );
-			if ( this.isAttractedBy( pair[ 0 ], pair[ 1 ])) {
-				PolarPoint2D vLocation = map.get( pair[ 0 ]);
-				vLocation.setOrigin( map.get( pair[ 1 ]));
-				double displacement = this.getAttraction( pair[ 0 ], pair[ 1 ]);
-				newMap.get( pair[ 1 ] ).move( 
-					displacement, vLocation.getTheta( ), PolarPoint2D.POLAR );
-
+		try {
+			for ( E edge : new Vector<E>( this.getEdges( ))) {
+				// do something.
+				V [] pair = (V[])this.graph.getIncidentVertices( edge ).toArray( );
+				if ( pair != null && this.isAttractedBy( pair[ 0 ], pair[ 1 ])) {
+					PolarPoint2D vLocation = map.get( pair[ 0 ]);
+					vLocation.setOrigin( map.get( pair[ 1 ]));
+					double displacement = this.getAttraction( pair[ 0 ], pair[ 1 ]);
+					newMap.get( pair[ 1 ] ).move( 
+						displacement, vLocation.getTheta( ), PolarPoint2D.POLAR );
+				}
 			}
+		} catch( Exception e ) {
+			Logger.getLogger( getClass( )).debug( 
+				"An error occured in the Animation step.", e );
 		}
 		updateLocations( newMap );
 	}

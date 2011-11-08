@@ -293,7 +293,7 @@ public class CorrelationDisplayPanel extends JPanel
 //		this.springLayoutMenuItem = 
 //					new JRadioButtonMenuItem( language.get( "Spring Layout" ));
 		this.frSpringLayoutMenuItem = 
-					new JRadioButtonMenuItem( language.get( "Fruchterman-Reingold" ));
+					new JRadioButtonMenuItem( language.get( "Spring Layout" ));
 //		this.animatedLayoutMenuItem = new JCheckBoxMenuItem( 
 //			language.get( "Fruchterman-Reingold Spring Embedding" ));
 
@@ -1082,18 +1082,40 @@ public class CorrelationDisplayPanel extends JPanel
 		 * @param state True for checked, false for unchecked.
 		 */
 		private void setAllVisible( boolean state ) {
-			for ( Component c : this.moleculeList.getComponents( )) {
-				MoleculeCheckBox cb = (MoleculeCheckBox)c;
-				Molecule m = cb.getMolecule( );
-				if ( m != null ) {
-					cb.setSelected( state );
-					if ( state )
-						graph.addVertex( m );
-					else
-						graph.removeVertex( m );
+			graph.setIgnoreRepaint( true );
+			if ( state ) {
+				TreeSet<Molecule> currentMolecules = 
+					new TreeSet<Molecule>( graph.getVertices( ));
+				// the graph seems to slowly come to a crawl on larger datasets if we 
+				// don't clear it first (workaround)
+				for ( Molecule m : currentMolecules ) {
+					graph.removeVertex( m );
+				}
+				for ( Component c : this.moleculeList.getComponents( )) {
+					MoleculeCheckBox cb = (MoleculeCheckBox)c;
+					Molecule m = cb.getMolecule( );
+					if ( m != null ) {
+						cb.setSelected( state );
+						currentMolecules.add( m );
+					}
+				}
+				// adding them back in reverse order seems to be slightly faster.
+				for ( Molecule m : currentMolecules.descendingSet( )) {
+					graph.addVertex( m );
+				}
+			} else {
+				for ( Component c : this.moleculeList.getComponents( )) {
+					MoleculeCheckBox cb = (MoleculeCheckBox)c;
+					Molecule m = cb.getMolecule( );
+					if ( m != null ) {
+						cb.setSelected( state );
+							if ( graph.containsVertex( m ))
+								graph.removeVertex( m );
+						}
 				}
 			}
 			graph.filterEdges( );
+			graph.setIgnoreRepaint( false );
 		}
 
 		/**
@@ -1107,10 +1129,13 @@ public class CorrelationDisplayPanel extends JPanel
 				Molecule m = cb.getMolecule( );
 				if ( m != null ) {
 					cb.setSelected( state );
-					if ( state )
-						graph.addVertex( m );
-					else
-						graph.removeVertex( m );
+					if ( state ) {
+						if ( !graph.containsVertex( m ))
+							graph.addVertex( m );
+					} else {
+						if ( graph.containsVertex( m ))
+							graph.removeVertex( m );
+					}
 				}
 			}
 			graph.filterEdges( );
@@ -1190,9 +1215,11 @@ public class CorrelationDisplayPanel extends JPanel
 			JCheckBox cb = this.checkBoxMap.get(event.getItem( ));
 			int change = event.getAction( );
 			if ( change == GraphItemChangeEvent.REMOVED )
-				cb.setSelected( false );
+				if ( cb.isSelected( ))
+					cb.setSelected( false );
 			else if ( change == GraphItemChangeEvent.ADDED )
-				cb.setSelected( true );
+				if ( !cb.isSelected( ))
+					cb.setSelected( true );
 		}
 
 		private class MoleculeCheckBox extends JCheckBox implements MouseListener {
@@ -2578,7 +2605,12 @@ public class CorrelationDisplayPanel extends JPanel
 					// not there.
 					if ( this.containsEdge( correlation )) {
 						this.getPickedEdgeState( ).pick( correlation, false );
-						this.removeEdge( correlation );
+						try {
+							this.removeEdge( correlation );
+						} catch ( NullPointerException e ) {
+							Logger.getLogger( getClass( )).debug( "Removal of edge " + 
+								correlation + " failed!", e );
+						}
 					}
 				}
 			}
