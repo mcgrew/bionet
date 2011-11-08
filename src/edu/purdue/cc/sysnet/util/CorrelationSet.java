@@ -85,7 +85,7 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	 * Creates a enw CorrelationSet containing the passed in molecules and samples.
 	 * 
 	 * @param molecules The molecules to use for all correlations in this set.
-	 * @param sample The samples to use for all correlation calculations in this 
+	 * @param samples The samples to use for all correlation calculations in this 
 	 *	set.
 	 */
 	public CorrelationSet( Collection<Molecule> molecules,

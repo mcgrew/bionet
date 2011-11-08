@@ -159,7 +159,7 @@ public class ExperimentSelectionDialog extends JDialog
 	 *	accept user input until the dialog is closed.
 	 * @param title The title to be displayed in the title bar of this dialog.
 	 * @param experiments The available experiments to be selected from.
-	 * @return 
+	 * @return A Map.Entry containing the selected view type and List of Experiments
 	 */
 	public static Map.Entry<Integer,List> showInputDialog( 
 		Frame owner, String title, Collection experiments ) {
