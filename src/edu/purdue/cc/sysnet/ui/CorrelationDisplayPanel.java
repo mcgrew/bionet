@@ -1530,12 +1530,14 @@ public class CorrelationDisplayPanel extends JPanel
 		 */
 		private class ConditionPanel extends JPanel 
 		                             implements ActionListener {
+			private JScrollPane sampleGroupingScrollPane = new JScrollPane( );
 
 			/**
 			 * Creates a new ConditionPanel
 			 */
 			public ConditionPanel( ) {
 				super( );
+				this.setLayout( new BorderLayout( ));
 				// listen for changes to layout/calculation
 				multipleCirclesLayoutMenuItem.addActionListener( this );
 				multipleCirclesLayoutMenuItem.addActionListener( this );
@@ -1556,6 +1558,7 @@ public class CorrelationDisplayPanel extends JPanel
 			 * @param g The graphics component associated with this panel
 			 */
 			public void paintComponent( Graphics g ) {
+				this.removeAll( );
 				super.paintComponent( g );
 
 				Language language = Settings.getLanguage( );
@@ -1576,39 +1579,60 @@ public class CorrelationDisplayPanel extends JPanel
 				g.drawString( text, 20, 50 );
 				if ( sampleGroups.size( ) > 1 ) {
 
-					int leftMargin = 300;
-					// list the samples in group 1.
-					Iterator<SampleGroup> groupIterator = sampleGroups.iterator( );
-					SampleGroup group1 = groupIterator.next( );
-					text = group1.toString( );
-					g.drawString( text, leftMargin, 50 );
-					g.drawLine( leftMargin, 52, leftMargin + f.stringWidth( text ), 52 );
-					int verticalPos = 70;
-					for ( Sample s : group1 ) {
-						g.drawString( s.toString( ), leftMargin, verticalPos );
-						verticalPos += 20;
+//					int leftMargin = 300;
+//					// list the samples in group 1.
+//					Iterator<SampleGroup> groupIterator = sampleGroups.iterator( );
+//					SampleGroup group1 = groupIterator.next( );
+//					text = group1.toString( );
+//					g.drawString( text, leftMargin, 50 );
+//					g.drawLine( leftMargin, 52, leftMargin + f.stringWidth( text ), 52 );
+//					int verticalPos = 70;
+//					for ( Sample s : group1 ) {
+//						g.drawString( s.toString( ), leftMargin, verticalPos );
+//						verticalPos += 20;
+//					}
+//					
+//					// list the samples in group 2.
+//					SampleGroup group2 = groupIterator.next( );
+//					text = group2.toString( );
+//					int col2Margin = leftMargin + 230;
+//					int stringWidth = f.stringWidth( text );
+//					int rightMargin = col2Margin + stringWidth;
+//					g.drawString( text, col2Margin, 50 );
+//					g.drawLine( col2Margin, 52, col2Margin + stringWidth, 52 );
+//					verticalPos = 70;
+//					for ( Sample s : group2 ) {
+//						g.drawString( s.toString( ), col2Margin, verticalPos );
+//						verticalPos += 20;
+//					}
+//
+//					// create a heading
+//					int center = leftMargin + ( rightMargin - leftMargin ) / 2;
+//					text = language.get( "Sample Groups" );
+//					stringWidth = f.stringWidth( text );
+//					g.drawString( text, center - stringWidth/2, 30 );
+//					g.drawLine( center - stringWidth/2, 32, center + stringWidth/2, 32 );
+					Vector<String> columnNames = new Vector<String>( sampleGroups.size( ));
+					Vector<Vector<String>> rowData = new Vector<Vector<String>>( 30 );
+					Vector<Iterator<Sample>> groups = new Vector<Iterator<Sample>>( sampleGroups.size( ));
+					for ( SampleGroup group : sampleGroups ) {
+						groups.add( group.iterator( ));
+						columnNames.add( group.toString( ));
 					}
-					
-					// list the samples in group 2.
-					SampleGroup group2 = groupIterator.next( );
-					text = group2.toString( );
-					int col2Margin = leftMargin + 230;
-					int stringWidth = f.stringWidth( text );
-					int rightMargin = col2Margin + stringWidth;
-					g.drawString( text, col2Margin, 50 );
-					g.drawLine( col2Margin, 52, col2Margin + stringWidth, 52 );
-					verticalPos = 70;
-					for ( Sample s : group2 ) {
-						g.drawString( s.toString( ), col2Margin, verticalPos );
-						verticalPos += 20;
+					for( boolean done=false; !done; ) {
+						Vector<String> thisRow = new Vector<String>( sampleGroups.size( ));
+						for( Iterator<Sample> group : groups ) {
+							thisRow.add( group.hasNext( ) ? group.next( ).toString( ) : "" );
+						}
+						rowData.add( thisRow );
+						for( Iterator<Sample> group : groups )
+							done = done || !group.hasNext( );
 					}
-
-					// create a heading
-					int center = leftMargin + ( rightMargin - leftMargin ) / 2;
-					text = language.get( "Sample Groups" );
-					stringWidth = f.stringWidth( text );
-					g.drawString( text, center - stringWidth/2, 30 );
-					g.drawLine( center - stringWidth/2, 32, center + stringWidth/2, 32 );
+					JTable table = new JTable( rowData, columnNames );
+					this.add( this.sampleGroupingScrollPane, BorderLayout.EAST );
+					this.sampleGroupingScrollPane.setViewportView( table );
+				} else if ( this.getComponentCount( ) > 0 ) {
+					this.remove( this.sampleGroupingScrollPane );
 				}
 			}
 
