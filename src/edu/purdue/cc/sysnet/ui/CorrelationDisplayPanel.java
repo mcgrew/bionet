@@ -1784,8 +1784,7 @@ public class CorrelationDisplayPanel extends JPanel
 			protected JFreeChart distributionChart;
 			protected DefaultCategoryDataset distributionData;
 
-			protected DistributionPanel( 
-					String categoryAxisLabel, String valueAxisLabel ) {
+			protected DistributionPanel( ) {
 
 				super( );
 				graph.addVertexChangeListener( this );
@@ -1793,8 +1792,8 @@ public class CorrelationDisplayPanel extends JPanel
 				distributionData = new DefaultCategoryDataset( );
 				distributionChart = ChartFactory.createBarChart( 
 					null, //title
-					categoryAxisLabel, // category axis label
-					valueAxisLabel, // value axis label
+					this.getCategoryAxisLabel( ), // category axis label
+					this.getValueAxisLabel( ), // value axis label
 					distributionData, // plot data
 					PlotOrientation.VERTICAL, // Plot Orientation
 					false, // show legend
@@ -1817,6 +1816,9 @@ public class CorrelationDisplayPanel extends JPanel
 					DefaultCategoryDataset distributionData );
 
 			public void paintComponent( Graphics g ) {
+				CategoryPlot plot = this.distributionChart.getCategoryPlot( );
+				plot.getDomainAxis( ).setLabel( this.getCategoryAxisLabel( ));
+				plot.getRangeAxis( ).setLabel( this.getValueAxisLabel( ));
 				super.paintComponent( g );
 				getDistributionData( distributionData );
 				g.drawImage( 
@@ -1828,15 +1830,16 @@ public class CorrelationDisplayPanel extends JPanel
 				if ( this.isVisible( ))
 					this.repaint( );
 			}
+
+			public abstract String getCategoryAxisLabel( );
+			public abstract String getValueAxisLabel( );
 		}
 
 		// ========================= DegreeDistributionPanel ======================
 		private class DegreeDistributionPanel extends DistributionPanel {
 
 			public DegreeDistributionPanel( ) {
-				super( Settings.getLanguage( ).get( "Neighbor Count" ), 
-					Settings.getLanguage( ).get( "Nodes" ));
-
+				super( );
 				distributionChart.getCategoryPlot( ).getRangeAxis( )
 					.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
 				// add a context menu for saving the graph to an image
@@ -1859,6 +1862,16 @@ public class CorrelationDisplayPanel extends JPanel
 				for ( int i=0; i <= max; i++ ) {
 					distributionData.addValue( dist[ i ], "", new Integer( i ));
 				}
+			}
+
+			public String getCategoryAxisLabel( ) {
+				return Settings.getLanguage( ).get( "Neighbor Count (" ) + 
+					Correlation.NAME[ correlationMethod.intValue( )] + 
+					", Range " + correlationFilterPanel.getRange( ).toString( ) + ")";
+			}
+
+			public String getValueAxisLabel( ) {
+				return Settings.getLanguage( ).get( "Nodes" );
 			}
 		}
 
@@ -1884,7 +1897,9 @@ public class CorrelationDisplayPanel extends JPanel
 					new SimpleHistogramDataset( "Correlation Distribution"  );
 				distributionChart = ChartFactory.createHistogram(
 					null, //title
-					language.get( "Correlation Value" ), // category axis label
+					language.get( "Correlation Value (All correlations, " +
+						Correlation.NAME[ correlationMethod.intValue( )] + ")"
+						), // category axis label
 					language.get( "Number of Correlations" ), // value axis label
 					distributionData, // plot data
 					PlotOrientation.VERTICAL, // Plot Orientation
@@ -1914,6 +1929,11 @@ public class CorrelationDisplayPanel extends JPanel
 			}
 
 			public void paintComponent( Graphics g ) {
+				XYPlot plot = this.distributionChart.getXYPlot( );
+				plot.getDomainAxis( ).setLabel( 
+					Settings.getLanguage( ).get( "Correlation Value (All correlations, " +
+						Correlation.NAME[ correlationMethod.intValue( )] + ")"
+						));
 				super.paintComponent( g );
 				getDistributionData( distributionData );
 				g.drawImage( 
@@ -1954,8 +1974,7 @@ public class CorrelationDisplayPanel extends JPanel
 				                                            extends DistributionPanel {
 
 			public NeighborhoodConnectivityDistributionPanel( ) {
-				super( Settings.getLanguage( ).get( "Neighbor Count" ), 
-					Settings.getLanguage( ).get( "Average Neighbor Degree" ));
+				super(  );
 			}
 
 			public void getDistributionData( 
@@ -1986,6 +2005,16 @@ public class CorrelationDisplayPanel extends JPanel
 						(double)neighborCount[ i ] / ( nodeCount[ i ] * i ), "",
 						String.format( "%d", i ));
 				}
+			}
+
+			public String getCategoryAxisLabel( ) {
+				return Settings.getLanguage( ).get( "Neighbor Count (" ) + 
+					Correlation.NAME[ correlationMethod.intValue( )] + 
+					", Range " + correlationFilterPanel.getRange( ).toString( ) + ")";
+			}
+
+			public String getValueAxisLabel( ) {
+				return Settings.getLanguage( ).get( "Average Neighbor Degree" );
 			}
 		}
 	}
