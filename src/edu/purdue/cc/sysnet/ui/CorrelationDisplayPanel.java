@@ -1907,6 +1907,7 @@ public class CorrelationDisplayPanel extends JPanel
 				XYBarRenderer renderer = (XYBarRenderer)plot.getRenderer( );
 				renderer.setBarPainter( new StandardXYBarPainter( ));
 				renderer.setShadowVisible( false );
+				plot.getDomainAxis( ).setRange( -1.0, 1.0 );
 				plot.setBackgroundPaint( Color.WHITE );
 				plot.setRangeGridlinePaint( Color.GRAY );
 				plot.setDomainGridlinePaint( Color.GRAY );

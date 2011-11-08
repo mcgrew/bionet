@@ -21,6 +21,7 @@ package edu.purdue.cc.sysnet.ui;
 
 import edu.purdue.bbc.util.CurveFitting;
 import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.SparseMatrix;
 import edu.purdue.bbc.util.Statistics;
@@ -479,6 +480,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		private SampleGroup sampleGroup;
 		private XYDataset fitDataset;
 		private Equation fitEquation;
+		private JLabel equationLabel;
 		private LegendItemCollection legendItems;
 //		private LegendItemCollection singleExperimentLegendItems;
 		private Stroke stroke;
@@ -493,6 +495,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		public ExperimentGraph( Collection <Experiment> experiments, 
 		                        SampleGroup sampleGroup ) {
 			super( );
+			this.equationLabel = new JLabel( );
 			this.experiments = new TreeSet( experiments );
 			this.sampleGroup = sampleGroup;
 			//this.fitDataset = new XYDataset( );
@@ -529,6 +532,8 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 //			this.legendItems.add( medianLegendItem );
 //			this.legendItems.add( minMaxLegendItem2 );
 //			this.legendItems.add( outlierLegendItem );
+			this.setLayout( null );
+			this.add( this.equationLabel );
 			// add a context menu for saving the graph to an image
 			new ContextMenu( this ).add( new SaveImageAction( this ));
 		}
@@ -547,19 +552,25 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			Molecule molecule = (Molecule)node.getUserObject( );
 			DefaultBoxAndWhiskerXYDataset boxDataSet = 
 				new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
-			double [] fitValues = new double[ this.experiments.size( ) + 1];
-			fitValues[ 0 ] = Double.NaN;
+			NumberList fitValues = new NumberList( );
 			int expIndex = 1;
 			int expCount = 0;
+			int minTime = Integer.MAX_VALUE;
+			int maxTime = 0;
 			for( int i=0; i < node.getChildCount( ); i++ ) {
 				DefaultMutableTreeNode expNode = 
 					(DefaultMutableTreeNode)node.getChildAt( i );
 				Experiment e = (Experiment)expNode.getUserObject( );
-//				Sample sample = e.getSamples( ).iterator( ).next( );
-//				long axisValue = sample.hasAttribute( "time" ) ? 
-//					Long.parseLong( sample.getAttribute( "time" )) : expIndex;
-				long axisValue = expIndex;
-				fitValues[ expIndex ] = Double.NaN;
+				Sample sample = e.getSamples( ).iterator( ).next( );
+				long axisValue = sample.hasAttribute( "time" ) ? 
+					Long.parseLong( sample.getAttribute( "time" )) : expIndex;
+				if ( axisValue > maxTime )
+					maxTime = (int)axisValue;
+				if ( axisValue < minTime )
+					minTime = (int)axisValue;
+				while( fitValues.size( ) <= maxTime ) {
+					fitValues.add( Double.NaN );
+				}
 				if ( selectorTree.isChecked( node )) {
 					expCount++;
 					try {
@@ -573,9 +584,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 
 						// robust fit uses the median instead of the mean.
 						if ( robustFitButton.isSelected( )) { 
-							fitValues[ expIndex ] = item.getMedian( ).doubleValue( );
+							fitValues.set( (int)axisValue , item.getMedian( ));
 						} else {
-							fitValues[ expIndex ] = item.getMean( ).doubleValue( );
+							fitValues.set( (int)axisValue , item.getMean( ));
 						}
 					} catch ( IllegalArgumentException exc ) { 
 						// ignore this error.
@@ -591,15 +602,16 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			// find the equation for the fitting curve
 			this.fitEquation = null;
 			if ( robustFitButton.isSelected( )) {
-				this.fitEquation = CurveFitting.linearFit( fitValues );
+				this.fitEquation = CurveFitting.linearFit( fitValues.toDoubleArray( ));
 			}
 			if ( chiSquareFitButton.isSelected( )) {
-				this.fitEquation = CurveFitting.chiSquareFit( fitValues );
+				this.fitEquation = CurveFitting.chiSquareFit( fitValues.toDoubleArray( ));
 			}
 			XYSeries fitSeries = new XYSeries( language.get( "Fit Line" ));
-			int xMax = this.experiments.size( );
 			if ( fitEquation != null ) {
-				for ( double i=1; i <= xMax; i+= 0.01 ) {
+				this.equationLabel.setText( 
+					"<html>y = " + fitEquation.toString( "<sup>%s</sup>" ) + "</html>" );
+				for ( double i=minTime; i <= maxTime; i+= 0.01 ) {
 					try {
 						fitSeries.add( i, fitEquation.solve( i ));
 					} catch ( IllegalArgumentException exc ) {
@@ -608,14 +620,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 							fitEquation.toString( ) + " where x=" + i, exc );
 					}
 				}
-//			} else {
-//				for ( int i=1; i <= xMax; i++ ) {
-//					if ( !Double.isNaN( fitValues[ i ] ))
-//						fitSeries.add( i, fitValues[ i ]);
-//					}
+			} else {
+				this.equationLabel.setText( "" );
 			}
 			this.chart = ChartFactory.createBoxAndWhiskerChart (
-				String.format( language.get( "%s across experiments" ) + " - %s", 
+				String.format( language.get( "%s across time" ) + " - %s", 
 					molecule.toString( ),
 					this.sampleGroup.toString( )), //title
 				language.get( "Time" ), // x axis label
@@ -630,10 +639,11 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
-			plot.setDomainAxis( new NumberAxis( ));
-			plot.getDomainAxis( ).setStandardTickUnits( 
-				NumberAxis.createIntegerTickUnits( ));
-			plot.getDomainAxis( ).setVerticalTickLabels( true );
+			ValueAxis domainAxis = new NumberAxis( );
+			plot.setDomainAxis( domainAxis );
+			domainAxis.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			domainAxis.setVerticalTickLabels( true );
+			domainAxis.setRange( minTime - 0.5, maxTime + 0.5 );
 			XYItemRenderer boxRenderer = plot.getRenderer( );
 			boxRenderer.setSeriesStroke( 0, this.stroke );
 			boxRenderer.setSeriesOutlineStroke( 0, this.stroke );
@@ -646,9 +656,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 
 //			if ( expCount > 1 ) {
 				plot.setFixedLegendItems( this.legendItems );
-	//		} else {
+//			} else {
 //				plot.setFixedLegendItems( this.singleExperimentLegendItems );
-	//		}
+//			}
 			return true;
 		}
 
@@ -664,13 +674,10 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 				BufferedImage drawing =
 					this.chart.createBufferedImage( size.width, size.height );
 				g.drawImage( drawing, 0, 0, Color.WHITE, this );
-				if ( this.fitEquation != null ) {
-					FontMetrics f = g.getFontMetrics( );
-					String notation = "y="+this.fitEquation.toString( );
-					g.drawString( notation, 
-					              size.width - f.stringWidth( notation ) - 20,
-												size.height - 15 );
-				}
+				FontMetrics f = g.getFontMetrics( );
+				this.equationLabel.setBounds( 
+					size.width - 300, 0, 300, 100 );
+				this.equationLabel.repaint( );
 			}
 		}
 
@@ -838,6 +845,7 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 
 			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 			XYPlot plot = this.chart.getXYPlot( );
+			plot.getDomainAxis( ).setRange( -0.5, this.sampleGroup.size( ) - 0.5 );
 			plot.setRenderer( renderer );
 			// this is a single experiment graph, so pick the color to be consistent
 			// with the multi-experiment graph.
@@ -1037,7 +1045,6 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @param item A BoxandWhiskerItem which will be used to determine outliers.
 		 */
 		public void setSeriesOutlierInfo( int index, BoxAndWhiskerItem item ) {
-			System.out.println( "Setting outlier info for series " + index );
 			while ( index >= outlierInfo.size( )) {
 				outlierInfo.add( null );
 			}
@@ -1051,7 +1058,6 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 		 * @return The BoxAndWhiskerItem used to calculate outliers.
 		 */
 		public BoxAndWhiskerItem getSeriesOutlierInfo( int index ) {
-			System.out.println( "Getting outlier info for series " + index );
 			if ( index >= outlierInfo.size( ))
 				return null;
 			return outlierInfo.get( index );

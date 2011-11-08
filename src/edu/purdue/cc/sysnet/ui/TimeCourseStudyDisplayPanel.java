@@ -834,6 +834,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				renderer.setSeriesPaint( i, 
 					Color.getHSBColor( (float)i/xyDataset.getSeriesCount( ), 1.0f, 0.5f ));
 			}
+			plot.getDomainAxis( ).setRange( -0.5, samples.size( ) - 0.5 );
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
@@ -931,6 +932,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 				renderer.setSeriesPaint( i, 
 					Color.getHSBColor( (float)i/xyDataset.getSeriesCount( ), 1.0f, 0.5f ));
 			}
+			plot.getDomainAxis( ).setRange( -0.5, samples.size( ) - 0.5 );
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );

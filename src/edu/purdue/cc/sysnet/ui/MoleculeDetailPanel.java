@@ -206,6 +206,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			renderer.setSeriesPaint( 0, Color.getHSBColor( 0.5f, 1.0f, 0.5f ));
 			renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
 			renderer.setSeriesShapesVisible( 0, true );
+			plot.getDomainAxis( ).setRange( -0.5, sampleList.size( ) - 0.5 );
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
