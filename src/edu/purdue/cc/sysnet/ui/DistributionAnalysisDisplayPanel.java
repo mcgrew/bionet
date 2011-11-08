@@ -22,6 +22,7 @@ package edu.purdue.cc.sysnet.ui;
 import edu.purdue.bbc.util.CurveFitting;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.NumberList;
+import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.SparseMatrix;
 import edu.purdue.bbc.util.Statistics;
@@ -135,8 +136,13 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 	private JMenuBar menuBar;
 	private JMenu curveFittingMenu;
 	private JMenu groupsMenu;
+	private JMenu viewMenu;
 	private JMenuItem chooseSampleGroupsMenuItem;
 	private JMenuItem removeSampleGroupsMenuItem;
+	private JRadioButtonMenuItem noFitButton;
+	private JRadioButtonMenuItem robustFitButton;
+	private JRadioButtonMenuItem chiSquareFitButton;
+	private JMenuItem deselectOutliersViewMenuItem;
 
 	private Collection<Experiment> experiments;
 	private Set<Molecule> molecules;
@@ -149,9 +155,6 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 	private JPanel experimentGraphPanel;
 	private Collection<SampleGroup> sampleGroups;
 	private JPanel fitSelectorPanel;
-	private JRadioButtonMenuItem noFitButton;
-	private JRadioButtonMenuItem robustFitButton;
-	private JRadioButtonMenuItem chiSquareFitButton;
 	private ButtonGroup fitButtonGroup;
 	private boolean graphSplitPaneDividerLocationSet = false;
 
@@ -171,6 +174,8 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 		this.curveFittingMenu.setMnemonic( KeyEvent.VK_C );
 		this.groupsMenu = new JMenu( language.get( "Groups" ));
 		this.groupsMenu.setMnemonic( KeyEvent.VK_G );
+		this.viewMenu = new JMenu( language.get( "View" ));
+		this.viewMenu.setMnemonic( KeyEvent.VK_V );
 		this.removeSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_R );
 		this.chooseSampleGroupsMenuItem = 
@@ -187,16 +192,21 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 		this.fitButtonGroup.add( this.robustFitButton );
 		this.fitButtonGroup.add( this.chiSquareFitButton );
 		this.noFitButton.setSelected( true );
+		this.deselectOutliersViewMenuItem = new JMenuItem( 
+			language.get( "Deselect Current Outliers" ));
 		this.curveFittingMenu.add( this.noFitButton );
 		this.curveFittingMenu.add( this.robustFitButton );
 		this.curveFittingMenu.add( this.chiSquareFitButton );
 		this.groupsMenu.add( this.removeSampleGroupsMenuItem );
 		this.groupsMenu.add( this.chooseSampleGroupsMenuItem );
+		this.viewMenu.add( this.deselectOutliersViewMenuItem );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.removeSampleGroupsMenuItem.addActionListener( this );
+		this.deselectOutliersViewMenuItem.addActionListener( this );
 		this.add( menuBar, BorderLayout.NORTH );
 		this.menuBar.add( this.curveFittingMenu );
 		this.menuBar.add( this.groupsMenu );
+		this.menuBar.add( this.viewMenu );
 	}
 
 	/**
@@ -321,9 +331,6 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 		layout.setRows( rows );
 		layout.setColumns( cols );
 
-		if ( selectorTree.getTree( ).isSelectionEmpty( )) {
-			selectorTree.getTree( ).setSelectionRow( 0 );
-		}
 		TreePath path = selectorTree.getTree( ).getSelectionPath( );
 		int level = path.getPathCount( );
 		DefaultMutableTreeNode selectedNode = null;
@@ -353,8 +360,55 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 			sampleGroups != null && sampleGroups.size( ) > 1 );
 		this.experimentGraphPanel.validate( );
 		this.bottomPanel.validate( );
+	}
 
-		
+	public void deselectOutliers( ) {
+		Iterator<TreeNode> moleculeIterator = 
+			this.selectorTree.checkedDescendantIterator( 
+				this.selectorTree.getRoot( ), MOLECULE );
+
+		while ( moleculeIterator.hasNext( )) {
+			DefaultMutableTreeNode moleculeNode = 
+				(DefaultMutableTreeNode)moleculeIterator.next( );
+			Molecule molecule = (Molecule)moleculeNode.getUserObject( );
+
+			Iterator<TreeNode> experimentIterator = 
+				this.selectorTree.checkedDescendantIterator( 
+					moleculeNode, EXPERIMENT );
+			while( experimentIterator.hasNext( )) {
+				DefaultMutableTreeNode experimentNode = 
+					(DefaultMutableTreeNode)experimentIterator.next( );
+
+				Iterator<TreeNode> sampleIterator = 
+					this.selectorTree.checkedDescendantIterator( 
+						experimentNode, SAMPLE );
+				TreeSet<Sample> sampleSet = new TreeSet<Sample>( );
+				while( sampleIterator.hasNext( )) {
+					DefaultMutableTreeNode sampleNode = 
+						(DefaultMutableTreeNode)sampleIterator.next( );
+					sampleSet.add( (Sample)sampleNode.getUserObject( ));
+				}
+
+				BoxAndWhiskerItem bwItem = 
+						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
+							molecule.getValues( sampleSet ));
+				Range normalRange = new Range( 
+					bwItem.getMinRegularValue( ).doubleValue( ),
+					bwItem.getMaxRegularValue( ).doubleValue( ));
+				sampleIterator = this.selectorTree.checkedDescendantIterator( 
+						experimentNode, SAMPLE );
+				while( sampleIterator.hasNext( )) {
+					DefaultMutableTreeNode sampleNode = 
+						(DefaultMutableTreeNode)sampleIterator.next( );
+					if ( !normalRange.contains( 
+							molecule.getValue( 
+								(Sample)sampleNode.getUserObject( )).doubleValue( )))
+						this.selectorTree.uncheck( sampleNode );
+				}
+			}
+			
+		}
+
 	}
 
 	public void componentHidden( ComponentEvent e ) { } 
@@ -403,6 +457,8 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 			Collection<SampleGroup> groups = new ArrayList<SampleGroup>( );
 			groups.add( new SampleGroup( "", this.samples ));
 			this.setSampleGroups( groups );
+		} else if ( source == this.deselectOutliersViewMenuItem ) {
+			this.deselectOutliers( );
 		}
 	}
 
@@ -424,7 +480,8 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 		 */
 		public ExperimentSelectorTreePanel( Collection <Experiment> experiments ) {
 			super( new DefaultMutableTreeNode(	
-				Settings.getLanguage( ).get( "All Experiments" )));
+				Settings.getLanguage( ).get( "All Molecules" )));
+			TreeNode selectedNode = null;
 
 			// first get all possible group names
 			TreeSet<Molecule> molecules = new TreeSet<Molecule>( );
@@ -434,6 +491,8 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 			for ( Molecule molecule : molecules ) {
 				DefaultMutableTreeNode moleculeNode = 
 					new DefaultMutableTreeNode( molecule );
+				if ( selectedNode == null )
+					selectedNode = moleculeNode;
 
 				for ( Experiment e : experiments ) {
 					DefaultMutableTreeNode experimentNode = 
@@ -447,9 +506,9 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 				}
 				this.getRoot( ).add( moleculeNode );
 			}
-			this.tree.setRootVisible( false );
 			this.check( this.getRoot( ));
 			this.reload( );
+			this.tree.setSelectionRow( 1 );
 		}
 
 		/**
@@ -553,7 +612,6 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 			DefaultBoxAndWhiskerXYDataset boxDataSet = 
 				new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
 			NumberList fitValues = new NumberList( );
-			int expIndex = 1;
 			int expCount = 0;
 			int minTime = Integer.MAX_VALUE;
 			int maxTime = 0;
@@ -561,38 +619,37 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 				DefaultMutableTreeNode expNode = 
 					(DefaultMutableTreeNode)node.getChildAt( i );
 				Experiment e = (Experiment)expNode.getUserObject( );
-				Sample sample = e.getSamples( ).iterator( ).next( );
-				long axisValue = sample.hasAttribute( "time" ) ? 
-					Long.parseLong( sample.getAttribute( "time" )) : expIndex;
-				if ( axisValue > maxTime )
-					maxTime = (int)axisValue;
-				if ( axisValue < minTime )
-					minTime = (int)axisValue;
-				while( fitValues.size( ) <= maxTime ) {
-					fitValues.add( Double.NaN );
-				}
-				if ( selectorTree.isChecked( node )) {
-					expCount++;
-					try {
-						Collection<Sample> samples = 
-							selectorTree.getSamplesFiltered( expNode );
-						samples.retainAll( this.sampleGroup );
-						BoxAndWhiskerItem item = 
-							BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-								new ArrayList<Number>( molecule.getValues( samples )));
-						boxDataSet.add( new Date(axisValue), item );
+				Collection<Sample> samples = 
+					selectorTree.getSamplesFiltered( expNode );
+				samples.retainAll( this.sampleGroup );
+				for ( Sample sample : samples ) {
+					long axisValue = Long.parseLong( sample.getAttribute( "time" ));
+					if ( axisValue > maxTime )
+						maxTime = (int)axisValue;
+					if ( axisValue < minTime )
+						minTime = (int)axisValue;
+					while( fitValues.size( ) <= maxTime ) {
+						fitValues.add( Double.NaN );
+					}
+					if ( selectorTree.isChecked( node )) {
+						expCount++;
+						try {
+							BoxAndWhiskerItem item = 
+								BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
+									new ArrayList<Number>( molecule.getValues( samples )));
+							boxDataSet.add( new Date(axisValue), item );
 
-						// robust fit uses the median instead of the mean.
-						if ( robustFitButton.isSelected( )) { 
-							fitValues.set( (int)axisValue , item.getMedian( ));
-						} else {
-							fitValues.set( (int)axisValue , item.getMean( ));
+							// robust fit uses the median instead of the mean.
+							if ( robustFitButton.isSelected( )) { 
+								fitValues.set( (int)axisValue , item.getMedian( ));
+							} else {
+								fitValues.set( (int)axisValue , item.getMean( ));
+							}
+						} catch ( IllegalArgumentException exc ) { 
+							// ignore this error.
 						}
-					} catch ( IllegalArgumentException exc ) { 
-						// ignore this error.
 					}
 				}
-				expIndex++;
 			}
 
 			if ( expCount < 1 ) { // nothing to graph.
@@ -816,6 +873,10 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 					data.add( index, value );
 					index++;
 				}
+				if ( data == null ) {
+					this.chart = null;
+					return false;
+				}
 				renderer.setSeriesOutlierInfo( series,
 					BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
 						molecule.getValues( samples )));
@@ -845,7 +906,7 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 
 			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
 			XYPlot plot = this.chart.getXYPlot( );
-			plot.getDomainAxis( ).setRange( -0.5, this.sampleGroup.size( ) - 0.5 );
+			plot.getDomainAxis( ).setRange( -0.5, samples.size( ) - 0.5 );
 			plot.setRenderer( renderer );
 			// this is a single experiment graph, so pick the color to be consistent
 			// with the multi-experiment graph.
@@ -856,38 +917,6 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 			renderer.setSeriesStroke( 0, new BasicStroke( 2 ));
 			renderer.setSeriesShapesVisible( 0, true );
 
-//			try { 
-//				// set up the colors for the graph items.
-//				int experimentIndex = 0;
-//				for ( Experiment experiment : experiments ) {
-//					int sampleIndex = 0;
-//					Paint p = Color.getHSBColor( 
-//						(float)experimentIndex/experiments.size( ), 1.0f, 0.5f );
-//						// add a legend item for this experiment.
-//						legendItems.add( new LegendItem(
-//							language.get( "Experiment" ) + " " + experiment.getId( ),// label
-//							null,                                          // description
-//							null,                                          // toolTipText
-//							null,                                          // urlText
-//							renderer.getItemShape( 0, samples.size( )/2 ), // shape
-//							p,                                             // fillPaint
-//							renderer.getSeriesStroke( 0 ),                 // outlineStroke
-//							p                                              // outlinePaint
-//						));
-//
-//					for ( Sample sample : samples ) {
-//						if ( experiment.getSamples( ).contains( sample )) {
-//							renderer.setItemShapePaint( 0, sampleIndex, p );
-//						}
-//						sampleIndex++;
-//					}
-//					experimentIndex++;
-//				}
-//			} catch ( IndexOutOfBoundsException e ) {
-//				this.chart = null;
-//				return false;
-//			}
-				
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );

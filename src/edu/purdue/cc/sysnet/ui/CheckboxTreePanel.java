@@ -133,7 +133,7 @@ public abstract class CheckboxTreePanel extends JPanel {
 	}
 
 	/**
-	 * Causes the tree to rechedk the children of the give node for changes.
+	 * Causes the tree to recheck the children of the give node for changes.
 	 * 
 	 * @param node The node to check the children of.
 	 */
