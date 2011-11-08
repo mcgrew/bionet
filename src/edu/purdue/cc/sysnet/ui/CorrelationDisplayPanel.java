@@ -551,7 +551,7 @@ public class CorrelationDisplayPanel extends JPanel
 	// ============================ InitialSetup =================================
 	/**
 	 * A class for handling the sizng of panels and such in 
-	 * TimeCourseStudyDisplayPanel when it is initially shown.
+	 * ClusteringDisplayPanel when it is initially shown.
 	 */
 	private class InitialSetup extends ComponentAdapter {
 		public InitialSetup( ) {

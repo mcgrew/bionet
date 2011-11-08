@@ -129,7 +129,7 @@ import org.apache.log4j.Logger;
 /**
  * A class for comparative analysis view of multiple experiments.
  */
-public class ComparativeAnalysisDisplayPanel extends JPanel 
+public class DistributionAnalysisDisplayPanel extends JPanel 
 		implements DisplayPanel,ComponentListener,ActionListener {
 
 	private JMenuBar menuBar;
@@ -160,9 +160,9 @@ public class ComparativeAnalysisDisplayPanel extends JPanel
 	private static final int SAMPLE        = 3;
 
 	/**
-	 * Creates a new ComparativeAnalysisDisplayPanel.
+	 * Creates a new DistributionAnalysisDisplayPanel.
 	 */
-	public ComparativeAnalysisDisplayPanel ( ) {
+	public DistributionAnalysisDisplayPanel ( ) {
 		super( new BorderLayout( ));
 		Language language = Settings.getLanguage( );
 		this.menuBar = new JMenuBar( );

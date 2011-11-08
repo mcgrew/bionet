@@ -483,7 +483,7 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			}
 			else if ( choice.getKey( ).intValue( ) == 
 				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
-				ComparativeAnalysisDisplayPanel cadp = new ComparativeAnalysisDisplayPanel( );
+				DistributionAnalysisDisplayPanel cadp = new DistributionAnalysisDisplayPanel( );
 				if ( cadp.createView( choice.getValue( ))) {
 					this.tabPane.addTab( cadp.getTitle( ), cadp );
 					this.tabPane.setSelectedComponent( cadp );
@@ -491,7 +491,7 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			}
 			else if ( choice.getKey( ).intValue( ) == 
 				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
-				TimeCourseStudyDisplayPanel tcdp = new TimeCourseStudyDisplayPanel( );
+				ClusteringDisplayPanel tcdp = new ClusteringDisplayPanel( );
 				if ( tcdp.createView( choice.getValue( ))) {
 					this.tabPane.addTab( tcdp.getTitle( ), tcdp );
 					this.tabPane.setSelectedComponent( tcdp );

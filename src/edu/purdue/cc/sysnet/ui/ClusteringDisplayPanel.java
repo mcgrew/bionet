@@ -116,7 +116,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import org.apache.log4j.Logger;
 
-public class TimeCourseStudyDisplayPanel extends JPanel 
+public class ClusteringDisplayPanel extends JPanel 
                                 implements DisplayPanel, ActionListener {
 	private JMenuBar menuBar;
 	private JMenu groupsMenu;
@@ -142,7 +142,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	/**
 	 * A class for displaying information about a Clustering
 	 */
-	public TimeCourseStudyDisplayPanel( ) {
+	public ClusteringDisplayPanel( ) {
 		super( new BorderLayout( ));
 		Language language = Settings.getLanguage( );
 		this.addComponentListener( new InitialSetup( ));
@@ -166,7 +166,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	}
 		
 	/**
-	 * Creates the visualization instance for a TimeCourseStudyDisplayPanel
+	 * Creates the visualization instance for a ClusteringDisplayPanel
 	 * 
 	 * @param experiments The experiments to be associated with this instance.
 	 * @return true if creating the visualization succeeded.
@@ -204,7 +204,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	}
 
 	/**
-	 * Sets the clusterer to be used by this TimeCourseStudyDisplayPanel.
+	 * Sets the clusterer to be used by this ClusteringDisplayPanel.
 	 * 
 	 * @param clusterer The new clusterer to use.
 	 */
@@ -213,7 +213,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	}
 
 	/**
-	 * Gets the current clusterer being used by this TimeCourseStudyDisplayPanel.
+	 * Gets the current clusterer being used by this ClusteringDisplayPanel.
 	 * 
 	 * @return The clusterer currently in use.
 	 */
@@ -488,7 +488,7 @@ public class TimeCourseStudyDisplayPanel extends JPanel
 	// ============================ InitialSetup =================================
 	/**
 	 * A class for handling the sizng of panels and such in 
-	 * TimeCourseStudyDisplayPanel when it is initially shown.
+	 * ClusteringDisplayPanel when it is initially shown.
 	 */
 	private class InitialSetup extends ComponentAdapter {
 		public InitialSetup( ) {
