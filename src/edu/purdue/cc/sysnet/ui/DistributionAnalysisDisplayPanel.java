@@ -388,22 +388,25 @@ public class DistributionAnalysisDisplayPanel extends JPanel
 						(DefaultMutableTreeNode)sampleIterator.next( );
 					sampleSet.add( (Sample)sampleNode.getUserObject( ));
 				}
-
-				BoxAndWhiskerItem bwItem = 
+				for ( SampleGroup group : this.sampleGroups ) {
+					Collection<Sample> sampleUnion = new TreeSet<Sample>( group );
+					sampleUnion.retainAll( sampleSet );
+					BoxAndWhiskerItem bwItem = 
 						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-							molecule.getValues( sampleSet ));
-				Range normalRange = new Range( 
-					bwItem.getMinRegularValue( ).doubleValue( ),
-					bwItem.getMaxRegularValue( ).doubleValue( ));
-				sampleIterator = this.selectorTree.checkedDescendantIterator( 
-						experimentNode, SAMPLE );
-				while( sampleIterator.hasNext( )) {
-					DefaultMutableTreeNode sampleNode = 
-						(DefaultMutableTreeNode)sampleIterator.next( );
-					if ( !normalRange.contains( 
-							molecule.getValue( 
-								(Sample)sampleNode.getUserObject( )).doubleValue( )))
-						this.selectorTree.uncheck( sampleNode );
+							molecule.getValues( sampleUnion ));
+						Range range = new Range( bwItem.getMinRegularValue( ).doubleValue( ),
+							 bwItem.getMaxRegularValue( ).doubleValue( ));
+						sampleIterator = this.selectorTree.checkedDescendantIterator( 
+							experimentNode, SAMPLE );
+
+						while( sampleIterator.hasNext( )) {
+							DefaultMutableTreeNode sampleNode = 
+								(DefaultMutableTreeNode)sampleIterator.next( );
+							Sample sample = (Sample)sampleNode.getUserObject( );
+							if ( sampleUnion.contains( sample ) && 
+								!range.contains( molecule.getValue( sample ).doubleValue( )))
+								this.selectorTree.uncheck( sampleNode );
+							}
 				}
 			}
 			
