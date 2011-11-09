@@ -110,9 +110,9 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 				String groupName;
 				for ( V v : this.getGraph( ).getVertices( )) {
 					if ( this.isUpRegulated( sampleGroups, v ))
-						moleculeGroups.get( 2 ).add( v );
-					else if ( this.isDownRegulated( sampleGroups, v ))
 						moleculeGroups.get( 1 ).add( v );
+					else if ( this.isDownRegulated( sampleGroups, v ))
+						moleculeGroups.get( 2 ).add( v );
 					else
 						moleculeGroups.get( 0 ).add( v );
 				}

@@ -2750,7 +2750,7 @@ public class CorrelationDisplayPanel extends JPanel
 			this.spectrumLegend.setBounds( legendArea );
 			this.spectrumLegend.repaint( );
 			if ( this.sampleGroups.size( ) > 1 ) {
-				legendArea = new Rectangle( right - 110, bottom - 90, 90, 90);
+				legendArea = new Rectangle( right - 130, bottom - 120, 130, 120);
 				this.regulationLegend.setBounds( legendArea );
 				this.regulationLegend.repaint( );
 			}
@@ -2891,29 +2891,36 @@ public class CorrelationDisplayPanel extends JPanel
 			Language language = Settings.getLanguage( );
 			int bottom = area.x + area.height;
 			int right = area.y + area.width;
+			int verticalCenter = area.x + area.height/2;
+			int horizCenter = area.y + area.width/2;
 
 			g.setFont( new Font( Font.SANS_SERIF, Font.PLAIN, 12 ));
 			FontMetrics f = g.getFontMetrics( );
 			String s = language.get( "Regulation" );
-			g.drawString( s, 
-				area.x + area.width / 2 - f.stringWidth( s ) / 2, 20 );
+			g.drawString( s, area.x + area.width / 2 - f.stringWidth( s ) / 2, 20 );
 			s = language.get( "Up" );
-			g.drawString( s, 20 - f.stringWidth( s ) / 2, bottom - 30 );
+			g.drawString( s, horizCenter - 25 - f.stringWidth( s ) / 2, 60 );
 			s = language.get( "Down" );
-			g.drawString( s, right - 20 - f.stringWidth( s ) / 2, bottom - 30 );
+			g.drawString( s, horizCenter + 25 - f.stringWidth( s ) / 2, 60 );
+			s = language.get( "Fold change: " ) + 
+				Settings.getSettings( ).getDouble( 
+				"preferences.correlation.foldChange", 2.0 );
+			g.drawString( s, horizCenter - f.stringWidth( s ) / 2, 80 );
+			s = language.get( "Group2 / Group1" );
+			g.drawString( s, horizCenter - f.stringWidth( s ) / 2, 100 );
 
 			// reset the font
 			g.setFont( origFont );
 
 			// draw the legend
 			g.setColor( this.nodeColor );
-			g.fillOval( 10, bottom - 63, 20, 20 );
-			g.fillOval( right - 30, bottom - 63, 20, 20 );
+			g.fillOval( horizCenter - 35, 27, 20, 20 );
+			g.fillOval( horizCenter + 15, 27, 20, 20 );
 			((Graphics2D)g).setStroke( new BasicStroke( 2 ));
 			g.setColor( this.upColor );
-			g.drawOval( 10, bottom - 63, 20, 20 );
+			g.drawOval( horizCenter - 35, 27, 20, 20 );
 			g.setColor( this.downColor );
-			g.drawOval( right - 30, bottom - 63, 20, 20 );
+			g.drawOval( horizCenter + 15, 27, 20, 20 );
 			g.setColor( this.getForeground( ));
 
 		}
