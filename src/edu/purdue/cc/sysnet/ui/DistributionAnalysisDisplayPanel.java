@@ -405,9 +405,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 							}
 				}
 			}
-			
 		}
-
 	}
 
 	public void componentHidden( ComponentEvent e ) { } 
@@ -700,6 +698,10 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			domainAxis.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
 			domainAxis.setVerticalTickLabels( true );
 			domainAxis.setRange( minTime - 0.5, maxTime + 0.5 );
+			Range rangeAxisRange = 
+				molecule.getValues( samples ).getRange( ).expandPercent( 0.1 );
+			plot.getRangeAxis( ).setRange( 
+				rangeAxisRange.getMin( ), rangeAxisRange.getMax( ));
 			XYItemRenderer boxRenderer = plot.getRenderer( );
 			boxRenderer.setSeriesStroke( 0, this.stroke );
 			boxRenderer.setSeriesOutlineStroke( 0, this.stroke );
