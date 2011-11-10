@@ -93,7 +93,7 @@ public class MetsignDataReader extends DataReader {
 											 "Unable to load '%s'. The file was not found." ), 
 				               "project_info.txt" ) + 
 				               language.get( "No Data has been imported" ));
-			this.experiments = new ArrayList <Experiment>( );
+			this.experiments = null;
 			return;
 		}
 		if ( !scanner.hasNextLine( ) ) {
@@ -102,6 +102,7 @@ public class MetsignDataReader extends DataReader {
 				               "'%s' does not appear to be a valid file." ),
 				               resource+File.separator+ " Experiment.txt" ) +
 				               language.get( "No Data has been imported." ));
+			this.experiments = null;
 			return;
 		}
 		String [] headerLine;
@@ -144,6 +145,8 @@ public class MetsignDataReader extends DataReader {
 		} catch ( Exception e ) {
 			logger.error( "An error occurred while reading the project info file.\n" +
 			              "This file may not be in the correct format." );
+			this.experiments = null;
+			return;
 		}
 		file.close( );
 
@@ -204,6 +207,8 @@ public class MetsignDataReader extends DataReader {
 		} catch ( Exception e ) {
 			logger.error( "An error occurred while reading the normalization file.\n" +
 			              "This file may not be in the correct format." );
+			this.experiments = null;
+			return;
 		}
 		for ( Experiment experiment : this.experiments ) {
 			ArrayList<Sample> samples = 

@@ -1545,7 +1545,11 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			 */
 			public ConditionPanel( ) {
 				super( );
-				this.sampleGroupingTable = new JTable( );
+				this.sampleGroupingTable = new JTable( ) {
+					public boolean isCellEditable( int row, int col ) {
+						return false;
+					}
+				};
 				this.sampleGroupingScrollPane = 
 					new JScrollPane( this.sampleGroupingTable );
 				this.setLayout( new BorderLayout( ));

@@ -470,7 +470,10 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			if ( data == null ) {
 				return;
 			}
-			Map.Entry<Integer,List> choice = experimentSelection( data.getExperiments( ));
+			Collection<Experiment> experimentData = data.getExperiments( );
+			if ( experimentData == null )
+				return;
+			Map.Entry<Integer,List> choice = experimentSelection( experimentData );
 			if ( choice == null )
 				return;
 
