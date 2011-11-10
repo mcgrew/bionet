@@ -27,6 +27,7 @@ import edu.purdue.cc.sysnet.util.CorrelationSet;
 import edu.purdue.cc.sysnet.util.Experiment;
 import edu.purdue.cc.sysnet.util.Molecule;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,6 +41,7 @@ class DataTable extends JTable {
 
 	public DataTable( Object[][] values, Object[] columnNames ) {
 		super( values, columnNames );
+		this.setBackground( Color.WHITE );
 	}
 
 	public boolean isCellEditable( int row, int col ) {

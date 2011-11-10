@@ -1550,6 +1550,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 						return false;
 					}
 				};
+				this.sampleGroupingTable.setBackground( Color.WHITE );
 				this.sampleGroupingScrollPane = 
 					new JScrollPane( this.sampleGroupingTable );
 				this.setLayout( new BorderLayout( ));
@@ -1911,9 +1912,11 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			}
 
 			public String getCategoryAxisLabel( ) {
-				return Settings.getLanguage( ).get( "Neighbor Count (" ) + 
-					Correlation.NAME[ correlationMethod.intValue( )] + 
-					", Range " + correlationFilterPanel.getRange( ).toString( ) + ")";
+				return Settings.getLanguage( ).get( "Neighbor Count" ) + 
+					String.format( "(%s, Range %.3f - %.3f)", 
+						Correlation.NAME[ correlationMethod.intValue( )],
+						correlationFilterPanel.getRange( ).getMin( ),
+						correlationFilterPanel.getRange( ).getMax( ));
 			}
 
 			public String getValueAxisLabel( ) {
@@ -2054,9 +2057,11 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			}
 
 			public String getCategoryAxisLabel( ) {
-				return Settings.getLanguage( ).get( "Neighbor Count (" ) + 
-					Correlation.NAME[ correlationMethod.intValue( )] + 
-					", Range " + correlationFilterPanel.getRange( ).toString( ) + ")";
+				return Settings.getLanguage( ).get( "Neighbor Count" ) + 
+					String.format( "(%s, Range %.3f - %.3f)", 
+						Correlation.NAME[ correlationMethod.intValue( )],
+						correlationFilterPanel.getRange( ).getMin( ),
+						correlationFilterPanel.getRange( ).getMax( ));
 			}
 
 			public String getValueAxisLabel( ) {
