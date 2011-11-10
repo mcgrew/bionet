@@ -387,11 +387,8 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 				for ( SampleGroup group : this.getSampleGroups( )) {
 					Collection<Sample> sampleUnion = new TreeSet<Sample>( group );
 					sampleUnion.retainAll( sampleSet );
-					BoxAndWhiskerItem bwItem = 
-						BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-							molecule.getValues( sampleUnion ));
-						Range range = new Range( bwItem.getMinRegularValue( ).doubleValue( ),
-							 bwItem.getMaxRegularValue( ).doubleValue( ));
+						Range range = Statistics.regularRange( 
+							molecule.getValues( sampleUnion ).toDoubleArray( ));
 						sampleIterator = this.selectorTree.checkedDescendantIterator( 
 							experimentNode, SAMPLE );
 
@@ -619,28 +616,35 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 				Collection<Sample> samples = 
 					selectorTree.getSamplesFiltered( expNode );
 				samples.retainAll( this.sampleGroup );
+				long lastTime = Long.MIN_VALUE;
 				for ( Sample sample : samples ) {
-					long axisValue = Long.parseLong( sample.getAttribute( "time" ));
-					if ( axisValue > maxTime )
-						maxTime = (int)axisValue;
-					if ( axisValue < minTime )
-						minTime = (int)axisValue;
+					long thisTime = Long.parseLong( sample.getAttribute( "time" )); 
+					lastTime = thisTime; // <-- fix this
+					if ( lastTime > maxTime )
+						maxTime = (int)lastTime;
+					if ( lastTime < minTime )
+						minTime = (int)lastTime;
 					while( fitValues.size( ) <= maxTime ) {
 						fitValues.add( Double.NaN );
 					}
 					if ( selectorTree.isChecked( node )) {
 						expCount++;
 						try {
-							BoxAndWhiskerItem item = 
-								BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-									new ArrayList<Number>( molecule.getValues( samples )));
-							boxDataSet.add( new Date(axisValue), item );
+							BoxAndWhiskerItem item = calculateBoxAndWhiskerStatistics( 
+									molecule.getValues( samples ));
+							System.out.println( "Values: " + molecule.getValues( samples ));
+							System.out.println( "Box plot data: " + item );
+							System.out.println( "Min: " + Statistics.min( molecule.getValues( samples ).toDoubleArray( )) + 
+							                    " Max: " + Statistics.max( molecule.getValues( samples ).toDoubleArray( )));
+							System.out.println( "Min regular: " + item.getMinRegularValue( ) + " Max regular: " + item.getMaxRegularValue( ));
+							System.out.println( "Outliers: " + item.getOutliers( ));
+							boxDataSet.add( new Date(lastTime), item );
 
 							// robust fit uses the median instead of the mean.
 							if ( robustFitButton.isSelected( )) { 
-								fitValues.set( (int)axisValue , item.getMedian( ));
+								fitValues.set( (int)lastTime , item.getMedian( ));
 							} else {
-								fitValues.set( (int)axisValue , item.getMean( ));
+								fitValues.set( (int)lastTime , item.getMean( ));
 							}
 						} catch ( IllegalArgumentException exc ) { 
 							// ignore this error.
@@ -695,13 +699,11 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			plot.setDomainGridlinePaint( Color.GRAY );
 			ValueAxis domainAxis = new NumberAxis( );
 			plot.setDomainAxis( domainAxis );
+			Range range = molecule.getValues( samples ).getRange( ).scale( 1.1 );
+			plot.getRangeAxis( ).setRange( range.getMin( ), range.getMax( ));
 			domainAxis.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
 			domainAxis.setVerticalTickLabels( true );
 			domainAxis.setRange( minTime - 0.5, maxTime + 0.5 );
-			Range rangeAxisRange = 
-				molecule.getValues( samples ).getRange( ).expandPercent( 0.1 );
-			plot.getRangeAxis( ).setRange( 
-				rangeAxisRange.getMin( ), rangeAxisRange.getMax( ));
 			XYItemRenderer boxRenderer = plot.getRenderer( );
 			boxRenderer.setSeriesStroke( 0, this.stroke );
 			boxRenderer.setSeriesOutlineStroke( 0, this.stroke );
@@ -718,6 +720,22 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 //				plot.setFixedLegendItems( this.singleExperimentLegendItems );
 //			}
 			return true;
+		}
+
+		private BoxAndWhiskerItem calculateBoxAndWhiskerStatistics( NumberList values ) {
+			double[] v = values.toDoubleArray( );
+			double[] outliers = Statistics.outliers( v );
+			Range regularRange = Statistics.regularRange( v );
+			Range quartileRange = Statistics.quartileRange( v );
+			return new BoxAndWhiskerItem( Statistics.mean( v ),
+																		Statistics.median( v ),
+																		quartileRange.getMin( ),
+																		quartileRange.getMax( ),
+																		regularRange.getMin( ),
+																		regularRange.getMax( ),
+																		Statistics.min( v ),
+																		Statistics.max( v ),
+																		new NumberList( outliers ));
 		}
 
 		/**
@@ -832,9 +850,9 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			Logger.getLogger( getClass( )).debug( 
 				"Selected Node level: " + nodeLevel );
 			Collection<Sample> samples = null;
+			Molecule molecule = null;
 
 			if ( nodeLevel == MOLECULE || nodeLevel == EXPERIMENT ) {
-				Molecule molecule = null;
 				if ( nodeLevel == MOLECULE ) {
 					molecule = (Molecule)node.getUserObject( );
 				} else {
@@ -861,8 +879,8 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 						if ( data != null ) {
 							dataset.addSeries( data );
 							renderer.setSeriesOutlierInfo( series,
-								BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-									molecule.getValues( currentSamples )));
+								Statistics.regularRange( 
+									molecule.getValues( currentSamples ).toDoubleArray( )));
 							series++;
 						}
 						time = newTime;
@@ -879,8 +897,8 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 					return false;
 				}
 				renderer.setSeriesOutlierInfo( series,
-					BoxAndWhiskerCalculator.calculateBoxAndWhiskerStatistics( 
-						molecule.getValues( samples )));
+					Statistics.regularRange( 
+						molecule.getValues( currentSamples ).toDoubleArray( )));
 				dataset.addSeries( data );
 
 			} else { 
@@ -930,6 +948,9 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
 			plot.getDomainAxis( ).setVerticalTickLabels( true );
+			Range range = molecule.getValues( samples ).getRange( ).scale( 1.1 );
+			if ( Double.compare( range.size( ), 0 ) > 0 )
+				plot.getRangeAxis( ).setRange( range.getMin( ), range.getMax( ));
 			LegendItemCollection legendItems = plot.getLegendItems( );
 			if ( legendItems == null ) {
 				legendItems = new LegendItemCollection( );
@@ -1008,7 +1029,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	 * A customized version of XYLineAndShapeRenderer
 	 */
 	private class CustomXYLineAndShapeRenderer extends XYLineAndShapeRenderer {
-		private List<BoxAndWhiskerItem> outlierInfo;
+		private List<Range> outlierInfo;
 		private SparseMatrix<Paint> itemShapePaints;
 		private Paint outlierPaint;
 		private Shape outlierShape;
@@ -1018,13 +1039,13 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 
 		public CustomXYLineAndShapeRenderer( ) {
 			super( );
-			this.outlierInfo = new ArrayList<BoxAndWhiskerItem>( );
+			this.outlierInfo = new ArrayList<Range>( );
 			this.outlierPaint = Color.RED;
 		}
 
 		public CustomXYLineAndShapeRenderer( boolean lines, boolean shapes ) {
 			super( lines, shapes );
-			this.outlierInfo = new ArrayList<BoxAndWhiskerItem>( );
+			this.outlierInfo = new ArrayList<Range>( );
 			this.outlierPaint = Color.RED;
 			this.outlierStroke = new BasicStroke( 2 );
 			this.outlierShape = new Polygon(  // Star shape;
@@ -1074,7 +1095,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		 * @param index The index of the series to set the outlier information for.
 		 * @param item A BoxandWhiskerItem which will be used to determine outliers.
 		 */
-		public void setSeriesOutlierInfo( int index, BoxAndWhiskerItem item ) {
+		public void setSeriesOutlierInfo( int index, Range item ) {
 			while ( index >= outlierInfo.size( )) {
 				outlierInfo.add( null );
 			}
@@ -1085,9 +1106,9 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		 * Returns the series outlier information for this series.
 		 * 
 		 * @param index The index of the series.
-		 * @return The BoxAndWhiskerItem used to calculate outliers.
+		 * @return The Range used to calculate outliers.
 		 */
-		public BoxAndWhiskerItem getSeriesOutlierInfo( int index ) {
+		public Range getSeriesOutlierInfo( int index ) {
 			if ( index >= outlierInfo.size( ))
 				return null;
 			return outlierInfo.get( index );
@@ -1104,13 +1125,11 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			if ( this.dataset == null ) {
 				this.dataset = this.getPlot( ).getDataset( 0 ); 
 			}
-			BoxAndWhiskerItem stats = this.getSeriesOutlierInfo( series );
+			Range stats = this.getSeriesOutlierInfo( series );
 			if ( stats == null )
 				return false;
 			double y = this.dataset.getYValue( series, item );
-			return ( 
-				Double.compare( y, stats.getMinRegularValue( ).doubleValue( )) < 0 || 
-			  Double.compare( y, stats.getMaxRegularValue( ).doubleValue( )) > 0 );
+			return ( !stats.contains( y ));
 		}
 
 		/**
