@@ -841,7 +841,7 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 			double tickIndex = 0.0;
 			List<Sample> sampleList = new ArrayList<Sample>( samples );
 			for ( Sample sample : samples ) {
-				tickUnits.add( new SampleTickUnit( tickIndex, sampleList ));
+				tickUnits.add( new CustomTickUnit( tickIndex, sampleList ));
 				tickIndex++;
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );
@@ -939,7 +939,7 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 			double tickIndex = 0.0;
 			List<Sample> sampleList = new ArrayList<Sample>( samples );
 			for ( Sample sample : samples ) {
-				tickUnits.add( new SampleTickUnit( tickIndex, sampleList ));
+				tickUnits.add( new CustomTickUnit( tickIndex, sampleList ));
 				tickIndex++;
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );

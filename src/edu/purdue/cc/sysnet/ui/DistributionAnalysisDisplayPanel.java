@@ -142,7 +142,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	private JRadioButtonMenuItem noFitButton;
 	private JRadioButtonMenuItem robustFitButton;
 	private JRadioButtonMenuItem chiSquareFitButton;
-	private JMenuItem deselectOutliersViewMenuItem;
+	private JMenuItem hideOutliersViewMenuItem;
 
 	private Collection<Experiment> experiments;
 	private Set<Molecule> molecules;
@@ -191,17 +191,17 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		this.fitButtonGroup.add( this.robustFitButton );
 		this.fitButtonGroup.add( this.chiSquareFitButton );
 		this.noFitButton.setSelected( true );
-		this.deselectOutliersViewMenuItem = new JMenuItem( 
-			language.get( "Deselect Current Outliers" ));
+		this.hideOutliersViewMenuItem = new JMenuItem( 
+			language.get( "Hide Current Outliers" ));
 		this.curveFittingMenu.add( this.noFitButton );
 		this.curveFittingMenu.add( this.robustFitButton );
 		this.curveFittingMenu.add( this.chiSquareFitButton );
 		this.groupsMenu.add( this.removeSampleGroupsMenuItem );
 		this.groupsMenu.add( this.chooseSampleGroupsMenuItem );
-		this.viewMenu.add( this.deselectOutliersViewMenuItem );
+		this.viewMenu.add( this.hideOutliersViewMenuItem );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
 		this.removeSampleGroupsMenuItem.addActionListener( this );
-		this.deselectOutliersViewMenuItem.addActionListener( this );
+		this.hideOutliersViewMenuItem.addActionListener( this );
 		this.add( menuBar, BorderLayout.NORTH );
 		this.menuBar.add( this.curveFittingMenu );
 		this.menuBar.add( this.groupsMenu );
@@ -451,7 +451,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			Collection<SampleGroup> groups = new ArrayList<SampleGroup>( );
 			groups.add( new SampleGroup( "", this.samples ));
 			this.setSampleGroups( groups );
-		} else if ( source == this.deselectOutliersViewMenuItem ) {
+		} else if ( source == this.hideOutliersViewMenuItem ) {
 			this.deselectOutliers( );
 		}
 	}
@@ -602,13 +602,15 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		 */
 		public boolean setGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( ); 
+			Logger logger = Logger.getLogger( getClass( ));
 			Molecule molecule = (Molecule)node.getUserObject( );
 			DefaultBoxAndWhiskerXYDataset boxDataSet = 
 				new DefaultBoxAndWhiskerXYDataset( new Integer( 1 ));
 			NumberList fitValues = new NumberList( );
 			int expCount = 0;
 			int minTime = Integer.MAX_VALUE;
-			int maxTime = 0;
+			NumberList timeValues = new NumberList( );
+			timeValues.add( Double.NaN );
 			for( int i=0; i < node.getChildCount( ); i++ ) {
 				DefaultMutableTreeNode expNode = 
 					(DefaultMutableTreeNode)node.getChildAt( i );
@@ -618,39 +620,46 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 				samples.retainAll( this.sampleGroup );
 				long lastTime = Long.MIN_VALUE;
 				for ( Sample sample : samples ) {
-					long thisTime = Long.parseLong( sample.getAttribute( "time" )); 
-					lastTime = thisTime; // <-- fix this
-					if ( lastTime > maxTime )
-						maxTime = (int)lastTime;
-					if ( lastTime < minTime )
-						minTime = (int)lastTime;
-					while( fitValues.size( ) <= maxTime ) {
+					long thisTime = Integer.parseInt( sample.getAttribute( "time" )); 
+					if ( lastTime != thisTime ) {
+						timeValues.add( thisTime );
+						lastTime = thisTime;
+						expCount++;
+					}
+					while( fitValues.size( ) <= expCount ) {
 						fitValues.add( Double.NaN );
 					}
 					if ( selectorTree.isChecked( node )) {
-						expCount++;
 						try {
-							BoxAndWhiskerItem item = calculateBoxAndWhiskerStatistics( 
-									molecule.getValues( samples ));
-							System.out.println( "Values: " + molecule.getValues( samples ));
-							System.out.println( "Box plot data: " + item );
-							System.out.println( "Min: " + Statistics.min( molecule.getValues( samples ).toDoubleArray( )) + 
-							                    " Max: " + Statistics.max( molecule.getValues( samples ).toDoubleArray( )));
-							System.out.println( "Min regular: " + item.getMinRegularValue( ) + " Max regular: " + item.getMaxRegularValue( ));
-							System.out.println( "Outliers: " + item.getOutliers( ));
-							boxDataSet.add( new Date(lastTime), item );
+							NumberList values = molecule.getValues( samples );
+							BoxAndWhiskerItem item = calculateBoxAndWhiskerStatistics( values );
+							boxDataSet.add( new Date( (long)expCount ), item );
+
+							logger.debug( "BoxAndWhisker Values: " + values );
+							logger.debug( "Box plot data: " + item );
+							logger.debug( "Min: " + Statistics.min( values.toDoubleArray( )) +
+								" Max: " + Statistics.max( values.toDoubleArray( )));
+							logger.debug( "Min regular: " + item.getMinRegularValue( ) + 
+								" Max regular: " + item.getMaxRegularValue( ));
+							logger.debug( "Outliers: " + item.getOutliers( ));
 
 							// robust fit uses the median instead of the mean.
 							if ( robustFitButton.isSelected( )) { 
-								fitValues.set( (int)lastTime , item.getMedian( ));
+								fitValues.set( expCount, item.getMedian( ));
 							} else {
-								fitValues.set( (int)lastTime , item.getMean( ));
+								fitValues.set( expCount, item.getMean( ));
 							}
 						} catch ( IllegalArgumentException exc ) { 
 							// ignore this error.
 						}
 					}
 				}
+			}
+
+			TickUnits tickUnits = new TickUnits( );
+			for ( int i=1; i < timeValues.size( ); i++ ) {
+				tickUnits.add( new CustomTickUnit( 
+					(double)( i ), timeValues ));
 			}
 
 			if ( expCount < 1 ) { // nothing to graph.
@@ -667,9 +676,10 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			}
 			XYSeries fitSeries = new XYSeries( language.get( "Fit Line" ));
 			if ( fitEquation != null ) {
-				this.equationLabel.setText( 
-					"<html>y = " + fitEquation.toString( "<sup>%s</sup>" ) + "</html>" );
-				for ( double i=minTime; i <= maxTime; i+= 0.01 ) {
+				this.equationLabel.setText(( 
+					"<html>y = " + fitEquation.toString( "<sup>%s</sup>" ) + "</html>" ).
+					replace( "e<sup>", "<i>e</i><sup>" ));
+				for ( double i=1; i <= expCount; i+= 0.01 ) {
 					try {
 						fitSeries.add( i, fitEquation.solve( i ));
 					} catch ( IllegalArgumentException exc ) {
@@ -699,11 +709,12 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			plot.setDomainGridlinePaint( Color.GRAY );
 			ValueAxis domainAxis = new NumberAxis( );
 			plot.setDomainAxis( domainAxis );
-			Range range = molecule.getValues( samples ).getRange( ).scale( 1.1 );
+			Range range = molecule.getValues( 
+				selectorTree.getSamplesFiltered( node )).getRange( ).scale( 1.1 );
 			plot.getRangeAxis( ).setRange( range.getMin( ), range.getMax( ));
-			domainAxis.setStandardTickUnits( NumberAxis.createIntegerTickUnits( ));
+			domainAxis.setStandardTickUnits( tickUnits );
 			domainAxis.setVerticalTickLabels( true );
-			domainAxis.setRange( minTime - 0.5, maxTime + 0.5 );
+			domainAxis.setRange( 0.5, timeValues.size( ) - 0.5 );
 			XYItemRenderer boxRenderer = plot.getRenderer( );
 			boxRenderer.setSeriesStroke( 0, this.stroke );
 			boxRenderer.setSeriesOutlineStroke( 0, this.stroke );
@@ -943,7 +954,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			double tickIndex = 0.0;
 			List<Sample> sampleList = new ArrayList<Sample>( samples );
 			for ( Sample sample : sampleList ) {
-				tickUnits.add( new SampleTickUnit( tickIndex, sampleList ));
+				tickUnits.add( new CustomTickUnit( tickIndex, sampleList ));
 				tickIndex++;
 			}
 			plot.getDomainAxis( ).setStandardTickUnits( tickUnits );

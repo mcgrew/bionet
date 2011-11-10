@@ -184,7 +184,7 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 			int index = 0;
 			for ( Map.Entry<Sample,Number> sample : sampleMap.entrySet( )) {
 				data.add( index, sample.getValue( ));
-				tickUnits.add( new SampleTickUnit( index, sampleList ));
+				tickUnits.add( new CustomTickUnit( index, sampleList ));
 				index++;
 			}
 			dataset.addSeries( data );

@@ -19,32 +19,31 @@ along with SysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.sysnet.ui;
 
-import edu.purdue.cc.sysnet.util.Sample;
 
 import java.util.List;
 
 import org.jfree.chart.axis.NumberTickUnit;
 
-public class SampleTickUnit extends NumberTickUnit {
-	private List<Sample> samples;
+public class CustomTickUnit extends NumberTickUnit {
+	private List units;
 	
-	public SampleTickUnit( double size, List<Sample> samples ) {
+	public CustomTickUnit( double size, List units ) {
 		super( size );
-		this.samples = samples;
+		this.units = units;
 	}
 
 	@Override
 	public String valueToString( double value ) {
-		if ( Math.round( value ) > samples.size( )-1 ){
+		if ( Math.round( value ) > units.size( )-1 ){
 			return "";
 		}
-		return this.samples.get( 
+		return this.units.get( 
 			Math.max( 0, (int)Math.round( value ))).toString( );
 	}
 
 	@Override
 	public String toString( ) {
-		return this.valueToString( this.getSize( ));
+		return this.valueToString( (double)this.getSize( ));
 	}
 }
 
