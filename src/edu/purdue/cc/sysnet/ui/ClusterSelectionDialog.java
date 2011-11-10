@@ -668,7 +668,7 @@ public class ClusterSelectionDialog  extends JDialog implements ActionListener {
 				Settings settings = Settings.getSettings( );
 				settings.setInt( "history.clustering.farthestFirst.distanceMeasure",
 					this.distanceMeasure.getSelectedIndex( ));
-				settings.set( "history.clustering.farthestFirst.distance", 
+				settings.set( "history.clustering.farthestFirst.clusters", 
 					this.distanceSpinner.getValue( ).toString( ));
 			return new FarthestFirst(
 				// number of clusters
