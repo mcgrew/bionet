@@ -473,34 +473,40 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			Collection<Experiment> experimentData = data.getExperiments( );
 			if ( experimentData == null )
 				return;
-			Map.Entry<Integer,List> choice = experimentSelection( experimentData );
-			if ( choice == null )
-				return;
-
-			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
-				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
-				if( cdp.createView( choice.getValue( ))) {
-					this.tabPane.addTab( cdp.getTitle( ), cdp );
-					this.tabPane.setSelectedComponent( cdp );
-				}
-			}
-			else if ( choice.getKey( ).intValue( ) == 
-				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
-				DistributionAnalysisDisplayPanel cadp = new DistributionAnalysisDisplayPanel( );
-				if ( cadp.createView( choice.getValue( ))) {
-					this.tabPane.addTab( cadp.getTitle( ), cadp );
-					this.tabPane.setSelectedComponent( cadp );
-				}
-			}
-			else if ( choice.getKey( ).intValue( ) == 
-				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
-				ClusteringDisplayPanel tcdp = new ClusteringDisplayPanel( );
-				if ( tcdp.createView( choice.getValue( ))) {
-					this.tabPane.addTab( tcdp.getTitle( ), tcdp );
-					this.tabPane.setSelectedComponent( tcdp );
-				}
+			ProjectDisplayPanel pdp = new ProjectDisplayPanel( );
+			if ( pdp.createView( experimentData )) {
+				this.tabPane.addTab( pdp.getTitle( ), pdp );
+				this.tabPane.setSelectedComponent( pdp );
 			}
 
+//			Map.Entry<Integer,List> choice = experimentSelection( experimentData );
+//			if ( choice == null )
+//				return;
+//
+//			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
+//				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
+//				if( cdp.createView( choice.getValue( ))) {
+//					this.tabPane.addTab( cdp.getTitle( ), cdp );
+//					this.tabPane.setSelectedComponent( cdp );
+//				}
+//			}
+//			else if ( choice.getKey( ).intValue( ) == 
+//				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
+//				DistributionAnalysisDisplayPanel cadp = new DistributionAnalysisDisplayPanel( );
+//				if ( cadp.createView( choice.getValue( ))) {
+//					this.tabPane.addTab( cadp.getTitle( ), cadp );
+//					this.tabPane.setSelectedComponent( cadp );
+//				}
+//			}
+//			else if ( choice.getKey( ).intValue( ) == 
+//				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
+//				ClusteringDisplayPanel tcdp = new ClusteringDisplayPanel( );
+//				if ( tcdp.createView( choice.getValue( ))) {
+//					this.tabPane.addTab( tcdp.getTitle( ), tcdp );
+//					this.tabPane.setSelectedComponent( tcdp );
+//				}
+//			}
+//
 		} else if ( item == this.exitFileMenuItem ) {
 			this.dispose( );
 
