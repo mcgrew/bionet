@@ -23,22 +23,51 @@ import edu.purdue.bbc.util.attributes.Attributes;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.TreeSet;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class Project extends TreeSet<Experiment> implements Attributes<String> {
 	private Map<String,String> attributes;
+	private Set<Sample> samples;
 
 	public Project( ) {
 		super( );
 		this.attributes = new TreeMap<String,String>( );
+		this.samples = new TreeSet<Sample>( );
 	}
 
 	public Project( Collection<Experiment> experiments ) {
-		super( experiments );
-			this.attributes = new TreeMap<String,String>( );
+		this( );
+		this.addAll( experiments );
 		if ( experiments instanceof Project )
 			this.setAttributes( ((Project)experiments).getAttributes( ));
+	}
+
+	public Collection<String> getSampleAttributeNames( ) {
+		Collection<String> returnValue = new TreeSet<String>( );
+		for ( Sample s : this.samples ) {
+			returnValue.addAll( s.getAttributes( ).keySet( ));
+		}
+		return returnValue;
+	}
+
+	public Set<Sample> getSamples( ) {
+		return this.samples;
+	}
+
+	@Override
+	public boolean add( Experiment experiment ) {
+		this.samples.addAll( experiment.getSamples( ));
+		return super.add( experiment );
+	}
+
+	@Override
+	public boolean addAll( Collection<? extends Experiment> experiments ) {
+		for ( Experiment experiment : experiments ) {
+			this.samples.addAll( experiment.getSamples( ));
+		}
+		return super.addAll( experiments );
 	}
 
 	/**
