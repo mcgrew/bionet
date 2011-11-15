@@ -19,7 +19,7 @@ along with SysNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.sysnet.ui;
 
-import edu.purdue.cc.sysnet.util.Experiment;
+import edu.purdue.cc.sysnet.util.Project;
 
 import java.util.Collection;
 
@@ -34,7 +34,7 @@ public interface DisplayPanel {
 	 * @param experiments The Experiments to be used in creating the graph.
 	 * @return Whether or not the display creation was successful.
 	 */
-	public boolean createView( Collection<Experiment> experiments );
+	public boolean createView( Project project );
 
 	/**
 	 * Returns the title of this view.

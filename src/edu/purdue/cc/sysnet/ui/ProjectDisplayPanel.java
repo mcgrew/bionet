@@ -24,6 +24,7 @@ import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.sysnet.util.Experiment;
 import edu.purdue.cc.sysnet.util.Molecule;
+import edu.purdue.cc.sysnet.util.Project;
 import edu.purdue.cc.sysnet.util.Sample;
 import edu.purdue.cc.sysnet.util.SampleGroup;
 
@@ -71,7 +72,7 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 
 	private Collection<Molecule> molecules;
 	private Collection<Sample> samples;
-	private Collection<Experiment> experiments;
+	private Project project;
 
 	/**
 	 * A class for displaying information about a Clustering
@@ -149,15 +150,23 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	/**
 	 * Creates the visualization instance for a ClusteringDisplayPanel
 	 * 
-	 * @param experiments The experiments to be associated with this instance.
+	 * @param project The project to be associated with this instance.
 	 * @return true if creating the visualization succeeded.
 	 */
-	public boolean createView( Collection <Experiment> experiments ) {
+	public boolean createView( Project project ) {
 		Logger logger = Logger.getLogger( getClass( ));
-		this.experiments = experiments;
+		this.project = project;
 		this.samples = new SampleGroup( "All Samples" );
 		this.molecules = new TreeSet<Molecule>( );
-		for( Experiment experiment : experiments ) {
+		this.projectTextField.setText( 
+			project.getAttribute( "Project Name" ));
+		this.analyticalPlatformTextField.setText( 
+			project.getAttribute( "Analytical Platform" ));
+		this.descriptionTextArea.setText( 
+			project.getAttribute( "Description" ));
+		this.msModeTextField.setText( 
+			project.getAttribute( "MS Method" ));
+		for( Experiment experiment : project ) {
 			this.samples.addAll( experiment.getSamples( ));
 			this.molecules.addAll( experiment.getMolecules( ));
 		}

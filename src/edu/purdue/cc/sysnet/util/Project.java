@@ -36,7 +36,9 @@ public class Project extends TreeSet<Experiment> implements Attributes<String> {
 
 	public Project( Collection<Experiment> experiments ) {
 		super( experiments );
-		this.attributes = new TreeMap<String,String>( );
+			this.attributes = new TreeMap<String,String>( );
+		if ( experiments instanceof Project )
+			this.setAttributes( ((Project)experiments).getAttributes( ));
 	}
 
 	/**

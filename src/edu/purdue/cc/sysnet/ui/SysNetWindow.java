@@ -62,6 +62,7 @@ import edu.purdue.cc.sysnet.io.CSVDataReader;
 import edu.purdue.cc.sysnet.io.MetsignDataReader;
 import edu.purdue.cc.sysnet.io.DataReader;
 import edu.purdue.cc.sysnet.util.Experiment;
+import edu.purdue.cc.sysnet.util.Project;
 
 import net.sourceforge.helpgui.gui.MainFrame;
 
@@ -470,43 +471,15 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			if ( data == null ) {
 				return;
 			}
-			Collection<Experiment> experimentData = data.getExperiments( );
-			if ( experimentData == null )
+			Project project = data.getProject( );
+			if ( project == null )
 				return;
 			ProjectDisplayPanel pdp = new ProjectDisplayPanel( );
-			if ( pdp.createView( experimentData )) {
+			if ( pdp.createView( project )) {
 				this.tabPane.addTab( pdp.getTitle( ), pdp );
 				this.tabPane.setSelectedComponent( pdp );
 			}
 
-//			Map.Entry<Integer,List> choice = experimentSelection( experimentData );
-//			if ( choice == null )
-//				return;
-//
-//			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
-//				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
-//				if( cdp.createView( choice.getValue( ))) {
-//					this.tabPane.addTab( cdp.getTitle( ), cdp );
-//					this.tabPane.setSelectedComponent( cdp );
-//				}
-//			}
-//			else if ( choice.getKey( ).intValue( ) == 
-//				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
-//				DistributionAnalysisDisplayPanel cadp = new DistributionAnalysisDisplayPanel( );
-//				if ( cadp.createView( choice.getValue( ))) {
-//					this.tabPane.addTab( cadp.getTitle( ), cadp );
-//					this.tabPane.setSelectedComponent( cadp );
-//				}
-//			}
-//			else if ( choice.getKey( ).intValue( ) == 
-//				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
-//				ClusteringDisplayPanel tcdp = new ClusteringDisplayPanel( );
-//				if ( tcdp.createView( choice.getValue( ))) {
-//					this.tabPane.addTab( tcdp.getTitle( ), tcdp );
-//					this.tabPane.setSelectedComponent( tcdp );
-//				}
-//			}
-//
 		} else if ( item == this.exitFileMenuItem ) {
 			this.dispose( );
 
@@ -519,23 +492,5 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		
 
 	}
-
-	/**
-	 * Brings up a dialog to allow you to select the appropriate experiment. 
-	 * 
-	 * @param experiments An ArrayList containing the possible Experiments
-	 * @return The experiment you selected, or null if you pressed cancel, or
-	 *	if no experiments are available
-	 */
-	public Map.Entry<Integer,List> experimentSelection( Collection <Experiment> experiments ) {
-		if ( experiments.size( ) < 1 ) {
-			Logger.getLogger( getClass( )).error( 
-				Settings.getLanguage( ).get( "These files do not appear to contain any data!" ));
-			return null;
-		}
-		return ExperimentSelectionDialog.showInputDialog( 
-			this, Settings.getLanguage( ).get( "Experiment Selection" ), experiments );
-	}
-	
 }
 

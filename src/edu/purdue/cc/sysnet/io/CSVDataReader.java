@@ -75,7 +75,7 @@ public class CSVDataReader extends DataReader {
 		HashMap <String,String> sampleData = new HashMap <String,String> ( );
 		String [ ] headings;
 		String [ ] columns;
-		this.experiments = new ArrayList <Experiment>( );
+		this.project = new Project( );
 		Map<String,String> line;
 		Language language = Settings.getLanguage( );
 		CSVTableReader file;
@@ -89,7 +89,7 @@ public class CSVDataReader extends DataReader {
 											 "Unable to load '%s'. The file was not found." ), 
 				               this.resource + File.separator + "Experiment.txt" ) + 
 				               language.get( "No Data has been imported" ));
-			this.experiments = new ArrayList <Experiment>( );
+			this.project = new Project( );
 			return;
 		}
 		if ( !file.hasNext( ) ) {
@@ -115,13 +115,13 @@ public class CSVDataReader extends DataReader {
 				language.get( "Unable to load '%s'. The file was not found." ), 
 					this.resource + File.separator + "Sample.txt" ) + 
 				language.get( "No Data has been imported" ));
-			this.experiments = new ArrayList <Experiment>( );
+			this.project = new Project( );
 			return;
 		}
 		file.setUseQuotes( true );
 		while( file.hasNext( )) {
 			line = file.next( );
-			for ( Experiment experiment : experiments ) {
+			for ( Experiment experiment : project ) {
 				Sample sample = 
 					new Sample( line.get( "Sample" ) + "-" + experiment.getId( ));
 				sample.setAttributes( line );
@@ -138,7 +138,7 @@ public class CSVDataReader extends DataReader {
 				              "Unable to load '%s'. The file was not found." ), 
 				              this.resource + File.separator + "Data.txt" ) + 
 				              language.get( "No Data has been imported" ));
-			this.experiments = new ArrayList <Experiment>( );
+			this.project = new Project( );
 			return;
 		}
 		Map<String,Molecule> moleculeMap = new HashMap<String,Molecule>( );

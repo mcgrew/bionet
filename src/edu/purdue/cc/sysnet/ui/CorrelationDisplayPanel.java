@@ -37,6 +37,7 @@ import edu.purdue.cc.sysnet.util.CorrelationSet;
 import edu.purdue.cc.sysnet.util.Experiment;
 import edu.purdue.cc.sysnet.util.Molecule;
 import edu.purdue.cc.sysnet.util.MonitorableRange;
+import edu.purdue.cc.sysnet.util.Project;
 import edu.purdue.cc.sysnet.util.Sample;
 import edu.purdue.cc.sysnet.util.SampleGroup;
 import edu.purdue.cc.sysnet.util.SampleGroupChangeEvent;
@@ -223,7 +224,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	private JSplitPane graphSplitPane;
 	private HeatMap  heatMapPanel;
 
-	private Collection<Experiment> experiments;
+	private Project project;
 	private Collection<Molecule> molecules;
 	private Collection<Sample> samples;
 	private CorrelationSet correlations;
@@ -481,21 +482,21 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	/**
 	 * Creates a Correlation Graph.
 	 * 
-	 * @param experiments An Experiment Object containing the data to be used.
+	 * @param project An Experiment Object containing the data to be used.
 	 */
-	public boolean createView( Collection<Experiment> experiments ) {
-		if ( experiments.size( ) == 0 ) {
+	public boolean createView( Project project ) {
+		if ( project.size( ) == 0 ) {
 			return false;
 		}
 		this.setVisible( true );
 		this.title = Settings.getLanguage( ).get( "Correlation Network" );
 		this.molecules = new TreeSet<Molecule>( );
-		for ( Experiment experiment : experiments ) {
+		for ( Experiment experiment : project ) {
 				this.molecules.addAll( experiment.getMolecules( ));
 		}
 		this.samples = new TreeSet<Sample>( );
 		this.correlations = new CorrelationSet( molecules, samples );
-		this.experiments = experiments;
+		this.project = project;
 
 		this.graph = new CorrelationGraphVisualizer( 
 			this.correlations, this.correlationFilterPanel.getMonitorableRange( ));
@@ -522,7 +523,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				public void graphReleased( Correlation c, MouseEvent e ) { }
 		});
 
-		for( Experiment experiment : this.experiments ) {
+		for( Experiment experiment : this.project ) {
 			for( Sample sample : experiment.getSamples( )) {
 				this.samples.add( sample );
 			}
@@ -678,7 +679,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	 */
 	@Deprecated
 	public Experiment getExperiment( ) {
-		return this.experiments.iterator( ).next( );
+		return this.project.iterator( ).next( );
 	}
 
 	/**
@@ -687,7 +688,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	 * @return The associated Experiments
 	 */
 	public Collection<Experiment> getExperiments( ) {
-		return this.experiments;
+		return this.project;
 	}
 
 

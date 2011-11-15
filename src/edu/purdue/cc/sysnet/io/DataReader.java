@@ -29,7 +29,7 @@ import edu.purdue.cc.sysnet.util.*;
  */
 public abstract class DataReader {
 
-	protected Collection<Experiment> experiments;
+	protected Project project;
 	protected String resource;
 
 	/**
@@ -64,10 +64,21 @@ public abstract class DataReader {
 	/**
 	 * Returns the Experiments read from the data.
 	 * 
+	 * @deprecated This has been replaced by the getProject( ) method.
 	 * @return A Collection of the experiments.
 	 */
+	@Deprecated
 	public Collection<Experiment> getExperiments( ) {
-		return this.experiments;
+		return this.project;
+	}
+
+	/**
+	 * Returns the Project read from the data.
+	 * 
+	 * @return The Project.
+	 */
+	public Project getProject( ) {
+		return this.project;
 	}
 
 	/**
@@ -87,7 +98,7 @@ public abstract class DataReader {
 	 * @param experiment The Experiment to add.
 	 */
 	public void addExperiment( Experiment experiment ) {
-		this.experiments.add( experiment );
+		this.project.add( experiment );
 	}
 
 	/**
@@ -97,7 +108,7 @@ public abstract class DataReader {
 	 * @return true if the Experiment was found and removed.
 	 */
 	public boolean removeExperiment( Experiment experiment ){
-		return this.experiments.remove( experiment );
+		return this.project.remove( experiment );
 	}
 
 	/**
@@ -107,7 +118,7 @@ public abstract class DataReader {
 	 * @return The requested experiment.
 	 */
 	public Experiment getExperiment( String id ) {
-		for ( Experiment e : experiments ) {
+		for ( Experiment e : project ) {
 			if ( id.equals( e.getId( ))) {
 				return e;
 			}
