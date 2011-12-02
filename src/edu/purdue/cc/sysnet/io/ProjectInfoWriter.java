@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.io.FileWriter;
 
+import org.apache.log4j.Logger;
+
 public class ProjectInfoWriter {
 	private Project project;
 
@@ -38,13 +40,12 @@ public class ProjectInfoWriter {
 		this.project = project;
 	}
 
-
-	public boolean write( String filename ) throws IOException {
-		return this.write( new File( filename ));
-	}
-
-	public boolean write( File file ) throws IOException {
-		BufferedWriter output = new BufferedWriter( new FileWriter( file ));
+	public boolean write( ) throws IOException {
+		File infoFile = new File( this.project.getResource( ).getAbsolutePath( ) + 
+			File.separator + "project_info.csv" );
+		Logger.getLogger( getClass( )).debug( 
+			"Writing project file to " + infoFile.getAbsolutePath( ));
+		BufferedWriter output = new BufferedWriter( new FileWriter( infoFile ));
 		for ( Map.Entry<String,String> attribute : 
 		      this.project.getAttributes( ).entrySet( )) {
 			output.write( "\"" + attribute.getKey( ) + "\",\"" +
@@ -57,6 +58,7 @@ public class ProjectInfoWriter {
 		for ( Sample sample : project.getSamples( )) {
 			csvWriter.write( sample );
 		}
+		csvWriter.close( );
 		return true;
 	}
 }

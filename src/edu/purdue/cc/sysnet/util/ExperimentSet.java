@@ -34,7 +34,8 @@ import java.io.FileNotFoundException;
 import org.apache.log4j.Logger;
 
 
-public class ExperimentSet extends TreeSet<Experiment> {
+public class ExperimentSet extends TreeSet<Experiment>
+                           implements Comparable<ExperimentSet> {
 	private Set<Sample> samples;
 	private String name;
 	private File resource;
@@ -215,6 +216,10 @@ public class ExperimentSet extends TreeSet<Experiment> {
 
 	public boolean save( ) {
 		return false;
+	}
+
+	public int compareTo( ExperimentSet e ) {
+		return this.getName( ).compareTo( e.getName( ));
 	}
 
 }

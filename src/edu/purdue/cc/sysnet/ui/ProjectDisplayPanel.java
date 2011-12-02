@@ -28,41 +28,46 @@ import edu.purdue.cc.sysnet.util.Molecule;
 import edu.purdue.cc.sysnet.util.Project;
 import edu.purdue.cc.sysnet.util.Sample;
 import edu.purdue.cc.sysnet.util.SampleGroup;
+import edu.purdue.cc.sysnet.io.ProjectInfoWriter;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.TreeSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPanel;
-import java.awt.Frame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import org.apache.log4j.Logger;
 
 public class ProjectDisplayPanel extends AbstractDisplayPanel 
-                                    implements ActionListener {
+                                 implements ActionListener {
 	private JMenuBar menuBar;
+	private JMenu projectMenu;
 	private JMenu openMenu;
+	private JMenuItem saveProjectMenuItem;
+	private JMenuItem importNormalizationProjectMenuItem;
 	private JScrollPane metadataScrollPane;
 	private JTable metadataTable;
 	private JTextField projectTextField;
@@ -76,12 +81,12 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	private JLabel msModeLabel;
 	private JLabel methodLabel;
 	private JLabel sampleInformationLabel;
-
 	private JPanel msExperimentPanel;
 
 //	private Collection<Molecule> molecules;
 	private Collection<Sample> samples;
 	private Project project;
+	private boolean projectModified = false;
 
 	/**
 	 * A class for displaying information about a Clustering
@@ -91,8 +96,16 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		Language language = Settings.getLanguage( );
 		this.menuBar = new JMenuBar( );
 		this.openMenu = new JMenu( language.get( "Open Experiment" ));
+		this.projectMenu = new JMenu( language.get( "Project" ));
+		this.saveProjectMenuItem = new JMenuItem( language.get( "Save" ));
+		this.importNormalizationProjectMenuItem = new JMenuItem( 
+			language.get( "Import Normalization" ));
 
-		this.metadataTable = new JTable( );
+		this.metadataTable = new JTable( ){ 
+			public boolean isCellEditable( int row, int column ) {
+				return column != 0;
+			}
+		};
 		this.metadataScrollPane = new JScrollPane( this.metadataTable );
 		this.projectTextField = new JTextField( );
 		this.descriptionTextArea = new JTextArea( );
@@ -157,6 +170,11 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		mainPanel.add( this.metadataScrollPane, BorderLayout.CENTER );
 		this.add( mainPanel, BorderLayout.CENTER );
 		this.add( this.menuBar, BorderLayout.NORTH );
+//		this.projectMenu.add( this.importNormalizationProjectMenuItem );
+		this.importNormalizationProjectMenuItem.addActionListener( this );
+		this.projectMenu.add( this.saveProjectMenuItem );
+		this.saveProjectMenuItem.addActionListener( this );
+		this.menuBar.add( this.projectMenu );
 		this.menuBar.add( this.openMenu );
 
 	}
@@ -250,6 +268,57 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		Logger logger = Logger.getLogger( getClass( ));
 		Language language = Settings.getLanguage( );
 		Object source = e.getSource( );
+		if ( source == this.saveProjectMenuItem ) {
+			this.updateProject( );
+			try {
+				new ProjectInfoWriter( this.project )
+					.write( );
+				this.projectModified = false;
+			} catch ( java.io.IOException exception ) {
+				logger.debug( exception, exception );
+				logger.error( 
+					"There was an error when trying to save your project file.\n" +
+					"Please check to make sure the path still exists." );
+			}
+		}
+	}
+
+	public void updateProject( ) {
+		String newValue;
+		newValue = this.analyticalPlatformTextField.getText( );
+		if ( !newValue.equals( 
+			this.project.setAttribute( "Analytical Platform", newValue )))
+			this.projectModified = true;
+
+		newValue = this.descriptionTextArea.getText( ).
+			replace( "\n", "<CR>" ).replace( "\r", "" );
+		if ( !newValue.equals( 
+			this.project.setAttribute( "Description", newValue )))
+			this.projectModified = true;
+
+		newValue = this.msModeTextField.getText( );
+		if ( !newValue.equals( 
+			this.project.setAttribute( "MS Method", newValue )))
+			this.projectModified = true;
+
+		TableModel model = this.metadataTable.getModel( );
+		int nameColumn = 0;
+		for ( int i=0; i < model.getColumnCount( ); i++ ) {
+			if ( model.getColumnName( i ).toLowerCase( ).equals( "sample file" )) {
+				nameColumn = i;
+			}
+		}
+		for ( int i=0; i < model.getRowCount( ); i++ ) {
+			Sample sample = this.project.getSample( 
+				model.getValueAt( i, nameColumn ).toString( ));
+			for ( int j=0; j < model.getColumnCount( ); j++ ) {
+				if ( !model.getColumnName( j ).toLowerCase( ).equals( "sample file" )) {
+					sample.setAttribute( 
+						model.getColumnName( j ).toString( ),
+						model.getValueAt( i, j ).toString( ));
+				}
+			}
+		}
 	}
 
 	// ============================= PRIVATE CLASSES =============================
@@ -263,6 +332,7 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		}
 
 		public void actionPerformed( ActionEvent e ) {
+			updateProject( );
 			if ( !this.experiments.isLoaded( ))
 				experiments.load( );
 			Component component = getParent( );

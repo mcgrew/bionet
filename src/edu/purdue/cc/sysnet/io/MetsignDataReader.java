@@ -76,7 +76,7 @@ public class MetsignDataReader extends DataReader {
 		HashMap <String,String> sampleData = new HashMap <String,String> ( );
 		String [ ] headings;
 		String [ ] columns;
-		this.project = new Project( );
+		this.project = new Project( new File( resource ));
 		Map<String,String> line;
 		Language language = Settings.getLanguage( );
 		CSVTableReader file;
@@ -106,7 +106,7 @@ public class MetsignDataReader extends DataReader {
 		String [] headerLine;
 		while ( scanner.hasNextLine( )) {
 
-			headerLine = scanner.nextLine( ).split( "," );
+			headerLine = this.splitLine( scanner.nextLine( ), ',', true );
 			boolean blank = true;
 			for ( int i=0; i < headerLine.length; i++ ) {
 				blank = blank && ( headerLine[ i ].equals( "" ));
@@ -124,16 +124,23 @@ public class MetsignDataReader extends DataReader {
 
 		// *********************** load Sample Info ***************************
 		file = new CSVTableReader( scanner );
-		file.setUseQuotes( true );
+		String sampleFileHeader = "Sample File";
+		for ( String key : file.getKeys( )) {
+			if ( sampleFileHeader.toLowerCase( ).equals( key.toLowerCase( ))) {
+				sampleFileHeader = key;
+				break;
+			}
+		}
 		try {
 			while( file.hasNext( )) {
 				line = file.next( );
 				logger.debug( line.toString( ));
-				Sample sample = new Sample( line.get( "Sample File" ));
+				Sample sample = new Sample( line.get( sampleFileHeader ));
 				sample.setAttributes( line );
 				project.addSample( sample );
 			}
 		} catch ( Exception e ) {
+			logger.debug( e, e );
 			logger.error( "An error occurred while reading the project info file.\n" +
 			              "This file may not be in the correct format." );
 			this.project = null;
@@ -142,7 +149,6 @@ public class MetsignDataReader extends DataReader {
 		// find any ExperimentSets
 		File normDir = new File( this.resource + File.separator + "Normalization" );
 		for ( File dir : normDir.listFiles( )) {
-			System.out.println( "Checking " + dir );
 			if ( dir.isDirectory( )  &&
 				Arrays.asList( dir.list( )).contains( "Normalization.csv" )) {
 				project.add( new ExperimentSet( 
@@ -153,4 +159,26 @@ public class MetsignDataReader extends DataReader {
 		file.close( );
 
 	}
+
+	private String [] splitLine( String input, char delimiter, 
+	                             boolean useQuotes ) {
+		ArrayList<String> returnValue = new ArrayList<String>( );
+		StringBuilder nextValue = new StringBuilder( );
+		boolean inQuotes = false;
+		for ( int i=0; i < input.length( ); i++ ) {
+			if ( input.charAt( i ) == '"' && useQuotes ) {
+				inQuotes = !inQuotes;
+			} else if ( input.charAt( i ) == delimiter && !inQuotes ) {
+				returnValue.add( nextValue.toString( ));
+				nextValue = new StringBuilder( );
+			} else {
+				nextValue.append( input.charAt( i ));
+			}
+		}
+		if ( nextValue.length( ) > 0 ) {
+			returnValue.add( nextValue.toString( ));
+		}
+		return returnValue.toArray( new String[ returnValue.size( ) ]);
+	}
+
 }

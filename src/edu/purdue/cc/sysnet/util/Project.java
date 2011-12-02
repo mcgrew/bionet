@@ -34,12 +34,14 @@ public class Project extends TreeSet<ExperimentSet>
 	private Set<Sample> samples;
 	private File resource;
 
+	@Deprecated
 	public Project( ) {
 		this( (File)null );
 	}
 
 	public Project( File resource ) {
 		super( );
+		this.resource = resource;
 		this.attributes = new TreeMap<String,String>( );
 		this.samples = new TreeSet<Sample>( );
 	}
@@ -74,6 +76,14 @@ public class Project extends TreeSet<ExperimentSet>
 
 	public Set<Sample> getSamples( ) {
 		return this.samples;
+	}
+
+	public Sample getSample( String id ) {
+		for ( Sample sample : this.samples ) {
+			if ( sample.toString( ).equals( id ))
+				return sample;
+		}
+		return null;
 	}
 
 	@Override

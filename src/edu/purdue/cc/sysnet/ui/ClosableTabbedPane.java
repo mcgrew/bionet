@@ -52,17 +52,26 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	protected boolean tearOffEnabled = true;
 	protected TabPopup tabPopup = new TabPopup( );
 	
+	public void addTab( String title, Component component ) {
+		this.addTab( title, component, true );
+	}
+		
 	/**
 	 * Adds a component represented by a title and no icon.
 	 * 
 	 * @param title the title to be displayed in this tab.
 	 * @param component the component to be displayed when this tab is clicked.
 	 */
-	public void addTab( String title, Component component ) {
+	public void addTab( String title, Component component, boolean closable ) {
 		super.addTab( title, component );
-		this.makeClosable( this.getTabCount( )-1 );
+		if ( closable )
+			this.makeClosable( this.getTabCount( )-1 );
 	}
 
+	public void addTab( String title, Icon icon, Component component ) {
+			this.addTab( title, icon, component, true );
+	}
+		
 	/**
 	 * Adds a component represented by a title and/or icon, either of which can be null. 
 	 * 
@@ -70,9 +79,14 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	 * @param icon the icon to be displayed in this tab.
 	 * @param component the component to be displayed when this tab is clicked.
 	 */
-	public void addTab( String title, Icon icon, Component component ) {
+	public void addTab( String title, Icon icon, Component component, boolean closable ) {
 		super.addTab( title, icon, component );
-		this.makeClosable( this.getTabCount( )-1 );
+		if ( closable )
+			this.makeClosable( this.getTabCount( )-1 );
+	}
+
+	public void addTab( String title, Icon icon, Component component, String tip ) {
+		this.addTab( title, icon, component, tip, true );
 	}
 		
 	/**
@@ -82,9 +96,10 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	 * @param icon the icon to be displayed in this tab
 	 * @param component the component to be displayed when this tab is clicked.
 	 */
-	public void addTab( String title, Icon icon, Component component, String tip ) {
+	public void addTab( String title, Icon icon, Component component, String tip, boolean closable ) {
 		super.addTab( title, icon, component, tip );
-		this.makeClosable( this.getTabCount( )-1 );
+		if ( closable )
+			this.makeClosable( this.getTabCount( )-1 );
 	}
 
 	/**

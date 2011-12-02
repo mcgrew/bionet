@@ -51,7 +51,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileView;
@@ -70,16 +69,16 @@ import org.apache.log4j.Logger;
 
 public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow {
 
-	private JTabbedPane tabPane = new IntroPane( );
+	private ClosableTabbedPane tabPane = new IntroPane( );
 	
 	// Menu elements
 	private JMenuBar menuBar;
-	private JMenu fileMenu;
-	private JMenuItem newWindowFileMenuItem;
-	private JMenuItem openFileMenuItem;
-	private JMenuItem saveFileMenuItem;
-	private JMenuItem printFileMenuItem;
-	private JMenuItem exitFileMenuItem;
+	private JMenu projectMenu;
+	private JMenuItem newWindowProjectMenuItem;
+	private JMenuItem openProjectMenuItem;
+	private JMenuItem saveProjectMenuItem;
+	private JMenuItem printProjectMenuItem;
+	private JMenuItem exitProjectMenuItem;
 	private JMenu helpMenu;
 	private JMenuItem contentsHelpMenuItem;
 	private JMenuItem aboutHelpMenuItem;
@@ -149,16 +148,16 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		Language language = Settings.getLanguage( );
 
 		this.menuBar = new JMenuBar( );
-		this.fileMenu = new JMenu( language.get( "File" ));
-		this.newWindowFileMenuItem = new JMenuItem( 
+		this.projectMenu = new JMenu( language.get( "Project" ));
+		this.newWindowProjectMenuItem = new JMenuItem( 
 			language.get( "New Window" ), KeyEvent.VK_N );
-		this.openFileMenuItem = new JMenuItem( 
-			language.get( "Open" ) + "...", KeyEvent.VK_O );
-		this.saveFileMenuItem = new JMenuItem( 
+		this.openProjectMenuItem = new JMenuItem( 
+			language.get( "Open Project" ) + "...", KeyEvent.VK_O );
+		this.saveProjectMenuItem = new JMenuItem( 
 			language.get( "Save" ) + "...", KeyEvent.VK_S );
-		this.printFileMenuItem = new JMenuItem( 
+		this.printProjectMenuItem = new JMenuItem( 
 			language.get( "Print" ) + "...", KeyEvent.VK_P );
-		this.exitFileMenuItem = new JMenuItem( 
+		this.exitProjectMenuItem = new JMenuItem( 
 			language.get( "Close" ), KeyEvent.VK_C );
 		this.helpMenu = new JMenu( language.get( "Help" ));
 		this.contentsHelpMenuItem = new JMenuItem( 
@@ -167,25 +166,25 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			language.get( "About" ), KeyEvent.VK_A );
 
 		// FILE MENU
-		this.fileMenu.setMnemonic( KeyEvent.VK_F );
-		this.fileMenu.getAccessibleContext( ).setAccessibleDescription(
+		this.projectMenu.setMnemonic( KeyEvent.VK_F );
+		this.projectMenu.getAccessibleContext( ).setAccessibleDescription(
 			language.get( "Perform file operations" ));
-		this.fileMenu.add( this.newWindowFileMenuItem );
-		this.fileMenu.add( this.openFileMenuItem );
-		this.fileMenu.add( this.saveFileMenuItem );
-		this.fileMenu.add( this.exitFileMenuItem );
-		this.newWindowFileMenuItem.setAccelerator( 
+		this.projectMenu.add( this.newWindowProjectMenuItem );
+		this.projectMenu.add( this.openProjectMenuItem );
+//		this.projectMenu.add( this.saveProjectMenuItem );
+		this.projectMenu.add( this.exitProjectMenuItem );
+		this.newWindowProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK ));
-		this.openFileMenuItem.setAccelerator( 
+		this.openProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK ));
-		this.saveFileMenuItem.setAccelerator( 
+		this.saveProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK ));
-		this.printFileMenuItem.setAccelerator( 
+		this.printProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK ));
-		this.exitFileMenuItem.setAccelerator( 
+		this.exitProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK ));
 
-		this.saveFileMenuItem.setEnabled( false );
+		this.saveProjectMenuItem.setEnabled( false );
 
 		//HELP MENU
 		this.helpMenu.setMnemonic( KeyEvent.VK_H );
@@ -194,7 +193,7 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.helpMenu.add( this.contentsHelpMenuItem );
 		this.helpMenu.add( this.aboutHelpMenuItem );
 
-		this.menuBar.add( this.fileMenu );
+		this.menuBar.add( this.projectMenu );
 		this.menuBar.add( this.helpMenu );
 
 		this.setJMenuBar( this.menuBar );
@@ -203,11 +202,11 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	}
 
 	private void addMenuListeners( ) {
-		this.newWindowFileMenuItem.addActionListener( this );
-		this.openFileMenuItem.addActionListener( this );
-		this.saveFileMenuItem.addActionListener( this );
-		this.printFileMenuItem.addActionListener( this );
-		this.exitFileMenuItem.addActionListener( this );
+		this.newWindowProjectMenuItem.addActionListener( this );
+		this.openProjectMenuItem.addActionListener( this );
+		this.saveProjectMenuItem.addActionListener( this );
+		this.printProjectMenuItem.addActionListener( this );
+		this.exitProjectMenuItem.addActionListener( this );
 		this.contentsHelpMenuItem.addActionListener( this );
 		this.aboutHelpMenuItem.addActionListener( this );
 	}
@@ -472,9 +471,9 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		logger.debug( "\t  paramString: "+e.paramString( ));
 
 		Object item = e.getSource( );
-		if ( item == this.newWindowFileMenuItem ) {
+		if ( item == this.newWindowProjectMenuItem ) {
 			this.newWindow( );
-		} else if ( item == this.openFileMenuItem ) {
+		} else if ( item == this.openProjectMenuItem ) {
 			DataReader data = this.openCSV( );
 			if ( data == null ) {
 				return;
@@ -484,11 +483,10 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				return;
 			ProjectDisplayPanel pdp = new ProjectDisplayPanel( );
 			if ( pdp.createView( project )) {
-				this.tabPane.addTab( pdp.getTitle( ), pdp );
-				this.tabPane.setSelectedComponent( pdp );
+				this.tabPane.addTab( pdp.getTitle( ), pdp, false );
 			}
 
-		} else if ( item == this.exitFileMenuItem ) {
+		} else if ( item == this.exitProjectMenuItem ) {
 			this.dispose( );
 
 		} else if ( item == this.contentsHelpMenuItem ) {
