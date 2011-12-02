@@ -69,7 +69,7 @@ public abstract class DataReader {
 	 */
 	@Deprecated
 	public Collection<Experiment> getExperiments( ) {
-		return this.project;
+		return this.project.iterator( ).next( );
 	}
 
 	/**
@@ -97,8 +97,8 @@ public abstract class DataReader {
 	 * 
 	 * @param experiment The Experiment to add.
 	 */
-	public void addExperiment( Experiment experiment ) {
-		this.project.add( experiment );
+	public void addExperimentSet( ExperimentSet experiments ) {
+		this.project.add( experiments );
 	}
 
 	/**
@@ -107,19 +107,19 @@ public abstract class DataReader {
 	 * @param experiment The experiment to remove, if present.
 	 * @return true if the Experiment was found and removed.
 	 */
-	public boolean removeExperiment( Experiment experiment ){
-		return this.project.remove( experiment );
+	public boolean removeExperimentSet( ExperimentSet experiments ){
+		return this.project.remove( experiments );
 	}
 
 	/**
 	 * Retrieves an Experiment by Id.
 	 * 
-	 * @param id The id of the Experiment to retrieve.
+	 * @param name The name of the Experiment to retrieve.
 	 * @return The requested experiment.
 	 */
-	public Experiment getExperiment( String id ) {
-		for ( Experiment e : project ) {
-			if ( id.equals( e.getId( ))) {
+	public ExperimentSet getExperimentSet( String name ) {
+		for ( ExperimentSet e : project ) {
+			if ( name.equals( e.getName( ))) {
 				return e;
 			}
 		}

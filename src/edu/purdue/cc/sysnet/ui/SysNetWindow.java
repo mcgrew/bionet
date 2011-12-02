@@ -58,7 +58,7 @@ import javax.swing.filechooser.FileView;
 
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
-import edu.purdue.cc.sysnet.io.CSVDataReader;
+//import edu.purdue.cc.sysnet.io.CSVDataReader;
 import edu.purdue.cc.sysnet.io.MetsignDataReader;
 import edu.purdue.cc.sysnet.io.DataReader;
 import edu.purdue.cc.sysnet.util.Experiment;
@@ -223,19 +223,20 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			fc = new JFileChooser( );
 		}
 		fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
-		fc.addChoosableFileFilter( new CSVFileFilter( ));
+//		fc.addChoosableFileFilter( new CSVFileFilter( ));
 		fc.addChoosableFileFilter( new MetsignFileFilter( ));
 		fc.setFileView( new MetsignFileView( ));
 		int options = fc.showOpenDialog( this );
 		if ( options == JFileChooser.APPROVE_OPTION ) {
-			DataReader data;
+			DataReader data = null;
 			FileFilter fileFilter = fc.getFileFilter( );
 			File selected = fc.getSelectedFile( );
-			if ( fileFilter instanceof CSVFileFilter ) {
-				if ( !selected.isDirectory( ))
-					selected = selected.getParentFile( );
-				data = new CSVDataReader( selected.getAbsolutePath( ));
-			} else {
+//			if ( fileFilter instanceof CSVFileFilter ) {
+//				if ( !selected.isDirectory( ))
+//					selected = selected.getParentFile( );
+//				data = new CSVDataReader( selected.getAbsolutePath( ));
+//			} else {
+			if ( fileFilter instanceof MetsignFileFilter ) {
 				data = new MetsignDataReader( selected.getAbsolutePath( ) );
 			}
 			Settings.getSettings( ).setProperty( "history.open.last", 
@@ -418,13 +419,14 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		}
 
 		public String getDescription( ) {
-			return "Metsign normalization file";
+			return "Metsign project";
 		}
 
 	}
 
 	/**
-	 * A class for indicating to the FileChooser if the directory is a project folder or not.
+	 * A class for indicating to the FileChooser if the directory is a project 
+	 * folder or not.
 	 */
 	private class MetsignFileView extends CSVFileView {
 		Icon projectIcon;
@@ -435,13 +437,13 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		
 		public String getDescription( File f ) {
 			if ( isValidProject( f ))
-				return "Metsign normalization folder";
+				return "Metsign project";
 			return super.getDescription( f );
 		}
 
 		public String getTypeDescription( File f ) {
 			if ( isValidProject( f ))
-				return "Metsign normalization folder";
+				return "Metsign project";
 			return super.getTypeDescription( f );
 		}
 
@@ -449,12 +451,18 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			if ( !f.isDirectory( ))
 				return false;
 			try {
-				List<String> list = Arrays.asList( f.list( ));
-				return ( list.contains( "Normalization.csv" ));
+				return Arrays.asList( f.list( )).contains( "project_info.csv" );
 			} catch ( NullPointerException e ) {
 				return false;
 			}
 		}
+
+		public Boolean isTraversable( File f ) {
+			if ( isValidProject( f ))
+				return Boolean.FALSE;
+			return super.isTraversable( f );
+		}
+
 	}
 
 	public void actionPerformed( ActionEvent e ) {

@@ -31,7 +31,6 @@ import edu.purdue.bbc.util.equation.Polynomial;
 import edu.purdue.cc.sysnet.io.SaveImageAction;
 import edu.purdue.cc.sysnet.util.Experiment;
 import edu.purdue.cc.sysnet.util.Molecule;
-import edu.purdue.cc.sysnet.util.Project;
 import edu.purdue.cc.sysnet.util.Sample;
 import edu.purdue.cc.sysnet.util.SampleGroup;
 
@@ -145,7 +144,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	private JRadioButtonMenuItem chiSquareFitButton;
 	private JMenuItem hideOutliersViewMenuItem;
 
-	private Project project;
+	private Collection<Experiment> experiments;
 	private Set<Molecule> molecules;
 	private Set<Sample> samples;
 	private JSplitPane mainSplitPane;
@@ -210,16 +209,16 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	}
 
 	/**
-	 * Creates a new view containing the specified project.
+	 * Creates a new view containing the specified experiments.
 	 * 
-	 * @param project The project to display in this view.
+	 * @param experiments The experiments to display in this view.
 	 * @return A boolean indicating whether creating the view was successful.
 	 */
-	public boolean createView( Project project ) {
-		this.project = project;
+	public boolean createView( Collection<Experiment> experiments ) {
+		this.experiments = experiments;
 		this.molecules = new TreeSet<Molecule>( );
 		this.samples = new TreeSet<Sample>( );
-		for ( Experiment e : project ) {
+		for ( Experiment e : experiments ) {
 			this.molecules.addAll( e.getMolecules( ));
 			this.samples.addAll( e.getSamples( ));
 		}
@@ -234,7 +233,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		this.bottomPanel = new JPanel( new GridLayout( 1, 1 ));
 		this.experimentGraphPanel = new JPanel( new GridLayout( 1, 1 ));
 
-		this.selectorTree = new ExperimentSelectorTreePanel( project );
+		this.selectorTree = new ExperimentSelectorTreePanel( experiments );
 		this.mainSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
 
@@ -265,7 +264,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	 */
 	public boolean addExperiment( Experiment experiment ) {
 		this.molecules.addAll( experiment.getMolecules( ));
-		return project.add( experiment );
+		return experiments.add( experiment );
 	}
 
 	/**
@@ -275,7 +274,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	 * @return A boolean indicating whether or not the operation was successful.
 	 */
 	public boolean removeExperiment( Experiment experiment ) {
-		return project.remove( experiment );
+		return experiments.remove( experiment );
 	}
 
 	/**
@@ -335,8 +334,8 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		}
 
 		for ( SampleGroup sampleGroup : sampleGroups ) {
-			SampleGraph sampleGraph = new SampleGraph( project, sampleGroup );
-			ExperimentGraph experimentGraph = new ExperimentGraph( project, sampleGroup );
+			SampleGraph sampleGraph = new SampleGraph( experiments, sampleGroup );
+			ExperimentGraph experimentGraph = new ExperimentGraph( experiments, sampleGroup );
 			this.bottomPanel.add( sampleGraph );
 			this.selectorTree.getTree( ).addTreeSelectionListener( sampleGraph );
 			this.experimentGraphPanel.add( experimentGraph, BorderLayout.CENTER );

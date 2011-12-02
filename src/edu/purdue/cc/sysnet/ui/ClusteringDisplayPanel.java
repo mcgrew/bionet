@@ -26,7 +26,6 @@ import edu.purdue.cc.sysnet.io.SaveImageAction;
 import edu.purdue.cc.sysnet.util.SampleComparator;
 import edu.purdue.cc.sysnet.util.Experiment;
 import edu.purdue.cc.sysnet.util.Molecule;
-import edu.purdue.cc.sysnet.util.Project;
 import edu.purdue.cc.sysnet.util.Sample;
 import edu.purdue.cc.sysnet.util.SampleGroup;
 
@@ -130,7 +129,7 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 	private JSplitPane splitPane;
 	private JSplitPane treeSplitPane;
 	private JPanel clusterGraphPanel;
-	private Project project;
+	private Collection<Experiment> experiments;
 	private Collection<Sample> samples;
 	private Collection<Molecule> molecules;
 	private Clusterer clusterer;
@@ -168,21 +167,21 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 	/**
 	 * Creates the visualization instance for a ClusteringDisplayPanel
 	 * 
-	 * @param project The project to be associated with this instance.
+	 * @param experiments The experiments to be associated with this instance.
 	 * @return true if creating the visualization succeeded.
 	 */
-	public boolean createView( Project project ) {
+	public boolean createView( Collection <Experiment> experiments ) {
 		Logger logger = Logger.getLogger( getClass( ));
-		this.project = project;
+		this.experiments = experiments;
 		this.samples = new SampleGroup( "" );
 		this.molecules = new TreeSet<Molecule>( );
-		for( Experiment experiment : project ) {
+		for( Experiment experiment : experiments ) {
 			this.samples.addAll( experiment.getSamples( ));
 			this.molecules.addAll( experiment.getMolecules( ));
 		}
 		Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
 		sampleGroups.add( new SampleGroup( "", samples ));
-		this.sampleSelectorTree = new SampleSelectorTreePanel( this.project );
+		this.sampleSelectorTree = new SampleSelectorTreePanel( this.experiments );
 
 		this.splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.treeSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );

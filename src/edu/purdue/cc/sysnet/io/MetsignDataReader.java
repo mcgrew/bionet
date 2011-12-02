@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -46,8 +47,6 @@ import org.apache.log4j.Logger;
  * @author Thomas McGrew
  */
 public class MetsignDataReader extends DataReader {
-
-
 
 	/**
 	 * Creates a new MetsignDataReader.
@@ -82,12 +81,11 @@ public class MetsignDataReader extends DataReader {
 		Language language = Settings.getLanguage( );
 		CSVTableReader file;
 
-		// *********************** load Experiment Info *************************
+		// *********************** load Project Info *************************
 		Scanner scanner;
 		try{ 
 			scanner = new Scanner( new File( 
-				this.resource + File.separator + ".." + File.separator + 
-				".." + File.separator + "project_info.csv" ));
+				this.resource + File.separator + "project_info.csv" ));
 		} catch( FileNotFoundException e ) {
 			logger.fatal( String.format( language.get( 
 											 "Unable to load '%s'. The file was not found." ), 
@@ -127,24 +125,13 @@ public class MetsignDataReader extends DataReader {
 		// *********************** load Sample Info ***************************
 		file = new CSVTableReader( scanner );
 		file.setUseQuotes( true );
-		Map<Sample,Boolean> samplePresent = new HashMap<Sample,Boolean>( );
 		try {
 			while( file.hasNext( )) {
 				line = file.next( );
 				logger.debug( line.toString( ));
-				Sample sample = 
-					new Sample( line.get( "Sample File" ));
+				Sample sample = new Sample( line.get( "Sample File" ));
 				sample.setAttributes( line );
-				String expId = Settings.getLanguage( ).get( "Time" ) + " " +
-						sample.getAttribute( "Time" );
-				Experiment experiment = 
-					this.getExperiment( expId );
-				if ( experiment == null ) {
-					experiment = new Experiment( expId );
-					project.add( experiment );
-				}
-				experiment.addSample( sample );
-				samplePresent.put( sample, Boolean.FALSE );
+				project.addSample( sample );
 			}
 		} catch ( Exception e ) {
 			logger.error( "An error occurred while reading the project info file.\n" +
@@ -152,79 +139,18 @@ public class MetsignDataReader extends DataReader {
 			this.project = null;
 			return;
 		}
+		// find any ExperimentSets
+		File normDir = new File( this.resource + File.separator + "Normalization" );
+		for ( File dir : normDir.listFiles( )) {
+			System.out.println( "Checking " + dir );
+			if ( dir.isDirectory( )  &&
+				Arrays.asList( dir.list( )).contains( "Normalization.csv" )) {
+				project.add( new ExperimentSet( 
+					dir.getName( ), new File( this.resource )));
+			}
+
+		}
 		file.close( );
 
-		// *********************** load Data ***************************
-		try {
-			file = new CSVTableReader( new File( resource + File.separator + 
-			"Normalization.csv" ));
-		} catch( FileNotFoundException e ) {
-			logger.fatal( String.format( language.get( 
-				              "Unable to load '%s'. The file was not found." ), 
-				              this.resource + File.separator + "Normalization.csv" ) + 
-				              language.get( "No Data has been imported" ));
-			this.project = new Project( );
-			return;
-		}
-		try {
-			while( file.hasNext( )) {
-				line = file.next( );
-				String id = line.remove( "id" );
-				if ( id == null )
-					id = line.remove( "ID" );
-				Molecule molecule;
-				molecule = new Molecule( id );
-				for ( Experiment experiment : this.project ) {
-					experiment.addMolecule( molecule );
-				}
-				// add the remaining attributes to the molecule.
-				for( Map.Entry<String,String> entry : line.entrySet( )) {
-					// see if this column is a sample value
-					Sample sample = null;
-					for ( Experiment e : this.project ) {
-						sample = e.getSample( entry.getKey( ));
-						if ( sample != null )
-							break;
-					}
-					if ( sample != null ) {
-						Number value = new Double( Double.NaN );
-						try {
-							value = new Double( entry.getValue( ));
-						} catch ( NumberFormatException exc ) {
-							Logger.getLogger( getClass( )).trace( String.format( 
-								"Invalid number format for sample value: %s", 
-								entry.getValue( )), exc );
-						}
-						Logger.getLogger( getClass( )).trace( String.format( 
-							"Adding sample value %f to %s for sample %s", 
-							value, molecule, sample ));
-						sample.setValue( molecule, value );
-						samplePresent.put( sample, Boolean.TRUE );
-					} else {
-						Logger.getLogger( getClass( )).trace( String.format( 
-							"Setting attribute %s for Molecule %s to %s", 
-							entry.getKey( ), molecule, entry.getValue( )));
-						molecule.setAttribute( entry.getKey( ), entry.getValue( ));
-					}
-				}
-			}
-		} catch ( Exception e ) {
-			logger.error( "An error occurred while reading the normalization file.\n" +
-			              "This file may not be in the correct format." );
-			this.project = null;
-			return;
-		}
-		for ( Experiment experiment : this.project ) {
-			ArrayList<Sample> samples = 
-				new ArrayList<Sample>( experiment.getSamples( ));
-			for( Sample sample : samples ) {
-				if ( !samplePresent.get( sample ).booleanValue( )) {
-					logger.debug( 
-						String.format( "Dropping sample %s", sample.toString( )));
-					experiment.removeSample( sample );
-				}
-			}
-		}
-		file.close( );
 	}
 }

@@ -21,27 +21,35 @@ package edu.purdue.cc.sysnet.util;
 
 import edu.purdue.bbc.util.attributes.Attributes;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-public class Project extends TreeSet<Experiment> implements Attributes<String> {
+public class Project extends TreeSet<ExperimentSet> 
+                     implements Attributes<String> {
 	private Map<String,String> attributes;
 	private Set<Sample> samples;
+	private File resource;
 
 	public Project( ) {
+		this( (File)null );
+	}
+
+	public Project( File resource ) {
 		super( );
 		this.attributes = new TreeMap<String,String>( );
 		this.samples = new TreeSet<Sample>( );
 	}
 
-	public Project( Collection<Experiment> experiments ) {
+	public Project( Project project ) {
 		this( );
-		this.addAll( experiments );
-		if ( experiments instanceof Project )
-			this.setAttributes( ((Project)experiments).getAttributes( ));
+		this.addAll( project );
+		this.attributes = new TreeMap<String,String>( );
+		this.samples = new TreeSet<Sample>( );
+		this.setAttributes( project.getAttributes( ));
 	}
 
 	public Collection<String> getSampleAttributeNames( ) {
@@ -52,22 +60,46 @@ public class Project extends TreeSet<Experiment> implements Attributes<String> {
 		return returnValue;
 	}
 
+	public boolean addSample( Sample sample ) {
+		return this.samples.add( sample );
+	}
+
+	public void addSamples( Collection<Sample> samples ) {
+		this.samples.addAll( samples );
+	}
+
+	public void setSamples( Collection<Sample> samples ) {
+		this.samples = new TreeSet( samples );
+	}
+
 	public Set<Sample> getSamples( ) {
 		return this.samples;
 	}
 
 	@Override
-	public boolean add( Experiment experiment ) {
-		this.samples.addAll( experiment.getSamples( ));
-		return super.add( experiment );
+	public boolean add( ExperimentSet experiments ) {
+		if ( !experiments.isLoaded( )) {
+			experiments.addSamples( this.samples );
+		}
+		return super.add( experiments );
 	}
 
 	@Override
-	public boolean addAll( Collection<? extends Experiment> experiments ) {
-		for ( Experiment experiment : experiments ) {
-			this.samples.addAll( experiment.getSamples( ));
+	public boolean addAll( Collection<? extends ExperimentSet> experimentSets ) {
+		for ( ExperimentSet experiments : experimentSets ) {
+			if ( !experiments.isLoaded( )) {
+				
+			}
 		}
-		return super.addAll( experiments );
+		return super.addAll( experimentSets );
+	}
+
+	public File getResource( ) {
+		return this.resource;
+	}
+
+	public void setResource( File resource ) {
+		this.resource = resource;
 	}
 
 	/**
