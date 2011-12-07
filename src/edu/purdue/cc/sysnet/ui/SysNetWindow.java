@@ -24,6 +24,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Window;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
@@ -58,9 +60,11 @@ import javax.swing.filechooser.FileView;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
 //import edu.purdue.cc.sysnet.io.CSVDataReader;
-import edu.purdue.cc.sysnet.io.MetsignDataReader;
 import edu.purdue.cc.sysnet.io.DataReader;
+import edu.purdue.cc.sysnet.io.MetsignDataReader;
+import edu.purdue.cc.sysnet.io.ProjectInfoWriter;
 import edu.purdue.cc.sysnet.util.Experiment;
+import edu.purdue.cc.sysnet.util.ExperimentSet;
 import edu.purdue.cc.sysnet.util.Project;
 
 import net.sourceforge.helpgui.gui.MainFrame;
@@ -77,11 +81,16 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	private JMenuItem newWindowProjectMenuItem;
 	private JMenuItem openProjectMenuItem;
 	private JMenuItem saveProjectMenuItem;
+	private JMenu openExperimentProjectMenu;
 	private JMenuItem printProjectMenuItem;
+	private JMenuItem closeProjectMenuItem;
 	private JMenuItem exitProjectMenuItem;
 	private JMenu helpMenu;
 	private JMenuItem contentsHelpMenuItem;
 	private JMenuItem aboutHelpMenuItem;
+
+	// one project per window
+	private Project project;
 
 	public SysNetWindow( ) {
 		this( "SysNet" );
@@ -115,6 +124,7 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.addWindowListener( new WindowAdapter( ) {
 		  public void windowClosing( WindowEvent e ) {
 				JFrame f = (JFrame)e.getSource( );
+				checkModifications( );
 				Settings settings = Settings.getSettings( );
 				settings.setInt( "window.main.position.x", f.getX( ));
 				settings.setInt( "window.main.position.y", f.getY( ));
@@ -137,11 +147,52 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 
 	public void addTab( String title, Component c ) {
 		this.tabPane.addTab( title, c );
-		this.tabPane.setSelectedComponent( c );
+	}
+
+	public void addTab( String title, Component c, boolean closable ) {
+		this.tabPane.addTab( title, c, closable );
 	}
 	
 	public TabbedWindow newWindow( ) {
 		return new SysNetWindow( this.getTitle( ));
+	}
+
+	public Project getProject( ) {
+		return this.project;
+	}
+
+	public void setProject( Project project ) {
+		if ( this.project != project ) {
+			this.checkModifications( );
+		}
+		this.tabPane.removeAll( );
+		this.openExperimentProjectMenu.removeAll( );
+		if ( project != null ) {
+			for ( ExperimentSet experimentSet : project ) {
+				this.openExperimentProjectMenu.add( new JMenuItem( 
+						new ExperimentSetAction( experimentSet )));
+			}
+			this.openExperimentProjectMenu.setEnabled( true );
+			this.saveProjectMenuItem.setEnabled( true );
+			this.setTitle( project.getAttribute( "Project Name" ) + " - SysNet" );
+		} else {
+			this.openExperimentProjectMenu.setEnabled( false );
+			this.saveProjectMenuItem.setEnabled( false );
+			this.setTitle( "SysNet" );
+		}
+		this.project = project;
+	}
+
+	private ProjectDisplayPanel getProjectDisplayPanel( ) {
+		Component pdp = null;
+		for ( int i=0; i < this.tabPane.getTabCount( ) && 
+			             !( pdp instanceof ProjectDisplayPanel ); i++ ) {
+			pdp = this.tabPane.getComponentAt( i );
+		}
+		if ( pdp instanceof ProjectDisplayPanel )
+			return (ProjectDisplayPanel)pdp;
+		else
+			return null;
 	}
 
 	private void setupMenu( ) {
@@ -155,10 +206,14 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			language.get( "Open Project" ) + "...", KeyEvent.VK_O );
 		this.saveProjectMenuItem = new JMenuItem( 
 			language.get( "Save" ) + "...", KeyEvent.VK_S );
+		this.openExperimentProjectMenu = new JMenu( 
+			language.get( "Open Experiment" ));
 		this.printProjectMenuItem = new JMenuItem( 
 			language.get( "Print" ) + "...", KeyEvent.VK_P );
-		this.exitProjectMenuItem = new JMenuItem( 
+		this.closeProjectMenuItem = new JMenuItem( 
 			language.get( "Close" ), KeyEvent.VK_C );
+		this.exitProjectMenuItem = new JMenuItem( 
+			language.get( "Exit" ), KeyEvent.VK_X );
 		this.helpMenu = new JMenu( language.get( "Help" ));
 		this.contentsHelpMenuItem = new JMenuItem( 
 			language.get( "Contents" ), KeyEvent.VK_C );
@@ -171,7 +226,9 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			language.get( "Perform file operations" ));
 		this.projectMenu.add( this.newWindowProjectMenuItem );
 		this.projectMenu.add( this.openProjectMenuItem );
-//		this.projectMenu.add( this.saveProjectMenuItem );
+		this.projectMenu.add( this.saveProjectMenuItem );
+		this.projectMenu.add( this.openExperimentProjectMenu );
+		this.projectMenu.add( this.closeProjectMenuItem );
 		this.projectMenu.add( this.exitProjectMenuItem );
 		this.newWindowProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK ));
@@ -181,9 +238,12 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			KeyStroke.getKeyStroke( KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK ));
 		this.printProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK ));
-		this.exitProjectMenuItem.setAccelerator( 
+		this.closeProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK ));
+		this.exitProjectMenuItem.setAccelerator( 
+			KeyStroke.getKeyStroke( KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK ));
 
+		this.openExperimentProjectMenu.setEnabled( false );
 		this.saveProjectMenuItem.setEnabled( false );
 
 		//HELP MENU
@@ -206,6 +266,7 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.openProjectMenuItem.addActionListener( this );
 		this.saveProjectMenuItem.addActionListener( this );
 		this.printProjectMenuItem.addActionListener( this );
+		this.closeProjectMenuItem.addActionListener( this );
 		this.exitProjectMenuItem.addActionListener( this );
 		this.contentsHelpMenuItem.addActionListener( this );
 		this.aboutHelpMenuItem.addActionListener( this );
@@ -247,6 +308,62 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	
 	}
 
+	
+	public boolean isProjectModified( ) {
+		ProjectDisplayPanel p = this.getProjectDisplayPanel( );
+		if ( p != null )
+			return p.isProjectModified( );
+		else
+			return false;
+	}
+
+	/**
+	 * Displays a dialog asking the user to save the project if modifications
+	 * have been made. 
+	 * 
+	 * @return false if the user clicks 'Cancel' in the dialog. true otherwise.
+	 */
+	private boolean checkModifications( ) {
+		ProjectDisplayPanel p = this.getProjectDisplayPanel( );
+		if ( p != null ) {
+			p.updateProject( this.project );
+			if ( this.isProjectModified( )) {
+				Language language = Settings.getLanguage( );
+				int option = JOptionPane.showConfirmDialog( this,
+					language.get( "You have made changes to your project." ) + "\n" + 
+					language.get( "Would you like to save the changes before closing?" ),
+					language.get( "Save Changes" ),
+					JOptionPane.YES_NO_CANCEL_OPTION, 
+					JOptionPane.WARNING_MESSAGE ); 
+				if ( option == JOptionPane.YES_OPTION ) {
+					this.saveProject( this.project );
+				}
+				if ( option == JOptionPane.CANCEL_OPTION ) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	public boolean saveProject( Project project ) {
+		Logger logger = Logger.getLogger( getClass( ));
+		try {
+			new ProjectInfoWriter( project )
+				.write( );
+			this.getProjectDisplayPanel( ).setProjectModified( false );
+		} catch ( java.io.IOException exception ) {
+			logger.debug( exception, exception );
+			logger.error( 
+				"There was an error when trying to save your project file.\n" +
+				"Please check to make sure the path still exists." );
+			return false;
+		}
+		return true;
+	}
+
+
+	// ============================= PRIVATE CLASSES =============================
 	private class IntroPane extends ClosableTabbedPane {
 		private BufferedImage logo;
 
@@ -461,7 +578,6 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				return Boolean.FALSE;
 			return super.isTraversable( f );
 		}
-
 	}
 
 	public void actionPerformed( ActionEvent e ) {
@@ -478,13 +594,27 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			if ( data == null ) {
 				return;
 			}
-			Project project = data.getProject( );
+			this.project = data.getProject( );
 			if ( project == null )
 				return;
 			ProjectDisplayPanel pdp = new ProjectDisplayPanel( );
 			if ( pdp.createView( project )) {
-				this.tabPane.addTab( pdp.getTitle( ), pdp, false );
+				if ( this.tabPane.getTabCount( ) >= 1 ) {
+					SysNetWindow window = (SysNetWindow)this.newWindow( );
+					window.setProject( project );
+					window.addTab( pdp.getTitle( ), pdp, false );
+				} else {
+					this.setProject( project );
+					this.addTab( pdp.getTitle( ), pdp, false );
+				}
 			}
+
+		} else if ( item == this.saveProjectMenuItem ) {
+			this.getProjectDisplayPanel( ).updateProject( this.project );
+			this.saveProject( this.project );
+
+		} else if ( item == this.closeProjectMenuItem ) {
+			this.setProject( null );
 
 		} else if ( item == this.exitProjectMenuItem ) {
 			this.dispose( );
@@ -495,8 +625,58 @@ public class SysNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		} else if ( item == this.aboutHelpMenuItem ) {
 			new About( ).setVisible( true );
 		}
-		
+	}
 
+	private class ExperimentSetAction extends AbstractAction {
+		private String name;
+		private ExperimentSet experiments;
+
+		public ExperimentSetAction( ExperimentSet experiments ) {
+			super( experiments.getName( ));
+			this.experiments = experiments;
+		}
+
+		public void actionPerformed( ActionEvent e ) {
+			getProjectDisplayPanel( ).updateProject( project );
+			if ( !this.experiments.isLoaded( ))
+				experiments.load( );
+			Component component = getProjectDisplayPanel( );
+			while (!( component instanceof TabbedWindow )) {
+				component = component.getParent( );	
+			}
+			TabbedWindow tabPane = (TabbedWindow)component;
+			while (!( component instanceof Frame )) {
+				component = component.getParent( );	
+			}
+			Map.Entry<Integer,List> choice = ExperimentSelectionDialog.showInputDialog( 
+				(Frame)component, "Experiment Selection", experiments );
+			if ( choice == null )
+				return;
+
+			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
+				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
+				if( cdp.createView( choice.getValue( ))) {
+					tabPane.addTab( cdp.getTitle( ), cdp );
+//					tabPane.setSelectedComponent( cdp );
+				}
+			}
+			else if ( choice.getKey( ).intValue( ) == 
+				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
+				DistributionAnalysisDisplayPanel cadp = new DistributionAnalysisDisplayPanel( );
+				if ( cadp.createView( choice.getValue( ))) {
+					tabPane.addTab( cadp.getTitle( ), cadp );
+//					tabPane.setSelectedComponent( cadp );
+				}
+			}
+			else if ( choice.getKey( ).intValue( ) == 
+				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
+				ClusteringDisplayPanel tcdp = new ClusteringDisplayPanel( );
+				if ( tcdp.createView( choice.getValue( ))) {
+					tabPane.addTab( tcdp.getTitle( ), tcdp );
+//					tabPane.setSelectedComponent( tcdp );
+				}
+			}
+		}
 	}
 }
 

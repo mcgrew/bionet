@@ -61,15 +61,23 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	 * 
 	 * @param title the title to be displayed in this tab.
 	 * @param component the component to be displayed when this tab is clicked.
+	 * @param focus Whether or not the new tab should be given focus.
 	 */
-	public void addTab( String title, Component component, boolean closable ) {
+	public void addTab( String title, Component component, 
+	                    boolean closable, boolean focus ) {
 		super.addTab( title, component );
 		if ( closable )
 			this.makeClosable( this.getTabCount( )-1 );
+		if ( focus )
+			this.setSelectedComponent( component );
+	}
+
+	public void addTab( String title, Component component, boolean closable ) {
+			this.addTab( title, component, closable, true );
 	}
 
 	public void addTab( String title, Icon icon, Component component ) {
-			this.addTab( title, icon, component, true );
+			this.addTab( title, component, true, true );
 	}
 		
 	/**
@@ -86,7 +94,7 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	}
 
 	public void addTab( String title, Icon icon, Component component, String tip ) {
-		this.addTab( title, icon, component, tip, true );
+		this.addTab( title, icon, component, tip, true, true );
 	}
 		
 	/**
@@ -96,10 +104,26 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	 * @param icon the icon to be displayed in this tab
 	 * @param component the component to be displayed when this tab is clicked.
 	 */
-	public void addTab( String title, Icon icon, Component component, String tip, boolean closable ) {
+	public void addTab( String title, Icon icon, Component component, String tip, 
+	                    boolean closable ) {
+		this.addTab( title, icon, component, tip, closable, true );
+	}
+
+	/**
+	 * Adds a component and tip represented by a title and/or icon, either of which can be null.
+	 * 
+	 * @param title the title to be displayed in this tab
+	 * @param icon the icon to be displayed in this tab
+	 * @param component the component to be displayed when this tab is clicked.
+	 * @param focus Whether or not the new tab should be given focus.
+	 */
+	public void addTab( String title, Icon icon, Component component, String tip, 
+	                    boolean closable, boolean focus ) {
 		super.addTab( title, icon, component, tip );
 		if ( closable )
 			this.makeClosable( this.getTabCount( )-1 );
+		if ( focus )
+			this.setSelectedComponent( component );
 	}
 
 	/**

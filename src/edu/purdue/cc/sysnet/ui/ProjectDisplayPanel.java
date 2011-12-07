@@ -28,7 +28,6 @@ import edu.purdue.cc.sysnet.util.Molecule;
 import edu.purdue.cc.sysnet.util.Project;
 import edu.purdue.cc.sysnet.util.Sample;
 import edu.purdue.cc.sysnet.util.SampleGroup;
-import edu.purdue.cc.sysnet.io.ProjectInfoWriter;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -63,10 +62,9 @@ import org.apache.log4j.Logger;
 
 public class ProjectDisplayPanel extends AbstractDisplayPanel 
                                  implements ActionListener {
-	private JMenuBar menuBar;
-	private JMenu projectMenu;
-	private JMenu openMenu;
-	private JMenuItem saveProjectMenuItem;
+//	private JMenuBar menuBar;
+//	private JMenu projectMenu;
+//	private JMenuItem saveProjectMenuItem;
 	private JMenuItem importNormalizationProjectMenuItem;
 	private JScrollPane metadataScrollPane;
 	private JTable metadataTable;
@@ -94,12 +92,10 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	public ProjectDisplayPanel( ) {
 		super( new BorderLayout( ));
 		Language language = Settings.getLanguage( );
-		this.menuBar = new JMenuBar( );
-		this.openMenu = new JMenu( language.get( "Open Experiment" ));
-		this.projectMenu = new JMenu( language.get( "Project" ));
-		this.saveProjectMenuItem = new JMenuItem( language.get( "Save" ));
-		this.importNormalizationProjectMenuItem = new JMenuItem( 
-			language.get( "Import Normalization" ));
+//		this.menuBar = new JMenuBar( );
+//		this.projectMenu = new JMenu( language.get( "Project" ));
+//		this.importNormalizationProjectMenuItem = new JMenuItem( 
+//			language.get( "Import Normalization" ));
 
 		this.metadataTable = new JTable( ){ 
 			public boolean isCellEditable( int row, int column ) {
@@ -169,13 +165,12 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		mainPanel.add( upperPanel, BorderLayout.NORTH );
 		mainPanel.add( this.metadataScrollPane, BorderLayout.CENTER );
 		this.add( mainPanel, BorderLayout.CENTER );
-		this.add( this.menuBar, BorderLayout.NORTH );
+//		this.add( this.menuBar, BorderLayout.NORTH );
 //		this.projectMenu.add( this.importNormalizationProjectMenuItem );
-		this.importNormalizationProjectMenuItem.addActionListener( this );
-		this.projectMenu.add( this.saveProjectMenuItem );
-		this.saveProjectMenuItem.addActionListener( this );
-		this.menuBar.add( this.projectMenu );
-		this.menuBar.add( this.openMenu );
+//		this.importNormalizationProjectMenuItem.addActionListener( this );
+//		this.projectMenu.add( this.saveProjectMenuItem );
+//		this.saveProjectMenuItem.addActionListener( this );
+//		this.menuBar.add( this.projectMenu );
 
 	}
 
@@ -199,10 +194,6 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	public boolean createView( Project project ) {
 		Logger logger = Logger.getLogger( getClass( ));
 		this.project = project;
-		for ( ExperimentSet experimentSet : project ) {
-			this.openMenu.add( new JMenuItem( 
-					new ExperimentSetAction( experimentSet )));
-		}
 		this.samples = new SampleGroup( "All Samples" );
 //		this.molecules = new TreeSet<Molecule>( );
 		this.projectTextField.setText( 
@@ -265,43 +256,34 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	 * @param e The event which triggered this action.
 	 */
 	public void actionPerformed( ActionEvent e ) {
-		Logger logger = Logger.getLogger( getClass( ));
 		Language language = Settings.getLanguage( );
 		Object source = e.getSource( );
-		if ( source == this.saveProjectMenuItem ) {
-			this.updateProject( );
-			try {
-				new ProjectInfoWriter( this.project )
-					.write( );
-				this.projectModified = false;
-			} catch ( java.io.IOException exception ) {
-				logger.debug( exception, exception );
-				logger.error( 
-					"There was an error when trying to save your project file.\n" +
-					"Please check to make sure the path still exists." );
-			}
-		}
 	}
 
-	public void updateProject( ) {
+	@Deprecated
+	public boolean updateProject( ) {
+		return this.updateProject( this.project );
+	}
+
+	public boolean updateProject( Project project ) {
 		String newValue;
-		newValue = this.analyticalPlatformTextField.getText( );
+		newValue = analyticalPlatformTextField.getText( );
 		if ( !newValue.equals( 
-			this.project.setAttribute( "Analytical Platform", newValue )))
+			project.setAttribute( "Analytical Platform", newValue )))
 			this.projectModified = true;
 
-		newValue = this.descriptionTextArea.getText( ).
+		newValue = descriptionTextArea.getText( ).
 			replace( "\n", "<CR>" ).replace( "\r", "" );
 		if ( !newValue.equals( 
-			this.project.setAttribute( "Description", newValue )))
+			project.setAttribute( "Description", newValue )))
 			this.projectModified = true;
 
-		newValue = this.msModeTextField.getText( );
+		newValue = msModeTextField.getText( );
 		if ( !newValue.equals( 
-			this.project.setAttribute( "MS Method", newValue )))
+			project.setAttribute( "MS Method", newValue )))
 			this.projectModified = true;
 
-		TableModel model = this.metadataTable.getModel( );
+		TableModel model = metadataTable.getModel( );
 		int nameColumn = 0;
 		for ( int i=0; i < model.getColumnCount( ); i++ ) {
 			if ( model.getColumnName( i ).toLowerCase( ).equals( "sample file" )) {
@@ -309,7 +291,7 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			}
 		}
 		for ( int i=0; i < model.getRowCount( ); i++ ) {
-			Sample sample = this.project.getSample( 
+			Sample sample = project.getSample( 
 				model.getValueAt( i, nameColumn ).toString( ));
 			for ( int j=0; j < model.getColumnCount( ); j++ ) {
 				if ( !model.getColumnName( j ).toLowerCase( ).equals( "sample file" )) {
@@ -319,60 +301,19 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 				}
 			}
 		}
+		return this.projectModified;
+	}
+
+	public boolean isProjectModified( ) {
+		return this.projectModified;
+	}
+
+	// ugly hack
+	void setProjectModified( boolean modified ) {
+		this.projectModified = modified;
 	}
 
 	// ============================= PRIVATE CLASSES =============================
-	private class ExperimentSetAction extends AbstractAction {
-		private String name;
-		private ExperimentSet experiments;
-
-		public ExperimentSetAction( ExperimentSet experiments ) {
-			super( experiments.getName( ));
-			this.experiments = experiments;
-		}
-
-		public void actionPerformed( ActionEvent e ) {
-			updateProject( );
-			if ( !this.experiments.isLoaded( ))
-				experiments.load( );
-			Component component = getParent( );
-			while (!( component instanceof TabbedWindow )) {
-				component = component.getParent( );	
-			}
-			TabbedWindow tabPane = (TabbedWindow)component;
-			while (!( component instanceof Frame )) {
-				component = component.getParent( );	
-			}
-			Map.Entry<Integer,List> choice = ExperimentSelectionDialog.showInputDialog( 
-				(Frame)component, "Experiment Selection", experiments );
-			if ( choice == null )
-				return;
-
-			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
-				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
-				if( cdp.createView( choice.getValue( ))) {
-					tabPane.addTab( cdp.getTitle( ), cdp );
-//					tabPane.setSelectedComponent( cdp );
-				}
-			}
-			else if ( choice.getKey( ).intValue( ) == 
-				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
-				DistributionAnalysisDisplayPanel cadp = new DistributionAnalysisDisplayPanel( );
-				if ( cadp.createView( choice.getValue( ))) {
-					tabPane.addTab( cadp.getTitle( ), cadp );
-//					tabPane.setSelectedComponent( cadp );
-				}
-			}
-			else if ( choice.getKey( ).intValue( ) == 
-				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
-				ClusteringDisplayPanel tcdp = new ClusteringDisplayPanel( );
-				if ( tcdp.createView( choice.getValue( ))) {
-					tabPane.addTab( tcdp.getTitle( ), tcdp );
-//					tabPane.setSelectedComponent( tcdp );
-				}
-			}
-		}
-	}
 }
 
 

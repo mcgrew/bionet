@@ -151,8 +151,12 @@ public class MetsignDataReader extends DataReader {
 		for ( File dir : normDir.listFiles( )) {
 			if ( dir.isDirectory( )  &&
 				Arrays.asList( dir.list( )).contains( "Normalization.csv" )) {
-				project.add( new ExperimentSet( 
-					dir.getName( ), new File( this.resource )));
+				ExperimentSet set = new ExperimentSet( 
+					dir.getName( ), new File( this.resource ));
+				if ( project.hasAttribute( "time unit" )) {
+					set.setTimeUnit( project.getAttribute( "time unit" ));
+				}
+				project.add( set );
 			}
 
 		}

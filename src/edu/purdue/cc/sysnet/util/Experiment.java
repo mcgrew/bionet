@@ -227,9 +227,10 @@ public class Experiment extends StringAttributes implements Comparable<Experimen
 	 * @return The description attribute.
 	 */
 	public String toString( ) {
-		return String.format( "%s - %s", 
-			this.getId( ),
-			this.getAttribute( "description" ));
+		String returnValue = this.getId( );	
+		if ( this.hasAttribute( "description" ))
+			returnValue += " - " + this.getAttribute( "description" );
+		return returnValue;
 	}
 
 	/**

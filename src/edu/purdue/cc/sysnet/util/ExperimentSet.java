@@ -40,6 +40,7 @@ public class ExperimentSet extends TreeSet<Experiment>
 	private String name;
 	private File resource;
 	private boolean loaded = false;
+	private String timeUnit;
 
 	@Deprecated
 	public ExperimentSet( ) {
@@ -112,6 +113,14 @@ public class ExperimentSet extends TreeSet<Experiment>
 		this.name = name;
 	}
 
+	public String getTimeUnit( ) {
+		return this.timeUnit;
+	}
+
+	public void setTimeUnit( String timeUnit ) {
+		this.timeUnit = timeUnit;
+	}
+
 	public boolean isLoaded( ) {
 		return this.loaded;
 	}
@@ -139,9 +148,12 @@ public class ExperimentSet extends TreeSet<Experiment>
 		for ( Sample sample : this.samples ) {
 			String expId = Settings.getLanguage( ).get( "Time" ) + " " +
 				sample.getAttribute( "Time" );
-				if ( this.get( expId ) == null )
-					this.add( new Experiment( expId ));
-				this.get( expId ).addSample( sample );
+			if ( this.timeUnit != null ) {
+				expId = sample.getAttribute( "Time" ) + " " + this.timeUnit;
+			}
+			if ( this.get( expId ) == null )
+				this.add( new Experiment( expId ));
+			this.get( expId ).addSample( sample );
 		}
 		Map<String,String> line;
 		try {
