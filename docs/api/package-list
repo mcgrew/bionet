@@ -1,6 +1,6 @@
-edu.purdue.cc.sysnet
-edu.purdue.cc.sysnet.io
-edu.purdue.cc.sysnet.ui
-edu.purdue.cc.sysnet.ui.layout
-edu.purdue.cc.sysnet.ui.renderer
-edu.purdue.cc.sysnet.util
+edu.purdue.cc.bionet
+edu.purdue.cc.bionet.io
+edu.purdue.cc.bionet.ui
+edu.purdue.cc.bionet.ui.layout
+edu.purdue.cc.bionet.ui.renderer
+edu.purdue.cc.bionet.util
