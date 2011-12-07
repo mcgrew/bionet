@@ -95,7 +95,7 @@ public abstract class DataReader {
 	/**
 	 * Adds an Experiment to the data set.
 	 * 
-	 * @param experiment The Experiment to add.
+	 * @param experiments The Experiment to add.
 	 */
 	public void addExperimentSet( ExperimentSet experiments ) {
 		this.project.add( experiments );
@@ -104,7 +104,7 @@ public abstract class DataReader {
 	/**
 	 * Removes an Experiment from the data set.
 	 * 
-	 * @param experiment The experiment to remove, if present.
+	 * @param experiments The experiment to remove, if present.
 	 * @return true if the Experiment was found and removed.
 	 */
 	public boolean removeExperimentSet( ExperimentSet experiments ){
