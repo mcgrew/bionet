@@ -1,9 +1,9 @@
 
-<project name="SysNet" basedir="." default="default">
+<project name="BioNet" basedir="." default="default">
 	<property name="author"     value="Thomas McGrew"                      />
 	<property name="vendor"     value="Purdue University"                  />
 	<property name="version"    value="pre-release"                        />
-	<property name="pkg_base"   value="edu.purdue.cc.sysnet"               />
+	<property name="pkg_base"   value="edu.purdue.cc.bionet"               />
 	<property name="jar_dir"    value="."                                  />
 	<property name="src_dir"    value="src"                                />
 	<property name="build_dir"  value="build"                              />
