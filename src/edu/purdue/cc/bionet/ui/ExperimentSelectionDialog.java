@@ -112,7 +112,7 @@ public class ExperimentSelectionDialog extends JDialog
 		this.visualizationTypeSelection = new ButtonGroup( );
 		this.experimentList = 
 			new JList( experiments.toArray( new Object[ experiments.size( )]));
-		this.frequencyFilterPanel = new FrequencyFilterPanel( 75.0 , 30.0, 
+		this.frequencyFilterPanel = new FrequencyFilterPanel(  
 			experiments.iterator( ).next( ).getSamples( ).iterator( ).
 			next( ).getAttributes( ).keySet( ));
 

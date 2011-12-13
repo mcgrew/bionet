@@ -22,6 +22,7 @@ package edu.purdue.cc.bionet.ui;
 import edu.purdue.cc.bionet.util.FrequencyFilter;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.StringUtils;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -45,7 +46,7 @@ import javax.swing.event.ChangeListener;
  * A UI class which shows a set of Spinners for adjusting the visible 
  * correlation range.
  */
-public class FrequencyFilterPanel extends JPanel implements ChangeListener {
+public class FrequencyFilterPanel extends JPanel {
 
 	private JLabel groupFrequencyLabel;
 	private JLabel overallFrequencyLabel;
@@ -55,26 +56,31 @@ public class FrequencyFilterPanel extends JPanel implements ChangeListener {
 	private Collection<JCheckBox> features;
 
 	/**
-	 * Creates a new CorrelationFilterPanel with the default correlation range 
-	 * (0.6-1.0) a step of 0.5, min of 0.0 and max of 1.0
+	 * Creates a new FrequencyFilterPanel with the passed in attributes.
+	 * 
+	 * @param features The selectable features for grouping.
 	 */
-	public FrequencyFilterPanel( ) {
-		this( 75.0, 30.0, new TreeSet<String>( ));
+	public FrequencyFilterPanel( Collection<String> features ) {
+		this( 
+			Settings.getSettings( ).getDouble( 
+				"history.experimentSelection.frequencyFilter.overallFrequency", 30.0 ),
+			Settings.getSettings( ).getDouble( 
+				"history.experimentSelection.frequencyFilter.groupFrequency", 75.0 ),
+			features );
 	}
 
 	/**
-	 * Creates a new Correlation filter with the passed in values.
-	 * 
-	 * @param min The minimum allowed value in the spinners.
-	 * @param max The maximum allowed value in the spinners.
-	 * @param step The step amount for each spinner click.
-	 * @param low The initial low setting for the filter.
-	 * @param high The initial high setting for the filter.
+	 * Creates a new FrequencyFilterPanel with the passed in values.
+	 *
+	 * @param overallFrequency The initial overall frequency setting.
+	 * @param groupFrequency The initial group frequency setting.
+	 * @param features The selectable features for grouping.
 	 */
-	public FrequencyFilterPanel( double groupFrequency, double overallFrequency,
+	public FrequencyFilterPanel( double overallFrequency, double groupFrequency, 
 	                             Collection<String> features ) {
 		super( new BorderLayout( ));
 		Language language = Settings.getLanguage( );
+		Settings settings = Settings.getSettings( );
 		this.groupFrequencyLabel = 
 			new JLabel( language.get( "Frequency" ) + "(%): ", SwingConstants.RIGHT );
 		this.overallFrequencyLabel = 
@@ -91,6 +97,9 @@ public class FrequencyFilterPanel extends JPanel implements ChangeListener {
 		this.overallFrequencySpinner.setPreferredSize( new Dimension( 80, 25 ));
 
 		JPanel featuresPanel = new JPanel( new BorderLayout( ));
+	/**
+	 * Creates a new FrequencyFilterPanel with the last selected values.
+	 */
 		JPanel featureBoxPanel = new JPanel( new GridLayout( 
 			features.size( ) - 1, 1 ));
 		JPanel groupPercentPanel = new JPanel( new BorderLayout( ));
@@ -102,7 +111,9 @@ public class FrequencyFilterPanel extends JPanel implements ChangeListener {
 		this.features = new ArrayList<JCheckBox>( );
 		for ( String feature : features ) {
 			if ( !feature.equals( "sample file" )) {
-				JCheckBox box = new JCheckBox( feature );
+				JCheckBox box = new JCheckBox( feature, settings.getBoolean( 
+					"history.experimentSelection.frequencyFilter.attributes." +
+						StringUtils.camelCase( feature, ' ' ), true ));
 				this.features.add( box );
 				featureBoxPanel.add( box );
 			}
@@ -157,24 +168,24 @@ public class FrequencyFilterPanel extends JPanel implements ChangeListener {
 
 	public FrequencyFilter getFilter( ) {
 		Collection<String> selectedFeatures = new ArrayList<String>( );
+		Settings settings = Settings.getSettings( );
 		for( JCheckBox box : this.features ) {
+			settings.setBoolean( 
+				"history.experimentSelection.frequencyFilter.attributes." +
+				StringUtils.camelCase( box.getText( ), ' ' ), box.isSelected( ));
 			if ( box.isSelected( )) {
 				selectedFeatures.add( box.getText( ));
 			}
 		}
-		return new FrequencyFilter( 
-			Double.parseDouble( this.overallFrequencySpinner.getValue( ).toString( )),		
-			Double.parseDouble( this.groupFrequencySpinner.getValue( ).toString( )),		
-			selectedFeatures );
-	}
-
-	/**
-	 * The stateChanged method of the ChangeListener interface.
-	 * @see javax.swing.event.ChangeListener#stateChanged(ChangeEvent)
-	 * 
-	 * @param e The event which triggered this action.
-	 */
-	public void stateChanged( ChangeEvent e ) {
+		double overall = 
+			Double.parseDouble( this.overallFrequencySpinner.getValue( ).toString( ));
+		double group = 
+			Double.parseDouble( this.groupFrequencySpinner.getValue( ).toString( ));
+		settings.setDouble( 
+			"history.experimentSelection.frequencyFilter.overallFrequency", overall );
+		settings.setDouble( 
+			"history.experimentSelection.frequencyFilter.groupFrequency", group );
+		return new FrequencyFilter( overall, group, selectedFeatures );
 	}
 }
 

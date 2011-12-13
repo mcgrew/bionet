@@ -141,7 +141,7 @@ public class Molecule implements Comparable<Molecule> {
 	 * values list is padded with zeros.
 	 * 
 	 * @param samples The samples to set the values for.
-	 * @return values The values of the samples.
+	 * @param values The values of the samples.
 	 */
 	public void setValues( List<Sample> samples, List<Number> values ) {
 		for ( int i=0; i < samples.size( ); i++ ) {
@@ -154,7 +154,7 @@ public class Molecule implements Comparable<Molecule> {
 	 * Adds the given sample values to this molecule.
 	 * 
 	 * @param samples The samples to set the values for.
-	 * @return value The value of all passed in samples.
+	 * @param value The value of all passed in samples.
 	 */
 	public void setValues( Collection<Sample> samples, Number value ) {
 		for ( Sample sample : samples ) {
@@ -165,8 +165,8 @@ public class Molecule implements Comparable<Molecule> {
 	/**
 	 * Adds the given sample values to this molecule.
 	 * 
-	 * @param smaple The samples to set the values for.
-	 * @return value The value of all passed in samples.
+	 * @param samples The samples to set the values for.
+	 * @param value The value of all passed in samples.
 	 */
 	public void setValues( Collection<Sample> samples, double value ) {
 		for ( Sample sample : samples ) {
