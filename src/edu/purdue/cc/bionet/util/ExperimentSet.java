@@ -36,11 +36,12 @@ import org.apache.log4j.Logger;
 
 public class ExperimentSet extends TreeSet<Experiment>
                            implements Comparable<ExperimentSet> {
-	private Set<Sample> samples;
-	private String name;
-	private File resource;
-	private boolean loaded = false;
-	private String timeUnit;
+	protected Set<Sample> samples;
+	protected Set<Molecule> molecules;
+	protected String name;
+	protected File resource;
+	protected boolean loaded = false;
+	protected String timeUnit;
 
 	@Deprecated
 	public ExperimentSet( ) {
@@ -57,6 +58,7 @@ public class ExperimentSet extends TreeSet<Experiment>
 		this.name = name;
 		this.setResource( resource );
 		this.samples = new TreeSet<Sample>( );
+		this.molecules = new TreeSet<Molecule>( );
 	}
 
 	public void setResource( File resource ) {
@@ -65,6 +67,24 @@ public class ExperimentSet extends TreeSet<Experiment>
 				File.separator + "Normalization" + File.separator + name + 
 				File.separator + "Normalization.csv" );
 		}
+	}
+
+	/**
+	 * Creates another instance of this ExperimentSet, reading from the original
+	 * file. Any modifications made to the object after loading will not be
+	 * retained.
+	 * 
+	 * @return A new ExperimentSet which will read from the original resource file.
+	 */
+	public ExperimentSet clone( ) {
+		ExperimentSet returnValue = new ExperimentSet( this.name, this.resource );
+		if ( this.isLoaded( ))
+			returnValue.load( );
+		return returnValue;
+	}
+
+	public File getResource( ) {
+		return this.resource;
 	}
 
 	public boolean addSample( Sample sample ) {
@@ -76,16 +96,21 @@ public class ExperimentSet extends TreeSet<Experiment>
 	}
 
 	public void setSamples( Collection<Sample> samples ) {
-		this.samples = new TreeSet( samples );
+		this.samples = new TreeSet<Sample>( samples );
 	}
 
 	public Collection<Sample> getSamples( ) {
 		return this.samples;
 	}
 
+	public Collection<Molecule> getMolecules( ) {
+		return this.molecules;
+	}
+
 	@Override
 	public boolean add( Experiment experiment ) {
 		this.samples.addAll( experiment.getSamples( ));
+		this.molecules.addAll( experiment.getMolecules( ));
 		return super.add( experiment );
 	}
 
@@ -93,6 +118,7 @@ public class ExperimentSet extends TreeSet<Experiment>
 	public boolean addAll( Collection<? extends Experiment> experiments ) {
 		for ( Experiment experiment : experiments ) {
 			this.samples.addAll( experiment.getSamples( ));
+			this.molecules.addAll( experiment.getMolecules( ));
 		}
 		return super.addAll( experiments );
 	}
@@ -175,6 +201,7 @@ public class ExperimentSet extends TreeSet<Experiment>
 				for ( Experiment experiment : this ) {
 					experiment.addMolecule( molecule );
 				}
+				this.molecules.add( molecule );
 				// add the remaining attributes to the molecule.
 				for( Map.Entry<String,String> entry : line.entrySet( )) {
 					// see if this column is a sample value

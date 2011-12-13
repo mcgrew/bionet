@@ -118,11 +118,60 @@ public class Molecule implements Comparable<Molecule> {
 	/**
 	 * Adds a new sample value to this Molecule.
 	 * 
-	 * @param sample The Sample this value it associated with.
+	 * @param sample The Sample this value is associated with.
 	 * @param value The value of this sample;
 	 */
 	public void setValue( Sample sample, double value ) {
 		this.addSample( sample, new Double( value ));
+	}
+
+	/**
+	 * Adds a new sample value to this Molecule.
+	 * 
+	 * @param sample The Sample this value it associated with.
+	 * @param value The value of this sample;
+	 */
+	public void setValue( Sample sample, Number value ) {
+		sample.setValue( this, value );
+	}
+
+	/**
+	 * Adds the given sample values to this molecule. If the values list is 
+	 * longer, extra values are ignored. If the samples list is longer, the
+	 * values list is padded with zeros.
+	 * 
+	 * @param samples The samples to set the values for.
+	 * @return values The values of the samples.
+	 */
+	public void setValues( List<Sample> samples, List<Number> values ) {
+		for ( int i=0; i < samples.size( ); i++ ) {
+			this.setValue( samples.get( i ), ( i < values.size( )) ? 
+			               values.get( i ) : new Double( 0.0 ));
+		}
+	}
+
+	/**
+	 * Adds the given sample values to this molecule.
+	 * 
+	 * @param samples The samples to set the values for.
+	 * @return value The value of all passed in samples.
+	 */
+	public void setValues( Collection<Sample> samples, Number value ) {
+		for ( Sample sample : samples ) {
+			this.setValue( sample, value );
+		}
+	}
+
+	/**
+	 * Adds the given sample values to this molecule.
+	 * 
+	 * @param smaple The samples to set the values for.
+	 * @return value The value of all passed in samples.
+	 */
+	public void setValues( Collection<Sample> samples, double value ) {
+		for ( Sample sample : samples ) {
+			this.setValue( sample, value );
+		}
 	}
 
 	/**
@@ -134,16 +183,6 @@ public class Molecule implements Comparable<Molecule> {
 	 */
 	public void addSample( Sample sample, Number value ) {
 		this.setValue( sample, value );
-	}
-
-	/**
-	 * Adds a new sample value to this Molecule.
-	 * 
-	 * @param sample The Sample this value it associated with.
-	 * @param value The value of this sample;
-	 */
-	public void setValue( Sample sample, Number value ) {
-		sample.setValue( this, value );
 	}
 
 	/**

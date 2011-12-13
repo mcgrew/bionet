@@ -71,9 +71,9 @@ public class SampleGroup extends TreeSet<Sample>
 	 * @return The requested Sample.
 	 */
 	public Sample getSample( String id ) {
-		for ( Sample m : this ) {
-			if ( id.equals( m.getAttribute( "id" )))
-				return m;
+		for ( Sample s : this ) {
+			if ( id.equals( s.getAttribute( "id" )))
+				return s;
 		}
 		return null;
 	}

@@ -69,6 +69,16 @@ public class Experiment extends StringAttributes implements Comparable<Experimen
 		this.id = id;
 	}
 
+	public Experiment( Experiment experiment ) {
+		this( experiment.getId( ), experiment.getAttributes( ));
+		for( Sample sample : experiment.getSamples( )) {
+			this.addSample( sample.clone( ));
+		}
+		for ( Molecule molecule : experiment.getMolecules( )) {
+			this.addMolecule( molecule );
+		}
+	}
+
 	/**
 	 * Returns the id of this experiment.
 	 * 
@@ -114,6 +124,13 @@ public class Experiment extends StringAttributes implements Comparable<Experimen
 		return this.molecules;
 	}
 
+	public void removeMolecule( Molecule molecule ) {
+		this.molecules.remove( molecule );	
+		for ( Sample sample : sampleSet ) {
+			sample.removeMolecule( molecule );
+		}
+	}
+
 	/**
 	 * Adds a Molecule to this Experiment.
 	 * 
@@ -121,15 +138,24 @@ public class Experiment extends StringAttributes implements Comparable<Experimen
 	 */
 	public void addMolecule( Molecule molecule ){
 		if ( !this.molecules.contains( molecule )) {
-			for ( Molecule m : this.molecules ) {
-				this.correlations.add( new Correlation( m, molecule, this ));
-			}
 			this.molecules.add( molecule );
 		} else {
 			Logger.getLogger( getClass( )).debug( String.format( 
 				"Experiment %s already contains Molecule %s", 
 				this.getId( ), molecule.getId( )));
 		}
+	}
+
+	public Collection<Correlation> updateCorrelations( ) {
+		this.correlations = new ArrayList<Correlation>( );
+		for ( Molecule m : this.molecules ) {
+			for ( Molecule n : this.molecules ) {
+				if ( m != n ) {
+					this.correlations.add( new Correlation( m, n, this.sampleSet ));
+				}
+			}
+		}
+		return this.correlations;
 	}
 
 	/**

@@ -207,7 +207,8 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.saveProjectMenuItem = new JMenuItem( 
 			language.get( "Save" ) + "...", KeyEvent.VK_S );
 		this.openExperimentProjectMenu = new JMenu( 
-			language.get( "Open Experiment" ));
+			language.get( "Experiment" ));
+		this.openExperimentProjectMenu.setMnemonic( KeyEvent.VK_X );
 		this.printProjectMenuItem = new JMenuItem( 
 			language.get( "Print" ) + "...", KeyEvent.VK_P );
 		this.closeProjectMenuItem = new JMenuItem( 
@@ -227,7 +228,6 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.projectMenu.add( this.newWindowProjectMenuItem );
 		this.projectMenu.add( this.openProjectMenuItem );
 		this.projectMenu.add( this.saveProjectMenuItem );
-		this.projectMenu.add( this.openExperimentProjectMenu );
 		this.projectMenu.add( this.closeProjectMenuItem );
 		this.projectMenu.add( this.exitProjectMenuItem );
 		this.newWindowProjectMenuItem.setAccelerator( 
@@ -254,6 +254,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.helpMenu.add( this.aboutHelpMenuItem );
 
 		this.menuBar.add( this.projectMenu );
+		this.menuBar.add( this.openExperimentProjectMenu );
 		this.menuBar.add( this.helpMenu );
 
 		this.setJMenuBar( this.menuBar );
@@ -404,7 +405,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				g.setFont( new Font( "Arial", Font.BOLD, 18 ));
 				g.setColor( Color.RED );
 
-				text = language.get( "Go to File -> Open to open a project" );
+				text = language.get( "Go to Project -> Open Project to open a project" );
 				g.drawString( text,
 					horizontalCenter - (f.stringWidth( text ) / 2), 
 					verticalCenter - 160 );
@@ -648,8 +649,9 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			while (!( component instanceof Frame )) {
 				component = component.getParent( );	
 			}
-			Map.Entry<Integer,List> choice = ExperimentSelectionDialog.showInputDialog( 
-				(Frame)component, "Experiment Selection", experiments );
+			Map.Entry<Integer,Collection<Experiment>> choice = 
+				ExperimentSelectionDialog.showInputDialog( 
+					(Frame)component, "Experiment Selection", experiments );
 			if ( choice == null )
 				return;
 

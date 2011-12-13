@@ -169,6 +169,10 @@ public class Sample  extends StringAttributes implements Comparable<Sample>,Clon
 		return this.valueMap.keySet( );
 	}
 
+	public Number removeMolecule( Molecule m ) {
+		return this.valueMap.remove( m );
+	}
+
 	/**
 	 * Creates a copy of this Sample.
 	 * 

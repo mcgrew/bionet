@@ -492,6 +492,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		this.molecules = new TreeSet<Molecule>( );
 		for ( Experiment experiment : experiments ) {
 				this.molecules.addAll( experiment.getMolecules( ));
+				experiment.updateCorrelations( );
 		}
 		this.samples = new TreeSet<Sample>( );
 		this.correlations = new CorrelationSet( molecules, samples );

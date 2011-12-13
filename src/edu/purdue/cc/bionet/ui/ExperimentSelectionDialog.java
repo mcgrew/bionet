@@ -19,31 +19,37 @@ along with BioNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.bionet.ui;
 
-import edu.purdue.cc.bionet.util.Experiment;
-import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.Language;
+import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.bionet.BioNet;
+import edu.purdue.cc.bionet.util.Experiment;
 
-import java.util.List;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Arrays;
-import java.awt.Frame;
-import java.awt.FontMetrics;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dialog;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.JRadioButton;
+import java.awt.FontMetrics;
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
@@ -62,9 +68,9 @@ public class ExperimentSelectionDialog extends JDialog
 	protected JRadioButton comparativeAnalysisButton;
 	protected JRadioButton timeCourseStudyButton;
 	protected ButtonGroup visualizationTypeSelection;
-	protected JLabel instructionLabel;
 	protected JList experimentList;
-	protected Map.Entry <Integer,List<Experiment>> returnValue;
+	protected FrequencyFilterPanel frequencyFilterPanel;
+	protected Map.Entry <Integer,Collection<Experiment>> returnValue;
 	protected final String chooseText;
 	protected final String correlationButtonText;
 	protected final String timeCourseStudyButtonText;
@@ -82,15 +88,15 @@ public class ExperimentSelectionDialog extends JDialog
 	 */
 	public ExperimentSelectionDialog( Frame owner, 
 	                                  String title, 
-																		Collection experiments ) {
+																		Collection<Experiment> experiments ) {
 		super( owner, title );
-		this.getContentPane( ).setLayout( null );
+		this.getContentPane( ).setLayout( new BorderLayout( ));
 		this.setBounds( Settings.getSettings( ).getInt( "window.main.position.x" ),
 		                Settings.getSettings( ).getInt( "window.main.position.y" ),
-		                500, 200 );
+										700, 250 );
 
 		Language language = Settings.getLanguage( );
-		this.chooseText = language.get( "Choose an Experiment" );
+		this.chooseText = language.get( "Choose Time Points" );
 		this.correlationButtonText = language.get( "Correlation" );
 		this.timeCourseStudyButtonText = language.get( "Clustering" );
 		this.comparativeAnalysisButtonText = language.get( "Distribution Analysis" );
@@ -104,48 +110,68 @@ public class ExperimentSelectionDialog extends JDialog
 			new JRadioButton( comparativeAnalysisButtonText );
 		this.timeCourseStudyButton = new JRadioButton( timeCourseStudyButtonText );
 		this.visualizationTypeSelection = new ButtonGroup( );
-		this.instructionLabel = new JLabel( chooseText );
 		this.experimentList = 
 			new JList( experiments.toArray( new Object[ experiments.size( )]));
+		this.frequencyFilterPanel = new FrequencyFilterPanel( 75.0 , 30.0, 
+			experiments.iterator( ).next( ).getSamples( ).iterator( ).
+			next( ).getAttributes( ).keySet( ));
+
+		JPanel selectionPanel = new JPanel( new GridLayout( 1, 2 ));
+		JPanel listPanel = new JPanel( new BorderLayout( ));
+		JPanel buttonPanel = new JPanel( new GridLayout( 1, 2 ));
+		JPanel viewTypePanel = new JPanel( new GridLayout( 3, 1 ));
+		JPanel mainPanel = new JPanel( new BorderLayout( ));
 
 		this.okButton.addActionListener( this );
 		this.cancelButton.addActionListener( this );
 
-		this.add( this.okButton );
-		this.add( this.cancelButton );
-		this.add( this.instructionLabel );
-		this.add( this.experimentList );
-		this.add( this.correlationButton );
-		this.add( this.comparativeAnalysisButton );
-		this.add( this.timeCourseStudyButton );
+		buttonPanel.add( this.okButton );
+		buttonPanel.add( this.cancelButton );
+		listPanel.add( this.experimentList, BorderLayout.CENTER );
+		viewTypePanel.add( this.correlationButton );
+		viewTypePanel.add( this.comparativeAnalysisButton );
+		viewTypePanel.add( this.timeCourseStudyButton );
+		selectionPanel.add( listPanel, BorderLayout.CENTER );
+		selectionPanel.add( viewTypePanel );
+		mainPanel.add( selectionPanel );
+		mainPanel.add( frequencyFilterPanel, BorderLayout.SOUTH );
+		this.add( mainPanel, BorderLayout.CENTER );
+		this.add( buttonPanel, BorderLayout.SOUTH );
 
-//		this.correlationButton.addChangeListener( this );
-//		this.comparativeAnalysisButton.addChangeListener( this );
-//		this.timeCourseStudyButton.addChangeListener( this );
 		this.visualizationTypeSelection.add( this.correlationButton );
 		this.visualizationTypeSelection.add( this.comparativeAnalysisButton );
 		this.visualizationTypeSelection.add( this.timeCourseStudyButton );
 		this.correlationButton.setSelected( true );
-//		this.timeCourseStudyButton.setEnabled( false );
+
+		listPanel.setBorder( 
+			BorderFactory.createCompoundBorder( 
+				BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),
+				BorderFactory.createTitledBorder( 
+					BorderFactory.createLineBorder( Color.BLACK, 1 ),
+					chooseText,
+					TitledBorder.LEFT,
+					TitledBorder.TOP )
+		));
+		viewTypePanel.setBorder( 
+			BorderFactory.createCompoundBorder( 
+				BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),
+				BorderFactory.createTitledBorder( 
+					BorderFactory.createLineBorder( Color.BLACK, 1 ),
+					language.get( "Analysis Type" ),
+					TitledBorder.LEFT,
+					TitledBorder.TOP )
+		));
 
 		this.setVisible( true );
 		FontMetrics f = this.getGraphics( ).getFontMetrics( );
 		int width;
 
-		this.okButton.setBounds( 30, 130, 100, 20 );
-		this.cancelButton.setBounds( 170, 130, 100, 20 );
-		this.experimentList.setBounds( 30, 40, 240, 80 );
 		this.experimentList.setSelectionMode( 
 			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 		if ( experiments.size( ) > 0 )
 			this.experimentList.setSelectedIndex( 0 );
 
-		this.correlationButton.setBounds( 290, 40, 200, 20 );
-		this.comparativeAnalysisButton.setBounds( 290, 70, 200, 20 );
-		this.timeCourseStudyButton.setBounds( 290, 100, 200, 20 );
-
 		width = f.stringWidth( chooseText ) + 10;
-		instructionLabel.setBounds( 150 - width/2, 10, width, 40 );
 
 		this.setVisible( false );
 		this.setModalityType( Dialog.ModalityType.APPLICATION_MODAL );
@@ -161,7 +187,7 @@ public class ExperimentSelectionDialog extends JDialog
 	 * @param experiments The available experiments to be selected from.
 	 * @return A Map.Entry containing the selected view type and List of Experiments
 	 */
-	public static Map.Entry<Integer,List> showInputDialog( 
+	public static Map.Entry<Integer,Collection<Experiment>> showInputDialog( 
 		Frame owner, String title, Collection experiments ) {
 
 		ExperimentSelectionDialog dialog = 
@@ -192,8 +218,13 @@ public class ExperimentSelectionDialog extends JDialog
 				return;
 			}
 
+			TreeSet<Experiment> experiments = new TreeSet<Experiment>( );
+			for ( Object object : selectedItems ) {
+				experiments.add( new Experiment( (Experiment)object ));
+			}
+
 			this.returnValue = new ReturnValue( returnCode,
-				Arrays.asList( experimentList.getSelectedValues( )));
+				this.frequencyFilterPanel.getFilter( ).filter( experiments ));
 			this.setVisible( false );
 		}
 
@@ -214,16 +245,16 @@ public class ExperimentSelectionDialog extends JDialog
 	 * 
 	 * @return The selected experiments.
 	 */
-	public Map.Entry getReturnValue( ) {
+	public Map.Entry <Integer,Collection<Experiment>> getReturnValue( ) {
 		return returnValue;
 	}
 
 	/**
 	 * A class for holding a key/value pair (View type,Data)
 	 */
-	private class ReturnValue implements Map.Entry <Integer,List<Experiment>> {
+	private class ReturnValue implements Map.Entry <Integer,Collection<Experiment>> {
 		Integer visualizationType;
-		List experiments;
+		Collection<Experiment> experiments;
 
 		/**
 		 * Creates a new ReturnValue
@@ -231,7 +262,7 @@ public class ExperimentSelectionDialog extends JDialog
 		 * @param 
 		 * @return 
 		 */
-		public ReturnValue( int visualizationType, List experiments ) {
+		public ReturnValue( int visualizationType, Collection<Experiment> experiments ) {
 			this.visualizationType = visualizationType;
 			this.experiments = experiments;
 		}
@@ -251,8 +282,8 @@ public class ExperimentSelectionDialog extends JDialog
 		 * @param value the new Value for this ReturnValue.
 		 * @return The old value for this ReturnValue.
 		 */
-		public List<Experiment> setValue( List value ) {
-			List tmp = this.experiments;
+		public Collection<Experiment> setValue( Collection<Experiment> value ) {
+			Collection<Experiment> tmp = this.experiments;
 			this.experiments = value;
 			return tmp;
 		}
@@ -263,7 +294,7 @@ public class ExperimentSelectionDialog extends JDialog
 		 * 
 		 * @return The list of Experiments.
 		 */
-		public List<Experiment> getValue( ) {
+		public Collection<Experiment> getValue( ) {
 			return this.experiments;
 		}
 
