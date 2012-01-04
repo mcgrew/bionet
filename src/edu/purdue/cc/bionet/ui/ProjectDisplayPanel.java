@@ -22,6 +22,7 @@ package edu.purdue.cc.bionet.ui;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.bionet.io.ProjectInfoWriter;
 import edu.purdue.cc.bionet.ui.ContextMenu;
 import edu.purdue.cc.bionet.util.Experiment;
 import edu.purdue.cc.bionet.util.ExperimentSet;
@@ -284,26 +285,26 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		newValue = analyticalPlatformTextField.getText( );
 		if ( !newValue.equals( 
 			project.setAttribute( "Analytical Platform", newValue )))
-			this.projectModified = true;
+			this.setProjectModified( true );
 
 		newValue = descriptionTextArea.getText( ).
 			replace( "\n", "<CR>" ).replace( "\r", "" );
 		if ( !newValue.equals( 
 			project.setAttribute( "Description", newValue )))
-			this.projectModified = true;
+			this.setProjectModified( true );
 
 		newValue = msModeTextField.getText( );
 		if ( !newValue.equals( 
 			project.setAttribute( "MS Method", newValue )))
-			this.projectModified = true;
+			this.setProjectModified( true );
 
 		newValue = methodTextArea.getText( ).
 				replace( "\n", "<CR>" ).replace( "\r", "" );
 		if ( !newValue.equals( 
-			project.setAttribute( "Chromotography Method", newValue )));
-			this.projectModified = true;
+			project.setAttribute( "Chromotography Method", newValue )))
+			this.setProjectModified( true );
 
-		return this.projectModified;
+		return this.isProjectModified( );
 	}
 
 	public boolean updateSamples( ) {
@@ -326,9 +327,12 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 							Object value = model.getValueAt( i, j );
 							if ( value == null )
 								value = new String( );
-							logger.debug( String.format( "Setting %s to %s for sample %s",
-								attribute, value, sample ));
-							sample.setAttribute( attribute.toString( ), value.toString( ));
+							if ( !value.equals( sample.getAttribute( attribute.toString( )))) {
+								logger.debug( String.format( "Setting %s to %s for sample %s",
+									attribute, value, sample ));
+								sample.setAttribute( attribute.toString( ), value.toString( ));
+								this.setProjectModified( true );
+							}
 						} else {
 							Logger.getLogger( getClass( )).debug( "Sample '" + sampleName +
 								"' not found. Unable to update." );
@@ -337,15 +341,13 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 				}
 			}
 		}
-		return this.projectModified;
+		return this.isProjectModified( );
 	}
 
 	public void tableChanged( TableModelEvent e ) {
-		this.projectModified = true;
 		this.updateSamples( );
 	}
 	public void columnAdded( TableColumnModelEvent e ) {
-		this.projectModified = true;
 		this.updateSamples( );
 	}
 	public void columnMarginChanged( ChangeEvent e ) { }
@@ -353,7 +355,6 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	public void columnRemoved( TableColumnModelEvent e ) { 
 		Logger.getLogger( getClass( )).debug( 
 			String.format( "Column %d removed", e.getFromIndex( )));
-		this.projectModified = true;
 		// clear the sample attributes
 		for ( Sample sample : this.samples ) {
 			sample.getAttributes( ).clear( );
@@ -367,12 +368,30 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		return this.projectModified;
 	}
 
-	// ugly hack - fix this
-	@Deprecated
-	void setProjectModified( boolean modified ) {
+	private void setProjectModified( boolean modified ) {
+		if ( modified ) {
+			Logger.getLogger( getClass( )).debug( "Project marked as modified" );
+		}
 		this.projectModified = modified;
 	}
-	// ============================= PRIVATE CLASSES =============================
+
+	public boolean saveProject( Project project ) {
+		Logger logger = Logger.getLogger( getClass( ));
+		this.updateProject( project );
+		this.updateSamples( );
+		try {
+			new ProjectInfoWriter( project ) .write( );
+			this.setProjectModified( false );
+		} catch ( java.io.IOException exception ) {
+			logger.debug( exception, exception );
+			logger.error( 
+				"There was an error when trying to save your project file.\n" +
+				"Please check to make sure the path still exists." );
+			return false;
+		}
+		return true;
+	}
+
 }
 
 

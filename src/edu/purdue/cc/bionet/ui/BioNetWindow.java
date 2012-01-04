@@ -62,7 +62,6 @@ import edu.purdue.bbc.util.Settings;
 //import edu.purdue.cc.bionet.io.CSVDataReader;
 import edu.purdue.cc.bionet.io.DataReader;
 import edu.purdue.cc.bionet.io.MetsignDataReader;
-import edu.purdue.cc.bionet.io.ProjectInfoWriter;
 import edu.purdue.cc.bionet.util.Experiment;
 import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Project;
@@ -99,6 +98,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	public BioNetWindow ( String title ) {
 
 		super( title );
+		this.setDefaultCloseOperation( DO_NOTHING_ON_CLOSE );
 		this.setBackground( Color.WHITE );
 		this.setLayout( new BorderLayout( ));
 		Settings settings = Settings.getSettings( );
@@ -124,14 +124,16 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.addWindowListener( new WindowAdapter( ) {
 		  public void windowClosing( WindowEvent e ) {
 				JFrame f = (JFrame)e.getSource( );
-				checkModifications( );
-				Settings settings = Settings.getSettings( );
-				settings.setInt( "window.main.position.x", f.getX( ));
-				settings.setInt( "window.main.position.y", f.getY( ));
-				settings.setInt( "window.main.width", f.getWidth( ));
-				settings.setInt( "window.main.height", f.getHeight( ));
-				if ( this.getWindowCount( ) == 1 )
-			    System.exit( 0 );
+				if ( checkModifications( )) {
+					Settings settings = Settings.getSettings( );
+					settings.setInt( "window.main.position.x", f.getX( ));
+					settings.setInt( "window.main.position.y", f.getY( ));
+					settings.setInt( "window.main.width", f.getWidth( ));
+					settings.setInt( "window.main.height", f.getHeight( ));
+					f.dispose( );
+					if ( this.getWindowCount( ) <= 1 )
+						System.exit( 0 );
+				}
 			}
 			private int getWindowCount( ) {
 				int returnValue = 0;
@@ -162,25 +164,28 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	}
 
 	public void setProject( Project project ) {
+		boolean cancel = false;
 		if ( this.project != project ) {
-			this.checkModifications( );
+			cancel = !this.checkModifications( );
 		}
-		this.tabPane.removeAll( );
-		this.openExperimentProjectMenu.removeAll( );
-		if ( project != null ) {
-			for ( ExperimentSet experimentSet : project ) {
-				this.openExperimentProjectMenu.add( new JMenuItem( 
-						new ExperimentSetAction( experimentSet )));
+		if ( !cancel ) {
+			this.tabPane.removeAll( );
+			this.openExperimentProjectMenu.removeAll( );
+			if ( project != null ) {
+				for ( ExperimentSet experimentSet : project ) {
+					this.openExperimentProjectMenu.add( new JMenuItem( 
+							new ExperimentSetAction( experimentSet )));
+				}
+				this.openExperimentProjectMenu.setEnabled( true );
+				this.saveProjectMenuItem.setEnabled( true );
+				this.setTitle( project.getAttribute( "Project Name" ) + " - BioNet" );
+			} else {
+				this.openExperimentProjectMenu.setEnabled( false );
+				this.saveProjectMenuItem.setEnabled( false );
+				this.setTitle( "BioNet" );
 			}
-			this.openExperimentProjectMenu.setEnabled( true );
-			this.saveProjectMenuItem.setEnabled( true );
-			this.setTitle( project.getAttribute( "Project Name" ) + " - BioNet" );
-		} else {
-			this.openExperimentProjectMenu.setEnabled( false );
-			this.saveProjectMenuItem.setEnabled( false );
-			this.setTitle( "BioNet" );
+			this.project = project;
 		}
-		this.project = project;
 	}
 
 	private ProjectDisplayPanel getProjectDisplayPanel( ) {
@@ -337,7 +342,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 					JOptionPane.YES_NO_CANCEL_OPTION, 
 					JOptionPane.WARNING_MESSAGE ); 
 				if ( option == JOptionPane.YES_OPTION ) {
-					this.saveProject( this.project );
+					p.saveProject( this.project );
 				}
 				if ( option == JOptionPane.CANCEL_OPTION ) {
 					return false;
@@ -346,23 +351,6 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		}
 		return true;
 	}
-
-	public boolean saveProject( Project project ) {
-		Logger logger = Logger.getLogger( getClass( ));
-		try {
-			new ProjectInfoWriter( project )
-				.write( );
-			this.getProjectDisplayPanel( ).setProjectModified( false );
-		} catch ( java.io.IOException exception ) {
-			logger.debug( exception, exception );
-			logger.error( 
-				"There was an error when trying to save your project file.\n" +
-				"Please check to make sure the path still exists." );
-			return false;
-		}
-		return true;
-	}
-
 
 	// ============================= PRIVATE CLASSES =============================
 	private class IntroPane extends ClosableTabbedPane {
@@ -611,8 +599,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			}
 
 		} else if ( item == this.saveProjectMenuItem ) {
-			this.getProjectDisplayPanel( ).updateProject( this.project );
-			this.saveProject( this.project );
+			this.getProjectDisplayPanel( ).saveProject( this.project );
 
 		} else if ( item == this.closeProjectMenuItem ) {
 			this.setProject( null );
