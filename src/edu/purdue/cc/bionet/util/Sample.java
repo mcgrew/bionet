@@ -70,12 +70,14 @@ public class Sample  extends StringAttributes implements Comparable<Sample>,Clon
 	public int compareTo( Sample o ) {
 		int returnValue = 0;
 		if ( this.hasAttribute( "time" ) && o.hasAttribute( "time" )) {
-			double s1Time = Double.parseDouble( this.getAttribute( "time" ));
-			double s2Time = Double.parseDouble( o.getAttribute( "time" ));
-			if ( s1Time < s2Time )
-				returnValue = -1;
-			else if ( s2Time < s1Time )
-				returnValue = 1;
+			try {	
+				double s1Time = Double.parseDouble( this.getAttribute( "time" ));
+				double s2Time = Double.parseDouble( o.getAttribute( "time" ));
+				if ( s1Time < s2Time )
+					returnValue = -1;
+				else if ( s2Time < s1Time )
+					returnValue = 1;
+			} catch ( NumberFormatException e ) { }
 		}
 		if ( returnValue == 0 ) {
 			returnValue = this.name.compareTo( o.toString( ));

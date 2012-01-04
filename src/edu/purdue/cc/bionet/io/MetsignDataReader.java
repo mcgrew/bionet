@@ -117,7 +117,7 @@ public class MetsignDataReader extends DataReader {
 				new File( this.resource ).getName( ));
 			this.project.setAttribute( headerLine[ 0 ].trim( ), 
 			( headerLine.length > 1 ) ? headerLine[ 1 ].trim( ) : "" );
-			logger.debug( String.format( "Read header %s: %s",
+			logger.debug( String.format( "Read header '%s': '%s'",
 				headerLine[ 0 ].trim( ), 
 				( headerLine.length > 1 ) ? headerLine[ 1 ].trim( ) : "" ));
 		}
@@ -127,6 +127,7 @@ public class MetsignDataReader extends DataReader {
 		String sampleFileHeader = "Sample File";
 		for ( String key : file.getKeys( )) {
 			if ( sampleFileHeader.toLowerCase( ).equals( key.toLowerCase( ))) {
+				logger.debug( "Found sample file header: '" + key + "'" );
 				sampleFileHeader = key;
 				break;
 			}

@@ -22,6 +22,7 @@ package edu.purdue.cc.bionet.ui;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.cc.bionet.ui.ContextMenu;
 import edu.purdue.cc.bionet.util.Experiment;
 import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Molecule;
@@ -37,6 +38,7 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +50,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -55,13 +58,22 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 import org.apache.log4j.Logger;
 
 public class ProjectDisplayPanel extends AbstractDisplayPanel 
-                                 implements ActionListener {
+	implements ActionListener,TableModelListener,TableColumnModelListener {
+
 //	private JMenuBar menuBar;
 //	private JMenu projectMenu;
 //	private JMenuItem saveProjectMenuItem;
@@ -97,7 +109,7 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 //		this.importNormalizationProjectMenuItem = new JMenuItem( 
 //			language.get( "Import Normalization" ));
 
-		this.metadataTable = new JTable( ){ 
+		this.metadataTable = new EditorTable( ) {
 			public boolean isCellEditable( int row, int column ) {
 				return column != 0;
 			}
@@ -175,11 +187,10 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	}
 
 	/**
-	 * Creates the visualization instance for a ProjectDisplayPanel. Creates
-	 * a new Project with the given ExperimentSet.
+	 * This method is invalid for this type. Always returns false.
 	 * 
 	 * @param experiments The experiments to be associated with this instance.
-	 * @return true if creating the visualization succeeded.
+	 * @return Always returns false.
 	 */
 	public boolean createView( Collection<Experiment> experiments ) {
 		return false;
@@ -201,9 +212,11 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		this.analyticalPlatformTextField.setText( 
 			project.getAttribute( "Analytical Platform" ));
 		this.descriptionTextArea.setText( 
-			project.getAttribute( "Description" ));
+			project.getAttribute( "Description" ).replace( "<CR>", "\n" ));
 		this.msModeTextField.setText( 
 			project.getAttribute( "MS Method" ));
+		this.methodTextArea.setText( 
+			project.getAttribute( "Chromotography Method" ).replace( "<CR>", "\n" ));
 		this.samples.addAll( project.getSamples( ));
 //		for ( Experiment experiment : experiments ) {
 //			this.molecules.addAll( experiment.getMolecules( ));
@@ -226,7 +239,9 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			for( String attribute : attributes ) {
 				tableModel.addColumn( attribute );
 			}
-			do {
+			sampleIterator = samples.iterator( );
+			while ( sampleIterator.hasNext( )) {
+				sample = sampleIterator.next( );
 				Object[] row = new Object[ attributes.size( ) + 1 ];
 				int i = 0;
 				row[ i++ ] = sample.getAttribute( "sample file" );
@@ -234,10 +249,9 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 					row[ i++ ] = sample.getAttribute( attribute );
 				}
 				tableModel.addRow( row );
-				if ( sampleIterator.hasNext( ))
-					sample = sampleIterator.next( );
-			} while ( sampleIterator.hasNext( ));
+			}
 		}
+		this.metadataTable.getColumnModel( ).addColumnModelListener( this );
 		return true;
 	}
 
@@ -283,6 +297,17 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			project.setAttribute( "MS Method", newValue )))
 			this.projectModified = true;
 
+		newValue = methodTextArea.getText( ).
+				replace( "\n", "<CR>" ).replace( "\r", "" );
+		if ( !newValue.equals( 
+			project.setAttribute( "Chromotography Method", newValue )));
+			this.projectModified = true;
+
+		return this.projectModified;
+	}
+
+	public boolean updateSamples( ) {
+		Logger logger = Logger.getLogger( getClass( ));
 		TableModel model = metadataTable.getModel( );
 		int nameColumn = 0;
 		for ( int i=0; i < model.getColumnCount( ); i++ ) {
@@ -291,28 +316,62 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			}
 		}
 		for ( int i=0; i < model.getRowCount( ); i++ ) {
-			Sample sample = project.getSample( 
-				model.getValueAt( i, nameColumn ).toString( ));
+			String sampleName = model.getValueAt( i, nameColumn ).toString( );
+			Sample sample = project.getSample( sampleName );
 			for ( int j=0; j < model.getColumnCount( ); j++ ) {
-				if ( !model.getColumnName( j ).toLowerCase( ).equals( "sample file" )) {
-					sample.setAttribute( 
-						model.getColumnName( j ).toString( ),
-						model.getValueAt( i, j ).toString( ));
+				Object attribute = model.getColumnName( j );
+				if ( attribute != null ) {
+					if ( !attribute.toString( ).toLowerCase( ).equals( "sample file" )) {
+						if ( sample != null ) {
+							Object value = model.getValueAt( i, j );
+							if ( value == null )
+								value = new String( );
+							logger.debug( String.format( "Setting %s to %s for sample %s",
+								attribute, value, sample ));
+							sample.setAttribute( attribute.toString( ), value.toString( ));
+						} else {
+							Logger.getLogger( getClass( )).debug( "Sample '" + sampleName +
+								"' not found. Unable to update." );
+						}
+					}
 				}
 			}
 		}
 		return this.projectModified;
 	}
 
+	public void tableChanged( TableModelEvent e ) {
+		this.projectModified = true;
+		this.updateSamples( );
+	}
+	public void columnAdded( TableColumnModelEvent e ) {
+		this.projectModified = true;
+		this.updateSamples( );
+	}
+	public void columnMarginChanged( ChangeEvent e ) { }
+	public void columnMoved( TableColumnModelEvent e ) { }
+	public void columnRemoved( TableColumnModelEvent e ) { 
+		Logger.getLogger( getClass( )).debug( 
+			String.format( "Column %d removed", e.getFromIndex( )));
+		this.projectModified = true;
+		// clear the sample attributes
+		for ( Sample sample : this.samples ) {
+			sample.getAttributes( ).clear( );
+			sample.setAttribute( "sample file", sample.toString( ));
+		}
+		this.updateSamples( );
+	}
+	public void columnSelectionChanged( ListSelectionEvent e ) { }
+
 	public boolean isProjectModified( ) {
 		return this.projectModified;
 	}
 
-	// ugly hack
+	// ugly hack - fix this
+	@Deprecated
 	void setProjectModified( boolean modified ) {
 		this.projectModified = modified;
 	}
-
 	// ============================= PRIVATE CLASSES =============================
 }
 
