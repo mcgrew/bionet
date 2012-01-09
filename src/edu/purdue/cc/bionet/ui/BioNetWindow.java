@@ -62,6 +62,7 @@ import edu.purdue.bbc.util.Settings;
 //import edu.purdue.cc.bionet.io.CSVDataReader;
 import edu.purdue.cc.bionet.io.DataReader;
 import edu.purdue.cc.bionet.io.MetsignDataReader;
+import edu.purdue.cc.bionet.io.ProjectInfoWriter;
 import edu.purdue.cc.bionet.util.Experiment;
 import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Project;
@@ -77,7 +78,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	// Menu elements
 	private JMenuBar menuBar;
 	private JMenu projectMenu;
-	private JMenuItem newWindowProjectMenuItem;
+	private JMenuItem newProjectMenuItem;
 	private JMenuItem openProjectMenuItem;
 	private JMenuItem saveProjectMenuItem;
 	private JMenu openExperimentProjectMenu;
@@ -205,8 +206,8 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 
 		this.menuBar = new JMenuBar( );
 		this.projectMenu = new JMenu( language.get( "Project" ));
-		this.newWindowProjectMenuItem = new JMenuItem( 
-			language.get( "New Window" ), KeyEvent.VK_N );
+		this.newProjectMenuItem = new JMenuItem( 
+			language.get( "New Project" ), KeyEvent.VK_N );
 		this.openProjectMenuItem = new JMenuItem( 
 			language.get( "Open Project" ) + "...", KeyEvent.VK_O );
 		this.saveProjectMenuItem = new JMenuItem( 
@@ -230,12 +231,12 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.projectMenu.setMnemonic( KeyEvent.VK_P );
 		this.projectMenu.getAccessibleContext( ).setAccessibleDescription(
 			language.get( "Perform file operations" ));
-		this.projectMenu.add( this.newWindowProjectMenuItem );
+		this.projectMenu.add( this.newProjectMenuItem );
 		this.projectMenu.add( this.openProjectMenuItem );
 		this.projectMenu.add( this.saveProjectMenuItem );
 		this.projectMenu.add( this.closeProjectMenuItem );
 		this.projectMenu.add( this.exitProjectMenuItem );
-		this.newWindowProjectMenuItem.setAccelerator( 
+		this.newProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK ));
 		this.openProjectMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK ));
@@ -268,7 +269,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	}
 
 	private void addMenuListeners( ) {
-		this.newWindowProjectMenuItem.addActionListener( this );
+		this.newProjectMenuItem.addActionListener( this );
 		this.openProjectMenuItem.addActionListener( this );
 		this.saveProjectMenuItem.addActionListener( this );
 		this.printProjectMenuItem.addActionListener( this );
@@ -346,6 +347,47 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				}
 				if ( option == JOptionPane.CANCEL_OPTION ) {
 					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean createProject( ) {
+		Logger logger = Logger.getLogger( getClass( ));
+		JFileChooser fc = new JFileChooser( );
+		int options = fc.showSaveDialog( this );
+		File file = fc.getSelectedFile( );
+		if ( options == JFileChooser.APPROVE_OPTION ) {
+			if ( file.exists( )) {
+				logger.error( "The directory you selected already exists. " +
+					"Please choose a new directory name." );
+				return false;
+			}
+			if ( !file.getParentFile( ).canWrite( )) {
+				logger.error( "You do not have permission to write to this directory. " +
+					"Please choose a different path or contact your system administrator." );
+				return false;
+			}
+			file.mkdirs( );
+			Project newProject = new Project( file );
+			newProject.setAttribute( "Project Name", file.getName( ));
+			try { 
+				new ProjectInfoWriter( newProject ).write( );
+			} catch ( IOException e ) {
+				logger.error( "An error occurred while attempting to save your project" );
+				logger.debug( e, e );
+				return false;
+			}
+			ProjectDisplayPanel pdp = new ProjectDisplayPanel( );
+			if ( pdp.createView( newProject )) {
+				if ( this.tabPane.getTabCount( ) >= 1 ) {
+					BioNetWindow window = (BioNetWindow)this.newWindow( );
+					window.setProject( project );
+					window.addTab( pdp.getTitle( ), pdp, false );
+				} else {
+					this.setProject( newProject );
+					this.addTab( pdp.getTitle( ), pdp, false );
 				}
 			}
 		}
@@ -576,8 +618,8 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		logger.debug( "\t  paramString: "+e.paramString( ));
 
 		Object item = e.getSource( );
-		if ( item == this.newWindowProjectMenuItem ) {
-			this.newWindow( );
+		if ( item == this.newProjectMenuItem ) {
+			this.createProject( );
 		} else if ( item == this.openProjectMenuItem ) {
 			DataReader data = this.openCSV( );
 			if ( data == null ) {

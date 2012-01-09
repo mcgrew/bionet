@@ -43,6 +43,7 @@ public class ProjectInfoWriter {
 	public boolean write( ) throws IOException {
 		File infoFile = new File( this.project.getResource( ).getAbsolutePath( ) + 
 			File.separator + "project_info.csv" );
+		infoFile.createNewFile( ); // if the file does not exist
 		Logger.getLogger( getClass( )).debug( 
 			"Writing project file to " + infoFile.getAbsolutePath( ));
 		BufferedWriter output = new BufferedWriter( new FileWriter( infoFile ));

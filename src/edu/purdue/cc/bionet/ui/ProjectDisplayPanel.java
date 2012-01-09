@@ -210,14 +210,22 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 //		this.molecules = new TreeSet<Molecule>( );
 		this.projectTextField.setText( 
 			project.getAttribute( "Project Name" ));
-		this.analyticalPlatformTextField.setText( 
-			project.getAttribute( "Analytical Platform" ));
-		this.descriptionTextArea.setText( 
-			project.getAttribute( "Description" ).replace( "<CR>", "\n" ));
-		this.msModeTextField.setText( 
-			project.getAttribute( "MS Method" ));
-		this.methodTextArea.setText( 
-			project.getAttribute( "Chromotography Method" ).replace( "<CR>", "\n" ));
+		if ( project.hasAttribute( "Analytical Platform" )) {
+			this.analyticalPlatformTextField.setText( 
+				project.getAttribute( "Analytical Platform" ));
+		}
+			if ( project.hasAttribute( "Description" )) {
+			this.descriptionTextArea.setText( 
+				project.getAttribute( "Description" ).replace( "<CR>", "\n" ));
+			}
+			if ( project.hasAttribute( "MS Method" )) {
+			this.msModeTextField.setText( 
+				project.getAttribute( "MS Method" ));
+			}
+			if ( project.hasAttribute( "Chromotography Method" )) {
+				this.methodTextArea.setText( 
+					project.getAttribute( "Chromotography Method" ).replace( "<CR>", "\n" ));
+			}
 		this.samples.addAll( project.getSamples( ));
 //		for ( Experiment experiment : experiments ) {
 //			this.molecules.addAll( experiment.getMolecules( ));
@@ -283,25 +291,25 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	public boolean updateProject( Project project ) {
 		String newValue;
 		newValue = analyticalPlatformTextField.getText( );
-		if ( !newValue.equals( 
+		if ( newValue != null && !newValue.equals( 
 			project.setAttribute( "Analytical Platform", newValue )))
 			this.setProjectModified( true );
 
-		newValue = descriptionTextArea.getText( ).
-			replace( "\n", "<CR>" ).replace( "\r", "" );
-		if ( !newValue.equals( 
-			project.setAttribute( "Description", newValue )))
+		newValue = descriptionTextArea.getText( );
+		if ( newValue != null && !newValue.equals( 
+				project.setAttribute( "Description", newValue )))
+			newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
 			this.setProjectModified( true );
 
 		newValue = msModeTextField.getText( );
-		if ( !newValue.equals( 
+		if ( newValue != null && !newValue.equals( 
 			project.setAttribute( "MS Method", newValue )))
 			this.setProjectModified( true );
 
-		newValue = methodTextArea.getText( ).
-				replace( "\n", "<CR>" ).replace( "\r", "" );
-		if ( !newValue.equals( 
-			project.setAttribute( "Chromotography Method", newValue )))
+		newValue = methodTextArea.getText( );
+		if ( newValue != null && !newValue.equals( 
+				project.setAttribute( "Chromotography Method", newValue )))
+			newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
 			this.setProjectModified( true );
 
 		return this.isProjectModified( );
