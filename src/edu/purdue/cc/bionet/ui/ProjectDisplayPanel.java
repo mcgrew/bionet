@@ -338,25 +338,29 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		String newValue;
 		newValue = analyticalPlatformTextField.getText( );
 		if ( newValue != null && !newValue.equals( 
-			project.setAttribute( "Analytical Platform", newValue )))
+			project.setAttribute( "Analytical Platform", newValue ))) {
 			this.setProjectModified( true );
+		}
 
 		newValue = descriptionTextArea.getText( );
+		newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
 		if ( newValue != null && !newValue.equals( 
-				project.setAttribute( "Description", newValue )))
-			newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
+				project.setAttribute( "Description", newValue ))) {
 			this.setProjectModified( true );
+		}
 
 		newValue = msModeTextField.getText( );
 		if ( newValue != null && !newValue.equals( 
-			project.setAttribute( "MS Method", newValue )))
+			project.setAttribute( "MS Method", newValue ))) {
 			this.setProjectModified( true );
+		}
 
 		newValue = methodTextArea.getText( );
+		newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
 		if ( newValue != null && !newValue.equals( 
-				project.setAttribute( "Chromotography Method", newValue )))
-			newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
+				project.setAttribute( "Chromotography Method", newValue ))) {
 			this.setProjectModified( true );
+		}
 
 		return this.isProjectModified( );
 	}

@@ -149,20 +149,30 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 					settings.setInt( "window.main.width", f.getWidth( ));
 					settings.setInt( "window.main.height", f.getHeight( ));
 					f.dispose( );
-					if ( this.getWindowCount( ) <= 1 )
-						System.exit( 0 );
+					BioNetWindow.checkWindowCount( );
 				}
-			}
-			private int getWindowCount( ) {
-				int returnValue = 0;
-				for( Window w : Window.getWindows( )) {
-					if ( w.isShowing( ) && w instanceof BioNetWindow )
-						returnValue++;
-				}
-				return returnValue;
 			}
 		});
 
+	}
+
+	private static int getWindowCount( ) {
+		int returnValue = 0;
+		for( Window w : Window.getWindows( )) {
+			if ( w.isShowing( ) && w instanceof BioNetWindow )
+				returnValue++;
+		}
+		return returnValue;
+	}
+
+	private static void checkWindowCount( ) {
+		int count = BioNetWindow.getWindowCount( );
+		Logger logger = Logger.getLogger( BioNetWindow.class );
+		logger.debug( "Detected " + count + " open windows" );
+		if ( count < 1 ) {
+			logger.debug( "Shutting Down" );
+			System.exit( 0 );
+		}
 	}
 
 	public void addTab( String title, Component c ) {
@@ -682,7 +692,9 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			this.setProject( null );
 
 		} else if ( item == this.exitProjectMenuItem ) {
+			this.setProject( null );
 			this.dispose( );
+			BioNetWindow.checkWindowCount( );
 
 		} else if ( item == this.contentsHelpMenuItem ) {
 			new MainFrame( "/docs/help/", "plastic" ).setVisible( true );
