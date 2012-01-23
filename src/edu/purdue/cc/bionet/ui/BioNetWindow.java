@@ -22,10 +22,13 @@ package edu.purdue.cc.bionet.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -38,6 +41,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -47,19 +54,28 @@ import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JTextField;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileView;
+import javax.swing.SwingConstants;
 
+import edu.purdue.bbc.io.CSVTableReader;
+import edu.purdue.bbc.io.FileUtils;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
-//import edu.purdue.cc.bionet.io.CSVDataReader;
+import edu.purdue.bbc.util.StringUtils;
 import edu.purdue.cc.bionet.io.DataReader;
 import edu.purdue.cc.bionet.io.MetsignDataReader;
 import edu.purdue.cc.bionet.io.ProjectInfoWriter;
@@ -81,6 +97,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	private JMenuItem newProjectMenuItem;
 	private JMenuItem openProjectMenuItem;
 	private JMenuItem saveProjectMenuItem;
+	private JMenuItem importProjectMenuItem;
 	private JMenu openExperimentProjectMenu;
 	private JMenuItem printProjectMenuItem;
 	private JMenuItem closeProjectMenuItem;
@@ -179,10 +196,12 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				}
 				this.openExperimentProjectMenu.setEnabled( true );
 				this.saveProjectMenuItem.setEnabled( true );
+				this.importProjectMenuItem.setEnabled( true );
 				this.setTitle( project.getAttribute( "Project Name" ) + " - BioNet" );
 			} else {
 				this.openExperimentProjectMenu.setEnabled( false );
 				this.saveProjectMenuItem.setEnabled( false );
+				this.importProjectMenuItem.setEnabled( false );
 				this.setTitle( "BioNet" );
 			}
 			this.project = project;
@@ -212,6 +231,8 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			language.get( "Open Project" ) + "...", KeyEvent.VK_O );
 		this.saveProjectMenuItem = new JMenuItem( 
 			language.get( "Save" ) + "...", KeyEvent.VK_S );
+		this.importProjectMenuItem = new JMenuItem( 
+			language.get( "Import Data" ) + "...", KeyEvent.VK_I );
 		this.openExperimentProjectMenu = new JMenu( 
 			language.get( "Experiment" ));
 		this.openExperimentProjectMenu.setMnemonic( KeyEvent.VK_X );
@@ -234,6 +255,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.projectMenu.add( this.newProjectMenuItem );
 		this.projectMenu.add( this.openProjectMenuItem );
 		this.projectMenu.add( this.saveProjectMenuItem );
+		this.projectMenu.add( this.importProjectMenuItem );
 		this.projectMenu.add( this.closeProjectMenuItem );
 		this.projectMenu.add( this.exitProjectMenuItem );
 		this.newProjectMenuItem.setAccelerator( 
@@ -251,6 +273,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 
 		this.openExperimentProjectMenu.setEnabled( false );
 		this.saveProjectMenuItem.setEnabled( false );
+		this.importProjectMenuItem.setEnabled( false );
 
 		//HELP MENU
 		this.helpMenu.setMnemonic( KeyEvent.VK_H );
@@ -272,6 +295,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.newProjectMenuItem.addActionListener( this );
 		this.openProjectMenuItem.addActionListener( this );
 		this.saveProjectMenuItem.addActionListener( this );
+		this.importProjectMenuItem.addActionListener( this );
 		this.printProjectMenuItem.addActionListener( this );
 		this.closeProjectMenuItem.addActionListener( this );
 		this.exitProjectMenuItem.addActionListener( this );
@@ -452,104 +476,23 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				g.drawImage( logo, 
 					horizontalCenter - 25 - (f.stringWidth( text ) / 2), 
 					verticalCenter - 90, null );
-
 			}
 		}
-
 	}
 
 	/**
 	 * A class for filtering out improper file types from the FileChooser.
 	 */
 	private class CSVFileFilter extends FileFilter {
-		private CSVFileView fileView = new CSVFileView( );
 
 		public boolean accept( File f ) {
-			return ( 
-				f.isDirectory( ) && 
-				( fileView.hasSubdirectories( f ) || fileView.isValidProject( f ))
-			);
+			return f.isDirectory( ) || f.getName( ).endsWith( ".csv" );
 		}
 
 		public String getDescription( ) {
-			return "BioNet project folder";
+			return "CSV Data file";
 		}
 
-	}
-
-	/**
-	 * A class for indicating to the FileChooser if the directory is a project folder or not.
-	 */
-	private class CSVFileView extends FileView {
-		Icon projectIcon;
-		
-		public CSVFileView( ) {
-			super( );
-			InputStream logo = 
-				getClass( ).getResourceAsStream( "/resources/images/icon.png" );
-			if ( logo == null ) {
-				projectIcon = new javax.swing.plaf.metal.MetalIconFactory.FileIcon16( ); 
-			} else {
-				try {
-					projectIcon = new ImageIcon( ImageIO.read( logo )
-						.getScaledInstance( 16, 16, Image.SCALE_SMOOTH ));
-				} catch ( IOException e ) {
-					Logger.getLogger( getClass( )).debug(
-						"Unable to read BioNet icon file" );
-					projectIcon = new javax.swing.plaf.metal.MetalIconFactory.FileIcon16( ); 
-				}
-			}
-		}
-		
-		public String getDescription( File f ) {
-			if ( isValidProject( f ))
-				return "BioNet project folder";
-			return super.getDescription( f );
-		}
-
-		public Icon getIcon( File f ) {
-			if ( projectIcon != null && isValidProject( f )) {
-					return projectIcon;
-			}
-			return super.getIcon( f );
-		}
-
-		public String getName( File f ) {
-			return super.getName( f );
-		}
-
-		public String getTypeDescription( File f ) {
-			if ( isValidProject( f ))
-				return "BioNet project folder";
-			return super.getTypeDescription( f );
-		}
-
-		public Boolean isTraversable( File f ) {
-			return new Boolean( hasSubdirectories( f ));
-		}
-
-		public boolean isValidProject( File f ) {
-			if ( !f.isDirectory( ))
-				return false;
-			try {
-				List<String> list = Arrays.asList( f.list( ));
-				return ( list.contains( "Data.txt" ) &&
-				         list.contains( "Experiment.txt" ) &&
-						     list.contains( "Sample.txt" ));
-			} catch ( NullPointerException e ) {
-				return false;
-			}
-		}
-
-		public boolean hasSubdirectories( File f ) {
-			if ( !f.isDirectory( ))
-				return false;
-			for ( File file : f.listFiles( )) {
-				if ( file.isDirectory( ))
-					return true;
-			}
-			return false;
-		}
 	}
 
 	/**
@@ -575,17 +518,42 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	 * A class for indicating to the FileChooser if the directory is a project 
 	 * folder or not.
 	 */
-	private class MetsignFileView extends CSVFileView {
+	private class MetsignFileView extends FileView {
 		Icon projectIcon;
 		
 		public MetsignFileView( ) {
 			super( );
+			InputStream logo = 
+				getClass( ).getResourceAsStream( "/resources/images/icon.png" );
+			if ( logo == null ) {
+				projectIcon = new javax.swing.plaf.metal.MetalIconFactory.FileIcon16( ); 
+			} else {
+				try {
+					projectIcon = new ImageIcon( ImageIO.read( logo )
+						.getScaledInstance( 16, 16, Image.SCALE_SMOOTH ));
+				} catch ( IOException e ) {
+					Logger.getLogger( getClass( )).debug(
+						"Unable to read BioNet icon file" );
+					projectIcon = new javax.swing.plaf.metal.MetalIconFactory.FileIcon16( ); 
+				}
+			}
 		}
 		
 		public String getDescription( File f ) {
 			if ( isValidProject( f ))
 				return "Metsign project";
 			return super.getDescription( f );
+		}
+
+		public Icon getIcon( File f ) {
+			if ( projectIcon != null && isValidProject( f )) {
+					return projectIcon;
+			}
+			return super.getIcon( f );
+		}
+
+		public String getName( File f ) {
+			return super.getName( f );
 		}
 
 		public String getTypeDescription( File f ) {
@@ -605,9 +573,19 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		}
 
 		public Boolean isTraversable( File f ) {
+			return new Boolean( hasSubdirectories( f ));
+		}
+
+		public boolean hasSubdirectories( File f ) {
 			if ( isValidProject( f ))
 				return Boolean.FALSE;
-			return super.isTraversable( f );
+			if ( !f.isDirectory( ))
+				return false;
+			for ( File file : f.listFiles( )) {
+				if ( file.isDirectory( ))
+					return true;
+			}
+			return false;
 		}
 	}
 
@@ -643,6 +621,63 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		} else if ( item == this.saveProjectMenuItem ) {
 			this.getProjectDisplayPanel( ).saveProject( this.project );
 
+		} else if ( item == this.importProjectMenuItem ) {
+			JFileChooser fc = new JFileChooser( );
+			fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
+			fc.addChoosableFileFilter( new CSVFileFilter( ));
+			int options = fc.showOpenDialog( this );
+			CSVTableReader reader = null;
+			if ( options == JFileChooser.APPROVE_OPTION ) {
+				try {
+					reader = new CSVTableReader( fc.getSelectedFile( ));
+				} catch( IOException exc ) {
+					logger.error( "Unable to find the specified file" );
+					logger.debug( exc, exc );
+					return;
+				}
+				if ( reader == null )
+					return;
+				List<String> keys = new ArrayList( Arrays.asList( reader.getKeys( )));
+				keys.remove( "id" );
+				while ( reader.hasNext( )) {
+					Map<String,String> values = reader.next( );
+					for ( int i=0; i < keys.size( ); i++ ) {
+						if ( !StringUtils.isNumeric( values.get( keys.get( i )))) {
+							keys.remove( i-- );
+						}
+					}
+				}
+				reader.close( );
+				ImportDialog dialog = new ImportDialog( 
+					this, "Select Sample Names", keys );
+				Collection<String> sampleNames = dialog.getSampleNames( );
+				String experimentName = dialog.getExperimentName( );
+
+				// copy the imported file into the project.
+				File outputFile = 
+					new File( this.project.getResource( ).getAbsolutePath( ) + 
+					File.separator + "Normalization" + File.separator + 
+					experimentName + File.separator + "Normalization.csv" );
+				try { 
+					FileUtils.copyFile( fc.getSelectedFile( ), outputFile );
+				} catch ( IOException exc ) {
+					logger.debug( exc, exc );
+					logger.error( "Unable to copy the file to the project folder\n" +
+						"Please ensure that the project directory is writable and has not " +
+						"been removed" );
+					return;
+				}
+				ExperimentSet experimentSet = 
+					new ExperimentSet( experimentName, this.project.getResource( ));
+				for ( String name : sampleNames ) {
+					experimentSet.addSample( 
+						this.getProjectDisplayPanel( ).addSample( name ));
+				}
+				this.getProjectDisplayPanel( ).addExperiment( experimentSet );
+				this.openExperimentProjectMenu.add( new JMenuItem( 
+						new ExperimentSetAction( experimentSet )));
+			}
+
 		} else if ( item == this.closeProjectMenuItem ) {
 			this.setProject( null );
 
@@ -669,7 +704,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		public void actionPerformed( ActionEvent e ) {
 			getProjectDisplayPanel( ).updateProject( project );
 			if ( !this.experiments.isLoaded( ))
-				experiments.load( );
+				this.experiments.load( );
 			Component component = getProjectDisplayPanel( );
 			while (!( component instanceof TabbedWindow )) {
 				component = component.getParent( );	
@@ -680,7 +715,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			}
 			Map.Entry<Integer,Collection<Experiment>> choice = 
 				ExperimentSelectionDialog.showInputDialog( 
-					(Frame)component, "Experiment Selection", experiments );
+					(Frame)component, "Experiment Selection", this.experiments );
 			if ( choice == null )
 				return;
 
@@ -707,6 +742,76 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 //					tabPane.setSelectedComponent( tcdp );
 				}
 			}
+		}
+	}
+
+	private class ImportDialog extends JDialog implements ActionListener {
+		private Collection<String> sampleNames;
+		private String experimentName;
+		private JTextField experimentNameField;
+		private JButton okButton;
+		private JButton cancelButton;
+		private Collection <JCheckBox> checkboxes;
+		
+		public ImportDialog ( Frame owner, String title, 
+		                     Collection<String> headings ) {
+			super( owner, title );
+			int layoutWidth = headings.size( ) / 10;
+			int emptyCells = layoutWidth - ( headings.size( ) % layoutWidth );
+			this.getContentPane( ).setLayout( 
+				new GridLayout( headings.size( ) / layoutWidth + 2, layoutWidth ));
+			Language language = Settings.getLanguage( );
+			this.add( new JLabel( 
+				language.get( "Experiment Name" ), SwingConstants.RIGHT ));
+			this.experimentNameField = new JTextField( );
+			this.add( this.experimentNameField );
+			
+			this.checkboxes = new ArrayList<JCheckBox>( );
+			for ( String heading : headings ) {
+				JCheckBox headingBox = new JCheckBox( heading, true );
+				checkboxes.add( headingBox );
+				this.add( headingBox );
+			}
+			// add some empty space
+			while( emptyCells-- > 0 ) {
+				this.add( new JPanel( ));
+			}
+			while( layoutWidth-- > 2 ) {
+				this.add( new JPanel( ));
+			}
+			this.okButton = new JButton( language.get( "OK" ));
+			this.cancelButton = new JButton( language.get( "Cancel" ));
+			this.add( this.okButton );
+			this.add( this.cancelButton );
+			this.okButton.addActionListener( this );
+			this.cancelButton.addActionListener( this );
+			this.setVisible( false );
+			this.setModalityType( Dialog.ModalityType.APPLICATION_MODAL );
+//			this.setResizable( false );
+			this.pack( );
+			this.setVisible( true );
+		}
+
+		public Collection<String> getSampleNames( ) {
+			return this.sampleNames;
+		}
+
+		public String getExperimentName( ) {
+			return this.experimentName;
+		}
+
+		public void actionPerformed( ActionEvent e ) {
+			Object source = e.getSource( );
+			if ( source == this.okButton ) {
+				this.sampleNames = new ArrayList( );
+				for ( JCheckBox box : this.checkboxes ) {
+					if ( box.isSelected( )) {
+						sampleNames.add( box.getText( ));
+					}
+				}
+				this.experimentName = this.experimentNameField.getText( );
+			}
+			this.setVisible( false );
 		}
 	}
 }

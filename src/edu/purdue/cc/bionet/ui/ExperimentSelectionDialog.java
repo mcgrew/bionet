@@ -23,6 +23,7 @@ import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.bionet.BioNet;
 import edu.purdue.cc.bionet.util.Experiment;
+import edu.purdue.cc.bionet.util.ExperimentSet;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -112,9 +113,15 @@ public class ExperimentSelectionDialog extends JDialog
 		this.visualizationTypeSelection = new ButtonGroup( );
 		this.experimentList = 
 			new JList( experiments.toArray( new Object[ experiments.size( )]));
-		this.frequencyFilterPanel = new FrequencyFilterPanel(  
-			experiments.iterator( ).next( ).getSamples( ).iterator( ).
-			next( ).getAttributes( ).keySet( ));
+		Collection<String> sampleAttributes = null;
+		if ( experiments instanceof ExperimentSet ) {
+				sampleAttributes = ((ExperimentSet)experiments).getSamples( ).
+					iterator( ).next( ).getAttributes( ).keySet( );
+		} else {
+			sampleAttributes = experiments.iterator( ).next( ).getSamples( ).iterator( ).
+				next( ).getAttributes( ).keySet( );
+		}
+		this.frequencyFilterPanel = new FrequencyFilterPanel( sampleAttributes );
 
 		JPanel selectionPanel = new JPanel( new GridLayout( 1, 2 ));
 		JPanel listPanel = new JPanel( new BorderLayout( ));
@@ -188,7 +195,7 @@ public class ExperimentSelectionDialog extends JDialog
 	 * @return A Map.Entry containing the selected view type and List of Experiments
 	 */
 	public static Map.Entry<Integer,Collection<Experiment>> showInputDialog( 
-		Frame owner, String title, Collection experiments ) {
+		Frame owner, String title, Collection<Experiment> experiments ) {
 
 		ExperimentSelectionDialog dialog = 
 			new ExperimentSelectionDialog( owner, title, experiments );

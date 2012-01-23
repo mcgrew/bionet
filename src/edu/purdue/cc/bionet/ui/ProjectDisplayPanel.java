@@ -22,6 +22,8 @@ package edu.purdue.cc.bionet.ui;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.bbc.util.attributes.Attributes;
+import edu.purdue.bbc.util.attributes.BasicAttributes;
 import edu.purdue.cc.bionet.io.ProjectInfoWriter;
 import edu.purdue.cc.bionet.ui.ContextMenu;
 import edu.purdue.cc.bionet.util.Experiment;
@@ -75,10 +77,6 @@ import org.apache.log4j.Logger;
 public class ProjectDisplayPanel extends AbstractDisplayPanel 
 	implements ActionListener,TableModelListener,TableColumnModelListener {
 
-//	private JMenuBar menuBar;
-//	private JMenu projectMenu;
-//	private JMenuItem saveProjectMenuItem;
-	private JMenuItem importNormalizationProjectMenuItem;
 	private JScrollPane metadataScrollPane;
 	private JTable metadataTable;
 	private JTextField projectTextField;
@@ -105,17 +103,17 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	public ProjectDisplayPanel( ) {
 		super( new BorderLayout( ));
 		Language language = Settings.getLanguage( );
-//		this.menuBar = new JMenuBar( );
-//		this.projectMenu = new JMenu( language.get( "Project" ));
-//		this.importNormalizationProjectMenuItem = new JMenuItem( 
-//			language.get( "Import Normalization" ));
 
 		this.metadataTable = new EditorTable( ) {
 			public boolean isCellEditable( int row, int column ) {
 				return column != 0;
 			}
 		};
-		this.metadataScrollPane = new JScrollPane( this.metadataTable );
+		this.metadataScrollPane = new JScrollPane( );
+		Attributes attributes = new BasicAttributes( false );
+		attributes.setAttribute( "sample file", "" );
+		attributes.setAttribute( "time", "" );
+		this.newTable( attributes );
 		this.projectTextField = new JTextField( );
 		this.descriptionTextArea = new JTextArea( );
 		this.descriptionTextArea.setPreferredSize( new Dimension( 100, 100 ));
@@ -184,7 +182,6 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 //		this.projectMenu.add( this.saveProjectMenuItem );
 //		this.saveProjectMenuItem.addActionListener( this );
 //		this.menuBar.add( this.projectMenu );
-
 	}
 
 	/**
@@ -214,18 +211,18 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			this.analyticalPlatformTextField.setText( 
 				project.getAttribute( "Analytical Platform" ));
 		}
-			if ( project.hasAttribute( "Description" )) {
-			this.descriptionTextArea.setText( 
-				project.getAttribute( "Description" ).replace( "<CR>", "\n" ));
-			}
-			if ( project.hasAttribute( "MS Method" )) {
-			this.msModeTextField.setText( 
-				project.getAttribute( "MS Method" ));
-			}
-			if ( project.hasAttribute( "Chromotography Method" )) {
-				this.methodTextArea.setText( 
-					project.getAttribute( "Chromotography Method" ).replace( "<CR>", "\n" ));
-			}
+		if ( project.hasAttribute( "Description" )) {
+		this.descriptionTextArea.setText( 
+			project.getAttribute( "Description" ).replace( "<CR>", "\n" ));
+		}
+		if ( project.hasAttribute( "MS Method" )) {
+		this.msModeTextField.setText( 
+			project.getAttribute( "MS Method" ));
+		}
+		if ( project.hasAttribute( "Chromotography Method" )) {
+			this.methodTextArea.setText( 
+				project.getAttribute( "Chromotography Method" ).replace( "<CR>", "\n" ));
+		}
 		this.samples.addAll( project.getSamples( ));
 //		for ( Experiment experiment : experiments ) {
 //			this.molecules.addAll( experiment.getMolecules( ));
@@ -233,35 +230,84 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		Collection<SampleGroup> sampleGroups = new TreeSet<SampleGroup>( );
 		sampleGroups.add( new SampleGroup( "All Samples", samples ));
 		this.setSampleGroups( sampleGroups );
-		DefaultTableModel tableModel = 
-			(DefaultTableModel)this.metadataTable.getModel( );
 		Iterator<Sample> sampleIterator = samples.iterator( );
 		Sample sample = null;
 		if ( sampleIterator.hasNext( )) {
 			sample = sampleIterator.next( );
 		}
 		if ( sample != null ) {
-			Collection<String> attributes = 
-				new TreeSet<String>( sample.getAttributes( ).keySet( ));
-			attributes.remove( "sample file" );
-			tableModel.addColumn( "sample file" );
-			for( String attribute : attributes ) {
-				tableModel.addColumn( attribute );
-			}
+			DefaultTableModel tableModel = 
+				(DefaultTableModel)this.newTable( sample ).getModel( );
 			sampleIterator = samples.iterator( );
 			while ( sampleIterator.hasNext( )) {
 				sample = sampleIterator.next( );
-				Object[] row = new Object[ attributes.size( ) + 1 ];
-				int i = 0;
-				row[ i++ ] = sample.getAttribute( "sample file" );
-				for ( String attribute : attributes ) {
-					row[ i++ ] = sample.getAttribute( attribute );
+				int columnCount = this.metadataTable.getColumnCount( );
+				Object[] row = new Object[ columnCount ];
+				for ( int i=0; i < columnCount; i++ ) {
+					row[ i ] = 
+						sample.getAttribute( this.metadataTable.getColumnName( i ));
 				}
 				tableModel.addRow( row );
 			}
 		}
-		this.metadataTable.getColumnModel( ).addColumnModelListener( this );
 		return true;
+	}
+
+	private JTable newTable( Attributes attributes ) {
+		if ( this.metadataTable != null )
+			this.metadataTable.getColumnModel( ).removeColumnModelListener( this );
+		this.metadataTable = new EditorTable( ) {
+			public boolean isCellEditable( int row, int column ) {
+				return column != 0;
+			}
+		};
+		Collection<String> attributeKeys = 
+			new TreeSet<String>( attributes.getAttributes( ).keySet( ));
+		attributeKeys.remove( "sample file" );
+		DefaultTableModel tableModel =
+			(DefaultTableModel)this.metadataTable.getModel( );
+		tableModel.addColumn( "sample file" );
+		for( String attribute : attributeKeys ) {
+			tableModel.addColumn( attribute );
+		}
+		this.metadataScrollPane.setViewportView( this.metadataTable );
+		this.metadataTable.getColumnModel( ).addColumnModelListener( this );
+		return this.metadataTable;
+	}
+
+	public void addExperiment( ExperimentSet experiment ) {
+		this.project.add( experiment );	
+	}
+
+	public Sample addSample( String sampleName ) {
+		Sample sample = this.project.getSample( sampleName );
+		if ( sample != null ) {
+			return sample;
+		}
+		if ( this.project.getSample( sampleName ) == null ) {
+			sample = new Sample( sampleName );
+			sample.setAttribute( "Sample File", sampleName );
+			sample.setAttribute( "Time", "0" );
+		}
+		return this.addSample( sample );
+	}
+
+	public Sample addSample( Sample sample ) {
+		Sample returnValue = this.project.getSample( sample.toString( ));
+		if ( returnValue != null ) {
+			return returnValue;
+		}
+		int columnCount = this.metadataTable.getColumnCount( );
+		Object[] newRow = new Object[ columnCount ];
+		this.samples.add( sample );
+		this.project.addSample( sample );
+		for( int i=0; i < columnCount; i++ ) {
+			String value = 
+				sample.getAttribute( this.metadataTable.getColumnName( i ));
+			newRow[ i ] = ( value == null ) ? "" : value;
+		}
+		((DefaultTableModel)this.metadataTable.getModel( )).addRow( newRow );
+		return sample;
 	}
 
 	/**
