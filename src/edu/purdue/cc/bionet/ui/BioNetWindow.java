@@ -138,23 +138,31 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.tabPane.setVisible( true );
 
 		this.setVisible( true );
+		this.setExtendedState( 
+			settings.getInt( "window.main.frameState", Frame.NORMAL ));
 		this.repaint( );
-
 		this.addWindowListener( new WindowAdapter( ) {
 		  public void windowClosing( WindowEvent e ) {
-				JFrame f = (JFrame)e.getSource( );
+				BioNetWindow w = (BioNetWindow)e.getSource( );
 				if ( checkModifications( )) {
 					Settings settings = Settings.getSettings( );
-					settings.setInt( "window.main.position.x", f.getX( ));
-					settings.setInt( "window.main.position.y", f.getY( ));
-					settings.setInt( "window.main.width", f.getWidth( ));
-					settings.setInt( "window.main.height", f.getHeight( ));
-					f.dispose( );
+					// make sure the window is not maximized before saving the
+					// size and position.
+					int state = w.getExtendedState( );
+					if ( state == Frame.NORMAL ) {
+						settings.setInt( "window.main.position.x", w.getX( ));
+						settings.setInt( "window.main.position.y", w.getY( ));
+						settings.setInt( "window.main.width", w.getWidth( ));
+						settings.setInt( "window.main.height", w.getHeight( ));
+					}
+					// discard the 'iconified' state
+					state &= ~Frame.ICONIFIED;
+					settings.setInt( "window.main.frameState", state ); 
+					w.dispose( );
 					BioNetWindow.checkWindowCount( );
 				}
 			}
 		});
-
 	}
 
 	private static int getWindowCount( ) {
@@ -426,6 +434,14 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	// ============================= PRIVATE CLASSES =============================
 	private class IntroPane extends ClosableTabbedPane {
 		private BufferedImage logo;
+		private final String license = Settings.getLanguage( ).get( 
+			"BioNet is distributed under the GNU GPL license" );
+		private final String funding = Settings.getLanguage( ).get( 
+			"This project is funded by NIH Grant 5R01GM087735" );
+		private final String helpText = Settings.getLanguage( ).get( 
+			"Go to Project -> Open Project to open a project" );
+		private final String copyright = Settings.getLanguage( ).get( 
+			"Copyright 2012" );
 
 		public IntroPane( ) {
 			super( );
@@ -441,22 +457,21 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			if ( this.getTabCount( ) < 1 ) {
 				String text;
 				FontMetrics f = g.getFontMetrics( );
-				Language language = Settings.getLanguage( );
 				int verticalCenter = this.getHeight( ) / 2;
 				int horizontalCenter = this.getWidth( ) / 2;
 
 				g.setFont( new Font( "Arial", Font.BOLD, 14 ));
-				text = language.get( "Copyright 2011" ); 
+				text = copyright;
 				g.drawString( text, 
 					horizontalCenter - (f.stringWidth( text ) / 2), 
 					verticalCenter + 10 );
 
-				text = language.get( "BioNet is distributed under the GNU GPL license" );
+				text = license;
 				g.drawString( text, 
 					horizontalCenter - (f.stringWidth( text ) / 2), 
 					verticalCenter + 30 );
 
-				text = language.get( "This project is funded by NIH Grant 5R01GM087735" );
+				text = funding;
 				g.drawString( text,
 					horizontalCenter - (f.stringWidth( text ) / 2), 
 					verticalCenter + 50 );
@@ -464,7 +479,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				g.setFont( new Font( "Arial", Font.BOLD, 18 ));
 				g.setColor( Color.RED );
 
-				text = language.get( "Go to Project -> Open Project to open a project" );
+				text = helpText; 
 				g.drawString( text,
 					horizontalCenter - (f.stringWidth( text ) / 2), 
 					verticalCenter - 160 );

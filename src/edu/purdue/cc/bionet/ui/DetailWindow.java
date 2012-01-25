@@ -29,6 +29,7 @@ import edu.purdue.cc.bionet.util.Experiment;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Collection;
@@ -75,15 +76,25 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 		this.setLayout( new BorderLayout( ));
 		this.getContentPane( ).add( tabPane, BorderLayout.CENTER );
 		this.setVisible( true );
+		this.setExtendedState( 
+			settings.getInt( "window.detail.frameState", Frame.NORMAL ));
 
 		this.addWindowListener(new WindowAdapter( ) {
 		  public void windowClosing( WindowEvent e ) {
-				JFrame f = (JFrame)e.getSource( );
+				DetailWindow w = (DetailWindow)e.getSource( );
 				Settings settings = Settings.getSettings( );
-				settings.setInt( "window.detail.position.x", f.getX( ));
-				settings.setInt( "window.detail.position.y", f.getY( ));
-				settings.setInt( "window.detail.width", f.getWidth( ));
-				settings.setInt( "window.detail.height", f.getHeight( ));
+				// make sure the window is not maximized before saving the
+				// size and position.
+				int state = w.getExtendedState( );
+				if ( state == Frame.NORMAL ) {
+					settings.setInt( "window.detail.position.x", w.getX( ));
+					settings.setInt( "window.detail.position.y", w.getY( ));
+					settings.setInt( "window.detail.width", w.getWidth( ));
+					settings.setInt( "window.detail.height", w.getHeight( ));
+				}
+				// discard the 'iconified' state
+				state &= ~Frame.ICONIFIED;
+				settings.setInt( "window.detail.frameState", state ); 
 			}
 		});
 	}
