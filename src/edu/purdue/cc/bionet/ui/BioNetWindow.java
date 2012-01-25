@@ -726,7 +726,9 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 						experimentSet.addSample( 
 							this.getProjectDisplayPanel( ).addSample( name ));
 					}
-					this.getProjectDisplayPanel( ).addExperiment( experimentSet );
+					ProjectDisplayPanel p = this.getProjectDisplayPanel( );
+					p.addExperiment( experimentSet );
+					p.saveProject( );
 					this.openExperimentProjectMenu.add( new JMenuItem( 
 							new ExperimentSetAction( experimentSet )));
 				}

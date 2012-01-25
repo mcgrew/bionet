@@ -434,6 +434,15 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		this.projectModified = modified;
 	}
 
+	public boolean saveProject( ) {
+		if ( this.project != null ) {
+			return this.saveProject( this.project );
+		}
+		Logger.getLogger( getClass( )).error( 
+				"Unable to save the project, there is no project currently open." );
+		return false;
+	}
+
 	public boolean saveProject( Project project ) {
 		Logger logger = Logger.getLogger( getClass( ));
 		this.updateProject( project );
