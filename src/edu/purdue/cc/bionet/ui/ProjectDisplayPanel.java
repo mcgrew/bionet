@@ -307,6 +307,7 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			newRow[ i ] = ( value == null ) ? "" : value;
 		}
 		((DefaultTableModel)this.metadataTable.getModel( )).addRow( newRow );
+		this.setProjectModified( true );
 		return sample;
 	}
 

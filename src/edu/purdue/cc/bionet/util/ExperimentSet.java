@@ -183,7 +183,7 @@ public class ExperimentSet extends TreeSet<Experiment>
 		}
 		Map<String,String> line;
 		try {
-			file = new CSVTableReader( resource );
+			file = new CSVTableReader( resource, ",\t" );
 		} catch( FileNotFoundException e ) {
 			logger.fatal( String.format( language.get( 
 				              "Unable to load '%s'. The file was not found." ), 
@@ -212,7 +212,7 @@ public class ExperimentSet extends TreeSet<Experiment>
 							break;
 					}
 					if ( sample != null ) {
-						Number value = new Double( Double.NaN );
+						Number value = new Double( 0.0 );
 						try {
 							value = new Double( entry.getValue( ));
 						} catch ( NumberFormatException exc ) {
@@ -233,7 +233,8 @@ public class ExperimentSet extends TreeSet<Experiment>
 				}
 			}
 		} catch ( Exception e ) {
-			logger.error( "An error occurred while reading the normalization file.\n" +
+			logger.debug( e, e );
+			logger.error( "An error occurred while reading the data file.\n" +
 			              "This file may not be in the correct format." );
 			return false;
 		}

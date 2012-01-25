@@ -28,7 +28,6 @@ import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GridLayout;
-import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -52,6 +51,7 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -72,6 +72,7 @@ import javax.swing.filechooser.FileView;
 import javax.swing.SwingConstants;
 
 import edu.purdue.bbc.io.CSVTableReader;
+import edu.purdue.bbc.io.CSVTableWriter;
 import edu.purdue.bbc.io.FileUtils;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
@@ -324,7 +325,6 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			fc = new JFileChooser( );
 		}
 		fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
-//		fc.addChoosableFileFilter( new CSVFileFilter( ));
 		fc.addChoosableFileFilter( new MetsignFileFilter( ));
 		fc.setFileView( new MetsignFileView( ));
 		int options = fc.showOpenDialog( this );
@@ -332,11 +332,6 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			DataReader data = null;
 			FileFilter fileFilter = fc.getFileFilter( );
 			File selected = fc.getSelectedFile( );
-//			if ( fileFilter instanceof CSVFileFilter ) {
-//				if ( !selected.isDirectory( ))
-//					selected = selected.getParentFile( );
-//				data = new CSVDataReader( selected.getAbsolutePath( ));
-//			} else {
 			if ( fileFilter instanceof MetsignFileFilter ) {
 				data = new MetsignDataReader( selected.getAbsolutePath( ) );
 			}
@@ -632,19 +627,28 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			this.getProjectDisplayPanel( ).saveProject( this.project );
 
 		} else if ( item == this.importProjectMenuItem ) {
-			JFileChooser fc = new JFileChooser( );
+			Settings settings = Settings.getSettings( );
+			String lastImport = settings.get( "history.import.lastDirectory" );
+			JFileChooser fc;
+			if ( lastImport != null ) {
+				fc = new JFileChooser( new File( lastImport ));
+			} else {
+				fc = new JFileChooser( );
+			}
 			fc.setFileSelectionMode( JFileChooser.FILES_AND_DIRECTORIES );
 			fc.addChoosableFileFilter( new CSVFileFilter( ));
 			int options = fc.showOpenDialog( this );
 			CSVTableReader reader = null;
 			if ( options == JFileChooser.APPROVE_OPTION ) {
 				try {
-					reader = new CSVTableReader( fc.getSelectedFile( ));
+					reader = new CSVTableReader( fc.getSelectedFile( ), ",\t" );
 				} catch( IOException exc ) {
 					logger.error( "Unable to find the specified file" );
 					logger.debug( exc, exc );
 					return;
 				}
+				settings.set( "history.import.lastDirectory", 
+					            fc.getSelectedFile( ).getParentFile( ).getAbsolutePath( ));
 				if ( reader == null )
 					return;
 				List<String> keys = new ArrayList( Arrays.asList( reader.getKeys( )));
@@ -652,40 +656,65 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				while ( reader.hasNext( )) {
 					Map<String,String> values = reader.next( );
 					for ( int i=0; i < keys.size( ); i++ ) {
-						if ( !StringUtils.isNumeric( values.get( keys.get( i )))) {
+						String value = values.get( keys.get( i ));
+						if ( !"NA".equals( value ) && !StringUtils.isNumeric( value )) {
+							logger.debug( keys.get( i ) + 
+							  " does not appear to be completely numeric, dropping" );
 							keys.remove( i-- );
 						}
 					}
 				}
 				reader.close( );
 				ImportDialog dialog = new ImportDialog( 
-					this, "Select Sample Names", keys );
-				Collection<String> sampleNames = dialog.getSampleNames( );
-				String experimentName = dialog.getExperimentName( );
+					this, "Select Sample Value Columns", keys );
+				if ( dialog.getOption( ) == JOptionPane.OK_OPTION ) {
+					Collection<String> sampleNames = dialog.getSampleNames( );
+					String experimentName = dialog.getExperimentName( );
 
-				// copy the imported file into the project.
-				File outputFile = 
-					new File( this.project.getResource( ).getAbsolutePath( ) + 
-					File.separator + "Normalization" + File.separator + 
-					experimentName + File.separator + "Normalization.csv" );
-				try { 
-					FileUtils.copyFile( fc.getSelectedFile( ), outputFile );
-				} catch ( IOException exc ) {
-					logger.debug( exc, exc );
-					logger.error( "Unable to copy the file to the project folder\n" +
-						"Please ensure that the project directory is writable and has not " +
-						"been removed" );
-					return;
+					// copy the imported file into the project.
+					File outputFile = 
+						new File( this.project.getResource( ).getAbsolutePath( ) + 
+						File.separator + "Normalization" + File.separator + 
+						experimentName + File.separator + "Normalization.csv" );
+					try { 
+						reader = new CSVTableReader( fc.getSelectedFile( ), ",\t" );
+						keys = new ArrayList( Arrays.asList( reader.getKeys( )));
+						// make sure there is an 'id' field.
+						if ( !keys.contains( "id" )) {
+							keys.add( 0, "id" );
+						}
+						outputFile.getParentFile( ).mkdirs( );
+						outputFile.createNewFile( );
+						CSVTableWriter writer = 
+							new CSVTableWriter( outputFile, keys );
+						int id = 1;
+						while( reader.hasNext( )) {
+							Map<String,String> row = reader.next( );
+							// make sure there is an 'id' field.
+							if ( row.get( "id" ) == null ) {
+								row.put( "id", Integer.toString( id++ ));
+							}
+							writer.write( row );
+						}
+						reader.close( );
+						writer.close( );
+					} catch ( IOException exc ) {
+						logger.debug( exc, exc );
+						logger.error( "Unable to copy the file to the project folder\n" +
+							"Please ensure that the project directory is writable and has not " +
+							"been removed" );
+						return;
+					}
+					ExperimentSet experimentSet = 
+						new ExperimentSet( experimentName, this.project.getResource( ));
+					for ( String name : sampleNames ) {
+						experimentSet.addSample( 
+							this.getProjectDisplayPanel( ).addSample( name ));
+					}
+					this.getProjectDisplayPanel( ).addExperiment( experimentSet );
+					this.openExperimentProjectMenu.add( new JMenuItem( 
+							new ExperimentSetAction( experimentSet )));
 				}
-				ExperimentSet experimentSet = 
-					new ExperimentSet( experimentName, this.project.getResource( ));
-				for ( String name : sampleNames ) {
-					experimentSet.addSample( 
-						this.getProjectDisplayPanel( ).addSample( name ));
-				}
-				this.getProjectDisplayPanel( ).addExperiment( experimentSet );
-				this.openExperimentProjectMenu.add( new JMenuItem( 
-						new ExperimentSetAction( experimentSet )));
 			}
 
 		} else if ( item == this.closeProjectMenuItem ) {
@@ -764,42 +793,44 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		private JButton okButton;
 		private JButton cancelButton;
 		private Collection <JCheckBox> checkboxes;
+		private int option = JOptionPane.CANCEL_OPTION;
 		
 		public ImportDialog ( Frame owner, String title, 
 		                     Collection<String> headings ) {
 			super( owner, title );
-			int layoutWidth = headings.size( ) / 10;
-			int emptyCells = layoutWidth - ( headings.size( ) % layoutWidth );
-			this.getContentPane( ).setLayout( 
-				new GridLayout( headings.size( ) / layoutWidth + 2, layoutWidth ));
+			int layoutWidth = (int)( Math.ceil( Math.sqrt( headings.size( ))) / 2 );
+			JPanel namePanel = new JPanel( new BorderLayout( ));
+			JPanel checkboxPanel = new JPanel( 
+				new GridLayout( headings.size( ) / layoutWidth, layoutWidth ));
+			JPanel buttonPanel = new JPanel( new GridLayout( 1, 2 ));
+			JPanel contentPane = (JPanel)this.getContentPane( );
+			contentPane.setLayout( new BorderLayout( ));
+			contentPane.setBorder( BorderFactory.createEmptyBorder( 5, 5, 0, 5 ));
 			Language language = Settings.getLanguage( );
-			this.add( new JLabel( 
-				language.get( "Experiment Name" ), SwingConstants.RIGHT ));
+			JLabel nameLabel = 
+				new JLabel( language.get( "Experiment Name" ));
+			nameLabel.setBorder( BorderFactory.createEmptyBorder( 0, 0, 0, 5 ));
+			namePanel.add( nameLabel, BorderLayout.WEST );
 			this.experimentNameField = new JTextField( );
-			this.add( this.experimentNameField );
-			
+			namePanel.add( this.experimentNameField );
 			this.checkboxes = new ArrayList<JCheckBox>( );
 			for ( String heading : headings ) {
 				JCheckBox headingBox = new JCheckBox( heading, true );
 				checkboxes.add( headingBox );
-				this.add( headingBox );
-			}
-			// add some empty space
-			while( emptyCells-- > 0 ) {
-				this.add( new JPanel( ));
-			}
-			while( layoutWidth-- > 2 ) {
-				this.add( new JPanel( ));
+				checkboxPanel.add( headingBox );
 			}
 			this.okButton = new JButton( language.get( "OK" ));
 			this.cancelButton = new JButton( language.get( "Cancel" ));
-			this.add( this.okButton );
-			this.add( this.cancelButton );
+			buttonPanel.add( this.okButton );
+			buttonPanel.add( this.cancelButton );
 			this.okButton.addActionListener( this );
 			this.cancelButton.addActionListener( this );
+			this.add( namePanel, BorderLayout.NORTH );
+			this.add( checkboxPanel, BorderLayout.CENTER );
+			this.add( buttonPanel, BorderLayout.SOUTH );
 			this.setVisible( false );
 			this.setModalityType( Dialog.ModalityType.APPLICATION_MODAL );
-//			this.setResizable( false );
+			this.setResizable( false );
 			this.pack( );
 			this.setVisible( true );
 		}
@@ -812,18 +843,32 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			return this.experimentName;
 		}
 
+		public int getOption( ) {
+			return this.option;
+		}
+
 		public void actionPerformed( ActionEvent e ) {
 			Object source = e.getSource( );
 			if ( source == this.okButton ) {
-				this.sampleNames = new ArrayList( );
-				for ( JCheckBox box : this.checkboxes ) {
-					if ( box.isSelected( )) {
-						sampleNames.add( box.getText( ));
+				this.experimentName = 
+					this.experimentNameField.getText( ).replaceAll( 
+						"[^a-zA-Z0-9.]", "_" );
+				if ( "".equals( this.experimentName )) {
+					JOptionPane.showMessageDialog( this, Settings.getLanguage( ).get(
+						"Please enter a name for the new experiment" ));
+				} else { 
+					this.sampleNames = new ArrayList( );
+					for ( JCheckBox box : this.checkboxes ) {
+						if ( box.isSelected( )) {
+							sampleNames.add( box.getText( ));
+						}
 					}
+					this.option = JOptionPane.OK_OPTION;
+					this.setVisible( false );
 				}
-				this.experimentName = this.experimentNameField.getText( );
+			} else {
+				this.setVisible( false );
 			}
-			this.setVisible( false );
 		}
 	}
 }

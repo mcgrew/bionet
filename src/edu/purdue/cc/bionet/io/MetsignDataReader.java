@@ -123,7 +123,7 @@ public class MetsignDataReader extends DataReader {
 		}
 
 		// *********************** load Sample Info ***************************
-		file = new CSVTableReader( scanner );
+		file = new CSVTableReader( scanner, ",\t" );
 		String sampleFileHeader = "Sample File";
 		for ( String key : file.getKeys( )) {
 			if ( sampleFileHeader.toLowerCase( ).equals( key.toLowerCase( ))) {
