@@ -210,10 +210,10 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			this.openExperimentProjectMenu.removeAll( );
 			if ( project != null ) {
 				for ( ExperimentSet experimentSet : project ) {
+					this.openExperimentProjectMenu.setEnabled( true );
 					this.openExperimentProjectMenu.add( new JMenuItem( 
 							new ExperimentSetAction( experimentSet )));
 				}
-				this.openExperimentProjectMenu.setEnabled( true );
 				this.saveProjectMenuItem.setEnabled( true );
 				this.importProjectMenuItem.setEnabled( true );
 				this.setTitle( project.getAttribute( "Project Name" ) + " - BioNet" );
@@ -729,6 +729,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 					ProjectDisplayPanel p = this.getProjectDisplayPanel( );
 					p.addExperiment( experimentSet );
 					p.saveProject( );
+					this.openExperimentProjectMenu.setEnabled( true );
 					this.openExperimentProjectMenu.add( new JMenuItem( 
 							new ExperimentSetAction( experimentSet )));
 				}
