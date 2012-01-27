@@ -76,7 +76,12 @@ public class MetsignDataReader extends DataReader {
 		HashMap <String,String> sampleData = new HashMap <String,String> ( );
 		String [ ] headings;
 		String [ ] columns;
+		// make sure these values are set
 		this.project = new Project( new File( resource ));
+		this.project.setAttribute( "Analytical Platform", "" );
+		this.project.setAttribute( "Description", "" );
+		this.project.setAttribute( "MS Method", "" );
+		this.project.setAttribute( "Chromatography Method", "" );
 		Map<String,String> line;
 		Language language = Settings.getLanguage( );
 		CSVTableReader file;
@@ -113,19 +118,15 @@ public class MetsignDataReader extends DataReader {
 			}
 			if ( blank )
 				break;
-			// make sure these values are set
-			this.project.setAttribute( "Project Name", 
-				new File( this.resource ).getName( ));
-			this.project.setAttribute( "Analytical Platform", "" );
-			this.project.setAttribute( "Description", "" );
-			this.project.setAttribute( "MS Method", "" );
-			this.project.setAttribute( "Chromatography Method", "" );
 			this.project.setAttribute( headerLine[ 0 ].trim( ), 
-			( headerLine.length > 1 ) ? headerLine[ 1 ].trim( ) : "" );
+				( headerLine.length > 1 ) ? headerLine[ 1 ].trim( ) : "" );
 			logger.debug( String.format( "Read header '%s': '%s'",
 				headerLine[ 0 ].trim( ), 
 				( headerLine.length > 1 ) ? headerLine[ 1 ].trim( ) : "" ));
 		}
+		// make sure this is set to the directory name.
+		this.project.setAttribute( "Project Name", 
+			new File( this.resource ).getName( ));
 
 		// *********************** load Sample Info ***************************
 		file = new CSVTableReader( scanner, ",\t" );

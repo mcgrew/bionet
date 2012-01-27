@@ -22,6 +22,7 @@ package edu.purdue.cc.bionet.ui;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
+import edu.purdue.bbc.util.ProcessUtils;
 import edu.purdue.bbc.util.attributes.Attributes;
 import edu.purdue.bbc.util.attributes.BasicAttributes;
 import edu.purdue.cc.bionet.io.ProjectInfoWriter;
@@ -342,8 +343,8 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			this.setProjectModified( true );
 		}
 
-		newValue = descriptionTextArea.getText( );
-		newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
+		newValue = descriptionTextArea.getText( ).
+			replace( "\n", "<CR>" ).replace( "\r", "" );
 		oldValue = project.setAttribute( "Description", newValue );
 
 		if ( newValue != null && !newValue.equals( oldValue )) {
@@ -356,10 +357,10 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			this.setProjectModified( true );
 		}
 
-		newValue = methodTextArea.getText( );
+		newValue = methodTextArea.getText( ).
+			replace( "\n", "<CR>" ).replace( "\r", "" );
 		oldValue = project.setAttribute( "Chromatography Method", newValue );
 		if ( newValue != null && !newValue.equals( oldValue )) {
-			newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
 			this.setProjectModified( true );
 		}
 
@@ -429,15 +430,8 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 
 	private void setProjectModified( boolean modified ) {
 		if ( modified ) {
-			StackTraceElement[ ] stacktrace = Thread.currentThread( ).getStackTrace( );
-			for ( int i=0; i < stacktrace.length; i++ ) {
-				StackTraceElement caller = stacktrace[ i ];
-				Logger.getLogger( getClass( )).debug( 
-					String.format( "Project marked as modified (%s.%s: %s)",
-												 caller.getClassName( ),
-												 caller.getMethodName( ),
-												 caller.getLineNumber( )));
-			}
+			Logger.getLogger( getClass( )).debug( 
+				"Project marked as modified by " + ProcessUtils.getCallerDescription( ));
 		}
 		this.projectModified = modified;
 	}
