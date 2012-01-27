@@ -134,7 +134,7 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			BorderFactory.createEmptyBorder( 0, 5, 0, 5 ));
 		this.msModeLabel = new JLabel( language.get( "MS Mode" ) + ":" );
 		this.msModeLabel.setBorder( BorderFactory.createEmptyBorder( 0, 5, 0, 5 ));
-		this.methodLabel = new JLabel( language.get( "Chromotography Method" ));
+		this.methodLabel = new JLabel( language.get( "Chromatography Method" ));
 		this.methodLabel.setBorder( BorderFactory.createEmptyBorder( 10, 5, 0, 5 ));
 		this.sampleInformationLabel = new JLabel( 
 			language.get( "Sample Information" ));
@@ -219,9 +219,9 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		this.msModeTextField.setText( 
 			project.getAttribute( "MS Method" ));
 		}
-		if ( project.hasAttribute( "Chromotography Method" )) {
+		if ( project.hasAttribute( "Chromatography Method" )) {
 			this.methodTextArea.setText( 
-				project.getAttribute( "Chromotography Method" ).replace( "<CR>", "\n" ));
+				project.getAttribute( "Chromatography Method" ).replace( "<CR>", "\n" ));
 		}
 		this.samples.addAll( project.getSamples( ));
 //		for ( Experiment experiment : experiments ) {
@@ -336,30 +336,30 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	}
 
 	public boolean updateProject( Project project ) {
-		String newValue;
-		newValue = analyticalPlatformTextField.getText( );
-		if ( newValue != null && !newValue.equals( 
-			project.setAttribute( "Analytical Platform", newValue ))) {
+		String newValue = analyticalPlatformTextField.getText( );
+		String oldValue = project.setAttribute( "Analytical Platform", newValue );
+		if ( newValue != null && !newValue.equals( oldValue )) {
 			this.setProjectModified( true );
 		}
 
 		newValue = descriptionTextArea.getText( );
 		newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
-		if ( newValue != null && !newValue.equals( 
-				project.setAttribute( "Description", newValue ))) {
+		oldValue = project.setAttribute( "Description", newValue );
+
+		if ( newValue != null && !newValue.equals( oldValue )) {
 			this.setProjectModified( true );
 		}
 
 		newValue = msModeTextField.getText( );
-		if ( newValue != null && !newValue.equals( 
-			project.setAttribute( "MS Method", newValue ))) {
+		oldValue = project.setAttribute( "MS Method", newValue );
+		if ( newValue != null && !newValue.equals( oldValue )) {
 			this.setProjectModified( true );
 		}
 
 		newValue = methodTextArea.getText( );
-		newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
-		if ( newValue != null && !newValue.equals( 
-				project.setAttribute( "Chromotography Method", newValue ))) {
+		oldValue = project.setAttribute( "Chromatography Method", newValue );
+		if ( newValue != null && !newValue.equals( oldValue )) {
+			newValue = newValue.replace( "\n", "<CR>" ).replace( "\r", "" );
 			this.setProjectModified( true );
 		}
 
@@ -429,7 +429,15 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 
 	private void setProjectModified( boolean modified ) {
 		if ( modified ) {
-			Logger.getLogger( getClass( )).debug( "Project marked as modified" );
+			StackTraceElement[ ] stacktrace = Thread.currentThread( ).getStackTrace( );
+			for ( int i=0; i < stacktrace.length; i++ ) {
+				StackTraceElement caller = stacktrace[ i ];
+				Logger.getLogger( getClass( )).debug( 
+					String.format( "Project marked as modified (%s.%s: %s)",
+												 caller.getClassName( ),
+												 caller.getMethodName( ),
+												 caller.getLineNumber( )));
+			}
 		}
 		this.projectModified = modified;
 	}

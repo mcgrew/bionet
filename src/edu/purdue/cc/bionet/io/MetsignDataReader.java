@@ -113,8 +113,13 @@ public class MetsignDataReader extends DataReader {
 			}
 			if ( blank )
 				break;
+			// make sure these values are set
 			this.project.setAttribute( "Project Name", 
 				new File( this.resource ).getName( ));
+			this.project.setAttribute( "Analytical Platform", "" );
+			this.project.setAttribute( "Description", "" );
+			this.project.setAttribute( "MS Method", "" );
+			this.project.setAttribute( "Chromatography Method", "" );
 			this.project.setAttribute( headerLine[ 0 ].trim( ), 
 			( headerLine.length > 1 ) ? headerLine[ 1 ].trim( ) : "" );
 			logger.debug( String.format( "Read header '%s': '%s'",
