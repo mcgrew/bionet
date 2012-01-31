@@ -543,8 +543,8 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 
 		this.heatMapPanel = new HeatMap( this.getTitle( ), 
 		                                 this.correlations,
-																		 this.getCorrelationRange( ),
-																		 this.correlationMethod );
+		                                 this.getCorrelationRange( ),
+		                                 this.correlationMethod );
 		this.graph.addVertexChangeListener( this.heatMapPanel );
 		this.pearsonCalculationMenuItem.addChangeListener( this.heatMapPanel );
 		this.spearmanCalculationMenuItem.addChangeListener( this.heatMapPanel );

@@ -155,17 +155,18 @@ public class MetsignDataReader extends DataReader {
 		}
 		// find any ExperimentSets
 		File normDir = new File( this.resource + File.separator + "Normalization" );
-		for ( File dir : normDir.listFiles( )) {
-			if ( dir.isDirectory( )  &&
-				Arrays.asList( dir.list( )).contains( "Normalization.csv" )) {
-				ExperimentSet set = new ExperimentSet( 
-					dir.getName( ), new File( this.resource ));
-				if ( project.hasAttribute( "time unit" )) {
-					set.setTimeUnit( project.getAttribute( "time unit" ));
+		if ( normDir.exists( )) {
+			for ( File dir : normDir.listFiles( )) {
+				if ( dir.isDirectory( )  &&
+					Arrays.asList( dir.list( )).contains( "Normalization.csv" )) {
+					ExperimentSet set = new ExperimentSet( 
+						dir.getName( ), new File( this.resource ));
+					if ( project.hasAttribute( "time unit" )) {
+						set.setTimeUnit( project.getAttribute( "time unit" ));
+					}
+					project.add( set );
 				}
-				project.add( set );
 			}
-
 		}
 		file.close( );
 

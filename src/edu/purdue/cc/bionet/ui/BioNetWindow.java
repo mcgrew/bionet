@@ -407,6 +407,9 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 				return false;
 			}
 			file.mkdirs( );
+			// create the 'Normalization' directory.
+			new File( file.getAbsolutePath( ) + File.separator + 
+			          "Normalization" ).mkdir( );
 			Project newProject = new Project( file );
 			newProject.setAttribute( "Project Name", file.getName( ));
 			try { 
@@ -618,10 +621,6 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 
 	public void actionPerformed( ActionEvent e ) {
 		Logger logger = Logger.getLogger( getClass( ));
-		logger.debug( String.format( "ActionEvent fired:" ));
-		logger.debug( "\tactionCommand: "+e.getActionCommand( ));
-		logger.debug( "\t  paramString: "+e.paramString( ));
-
 		Object item = e.getSource( );
 		if ( item == this.newProjectMenuItem ) {
 			this.createProject( );
