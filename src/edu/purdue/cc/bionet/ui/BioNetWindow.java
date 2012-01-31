@@ -506,7 +506,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 	private class CSVFileFilter extends FileFilter {
 
 		public boolean accept( File f ) {
-			return f.isDirectory( ) || f.getName( ).endsWith( ".csv" );
+			return ( f.isDirectory( ) || f.getName( ).endsWith( ".csv" )) && f.canRead( );
 		}
 
 		public String getDescription( ) {
@@ -598,12 +598,19 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 
 		public boolean hasSubdirectories( File f ) {
 			if ( isValidProject( f ))
-				return Boolean.FALSE;
-			if ( !f.isDirectory( ))
 				return false;
-			for ( File file : f.listFiles( )) {
-				if ( file.isDirectory( ))
-					return true;
+			if ( !f.isDirectory( ) || !f.canRead( ))
+				return false;
+			try {
+				for ( File file : f.listFiles( )) {
+					if ( file.isDirectory( ))
+						return true;
+				}
+			} catch ( NullPointerException e ) {
+				Logger.getLogger( getClass( )).debug( 
+					"An error occurred reading the directory " + f.getAbsolutePath( ) +
+					". You may not have the proper permissions" );
+				return false;
 			}
 			return false;
 		}
