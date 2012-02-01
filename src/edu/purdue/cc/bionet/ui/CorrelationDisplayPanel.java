@@ -330,7 +330,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		// groups menu items
 		this.groupsMenu = new JMenu( language.get( "Groups" ));
 		this.resetSampleGroupsMenuItem = 
-			new JMenuItem( language.get( "Rest Sample Groups" ), KeyEvent.VK_R );
+			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_R );
 		this.chooseSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_C );
 		

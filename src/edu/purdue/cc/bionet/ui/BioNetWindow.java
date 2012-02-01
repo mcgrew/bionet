@@ -784,27 +784,31 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			if ( choice == null )
 				return;
 
-			if ( choice.getKey( ).intValue( ) == ExperimentSelectionDialog.CORRELATION_VIEW ) {
+			if ( choice.getKey( ).intValue( ) == 
+				   ExperimentSelectionDialog.CORRELATION_VIEW ) {
+				if ( this.experiments.getSamples( ).size( ) <= 2 ) {
+					Logger.getLogger( getClass( )).error(
+						"This experiment appears to contain less than 2 valid samples.\n" +
+						"Correlation calculations require at least 2 samples." );
+					return;
+				}
 				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
 				if( cdp.createView( choice.getValue( ))) {
 					tabPane.addTab( cdp.getTitle( ), cdp );
-//					tabPane.setSelectedComponent( cdp );
 				}
 			}
 			else if ( choice.getKey( ).intValue( ) == 
-				ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
+				        ExperimentSelectionDialog.COMPARATIVE_ANALYSIS_VIEW ) {
 				DistributionAnalysisDisplayPanel cadp = new DistributionAnalysisDisplayPanel( );
 				if ( cadp.createView( choice.getValue( ))) {
 					tabPane.addTab( cadp.getTitle( ), cadp );
-//					tabPane.setSelectedComponent( cadp );
 				}
 			}
 			else if ( choice.getKey( ).intValue( ) == 
-				ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
+				        ExperimentSelectionDialog.TIME_COURSE_STUDY_VIEW ) {
 				ClusteringDisplayPanel tcdp = new ClusteringDisplayPanel( );
 				if ( tcdp.createView( choice.getValue( ))) {
 					tabPane.addTab( tcdp.getTitle( ), tcdp );
-//					tabPane.setSelectedComponent( tcdp );
 				}
 			}
 		}

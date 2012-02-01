@@ -242,6 +242,9 @@ public class Correlation extends SimplePair<Molecule>
 			this.pearsonCorrelation = Statistics.getPearsonCorrelation( 
 				molecule0Values.toDoubleArray( ), 
 				molecule1Values.toDoubleArray( ));
+			if ( Double.isNaN( this.pearsonCorrelation )) {
+				this.pearsonCorrelation = 0.0;
+			}
 		}
 		return this.pearsonCorrelation;
 	}
@@ -273,6 +276,9 @@ public class Correlation extends SimplePair<Molecule>
 			this.spearmanCorrelation = Statistics.getSpearmanCorrelation( 
 				molecule0Values.toDoubleArray( ), 
 				molecule1Values.toDoubleArray( ));
+			if ( Double.isNaN( this.spearmanCorrelation )) {
+				this.spearmanCorrelation = 0.0;
+			}
 		}
 		return this.spearmanCorrelation;
 	}
@@ -303,6 +309,9 @@ public class Correlation extends SimplePair<Molecule>
 			this.kendallCorrelation = Statistics.getKendallCorrelation( 
 				molecule0Values.toDoubleArray( ), 
 				molecule1Values.toDoubleArray( ));
+			if ( Double.isNaN( this.kendallCorrelation )) {
+				this.kendallCorrelation = 0.0;
+			}
 		}
 		return this.kendallCorrelation;
 	}

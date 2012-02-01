@@ -246,6 +246,7 @@ public class ExperimentSet extends TreeSet<Experiment>
 					logger.debug( 
 						String.format( "Dropping sample %s", sample.toString( )));
 					experiment.removeSample( sample );
+					this.samples.remove( sample );
 				}
 			}
 		}

@@ -24,6 +24,7 @@ import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.bionet.BioNet;
 import edu.purdue.cc.bionet.util.Experiment;
 import edu.purdue.cc.bionet.util.ExperimentSet;
+import edu.purdue.cc.bionet.util.Sample;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -113,14 +114,21 @@ public class ExperimentSelectionDialog extends JDialog
 		this.visualizationTypeSelection = new ButtonGroup( );
 		this.experimentList = 
 			new JList( experiments.toArray( new Object[ experiments.size( )]));
-		Collection<String> sampleAttributes = null;
+		Collection<Sample> samples = null;
 		if ( experiments instanceof ExperimentSet ) {
-				sampleAttributes = ((ExperimentSet)experiments).getSamples( ).
-					iterator( ).next( ).getAttributes( ).keySet( );
+				samples = ((ExperimentSet)experiments).getSamples( );
 		} else {
-			sampleAttributes = experiments.iterator( ).next( ).getSamples( ).iterator( ).
-				next( ).getAttributes( ).keySet( );
+			samples = experiments.iterator( ).next( ).getSamples( );
 		}
+		if ( samples.size( ) == 0 ) {
+			if ( samples.size( ) <= 0 ) {
+				Logger.getLogger( getClass( )).error(
+					"This experiment does not appear to contain any valid samples." );
+				return;
+			}
+		}
+		Collection<String> sampleAttributes = 
+			samples.iterator( ).next( ).getAttributes( ).keySet( );
 		this.frequencyFilterPanel = new FrequencyFilterPanel( sampleAttributes );
 
 		JPanel selectionPanel = new JPanel( new GridLayout( 1, 2 ));
