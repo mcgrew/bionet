@@ -487,6 +487,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		if ( experiments.size( ) == 0 ) {
 			return false;
 		}
+		this.setBackground( Color.WHITE );
 		this.setVisible( true );
 		this.title = Settings.getLanguage( ).get( "Correlation Network" );
 		this.molecules = new TreeSet<Molecule>( );
@@ -495,14 +496,24 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				experiment.updateCorrelations( );
 		}
 		this.samples = new TreeSet<Sample>( );
-		this.correlations = new CorrelationSet( molecules, samples );
 		this.experiments = experiments;
+		this.correlations = new CorrelationSet( molecules, samples );
+		for( Experiment experiment : this.experiments ) {
+			for( Sample sample : experiment.getSamples( )) {
+				this.samples.add( sample );
+			}
+			for( Molecule molecule : experiment.getMolecules( )) {
+				this.moleculeFilterPanel.add( molecule );
+				this.molecules.add( molecule );
+				this.correlations.add( molecule );
+			}
+		}
 
 		this.graph = new CorrelationGraphVisualizer( 
 			this.correlations, this.correlationFilterPanel.getMonitorableRange( ));
 		this.addSampleGroupChangeListener( this.graph );
 		this.saveImageAction.setComponent( this.graph );
-		this.graph.setBackground( Color.WHITE );
+		this.graph.setBackground( this.getBackground( ));
 		this.graph.setIndicateCommonNeighbors( true );
 		this.infoPanel = new InfoPanel( );
 		this.addSampleGroupChangeListener( this.infoPanel );
@@ -523,16 +534,6 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				public void graphReleased( Correlation c, MouseEvent e ) { }
 		});
 
-		for( Experiment experiment : this.experiments ) {
-			for( Sample sample : experiment.getSamples( )) {
-				this.samples.add( sample );
-			}
-			for( Molecule molecule : experiment.getMolecules( )) {
-				this.moleculeFilterPanel.add( molecule );
-				this.molecules.add( molecule );
-				this.correlations.add( molecule );
-			}
-		}
 		Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
 		sampleGroups.add( new SampleGroup( "All Samples", this.samples ));
 		this.setSampleGroups( sampleGroups );
@@ -896,32 +897,42 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		private JButton allButton;
 		private JTextField filterBox = new JTextField( );
 		private MoleculePopup popup = new MoleculePopup( );
+		private JScrollPane moleculeScrollPane;
 
 		private JPanel moleculeList = new JPanel( new GridLayout( 0, 1 )) {
 			// Inserts the checkboxes in alphabetical order
 			public Component add( Component component ) {
+				Logger logger = Logger.getLogger( getClass( ));
 				int index = 0;
+				String componentText = null;
 				// find where the new checkBox should go.
-				try {
-					for ( JCheckBox c : getCheckBoxes( )) {
-						if (((MoleculeCheckBox)c).getText( ).compareTo( 
-							((MoleculeCheckBox)component).getText( )) > 0 )
-							break;
-						index++;
+				componentText = ((MoleculeCheckBox)component).getText( );
+				String cText = null;
+				Component[] components = this.getComponents( );
+				for ( int i=0; i < components.length; i++ ) {
+					if ( components[ i ] instanceof AbstractButton ) {
+						cText = ((AbstractButton)components[ i ]).getText( );
+						if ( cText.compareTo(( componentText )) > 0 ) {
+							logger.debug( "Attemping to insert " + 
+								componentText + " before " + cText );
+							try {
+								this.add( component, i );
+							} catch ( IllegalArgumentException e ) {
+								// add it to the end instead.
+								logger.debug( 
+									"Adding " + componentText + " to the end of the list" );
+								return super.add( component );
+							}
+							return component;
+						}
 					}
-				} catch ( ClassCastException e ) {
-					return super.add( component );
 				}
-				try {
-					return this.add( component, index );
-				} catch ( IllegalArgumentException e ) {
-					// add it to the end instead.
-					return super.add( component );
-				}
+				// it didn't fit before anything, so add it to the end instead.
+				logger.debug( 
+					"Adding " + componentText + " to the end of the list" );
+				return super.add( component );
 			}
 		};
-		private JScrollPane moleculeScrollPane = 
-			new JScrollPane( this.moleculeList );
 
 		/**
 		 * Creates a new instance of MoleculeFilterPanel.
@@ -955,6 +966,12 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 
 			// MOLECULE LIST
 			this.add( searchPanel, BorderLayout.NORTH );
+			JPanel moleculeListPanel = new JPanel( new BorderLayout( ));
+			moleculeListPanel.add( this.moleculeList, BorderLayout.NORTH );
+			JPanel padding = new JPanel( );
+			padding.setBackground( Color.WHITE );
+			moleculeListPanel.add( padding, BorderLayout.CENTER );
+			this.moleculeScrollPane = new JScrollPane( moleculeListPanel );
 			this.add( this.moleculeScrollPane, BorderLayout.CENTER );
 			this.add( moleculeButtonPanel, BorderLayout.SOUTH );
 			this.setBorder( 
@@ -1176,9 +1193,15 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			// this will cause the string to emulate shell style pattern matching, 
 			// since most users will not be expecting regular expression ability. 
 			// This may be changed later. some RegEx characters will still work, 
-			// however.
-			filter = String.format( ".*%s.*", 
-				filter.replace( "*", ".*" ).replace( "?", "." ));
+			// however. If the filter is surrounded by '/', we assume it is a regex.
+			if ( filter.length( ) >= 2 && 
+				   filter.startsWith( "/" ) && filter.endsWith( "/" )) {
+				filter = String.format( ".*%s.*", 
+					filter.substring( 1, filter.length( ) - 1 ));
+			} else {
+				filter = String.format( ".*%s.*", 
+					filter.replace( "*", ".*" ).replace( "?", "." ));
+			}
 			try { 
 				p = Pattern.compile( filter, Pattern.CASE_INSENSITIVE );
 
@@ -1218,10 +1241,8 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			JCheckBox cb = this.checkBoxMap.get(event.getItem( ));
 			int change = event.getAction( );
 			if ( change == GraphItemChangeEvent.REMOVED )
-				if ( cb.isSelected( ))
 					cb.setSelected( false );
 			else if ( change == GraphItemChangeEvent.ADDED )
-				if ( !cb.isSelected( ))
 					cb.setSelected( true );
 		}
 
@@ -2195,6 +2216,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	 */
 	private class MoleculePopup extends JPopupMenu implements ActionListener {
 		protected JMenuItem hideMenuItem;
+		protected JMenuItem showMenuItem;
 		protected JMenuItem detailsMenuItem;
 		protected JMenuItem selectMenuItem;
 		protected JMenuItem selectCorrelatedMenuItem;
@@ -2212,6 +2234,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			super( );
 			Language language = Settings.getLanguage( );
 			this.hideMenuItem = new JMenuItem( language.get( "Hide" ));
+			this.showMenuItem = new JMenuItem( language.get( "Show" ));
 			this.detailsMenuItem = new JMenuItem( language.get( "Details" ));
 			this.selectMenuItem = new JMenuItem( language.get( "Toggle selection" ));
 			this.selectCorrelatedMenuItem = 
@@ -2221,6 +2244,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			this.exploreCorrelationsMenu =
 				new JMenu( language.get( "Explore Correlations" ));
 			this.add( this.hideMenuItem );
+			this.add( this.showMenuItem );
 			this.add( this.detailsMenuItem );
 			this.add( this.selectMenuItem );
 			this.add( this.selectCorrelatedMenuItem );
@@ -2251,6 +2275,8 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			this.molecule = m;
 			this.saveImageAction.setComponent( graph );
 			boolean containsVertex = graph.containsVertex( m );
+			this.hideMenuItem.setEnabled( containsVertex );
+			this.showMenuItem.setEnabled( !containsVertex );
 			this.selectMenuItem.setEnabled( containsVertex );
 			this.selectSubnetworkMenuItem.setEnabled( containsVertex );
 			this.selectCorrelatedMenuItem.setEnabled( containsVertex );
@@ -2307,7 +2333,9 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				state.pick( this.molecule, !state.isPicked( this.molecule ));
 			} else if ( source == this.selectCorrelatedMenuItem ) {
 				PickedState<Molecule> state = graph.getPickedVertexState( );
-				state.pick( this.molecule, !state.isPicked( molecule ));
+				if ( !state.isPicked( molecule )) {
+					state.pick( this.molecule, true );
+				}
 				for ( Molecule m : graph.getNeighbors( this.molecule )) {
 					state.pick( m, true );
 				}

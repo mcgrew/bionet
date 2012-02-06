@@ -116,26 +116,31 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		attributes.setAttribute( "time", "" );
 		this.newTable( attributes );
 		this.projectTextField = new JTextField( );
+		JPanel projectPanel = new JPanel( new BorderLayout( ));
 		this.descriptionTextArea = new JTextArea( );
+		JPanel descriptionPanel = new JPanel( new BorderLayout( ));
 		this.descriptionTextArea.setPreferredSize( new Dimension( 100, 100 ));
 		this.analyticalPlatformTextField = new JTextField( );
 		this.msModeTextField = new JTextField( );
 		this.methodTextArea = new JTextArea( );
+		JPanel methodPanel = new JPanel( new BorderLayout( ));
 		this.methodTextArea.setPreferredSize( new Dimension( 100, 100 ));
 		this.projectNameLabel = new JLabel( 
 			language.get( "Project Name" ) + ":" );
 		this.projectNameLabel.setBorder( 
 			BorderFactory.createEmptyBorder( 0, 5, 0, 5 ));
 		this.descriptionLabel = new JLabel( language.get( "Description" ) + ":");
+		JPanel descriptionLabelPanel = new JPanel( new BorderLayout( ));
 		this.descriptionLabel.setBorder( 
 			BorderFactory.createEmptyBorder( 0, 5, 0, 5 ));
 		this.analyticalPlatformLabel = new JLabel( 
 			language.get( "Analytical Platform" ) + ":" );
 		this.analyticalPlatformLabel.setBorder( 
-			BorderFactory.createEmptyBorder( 0, 5, 0, 5 ));
+			BorderFactory.createEmptyBorder( 0, 0, 0, 5 ));
 		this.msModeLabel = new JLabel( language.get( "MS Mode" ) + ":" );
 		this.msModeLabel.setBorder( BorderFactory.createEmptyBorder( 0, 5, 0, 5 ));
-		this.methodLabel = new JLabel( language.get( "Chromatography Method" ));
+		this.methodLabel = new JLabel( language.get( "Chromatography Method" ) + ":");
+		JPanel methodLabelPanel = new JPanel( new BorderLayout( ));
 		this.methodLabel.setBorder( BorderFactory.createEmptyBorder( 10, 5, 0, 5 ));
 		this.sampleInformationLabel = new JLabel( 
 			language.get( "Sample Information" ));
@@ -147,8 +152,13 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 				TitledBorder.LEFT,
 				TitledBorder.TOP
 		));
-		this.msExperimentPanel.add( this.methodTextArea, BorderLayout.CENTER );
-		this.msExperimentPanel.add( this.methodLabel, BorderLayout.WEST );
+		methodPanel.add( this.methodTextArea, BorderLayout.CENTER );
+		methodPanel.setBorder( BorderFactory.createCompoundBorder( 
+			BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),
+			BorderFactory.createLineBorder( Color.GRAY )));
+		this.msExperimentPanel.add( methodPanel, BorderLayout.CENTER );
+		methodLabelPanel.add( this.methodLabel, BorderLayout.NORTH );
+		this.msExperimentPanel.add( methodLabelPanel, BorderLayout.WEST );
 		JPanel upperLeftMsExperimentPanel = new JPanel( new BorderLayout( ));
 		JPanel upperRightMsExperimentPanel = new JPanel( new BorderLayout( ));
 		JPanel upperMsExperimentPanel = new JPanel( new GridLayout( 1, 2 ));
@@ -160,16 +170,24 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		upperRightMsExperimentPanel.add( this.msModeTextField, BorderLayout.CENTER );
 		upperMsExperimentPanel.add( upperLeftMsExperimentPanel );
 		upperMsExperimentPanel.add( upperRightMsExperimentPanel );
+		upperMsExperimentPanel.setBorder( BorderFactory.createEmptyBorder( 0, 5, 0, 5 ));
 		this.msExperimentPanel.add( upperMsExperimentPanel, BorderLayout.NORTH );
 
 		JPanel projectNamePanel = new JPanel( new BorderLayout( ));
 		projectNamePanel.add( this.projectNameLabel, BorderLayout.WEST );
-		projectNamePanel.add( this.projectTextField, BorderLayout.CENTER );
+		projectPanel.add( this.projectTextField, BorderLayout.CENTER );
+		projectPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 0, 5 ));
+		projectNamePanel.add( projectPanel, BorderLayout.CENTER );
 
 		JPanel upperPanel = new JPanel( new BorderLayout( ));
 		upperPanel.add( this.msExperimentPanel, BorderLayout.SOUTH );
-		upperPanel.add( this.descriptionTextArea, BorderLayout.CENTER );
-		upperPanel.add( this.descriptionLabel, BorderLayout.WEST );
+		descriptionPanel.add( this.descriptionTextArea, BorderLayout.CENTER );
+		descriptionPanel.setBorder( BorderFactory.createCompoundBorder( 
+			BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),
+			BorderFactory.createLineBorder( Color.GRAY )));
+		upperPanel.add( descriptionPanel, BorderLayout.CENTER );
+		descriptionLabelPanel.add( this.descriptionLabel, BorderLayout.NORTH );
+		upperPanel.add( descriptionLabelPanel, BorderLayout.WEST );
 		upperPanel.add( projectNamePanel, BorderLayout.NORTH );
 		
 

@@ -47,6 +47,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -95,7 +96,7 @@ public class ExperimentSelectionDialog extends JDialog
 		this.getContentPane( ).setLayout( new BorderLayout( ));
 		this.setBounds( Settings.getSettings( ).getInt( "window.main.position.x" ),
 		                Settings.getSettings( ).getInt( "window.main.position.y" ),
-										700, 250 );
+										700, 280 );
 
 		Language language = Settings.getLanguage( );
 		this.chooseText = language.get( "Choose Time Points" );
@@ -142,7 +143,7 @@ public class ExperimentSelectionDialog extends JDialog
 
 		buttonPanel.add( this.okButton );
 		buttonPanel.add( this.cancelButton );
-		listPanel.add( this.experimentList, BorderLayout.CENTER );
+		listPanel.add( new JScrollPane( this.experimentList ), BorderLayout.CENTER );
 		viewTypePanel.add( this.correlationButton );
 		viewTypePanel.add( this.comparativeAnalysisButton );
 		viewTypePanel.add( this.timeCourseStudyButton );
@@ -183,8 +184,12 @@ public class ExperimentSelectionDialog extends JDialog
 
 		this.experimentList.setSelectionMode( 
 			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
-		if ( experiments.size( ) > 0 )
-			this.experimentList.setSelectedIndex( 0 );
+		// select all time points by default
+		int [] indices = new int[ experiments.size( ) ];
+		for ( int i=0; i < indices.length; i++ ) {
+			indices[ i ] = i;
+		}
+		this.experimentList.setSelectedIndices( indices );
 
 		width = f.stringWidth( chooseText ) + 10;
 

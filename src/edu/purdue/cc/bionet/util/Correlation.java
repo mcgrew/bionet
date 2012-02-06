@@ -23,12 +23,13 @@ import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Statistics;
 import edu.purdue.bbc.util.SimplePair;
 
-import java.lang.Math;
 import java.lang.Double;
+import java.lang.Math;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A class for connecting two Molecules and determining their correlation
@@ -50,6 +51,7 @@ public class Correlation extends SimplePair<Molecule>
 	private Collection<Sample> samples;
 	@Deprecated
 	protected Experiment experiment;
+	private int sampleSize = 0;
 
 	/**
 	 * Constructor.
@@ -149,7 +151,7 @@ public class Correlation extends SimplePair<Molecule>
 	 * @return The samples being used.
 	 */
 	public Collection<Sample> getSamples( ) {
-		return this.samples;
+		return Collections.unmodifiableCollection( this.samples );
 	}
 
 	/**
@@ -232,6 +234,11 @@ public class Correlation extends SimplePair<Molecule>
 	 * @return       The Pearson correlation value.
 	 */
 	public double getPearsonCorrelation( boolean recalculate ) {
+		// look for a change in the number of samples and clear the cache if so.
+		if ( this.samples.size( ) != this.sampleSize ) {
+			this.clearCache( );
+			this.sampleSize = this.samples.size( );
+		}
 		//See if this value has already been calculated
 		if ( recalculate || Double.isNaN( this.pearsonCorrelation )) {
 			NumberList molecule0Values = new NumberList( 
@@ -266,6 +273,11 @@ public class Correlation extends SimplePair<Molecule>
 	 * @return The Spearman correlation value.
 	 */
 	public double getSpearmanCorrelation( boolean recalculate ) {
+		// look for a change in the number of samples and clear the cache if so.
+		if ( this.samples.size( ) != this.sampleSize ) {
+			this.clearCache( );
+			this.sampleSize = this.samples.size( );
+		}
 		//See if this value has already been calculated
 		if ( recalculate || Double.isNaN( this.spearmanCorrelation ) ) {
 			NumberList molecule0Values = new NumberList( 
@@ -300,6 +312,11 @@ public class Correlation extends SimplePair<Molecule>
 	 * @return The Kendall tau correlation value.
 	 */
 	public double getKendallCorrelation( boolean recalculate ) {
+		// look for a change in the number of samples and clear the cache if so.
+		if ( this.samples.size( ) != this.sampleSize ) {
+			this.clearCache( );
+			this.sampleSize = this.samples.size( );
+		}
 		if ( recalculate || Double.isNaN( this.kendallCorrelation )) {
 			NumberList molecule0Values = new NumberList( 
 				this.first.getValues( this.samples ));
@@ -314,6 +331,19 @@ public class Correlation extends SimplePair<Molecule>
 			}
 		}
 		return this.kendallCorrelation;
+	}
+
+	/**
+	 * Clears the all cached values for this correlation, forcing recalculation
+	 * the next time values are requested. This should be called any time the 
+	 * samples change. Correlation will notice when the sample size changes 
+	 * and call this method when a value is requested, but will not notice if 
+	 * one sample is swapped for another between calls for correlation value.
+	 */
+	public void clearCache( ) {
+		this.pearsonCorrelation = Double.NaN;
+		this.spearmanCorrelation = Double.NaN;
+		this.kendallCorrelation = Double.NaN;
 	}
 
 	/**

@@ -56,7 +56,7 @@ public class DetailWindow extends JFrame implements TabbedWindow {
 	 */
 	public DetailWindow( CorrelationSet correlations, Range range, 
 	                     int correlationMethod ) {
-		super( "" );
+		super( "Details" );
 		Logger.getLogger( getClass( )).debug( String.format(
 			"Creating detail window:\n\tRange:      %s\n", range));
 		this.correlations = correlations;
