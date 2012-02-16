@@ -19,9 +19,7 @@ along with BioNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.bionet.ui;
 
-import edu.purdue.cc.bionet.util.Experiment;
-
-import java.util.Collection;
+import edu.purdue.cc.bionet.util.ExperimentSet;
 
 /**
  * Interface for data views in BioNet.
@@ -34,7 +32,7 @@ public interface DisplayPanel {
 	 * @param experiments The Experiments to be used in creating the graph.
 	 * @return Whether or not the display creation was successful.
 	 */
-	public boolean createView( Collection<Experiment> experiments );
+	public boolean createView( ExperimentSet experiment );
 
 	/**
 	 * Returns the title of this view.

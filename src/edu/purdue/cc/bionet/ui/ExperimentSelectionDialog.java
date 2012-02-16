@@ -22,9 +22,9 @@ package edu.purdue.cc.bionet.ui;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.bionet.BioNet;
-import edu.purdue.cc.bionet.util.Experiment;
 import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Sample;
+import edu.purdue.cc.bionet.util.SampleGroup;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -34,14 +34,18 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -57,7 +61,7 @@ import javax.swing.event.ChangeListener;
 import org.apache.log4j.Logger;
 
 /**
- * Creates a dialog for choosing from the available Experiments.
+ * Creates a dialog for choosing from the available Samples.
  */
 public class ExperimentSelectionDialog extends JDialog
 		implements ActionListener {
@@ -71,9 +75,9 @@ public class ExperimentSelectionDialog extends JDialog
 	protected JRadioButton comparativeAnalysisButton;
 	protected JRadioButton timeCourseStudyButton;
 	protected ButtonGroup visualizationTypeSelection;
-	protected JList experimentList;
+	protected AttributePanel attributePanel;
 	protected FrequencyFilterPanel frequencyFilterPanel;
-	protected Map.Entry <Integer,Collection<Experiment>> returnValue;
+	protected Map.Entry <Integer,ExperimentSet> returnValue;
 	protected final String chooseText;
 	protected final String correlationButtonText;
 	protected final String timeCourseStudyButtonText;
@@ -81,25 +85,28 @@ public class ExperimentSelectionDialog extends JDialog
 	protected final String okButtonText;
 	protected final String cancelButtonText;
 
+	private SampleGroup samples;
+
 	/**
 	 * Creates a new ExperimentSelectionDialog.
 	 * 
 	 * @param owner The parent frame of this Dialog. The parent frame will not
 	 *	accept user input until the dialog is closed.
 	 * @param title The title to be displayed in the title bar of this dialog.
-	 * @param experiments The available experiments to be selected from.
+	 * @param experiment The available experiment to be selected from.
 	 */
 	public ExperimentSelectionDialog( Frame owner, 
 	                                  String title, 
-																		Collection<Experiment> experiments ) {
+																		SampleGroup samples ) {
 		super( owner, title );
+		this.samples = samples;
 		this.getContentPane( ).setLayout( new BorderLayout( ));
 		this.setBounds( Settings.getSettings( ).getInt( "window.main.position.x" ),
 		                Settings.getSettings( ).getInt( "window.main.position.y" ),
-										700, 280 );
+										0, 0 );
 
 		Language language = Settings.getLanguage( );
-		this.chooseText = language.get( "Choose Time Points" );
+		this.chooseText = language.get( "Choose Sample Attributes" );
 		this.correlationButtonText = language.get( "Correlation" );
 		this.timeCourseStudyButtonText = language.get( "Clustering" );
 		this.comparativeAnalysisButtonText = language.get( "Distribution Analysis" );
@@ -113,24 +120,14 @@ public class ExperimentSelectionDialog extends JDialog
 			new JRadioButton( comparativeAnalysisButtonText );
 		this.timeCourseStudyButton = new JRadioButton( timeCourseStudyButtonText );
 		this.visualizationTypeSelection = new ButtonGroup( );
-		this.experimentList = 
-			new JList( experiments.toArray( new Object[ experiments.size( )]));
-		Collection<Sample> samples = null;
-		if ( experiments instanceof ExperimentSet ) {
-				samples = ((ExperimentSet)experiments).getSamples( );
-		} else {
-			samples = experiments.iterator( ).next( ).getSamples( );
+		if ( this.samples.size( ) == 0 ) {
+			Logger.getLogger( getClass( )).error(
+				"This experiment does not appear to contain any valid samples." );
+			return;
 		}
-		if ( samples.size( ) == 0 ) {
-			if ( samples.size( ) <= 0 ) {
-				Logger.getLogger( getClass( )).error(
-					"This experiment does not appear to contain any valid samples." );
-				return;
-			}
-		}
-		Collection<String> sampleAttributes = 
-			samples.iterator( ).next( ).getAttributes( ).keySet( );
-		this.frequencyFilterPanel = new FrequencyFilterPanel( sampleAttributes );
+		this.attributePanel = new AttributePanel( samples );
+		this.frequencyFilterPanel = 
+			new FrequencyFilterPanel( samples.getAttributeNames( ));
 
 		JPanel selectionPanel = new JPanel( new GridLayout( 1, 2 ));
 		JPanel listPanel = new JPanel( new BorderLayout( ));
@@ -143,7 +140,7 @@ public class ExperimentSelectionDialog extends JDialog
 
 		buttonPanel.add( this.okButton );
 		buttonPanel.add( this.cancelButton );
-		listPanel.add( new JScrollPane( this.experimentList ), BorderLayout.CENTER );
+		listPanel.add( this.attributePanel, BorderLayout.CENTER );
 		viewTypePanel.add( this.correlationButton );
 		viewTypePanel.add( this.comparativeAnalysisButton );
 		viewTypePanel.add( this.timeCourseStudyButton );
@@ -182,19 +179,11 @@ public class ExperimentSelectionDialog extends JDialog
 		FontMetrics f = this.getGraphics( ).getFontMetrics( );
 		int width;
 
-		this.experimentList.setSelectionMode( 
-			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
-		// select all time points by default
-		int [] indices = new int[ experiments.size( ) ];
-		for ( int i=0; i < indices.length; i++ ) {
-			indices[ i ] = i;
-		}
-		this.experimentList.setSelectedIndices( indices );
-
 		width = f.stringWidth( chooseText ) + 10;
 
 		this.setVisible( false );
 		this.setModalityType( Dialog.ModalityType.APPLICATION_MODAL );
+		this.pack( );
 		this.setVisible( true );
 	}
 
@@ -205,13 +194,13 @@ public class ExperimentSelectionDialog extends JDialog
 	 *	accept user input until the dialog is closed.
 	 * @param title The title to be displayed in the title bar of this dialog.
 	 * @param experiments The available experiments to be selected from.
-	 * @return A Map.Entry containing the selected view type and List of Experiments
+	 * @return A Map.Entry containing the selected view type and List of Samples.
 	 */
-	public static Map.Entry<Integer,Collection<Experiment>> showInputDialog( 
-		Frame owner, String title, Collection<Experiment> experiments ) {
+	public static Map.Entry<Integer,ExperimentSet> showInputDialog( 
+		Frame owner, String title, SampleGroup samples ) {
 
 		ExperimentSelectionDialog dialog = 
-			new ExperimentSelectionDialog( owner, title, experiments );
+			new ExperimentSelectionDialog( owner, title, samples );
 		return dialog.getReturnValue( );
 	}
 
@@ -230,51 +219,33 @@ public class ExperimentSelectionDialog extends JDialog
 			else if ( selection == this.timeCourseStudyButton.getModel( ))
 				returnCode = new Integer( TIME_COURSE_STUDY_VIEW );
 
-			Object [] selectedItems = experimentList.getSelectedValues( );
-
-			if ( selectedItems.length < 1 ) {
-				Logger.getLogger( getClass( )).fatal( 
-					Settings.getLanguage( ).get( "You must select at least one item" ));
-				return;
-			}
-
-			TreeSet<Experiment> experiments = new TreeSet<Experiment>( );
-			for ( Object object : selectedItems ) {
-				experiments.add( new Experiment( (Experiment)object ));
-			}
+			Set<Sample> selectedItems = this.attributePanel.getSamples( );
+			Set<Sample> filteredItems = 
+				this.frequencyFilterPanel.getFilter( ).filter( 
+					new TreeSet<Sample>( selectedItems ));
 
 			this.returnValue = new ReturnValue( returnCode,
-				this.frequencyFilterPanel.getFilter( ).filter( experiments ));
+				new ExperimentSet( this.samples.getName( ), this.samples ));
 			this.setVisible( false );
 		}
 
 	}
-
-//	public void stateChanged( ChangeEvent e ) {
-//		Object source = e.getSource( );
-//		if ( source == this.correlationButton )
-//			this.experimentList.setSelectionMode( 
-//				ListSelectionModel.SINGLE_SELECTION );
-//		else
-//			this.experimentList.setSelectionMode(
-//				ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
-//	}
 
 	/**
 	 * Gets the return value from this dialog based on the user selection.
 	 * 
 	 * @return The selected experiments.
 	 */
-	public Map.Entry <Integer,Collection<Experiment>> getReturnValue( ) {
+	public Map.Entry <Integer,ExperimentSet> getReturnValue( ) {
 		return returnValue;
 	}
 
 	/**
 	 * A class for holding a key/value pair (View type,Data)
 	 */
-	private class ReturnValue implements Map.Entry <Integer,Collection<Experiment>> {
+	private class ReturnValue implements Map.Entry <Integer,ExperimentSet> {
 		Integer visualizationType;
-		Collection<Experiment> experiments;
+		ExperimentSet experiment;
 
 		/**
 		 * Creates a new ReturnValue
@@ -282,9 +253,9 @@ public class ExperimentSelectionDialog extends JDialog
 		 * @param 
 		 * @return 
 		 */
-		public ReturnValue( int visualizationType, Collection<Experiment> experiments ) {
+		public ReturnValue( int visualizationType, ExperimentSet experiment ) {
 			this.visualizationType = visualizationType;
-			this.experiments = experiments;
+			this.experiment = experiment;
 		}
 
 		/**
@@ -302,20 +273,20 @@ public class ExperimentSelectionDialog extends JDialog
 		 * @param value the new Value for this ReturnValue.
 		 * @return The old value for this ReturnValue.
 		 */
-		public Collection<Experiment> setValue( Collection<Experiment> value ) {
-			Collection<Experiment> tmp = this.experiments;
-			this.experiments = value;
+		public ExperimentSet setValue( ExperimentSet value ) {
+			ExperimentSet tmp = this.experiment;
+			this.experiment = value;
 			return tmp;
 		}
 
 		/**
-		 * Gets the value for this ReturnValue, a.k.a The list of experiment
+		 * Gets the value for this ReturnValue, a.k.a The list of samples
 		 * selected.
 		 * 
-		 * @return The list of Experiments.
+		 * @return The list of Samples.
 		 */
-		public Collection<Experiment> getValue( ) {
-			return this.experiments;
+		public ExperimentSet getValue( ) {
+			return this.experiment;
 		}
 
 		/**
@@ -325,7 +296,7 @@ public class ExperimentSelectionDialog extends JDialog
 		 * @return A boolean indicating if the 2 objects are equal.
 		 */
 		public boolean equals( Object o ) {
-			return this.experiments.equals( o );
+			return this.experiment.equals( o );
 		}
 
 		/**
@@ -336,6 +307,54 @@ public class ExperimentSelectionDialog extends JDialog
 		public int hashCode( ) {
 			return  (( this.getKey( )   == null ? 0 : this.getKey( ).hashCode( )) ^
 			         ( this.getValue( ) == null ? 0 : this.getValue( ).hashCode( )));
+		}
+	}
+
+	private class AttributePanel extends JPanel {
+		private Collection<Sample> samples;
+		private Map<String,JCheckBox> checkboxes;
+
+		public AttributePanel( Collection<Sample> samples ) {
+			super( new GridLayout( ));
+			GridLayout layout = (GridLayout)this.getLayout( );
+			this.checkboxes = new HashMap( );
+			this.samples = samples;
+			Map<String,Set<String>> attributes = 
+				new SampleGroup( null, samples ).getAttributes( );
+			int maxValues = 0;
+			for ( String attribute : new ArrayList<String>( attributes.keySet( ))) {
+				Collection values = attributes.get( attribute );
+				// discard this attribute if it is too diverse
+				if ((double)values.size( ) / samples.size( ) > 0.8 ) {
+					attributes.remove( attribute );
+				} else {
+					maxValues = Math.max( maxValues, values.size( ));
+				}
+			}
+			layout.setRows( attributes.size( ));
+			layout.setColumns( maxValues + 1 );
+			for ( Map.Entry<String,Set<String>> entry : attributes.entrySet( )) {
+				this.add( new JLabel( entry.getKey( ) + ":" ));
+				int index = 0;
+				// create a checkbox for each value
+				for ( String value : entry.getValue( )) {
+					JCheckBox cb = new JCheckBox( value, true );
+					this.add( cb );
+					index++;
+				}
+				// add some empty panels
+				while( index < maxValues ) {
+					this.add( new JPanel( ));
+					index++;
+				}
+			}	
+		}
+
+		public Set<Sample> getSamples( ) {
+			Set<Sample> returnValue = new TreeSet( );
+			// temporary
+			returnValue.addAll( this.samples );
+			return returnValue;
 		}
 	}
 }

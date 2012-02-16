@@ -80,9 +80,9 @@ import edu.purdue.bbc.util.StringUtils;
 import edu.purdue.cc.bionet.io.DataReader;
 import edu.purdue.cc.bionet.io.MetsignDataReader;
 import edu.purdue.cc.bionet.io.ProjectInfoWriter;
-import edu.purdue.cc.bionet.util.Experiment;
 import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Project;
+import edu.purdue.cc.bionet.util.Sample;
 
 import net.sourceforge.helpgui.gui.MainFrame;
 
@@ -778,7 +778,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			while (!( component instanceof Frame )) {
 				component = component.getParent( );	
 			}
-			Map.Entry<Integer,Collection<Experiment>> choice = 
+			Map.Entry<Integer,ExperimentSet> choice = 
 				ExperimentSelectionDialog.showInputDialog( 
 					(Frame)component, "Experiment Selection", this.experiments );
 			if ( choice == null )

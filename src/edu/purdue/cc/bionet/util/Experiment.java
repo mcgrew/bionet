@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
  * 
  * @author Thomas McGrew
  */
+@Deprecated
 public class Experiment extends StringAttributes implements Comparable<Experiment> {
 
 	private Collection <Molecule> molecules;

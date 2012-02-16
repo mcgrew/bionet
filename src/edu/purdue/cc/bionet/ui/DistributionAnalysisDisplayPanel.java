@@ -30,6 +30,7 @@ import edu.purdue.bbc.util.equation.Equation;
 import edu.purdue.bbc.util.equation.Polynomial;
 import edu.purdue.cc.bionet.io.SaveImageAction;
 import edu.purdue.cc.bionet.util.Experiment;
+import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Molecule;
 import edu.purdue.cc.bionet.util.Sample;
 import edu.purdue.cc.bionet.util.SampleGroup;
@@ -144,7 +145,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	private JRadioButtonMenuItem chiSquareFitButton;
 	private JMenuItem hideOutliersViewMenuItem;
 
-	private Collection<Experiment> experiments;
+	private ExperimentSet experiment;
 	private Set<Molecule> molecules;
 	private Set<Sample> samples;
 	private JSplitPane mainSplitPane;
@@ -214,14 +215,12 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	 * @param experiments The experiments to display in this view.
 	 * @return A boolean indicating whether creating the view was successful.
 	 */
-	public boolean createView( Collection<Experiment> experiments ) {
-		this.experiments = experiments;
+	public boolean createView( ExperimentSet experiment ) {
+		this.experiment = experiment;
 		this.molecules = new TreeSet<Molecule>( );
 		this.samples = new TreeSet<Sample>( );
-		for ( Experiment e : experiments ) {
-			this.molecules.addAll( e.getMolecules( ));
-			this.samples.addAll( e.getSamples( ));
-		}
+		this.molecules.addAll( experiment.getMolecules( ));
+		this.samples.addAll( experiment.getSamples( ));
 		SampleGroup sampleGroup = new SampleGroup( 
 			Settings.getLanguage( ).get( "All Samples" ),
 			this.samples );
@@ -233,7 +232,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		this.bottomPanel = new JPanel( new GridLayout( 1, 1 ));
 		this.experimentGraphPanel = new JPanel( new GridLayout( 1, 1 ));
 
-		this.selectorTree = new ExperimentSelectorTreePanel( experiments );
+		this.selectorTree = new ExperimentSelectorTreePanel( experiment );
 		this.mainSplitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
 
@@ -254,27 +253,6 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		this.addComponentListener( this );
 
 		return true;
-	}
-
-	/**
-	 * Adds an Experiment to this panel.
-	 * 
-	 * @param experiment The experiment to be added.
-	 * @return A boolean indicating whether the operation was successful.
-	 */
-	public boolean addExperiment( Experiment experiment ) {
-		this.molecules.addAll( experiment.getMolecules( ));
-		return experiments.add( experiment );
-	}
-
-	/**
-	 * Removes an experiment from the panel.
-	 * 
-	 * @param experiment The expeiment to be removed.
-	 * @return A boolean indicating whether or not the operation was successful.
-	 */
-	public boolean removeExperiment( Experiment experiment ) {
-		return experiments.remove( experiment );
 	}
 
 	/**
@@ -334,8 +312,8 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		}
 
 		for ( SampleGroup sampleGroup : sampleGroups ) {
-			SampleGraph sampleGraph = new SampleGraph( experiments, sampleGroup );
-			ExperimentGraph experimentGraph = new ExperimentGraph( experiments, sampleGroup );
+			SampleGraph sampleGraph = new SampleGraph( this.experiment, sampleGroup );
+			TimePointGraph experimentGraph = new TimePointGraph( experiment, sampleGroup );
 			this.bottomPanel.add( sampleGraph );
 			this.selectorTree.getTree( ).addTreeSelectionListener( sampleGraph );
 			this.experimentGraphPanel.add( experimentGraph, BorderLayout.CENTER );
@@ -470,33 +448,32 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		 * Creates a new ExperimentSelectorTreePanel based on the passed in 
 		 * Experiments.
 		 * 
-		 * @param experiments The Experiment data to be shown in the tree.
+		 * @param experiments The ExperimentSet data to be shown in the tree.
 		 */
-		public ExperimentSelectorTreePanel( Collection <Experiment> experiments ) {
+		public ExperimentSelectorTreePanel( ExperimentSet experiment ) {
 			super( new DefaultMutableTreeNode(	
 				Settings.getLanguage( ).get( "All Molecules" )));
 			TreeNode selectedNode = null;
 
 			// first get all possible group names
 			TreeSet<Molecule> molecules = new TreeSet<Molecule>( );
-			for ( Experiment e : experiments ) {
-				molecules.addAll( e.getMolecules( ));
-			}
+			molecules.addAll( experiment.getMolecules( ));
+			Collection<SampleGroup> timePoints = experiment.getTimePoints( );
 			for ( Molecule molecule : molecules ) {
 				DefaultMutableTreeNode moleculeNode = 
 					new DefaultMutableTreeNode( molecule );
 				if ( selectedNode == null )
 					selectedNode = moleculeNode;
 
-				for ( Experiment e : experiments ) {
-					DefaultMutableTreeNode experimentNode = 
-						new DefaultMutableTreeNode( e );
-					for ( Sample sample : e.getSamples( )) {
+				for ( SampleGroup s : timePoints ) {
+					DefaultMutableTreeNode timeNode = 
+						new DefaultMutableTreeNode( s );
+					for ( Sample sample : s ) {
 						DefaultMutableTreeNode sampleNode = 
 							new DefaultMutableTreeNode( sample );	
-						experimentNode.add( sampleNode );
+						timeNode.add( sampleNode );
 					}
-					moleculeNode.add( experimentNode );
+					moleculeNode.add( timeNode );
 				}
 				this.getRoot( ).add( moleculeNode );
 			}
@@ -522,69 +499,36 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 		}
 	}
 
-	// =========================== ExperimentGraph ===============================
+	// =========================== TimePointGraph ===============================
 	/**
-	 * A class for displaying molecular data across experiments
+	 * A class for displaying molecular data across time points
 	 */
-	private class ExperimentGraph extends JPanel 
+	private class TimePointGraph extends JPanel 
 		implements TreeSelectionListener,TreeCheckingListener,ItemListener {
 		private JFreeChart chart;
-		private SortedSet <Experiment> experiments;
+		private SortedSet<SampleGroup> timePoints;
 		private SampleGroup sampleGroup;
 		private XYDataset fitDataset;
 		private Equation fitEquation;
 		private JLabel equationLabel;
 		private LegendItemCollection legendItems;
-//		private LegendItemCollection singleExperimentLegendItems;
 		private Stroke stroke;
 
 
 		/**
-		 * Creates a new ExperimentGraph panel to show data from the passed in 
+		 * Creates a new TimePointGraph panel to show data from the passed in 
 		 * Experiments.
 		 * 
-		 * @param experiments A collection of experiments to show data from.
+		 * @param experiment A collection of experiment to show data from.
 		 */
-		public ExperimentGraph( Collection <Experiment> experiments, 
+		public TimePointGraph( ExperimentSet experiment, 
 		                        SampleGroup sampleGroup ) {
 			super( );
 			this.equationLabel = new JLabel( );
-			this.experiments = new TreeSet( experiments );
+			this.timePoints = experiment.getTimePoints( );
 			this.sampleGroup = sampleGroup;
-			//this.fitDataset = new XYDataset( );
 			this.stroke = new BasicStroke( 2 );
-//			this.singleExperimentLegendItems = new LegendItemCollection( );
 			this.legendItems = new LegendItemCollection( );
-//			LegendItem meanLegendItem = 
-//				new LegendItem( "Mean", null, null, null,
-//				                 new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
-//				                 Color.BLACK, 
-//				                 this.stroke, Color.BLACK);
-//			LegendItem medianLegendItem = 
-//				new LegendItem( "Median", null, null, null,
-//				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-//				                this.stroke, Color.BLACK );
-//			LegendItem minMaxLegendItem1 = 
-//				new LegendItem( "Min/Max without Outliers", null, null, null,
-//				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-//				                this.stroke, Color.RED );
-//			LegendItem minMaxLegendItem2 = 
-//				new LegendItem( "Min/Max without Outliers", null, null, null,
-//				                new Line2D.Double( 0.0, 0.0, 9.0, 0.0 ),
-//				                this.stroke, Color.BLUE );
-//			LegendItem outlierLegendItem = 
-//				new LegendItem( "Outlier", null, null, null,
-//				                new Ellipse2D.Double( 0.0, 0.0, 4.0, 4.0 ),
-//				                Color.WHITE, 
-//				                this.stroke, Color.BLACK);
-//			this.singleExperimentLegendItems.add( meanLegendItem );
-//			this.singleExperimentLegendItems.add( medianLegendItem );
-//			this.singleExperimentLegendItems.add( minMaxLegendItem1 );
-//			this.singleExperimentLegendItems.add( outlierLegendItem );
-//			this.legendItems.add( meanLegendItem );
-//			this.legendItems.add( medianLegendItem );
-//			this.legendItems.add( minMaxLegendItem2 );
-//			this.legendItems.add( outlierLegendItem );
 			this.setLayout( null );
 			this.add( this.equationLabel );
 			// add a context menu for saving the graph to an image
@@ -614,7 +558,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			for( int i=0; i < node.getChildCount( ); i++ ) {
 				DefaultMutableTreeNode expNode = 
 					(DefaultMutableTreeNode)node.getChildAt( i );
-				Experiment e = (Experiment)expNode.getUserObject( );
+				SampleGroup e = (SampleGroup)expNode.getUserObject( );
 				Collection<Sample> samples = 
 					selectorTree.getSamplesFiltered( expNode );
 				samples.retainAll( this.sampleGroup );
@@ -725,11 +669,7 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			lineRenderer.setSeriesStroke( 0, this.stroke );
 			plot.setRenderer( 1, lineRenderer );
 
-//			if ( expCount > 1 ) {
-				plot.setFixedLegendItems( this.legendItems );
-//			} else {
-//				plot.setFixedLegendItems( this.singleExperimentLegendItems );
-//			}
+			plot.setFixedLegendItems( this.legendItems );
 			return true;
 		}
 
@@ -832,15 +772,15 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 	private class SampleGraph extends JPanel 
 		implements TreeSelectionListener,TreeCheckingListener {
 
-		private SortedSet <Experiment> experiments;
+		private SortedSet<SampleGroup> timePoints;
 		private SampleGroup sampleGroup;
 		private JFreeChart chart;
 		private Object selectedObject;
 
-		public SampleGraph( Collection <Experiment> experiments, 
+		public SampleGraph( ExperimentSet experiment, 
 		                    SampleGroup sampleGroup ) {
 			super( );
-			this.experiments = new TreeSet<Experiment>( experiments );
+			this.timePoints = experiment.getTimePoints( );
 			this.sampleGroup = sampleGroup;
 			// add a context menu for saving the graph to an image
 			new ContextMenu( this ).add( new SaveImageAction( this ));
@@ -938,9 +878,8 @@ public class DistributionAnalysisDisplayPanel extends AbstractDisplayPanel
 			XYPlot plot = this.chart.getXYPlot( );
 			plot.getDomainAxis( ).setRange( -0.5, samples.size( ) - 0.5 );
 			plot.setRenderer( renderer );
-			// this is a single experiment graph, so pick the color to be consistent
-			// with the multi-experiment graph.
-			int experimentCount = node.getParent( ).getChildCount( );
+			// this is a single time point graph, so pick the color to be consistent
+			// with the multiple time point graph.
 			int index = 0;
 			renderer.setSeriesPaint( 0,
 				Color.getHSBColor( 0.5f, 1.0f, 0.5f ));

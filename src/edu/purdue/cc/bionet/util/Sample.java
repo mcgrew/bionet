@@ -52,6 +52,19 @@ public class Sample  extends StringAttributes implements Comparable<Sample>,Clon
 	}
 
 	/**
+	 * Creates a new Sample which is a copy of the passed in sample.
+	 * 
+	 * @param sample The sample to make a copy of.
+	 */
+	public Sample( Sample sample ) {
+		this( sample.toString( ));
+		this.setAttributes( sample.attributes );
+		for ( Molecule molecule : sample.getMolecules( )) {
+			this.setValue( molecule, sample.getValue( molecule ));
+		}
+	}
+
+	/**
 	 * Returns a String representation of this Sample; in this case the name.
 	 * 
 	 * @return The name of this sample.
@@ -180,14 +193,10 @@ public class Sample  extends StringAttributes implements Comparable<Sample>,Clon
 	 * 
 	 * @return A copy of this Sample.
 	 */
-	@Override
+	@Override @Deprecated
 	public Sample clone( ) {
-		Sample returnValue = new Sample( this.name );
-		returnValue.setAttributes( this.attributes );
-		for ( Map.Entry<Molecule,Number> entry : this.valueMap.entrySet( )) {
-			returnValue.setValue( entry.getKey( ), entry.getValue( ));
-		}
-		return returnValue;
+		return new Sample( this );
 	}
+
 }
 

@@ -27,7 +27,6 @@ import edu.purdue.bbc.util.attributes.Attributes;
 import edu.purdue.bbc.util.attributes.BasicAttributes;
 import edu.purdue.cc.bionet.io.ProjectInfoWriter;
 import edu.purdue.cc.bionet.ui.ContextMenu;
-import edu.purdue.cc.bionet.util.Experiment;
 import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Molecule;
 import edu.purdue.cc.bionet.util.Project;
@@ -206,10 +205,10 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	/**
 	 * This method is invalid for this type. Always returns false.
 	 * 
-	 * @param experiments The experiments to be associated with this instance.
+	 * @param experiment The experiment to be associated with this instance.
 	 * @return Always returns false.
 	 */
-	public boolean createView( Collection<Experiment> experiments ) {
+	public boolean createView( ExperimentSet experiments ) {
 		return false;
 	}
 		
@@ -243,9 +242,6 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 				project.getAttribute( "Chromatography Method" ).replace( "<CR>", "\n" ));
 		}
 		this.samples.addAll( project.getSamples( ));
-//		for ( Experiment experiment : experiments ) {
-//			this.molecules.addAll( experiment.getMolecules( ));
-//		}
 		Collection<SampleGroup> sampleGroups = new TreeSet<SampleGroup>( );
 		sampleGroups.add( new SampleGroup( "All Samples", samples ));
 		this.setSampleGroups( sampleGroups );

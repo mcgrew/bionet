@@ -21,8 +21,9 @@ package edu.purdue.cc.bionet.ui;
 
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
-import edu.purdue.cc.bionet.util.Experiment;
+import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Sample;
+import edu.purdue.cc.bionet.util.SampleGroup;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,19 +50,20 @@ public class SampleSelectorTreePanel extends CheckboxTreePanel {
 	 * 
 	 * @param experiments A Collection of the Samples to be displayed in this panel.
 	 */
-	public SampleSelectorTreePanel ( Collection<Experiment> experiments ) {
+	public SampleSelectorTreePanel ( ExperimentSet experiment ) {
 		super( new DefaultMutableTreeNode( 
 			Settings.getLanguage( ).get( "Samples" )));
+		Collection<SampleGroup> timePoints = experiment.getTimePoints( );
 		DefaultMutableTreeNode rootNode = this.getRoot( );
-		for ( Experiment experiment : experiments ) {
-			DefaultMutableTreeNode experimentNode =
+		for ( SampleGroup time : timePoints ) {
+			DefaultMutableTreeNode timeNode =
 				new DefaultMutableTreeNode( experiment );
 			for ( Sample sample : experiment.getSamples( )) {
 				DefaultMutableTreeNode sampleNode = 
 					new DefaultMutableTreeNode( sample );
-				experimentNode.add( sampleNode );
+				timeNode.add( sampleNode );
 			}
-			rootNode.add( experimentNode );
+			rootNode.add( timeNode );
 		}
 		this.reload( );
 		this.check( rootNode );

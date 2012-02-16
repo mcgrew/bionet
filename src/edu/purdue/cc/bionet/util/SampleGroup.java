@@ -21,6 +21,9 @@ package edu.purdue.cc.bionet.util;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -31,7 +34,7 @@ import java.util.TreeSet;
 public class SampleGroup extends TreeSet<Sample> 
                          implements Comparable<SampleGroup> {
 
-	private String name;
+	protected String name;
 
 	/**
 	 * Constructor.
@@ -133,6 +136,49 @@ public class SampleGroup extends TreeSet<Sample>
 			
 		}
 		return returnValue;
+	}
+
+	/**
+	 * Returns the name of all possible attributes for all samples.
+	 * 
+	 * @return A collection containing the name of all valid attributes.
+	 */
+	public Set<String> getAttributeNames( ) {
+		Set<String> returnValue = new TreeSet( );
+		for( Sample sample : this ) {
+			returnValue.addAll( sample.getAttributes( ).keySet( ));
+		}
+		return returnValue;
+	}
+
+	/**
+	 * Returns all values for the given attribute in the samples in this group.
+	 * 
+	 * @param attribute The attribute to retrieve values for.
+	 * @return all values for the given attribute.
+	 */
+	public Set<String> getValues( String attribute ) {
+		Set<String> returnValue = new TreeSet( );
+		for ( Sample sample: this ) {
+			returnValue.add( sample.getAttribute( attribute ));
+		}
+		return returnValue;
+	}
+
+	/**
+	 * Returns a Map containing the attribute names each paired with it's
+	 * potential values.
+	 * 
+	 * @return A Map containing the attributes of the contained samples.
+	 */
+	public Map<String,Set<String>> getAttributes( ) {
+		Set<String> attNames = this.getAttributeNames( );
+		Map<String,Set<String>> returnValue = new TreeMap( );
+		for ( String attribute : attNames ) {
+			returnValue.put( attribute, this.getValues( attribute ));
+		}
+		return returnValue;
+
 	}
 
 }

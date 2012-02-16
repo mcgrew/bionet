@@ -34,7 +34,7 @@ import edu.purdue.cc.bionet.ui.layout.RandomLayout;
 import edu.purdue.cc.bionet.ui.renderer.FastEdgeRenderer;
 import edu.purdue.cc.bionet.util.Correlation;
 import edu.purdue.cc.bionet.util.CorrelationSet;
-import edu.purdue.cc.bionet.util.Experiment;
+import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Molecule;
 import edu.purdue.cc.bionet.util.MonitorableRange;
 import edu.purdue.cc.bionet.util.Sample;
@@ -223,7 +223,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	private JSplitPane graphSplitPane;
 	private HeatMap  heatMapPanel;
 
-	private Collection<Experiment> experiments;
+	private ExperimentSet experiment;
 	private Collection<Molecule> molecules;
 	private Collection<Sample> samples;
 	private CorrelationSet correlations;
@@ -481,32 +481,25 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	/**
 	 * Creates a Correlation Graph.
 	 * 
-	 * @param experiments An Experiment Object containing the data to be used.
+	 * @param experiment An ExperimentSet Object containing the data to be used.
 	 */
-	public boolean createView( Collection<Experiment> experiments ) {
-		if ( experiments.size( ) == 0 ) {
+	public boolean createView( ExperimentSet experiment ) {
+		if ( experiment.size( ) == 0 ) {
 			return false;
 		}
 		this.setBackground( Color.WHITE );
 		this.setVisible( true );
 		this.title = Settings.getLanguage( ).get( "Correlation Network" );
+		this.experiment = experiment;
 		this.molecules = new TreeSet<Molecule>( );
-		for ( Experiment experiment : experiments ) {
-				this.molecules.addAll( experiment.getMolecules( ));
-				experiment.updateCorrelations( );
-		}
+		this.molecules.addAll( experiment.getMolecules( ));
 		this.samples = new TreeSet<Sample>( );
-		this.experiments = experiments;
-		this.correlations = new CorrelationSet( molecules, samples );
-		for( Experiment experiment : this.experiments ) {
-			for( Sample sample : experiment.getSamples( )) {
-				this.samples.add( sample );
-			}
-			for( Molecule molecule : experiment.getMolecules( )) {
-				this.moleculeFilterPanel.add( molecule );
-				this.molecules.add( molecule );
-				this.correlations.add( molecule );
-			}
+		this.correlations = new CorrelationSet( this.molecules, this.samples );
+		this.samples.addAll( experiment );
+		for( Molecule molecule : experiment.getMolecules( )) {
+			this.moleculeFilterPanel.add( molecule );
+			this.molecules.add( molecule );
+			this.correlations.add( molecule );
 		}
 
 		this.graph = new CorrelationGraphVisualizer( 
@@ -674,22 +667,12 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	}
 	
 	/**
-	 * Returns the Experiment associated with this CorrelationDisplayPanel.
+	 * Returns the ExperimentSet associated with this CorrelationDisplayPanel.
 	 * 
-	 * @return The associated Experiment.
+	 * @return The associated ExperimentSet
 	 */
-	@Deprecated
-	public Experiment getExperiment( ) {
-		return this.experiments.iterator( ).next( );
-	}
-
-	/**
-	 * Returns the Experiments associated with this CorrelationDisplayPanel.
-	 * 
-	 * @return The associated Experiments
-	 */
-	public Collection<Experiment> getExperiments( ) {
-		return this.experiments;
+	public ExperimentSet getExperiment( ) {
+		return this.experiment;
 	}
 
 

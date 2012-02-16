@@ -25,6 +25,7 @@ import edu.purdue.bbc.util.Settings;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.ArrayList;
 import java.io.File;
@@ -34,18 +35,15 @@ import java.io.FileNotFoundException;
 import org.apache.log4j.Logger;
 
 
-public class ExperimentSet extends TreeSet<Experiment>
-                           implements Comparable<ExperimentSet> {
-	protected Set<Sample> samples;
+public class ExperimentSet extends SampleGroup {
 	protected Set<Molecule> molecules;
-	protected String name;
 	protected File resource;
 	protected boolean loaded = false;
 	protected String timeUnit;
 
 	@Deprecated
 	public ExperimentSet( ) {
-		this( "", null );
+		this( "", (File)null );
 	}
 
 	/**
@@ -55,10 +53,34 @@ public class ExperimentSet extends TreeSet<Experiment>
 	 * @param resource The project resource directory.
 	 */
 	public ExperimentSet( String name, File resource ) {
-		this.name = name;
+		super( name );
 		this.setResource( resource );
-		this.samples = new TreeSet<Sample>( );
 		this.molecules = new TreeSet<Molecule>( );
+	}
+
+	public ExperimentSet( String name, Set<Sample> samples ) {
+		super( name );
+		this.molecules = new TreeSet( );
+		this.addAll( samples );
+	}
+
+	/**
+	 * Creates a new ExperimentSet based on the passed in ExperimentSet. If the
+	 * passed in ExperimentSet has data which was read from disk, the new 
+	 * ExperimentSet will read from that original data, losing any modifications.
+	 */
+	public ExperimentSet( ExperimentSet experiment ) {
+		super( experiment.getName( ));
+		this.timeUnit = experiment.getTimeUnit( );
+		File resource = experiment.getResource( );
+		if ( resource != null ) {
+			this.resource = experiment.getResource( );
+			if ( experiment.isLoaded( )) {
+				this.load( );
+			}
+		} else {
+			this.addAll( experiment );
+		}
 	}
 
 	public void setResource( File resource ) {
@@ -66,77 +88,64 @@ public class ExperimentSet extends TreeSet<Experiment>
 			this.resource = new File( resource.getAbsolutePath( ) + 
 				File.separator + "Normalization" + File.separator + name + 
 				File.separator + "Normalization.csv" );
+			this.loaded = false;
+		} else {
+			this.loaded = true;
 		}
-	}
-
-	/**
-	 * Creates another instance of this ExperimentSet, reading from the original
-	 * file. Any modifications made to the object after loading will not be
-	 * retained.
-	 * 
-	 * @return A new ExperimentSet which will read from the original resource file.
-	 */
-	public ExperimentSet clone( ) {
-		ExperimentSet returnValue = new ExperimentSet( this.name, this.resource );
-		if ( this.isLoaded( ))
-			returnValue.load( );
-		return returnValue;
 	}
 
 	public File getResource( ) {
 		return this.resource;
 	}
 
+	@Deprecated
 	public boolean addSample( Sample sample ) {
-		return this.samples.add( sample );
+		return this.add( sample );
 	}
 
+	@Deprecated
 	public void addSamples( Collection<Sample> samples ) {
-		this.samples.addAll( samples );
+		this.addAll( samples );
 	}
 
 	public void setSamples( Collection<Sample> samples ) {
-		this.samples = new TreeSet<Sample>( samples );
+		this.clear( );
+		this.addAll( samples );
 	}
 
+	@Deprecated
 	public Collection<Sample> getSamples( ) {
-		return this.samples;
+		return this;
 	}
 
 	public Collection<Molecule> getMolecules( ) {
 		return this.molecules;
 	}
 
-	@Override
-	public boolean add( Experiment experiment ) {
-		this.samples.addAll( experiment.getSamples( ));
-		this.molecules.addAll( experiment.getMolecules( ));
-		return super.add( experiment );
+	@Deprecated
+	public boolean add( Sample sample ) {
+		super.add( sample );
+		this.molecules.addAll( sample.getMolecules( ));
+		return true;
 	}
 
-	@Override
-	public boolean addAll( Collection<? extends Experiment> experiments ) {
-		for ( Experiment experiment : experiments ) {
-			this.samples.addAll( experiment.getSamples( ));
-			this.molecules.addAll( experiment.getMolecules( ));
+	public boolean addAll( Collection<? extends Sample> samples ) {
+		super.addAll( samples );
+		for ( Sample sample : samples ) {
+			this.molecules.addAll( sample.getMolecules( ));
 		}
-		return super.addAll( experiments );
+		return true;
 	}
 
-	public Experiment get( String id ) {
-		for ( Experiment e : this ) {
-			if ( id.equals( e.getId( )))
-				return e;
+	public void addMolecule( Molecule molecule ) {
+		this.molecules.add( molecule );
+	}
+
+	public boolean removeMolecule( Molecule molecule ) {
+		for ( Sample sample : this ) {
+			sample.removeMolecule( molecule );
 		}
-		return null;
-	}
-
-	public String getName( ) {
-		return this.name;
-	}
-
-	public void setName( String name ) {
-		this.name = name;
+		return this.molecules.remove( molecule );
 	}
 
 	public String getTimeUnit( ) {
@@ -161,6 +170,15 @@ public class ExperimentSet extends TreeSet<Experiment>
 		return this.load( this.resource );
 	}
 
+	public Sample getSample( String id ) {
+		for ( Sample sample : this ) {
+			if ( id.equals( sample.toString( ))) {
+				return sample;
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Loads experiment data from the specified file.
 	 * 
@@ -171,15 +189,9 @@ public class ExperimentSet extends TreeSet<Experiment>
 		Logger logger = Logger.getLogger( getClass( ));
 		Language language = Settings.getLanguage( );
 		CSVTableReader file;
-		for ( Sample sample : this.samples ) {
-			String expId = Settings.getLanguage( ).get( "Time" ) + " " +
-				sample.getAttribute( "Time" );
-			if ( this.timeUnit != null ) {
-				expId = sample.getAttribute( "Time" ) + " " + this.timeUnit;
-			}
-			if ( this.get( expId ) == null )
-				this.add( new Experiment( expId ));
-			this.get( expId ).addSample( sample );
+		if ( resource == null ) {
+			logger.debug( "Unable to load data, no resource has been specified" );
+			return false;
 		}
 		Map<String,String> line;
 		try {
@@ -196,21 +208,12 @@ public class ExperimentSet extends TreeSet<Experiment>
 				String id = line.remove( "id" );
 				if ( id == null )
 					id = line.remove( "ID" );
-				Molecule molecule;
-				molecule = new Molecule( id );
-				for ( Experiment experiment : this ) {
-					experiment.addMolecule( molecule );
-				}
+				Molecule molecule = new Molecule( id );
 				this.molecules.add( molecule );
 				// add the remaining attributes to the molecule.
 				for( Map.Entry<String,String> entry : line.entrySet( )) {
 					// see if this column is a sample value
-					Sample sample = null;
-					for ( Experiment e : this ) {
-						sample = e.getSample( entry.getKey( ));
-						if ( sample != null )
-							break;
-					}
+					Sample sample = this.getSample( entry.getKey( ));
 					if ( sample != null ) {
 						Number value = new Double( 0.0 );
 						try {
@@ -238,16 +241,13 @@ public class ExperimentSet extends TreeSet<Experiment>
 			              "This file may not be in the correct format." );
 			return false;
 		}
-		for ( Experiment experiment : this ) {
-			ArrayList<Sample> samples = 
-				new ArrayList<Sample>( experiment.getSamples( ));
-			for( Sample sample : samples ) {
-				if ( sample.getMolecules( ).size( ) == 0 ) {
-					logger.debug( 
-						String.format( "Dropping sample %s", sample.toString( )));
-					experiment.removeSample( sample );
-					this.samples.remove( sample );
-				}
+		ArrayList<Sample> samples = new ArrayList( this );
+		for( Sample sample : new ArrayList<Sample>( this )) {
+			if ( sample.getMolecules( ).size( ) == 0 ) {
+				logger.debug( 
+					String.format( language.get( "Dropping empty sample" ) + " %s", 
+					               sample.toString( )));
+				this.remove( sample );
 			}
 		}
 		file.close( );
@@ -259,9 +259,26 @@ public class ExperimentSet extends TreeSet<Experiment>
 		return false;
 	}
 
-	public int compareTo( ExperimentSet e ) {
-		return this.getName( ).compareTo( e.getName( ));
+	public SortedSet<SampleGroup> getTimePoints( ) {
+		SortedSet<SampleGroup> returnValue = new TreeSet( );
+		// place the samples in separate groups based on time.
+		for ( Sample sample : this ) {
+			String id = sample.getAttribute( "time" ) + " " + this.getTimeUnit( );
+			SampleGroup group = null;
+			// find the right group for this sample.
+			for ( SampleGroup g : returnValue ) {
+				if ( g.getName( ).equals( id )) {
+					group = g;
+				}
+			}
+			// if the group doesn't exist, create it.
+			if ( group == null ) {
+				group = new SampleGroup( id );
+				returnValue.add( group );
+			}
+			group.add( sample );
+		}
+		return returnValue;
 	}
-
 }
 

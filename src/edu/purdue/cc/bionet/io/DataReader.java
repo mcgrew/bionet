@@ -62,34 +62,12 @@ public abstract class DataReader {
 	public abstract void load( );
 
 	/**
-	 * Returns the Experiments read from the data.
-	 * 
-	 * @deprecated This has been replaced by the getProject( ) method.
-	 * @return A Collection of the experiments.
-	 */
-	@Deprecated
-	public Collection<Experiment> getExperiments( ) {
-		return this.project.iterator( ).next( );
-	}
-
-	/**
 	 * Returns the Project read from the data.
 	 * 
 	 * @return The Project.
 	 */
 	public Project getProject( ) {
 		return this.project;
-	}
-
-	/**
-	 * Returns the Molecules read from the data.
-	 */
-	public Collection<Molecule>getMolecules( ){
-		Set<Molecule> returnValue = new TreeSet<Molecule>( );
-		for ( Experiment e : this.getExperiments( )) {
-			returnValue.addAll( e.getMolecules( ));
-		}
-		return returnValue;
 	}
 
 	/**

@@ -23,10 +23,10 @@ import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.bionet.io.SaveImageAction;
-import edu.purdue.cc.bionet.util.SampleComparator;
-import edu.purdue.cc.bionet.util.Experiment;
+import edu.purdue.cc.bionet.util.ExperimentSet;
 import edu.purdue.cc.bionet.util.Molecule;
 import edu.purdue.cc.bionet.util.Sample;
+import edu.purdue.cc.bionet.util.SampleComparator;
 import edu.purdue.cc.bionet.util.SampleGroup;
 
 import java.awt.BasicStroke;
@@ -129,7 +129,7 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 	private JSplitPane splitPane;
 	private JSplitPane treeSplitPane;
 	private JPanel clusterGraphPanel;
-	private Collection<Experiment> experiments;
+	private ExperimentSet experiment;
 	private Collection<Sample> samples;
 	private Collection<Molecule> molecules;
 	private Clusterer clusterer;
@@ -167,21 +167,19 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 	/**
 	 * Creates the visualization instance for a ClusteringDisplayPanel
 	 * 
-	 * @param experiments The experiments to be associated with this instance.
+	 * @param experiment The experiment to be associated with this instance.
 	 * @return true if creating the visualization succeeded.
 	 */
-	public boolean createView( Collection <Experiment> experiments ) {
+	public boolean createView( ExperimentSet experiment ) {
 		Logger logger = Logger.getLogger( getClass( ));
-		this.experiments = experiments;
+		this.experiment = experiment;
 		this.samples = new SampleGroup( "" );
 		this.molecules = new TreeSet<Molecule>( );
-		for( Experiment experiment : experiments ) {
-			this.samples.addAll( experiment.getSamples( ));
-			this.molecules.addAll( experiment.getMolecules( ));
-		}
+		this.samples.addAll( experiment.getSamples( ));
+		this.molecules.addAll( experiment.getMolecules( ));
 		Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
 		sampleGroups.add( new SampleGroup( "", samples ));
-		this.sampleSelectorTree = new SampleSelectorTreePanel( this.experiments );
+		this.sampleSelectorTree = new SampleSelectorTreePanel( this.experiment );
 
 		this.splitPane = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
 		this.treeSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
@@ -826,7 +824,6 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 			XYLineAndShapeRenderer renderer = 
 				(XYLineAndShapeRenderer)plot.getRenderer( );
 			plot.setRenderer( renderer );
-			// find the index of this experiment for appropriate coloring.
 			for ( int i=0; i < xyDataset.getSeriesCount( ); i++ ) {
 				renderer.setSeriesStroke( i, new BasicStroke( 2 ));
 				renderer.setSeriesShapesVisible( i, true );
@@ -850,7 +847,7 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 		}
 
 		/**
-		 * Sets the graph to display data from each experiment on the passed in 
+		 * Sets the graph to display data from each time point on the passed in 
 		 * TreeNode.
 		 * 
 		 * @param node The selected node for the graph.
@@ -924,7 +921,6 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 			XYLineAndShapeRenderer renderer = 
 				(XYLineAndShapeRenderer)plot.getRenderer( );
 			plot.setRenderer( renderer );
-			// find the index of this experiment for appropriate coloring.
 			for ( int i=0; i < xyDataset.getSeriesCount( ); i++ ) {
 				renderer.setSeriesStroke( i, new BasicStroke( 2 ));
 				renderer.setSeriesShapesVisible( i, true );

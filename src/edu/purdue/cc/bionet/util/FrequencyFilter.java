@@ -53,35 +53,37 @@ public class FrequencyFilter {
 	}
 
 	/**
-	 * Filters the experiments molecular data.
+	 * Filters the experiment's molecular data.
 	 * 
-	 * @param experiments The experiments to be filtered.
-	 * @return The passed in experiments after filtering.
+	 * @param experiment The experiment to be filtered.
+	 * @return The passed in experiment after filtering.
 	 */
-	public Collection<Experiment> filter( Collection<Experiment> experiments ) {
+	public Set<Sample> filter( Set<Sample> samples ) {
 		Logger logger = Logger.getLogger( getClass( ));
-		Collection<Molecule> molecules = new TreeSet<Molecule>( );
-		Collection<Sample> samples = new TreeSet<Sample>( );
-		for ( Experiment experiment : experiments ) {
-			molecules.addAll( experiment.getMolecules( ));
-			samples.addAll( experiment.getSamples( ));
+		Set<Molecule> molecules = new TreeSet( );
+		Set<Sample> returnValue = new TreeSet( );
+		for ( Sample sample : samples ) {
+			molecules.addAll( sample.getMolecules( ));
+			returnValue.add( new Sample( sample ));
 		}
+		// filter all molecules using the cross-board filter
 		if ( this.overallPercent > 0.0 ) {
 			logger.debug( String.format( "Cross-board Filter : %.1f%%", 
 			                             overallPercent * 100 ));
 			for ( Molecule molecule : 
 						new TreeSet<Molecule>( molecules )) {
 				if ( this.getFrequency( molecule.getValues( samples )) < overallPercent ) {
-					dropMolecule( molecule, experiments );
+					dropMolecule( molecule, samples );
 				}
 			}
 		}
+		// filter all molecules using the group filter
 		if ( this.groupPercent > 0.0 ) {
 			logger.debug( String.format( "Group-based Filter : %.1f%%", 
 			                             groupPercent * 100 ));
 			List<SampleGroup> groups = new ArrayList<SampleGroup>( );
 			StringBuilder key = new StringBuilder( );
-			for ( Sample sample : samples ) {
+			for ( Sample sample : returnValue ) {
 				key.setLength( 0 );
 				for ( String attribute : groupAttributes ) {
 					key.append( sample.getAttribute( attribute ) + ":" );
@@ -105,28 +107,30 @@ public class FrequencyFilter {
 						molecule.setValues( group, 0.0 );
 					}
 				}
+				// check to see if each molecule has a frequency of 0 now. if so, drop it.
 				if ( Double.compare( 
 						this.getFrequency( molecule.getValues( samples )), 0.0 ) == 0 ) {
 					logger.debug( "Molecule " + molecule + " is now empty" );
-					dropMolecule( molecule, experiments );
+					dropMolecule( molecule, returnValue );
 				}
 			}
 		}
 
-		return experiments;
+		return returnValue;
 	}
 
 	/**
 	 * Drops the specified molecule from all experiments.
 	 * 
 	 * @param molecule The molecule to be dropped.
-	 * @param experiments The experiments the molecule is to be removed from.
+	 * @param samples The set of Samples the molecule is to be removed from.
 	 */
-	private void dropMolecule( Molecule molecule, 
-	                           Collection<Experiment> experiments ) {
-		Logger.getLogger( getClass( )).debug( "Dropping Molecule " + molecule );
-		for ( Experiment e : experiments ) {
-			e.removeMolecule( molecule );
+	private static void dropMolecule( Molecule molecule, 
+	                           Set<Sample> samples ) {
+		Logger.getLogger( FrequencyFilter.class ).debug( 
+			"Dropping Molecule " + molecule );
+		for ( Sample sample : samples ) {
+			sample.removeMolecule( molecule );
 		}
 	}
 
