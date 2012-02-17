@@ -118,12 +118,10 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		JPanel projectPanel = new JPanel( new BorderLayout( ));
 		this.descriptionTextArea = new JTextArea( );
 		JPanel descriptionPanel = new JPanel( new BorderLayout( ));
-		this.descriptionTextArea.setPreferredSize( new Dimension( 100, 100 ));
 		this.analyticalPlatformTextField = new JTextField( );
 		this.msModeTextField = new JTextField( );
 		this.methodTextArea = new JTextArea( );
 		JPanel methodPanel = new JPanel( new BorderLayout( ));
-		this.methodTextArea.setPreferredSize( new Dimension( 100, 100 ));
 		this.projectNameLabel = new JLabel( 
 			language.get( "Project Name" ) + ":" );
 		this.projectNameLabel.setBorder( 
@@ -151,7 +149,9 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 				TitledBorder.LEFT,
 				TitledBorder.TOP
 		));
-		methodPanel.add( this.methodTextArea, BorderLayout.CENTER );
+		JScrollPane methodScrollPane = new JScrollPane( this.methodTextArea );
+		methodScrollPane.setPreferredSize( new Dimension( 100, 100 ));
+		methodPanel.add( methodScrollPane, BorderLayout.CENTER );
 		methodPanel.setBorder( BorderFactory.createCompoundBorder( 
 			BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),
 			BorderFactory.createLineBorder( Color.GRAY )));
@@ -180,7 +180,10 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 
 		JPanel upperPanel = new JPanel( new BorderLayout( ));
 		upperPanel.add( this.msExperimentPanel, BorderLayout.SOUTH );
-		descriptionPanel.add( this.descriptionTextArea, BorderLayout.CENTER );
+		JScrollPane descriptionScrollPane = 
+			new JScrollPane( this.descriptionTextArea );
+		descriptionScrollPane.setPreferredSize( new Dimension( 100, 100 ));
+		descriptionPanel.add( descriptionScrollPane, BorderLayout.CENTER );
 		descriptionPanel.setBorder( BorderFactory.createCompoundBorder( 
 			BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),
 			BorderFactory.createLineBorder( Color.GRAY )));
