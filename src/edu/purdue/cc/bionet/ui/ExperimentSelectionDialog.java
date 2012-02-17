@@ -19,6 +19,8 @@ along with BioNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.bionet.ui;
 
+import edu.purdue.bbc.util.attributes.AttributesFilterList;
+import edu.purdue.bbc.util.attributes.Criterion;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.bionet.BioNet;
@@ -220,12 +222,14 @@ public class ExperimentSelectionDialog extends JDialog
 				returnCode = new Integer( TIME_COURSE_STUDY_VIEW );
 
 			Set<Sample> selectedItems = this.attributePanel.getSamples( );
+			System.out.println( selectedItems );
 			Set<Sample> filteredItems = 
 				this.frequencyFilterPanel.getFilter( ).filter( 
 					new TreeSet<Sample>( selectedItems ));
+			System.out.println( filteredItems );
 
 			this.returnValue = new ReturnValue( returnCode,
-				new ExperimentSet( this.samples.getName( ), this.samples ));
+				new ExperimentSet( this.samples.getName( ), filteredItems ));
 			this.setVisible( false );
 		}
 
@@ -312,7 +316,7 @@ public class ExperimentSelectionDialog extends JDialog
 
 	private class AttributePanel extends JPanel {
 		private Collection<Sample> samples;
-		private Map<String,JCheckBox> checkboxes;
+		private Map<String,Collection<JCheckBox>> checkboxes;
 
 		public AttributePanel( Collection<Sample> samples ) {
 			super( new GridLayout( ));
@@ -335,10 +339,12 @@ public class ExperimentSelectionDialog extends JDialog
 			layout.setColumns( maxValues + 1 );
 			for ( Map.Entry<String,Set<String>> entry : attributes.entrySet( )) {
 				this.add( new JLabel( entry.getKey( ) + ":" ));
+				this.checkboxes.put( entry.getKey( ), new ArrayList( ));
 				int index = 0;
 				// create a checkbox for each value
 				for ( String value : entry.getValue( )) {
 					JCheckBox cb = new JCheckBox( value, true );
+					this.checkboxes.get( entry.getKey( )).add( cb );
 					this.add( cb );
 					index++;
 				}
@@ -351,9 +357,26 @@ public class ExperimentSelectionDialog extends JDialog
 		}
 
 		public Set<Sample> getSamples( ) {
-			Set<Sample> returnValue = new TreeSet( );
-			// temporary
-			returnValue.addAll( this.samples );
+			Logger logger = Logger.getLogger( getClass( ));
+			logger.debug( "Initial Samples -> " + new TreeSet( this.samples ));
+			AttributesFilterList<Sample> filter = new AttributesFilterList( );
+			for( Map.Entry<String,Collection<JCheckBox>> entry : 
+				   this.checkboxes.entrySet( )) {
+				AttributesFilterList<Sample> orFilter = 
+					new AttributesFilterList( AttributesFilterList.OR );
+				for( JCheckBox cb : entry.getValue( )) {
+					if ( cb.isSelected( )) {
+						Criterion criterion = new Criterion<Sample>( entry.getKey( ),
+						              cb.getText( ), Criterion.EQUAL );
+						logger.debug( criterion.toString( ) + " -> " + criterion.filter( samples ));
+						orFilter.add( criterion );
+					}
+				}
+				filter.add( orFilter );
+				logger.debug( orFilter.toString( ) + " -> " + orFilter.filter( samples ));
+			}
+			Set returnValue = new TreeSet( filter.filter( this.samples ));
+			logger.debug( filter.toString( ) + " -> " + returnValue );
 			return returnValue;
 		}
 	}
