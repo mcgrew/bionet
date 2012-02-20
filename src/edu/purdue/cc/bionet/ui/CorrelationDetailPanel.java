@@ -29,13 +29,18 @@ import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -46,6 +51,7 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -86,13 +92,14 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	public CorrelationDetailPanel( Correlation correlation, Range range, 
 			DetailWindow detailWindow, int correlationMethod ) {
 		super( new BorderLayout( ));
+		Language language = Settings.getLanguage( );
 		this.correlation = correlation;
 		this.correlationRange = range.clone( );
 		this.detailWindow = detailWindow;
 		this.correlationMethod = correlationMethod;
 		this.correlations = this.detailWindow.getCorrelations( );
 
-		String buttonText = Settings.getLanguage( ).get( "Show Correlated" );
+		String buttonText = language.get( "Show Correlated" );
 		this.firstMoleculeButton = new JButton( buttonText );
 		this.secondMoleculeButton = new JButton( buttonText );
 
@@ -118,15 +125,26 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		moleculePane.add( bottomMoleculePanel );
 		JPanel moleculePanel = new JPanel( new BorderLayout( ));
 		moleculePanel.add( moleculePane, BorderLayout.CENTER );
-		JPanel graphPanel = new ScatterPlot( correlation, correlations );
+		ScatterPlot graphPanel = new ScatterPlot( correlation, correlations );
 		JPanel infoPanel = new InfoPanel( 
 			this.correlation.getValue( this.correlationMethod ), 
-			((ScatterPlot)graphPanel).getSamples( ).size( ));
+			graphPanel.getSamples( ).size( ));
+		JPanel rightPanel = new JPanel( new BorderLayout( ));
+		rightPanel.add( infoPanel, BorderLayout.CENTER );
+		JCheckBox labelCheckBox = new JCheckBox( language.get( "Show Labels" ), 
+			Settings.getSettings( ).getBoolean( 
+				"window.detail.correlation.showLabels", true ));
+		labelCheckBox.addItemListener( graphPanel );
+		JPanel bottomRightPanel = new JPanel( new BorderLayout( ));
+		bottomRightPanel.add( new JPanel( ), BorderLayout.CENTER );
+		bottomRightPanel.add( labelCheckBox, BorderLayout.EAST );
+		bottomRightPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ));
+		rightPanel.add( bottomRightPanel, BorderLayout.SOUTH );
 
 		JPanel mainPanel = new JPanel( new BorderLayout( ));
 		mainPanel.add( moleculePanel, BorderLayout.WEST );
 		mainPanel.add( graphPanel, BorderLayout.CENTER );
-		mainPanel.add( infoPanel, BorderLayout.EAST );
+		mainPanel.add( rightPanel, BorderLayout.EAST );
 		moleculePanel.setPreferredSize( new Dimension( 200, 400 ));
 		infoPanel.setPreferredSize( new Dimension( 300, 400 ));
 		this.add( mainPanel, BorderLayout.CENTER );
@@ -152,7 +170,9 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 	/**
 	 * A panel for displaying a scatter plot containing molecule information.
 	 */
-	private class ScatterPlot extends JPanel implements XYItemLabelGenerator {
+	private class ScatterPlot extends JPanel 
+	                          implements XYItemLabelGenerator, XYToolTipGenerator,
+														           ItemListener {
 		private JFreeChart chart;
 		private List<Sample> samples;
 
@@ -191,7 +211,7 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 				dataset, // plot data
 				PlotOrientation.VERTICAL, // Plot Orientation
 				false, // show legend
-				false, // use tooltips
+				true, // use tooltips
 				false  // configure chart to generate URLs (?!)
 			);
 //			this.chart.getTitle( ).setFont( new Font( "Arial", Font.BOLD, 18 ));
@@ -200,9 +220,11 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 			plot.setBackgroundPaint( Color.WHITE );
 			plot.setRangeGridlinePaint( Color.GRAY );
 			plot.setDomainGridlinePaint( Color.GRAY );
+			// show the labels on the plot
 			XYItemRenderer renderer = plot.getRenderer( );
 			renderer.setBaseItemLabelGenerator( this );
-			renderer.setBaseItemLabelsVisible( true );
+			renderer.setBaseItemLabelsVisible( Settings.getSettings( ).getBoolean( 
+				"window.detail.correlation.showLabels", true ));
 		}
 
 		/**
@@ -215,6 +237,18 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 		 */
 		public String generateLabel( XYDataset dataset, int series, int item ) {
 			return this.samples.get( item ).toString( );
+		}
+
+		/**
+		 * The generateToolTip method of the XYToolTipGenerator interface.
+		 * 
+		 * @param dataset The dataset to generate labels for.
+		 * @param series The series for which the item belongs to.
+		 * @param item The item in the series to generate a label for.
+		 * @return The label for the item as a String.
+		 */
+		public String generateToolTip( XYDataset dataset, int series, int item ) {
+			return this.generateLabel( dataset, series, item );
 		}
 
 		/**
@@ -232,6 +266,15 @@ public class CorrelationDetailPanel extends JPanel implements ActionListener {
 
 		public List<Sample> getSamples( ) {
 			return this.samples;
+		}
+
+		public void itemStateChanged( ItemEvent e ) {
+			boolean selected = ((AbstractButton)e.getSource( )).isSelected( );
+			Settings.getSettings( ).setBoolean( 
+				"window.detail.correlation.showLabels", selected );
+			this.chart.getXYPlot( ).getRenderer( ).
+				setBaseItemLabelsVisible( selected );
+			this.repaint( );
 		}
 	}
 	
