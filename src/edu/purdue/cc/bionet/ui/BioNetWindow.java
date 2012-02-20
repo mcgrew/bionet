@@ -245,11 +245,11 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.menuBar = new JMenuBar( );
 		this.projectMenu = new JMenu( language.get( "Project" ));
 		this.newProjectMenuItem = new JMenuItem( 
-			language.get( "New Project" ), KeyEvent.VK_N );
+			language.get( "New Project" )+"...", KeyEvent.VK_N );
 		this.openProjectMenuItem = new JMenuItem( 
 			language.get( "Open Project" ) + "...", KeyEvent.VK_O );
 		this.saveProjectMenuItem = new JMenuItem( 
-			language.get( "Save" ) + "...", KeyEvent.VK_S );
+			language.get( "Save" ), KeyEvent.VK_S );
 		this.importProjectMenuItem = new JMenuItem( 
 			language.get( "Import Data" ) + "...", KeyEvent.VK_I );
 		this.openExperimentProjectMenu = new JMenu( 
@@ -298,7 +298,7 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 		this.helpMenu.setMnemonic( KeyEvent.VK_H );
 		this.helpMenu.getAccessibleContext( ).setAccessibleDescription(
 			language.get( "BioNet Help" ));
-		this.helpMenu.add( this.contentsHelpMenuItem );
+//		this.helpMenu.add( this.contentsHelpMenuItem );
 		this.helpMenu.add( this.aboutHelpMenuItem );
 
 		this.menuBar.add( this.projectMenu );

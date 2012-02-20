@@ -325,14 +325,15 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		this.showCorrelatedViewMenuItem = new JMenuItem( 
 			language.get( "Show All Correlated to Visible" ), KeyEvent.VK_S );
 		this.saveImageAction = new SaveImageAction( 
-			language.get( "Save Main Graph Image" ), null );
+			language.get( "Save Main Graph Image" ) + "..." , null );
 
 		// groups menu items
 		this.groupsMenu = new JMenu( language.get( "Groups" ));
 		this.resetSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_R );
 		this.chooseSampleGroupsMenuItem = 
-			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_C );
+			new JMenuItem( language.get( "Choose Sample Groups" ) + "...", 
+			               KeyEvent.VK_C );
 		
 		// color menu items
 		this.colorMenu = new JMenu( language.get( "Color" ));
