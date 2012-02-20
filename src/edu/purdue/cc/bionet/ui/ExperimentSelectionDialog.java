@@ -222,11 +222,9 @@ public class ExperimentSelectionDialog extends JDialog
 				returnCode = new Integer( TIME_COURSE_STUDY_VIEW );
 
 			Set<Sample> selectedItems = this.attributePanel.getSamples( );
-			System.out.println( selectedItems );
 			Set<Sample> filteredItems = 
 				this.frequencyFilterPanel.getFilter( ).filter( 
 					new TreeSet<Sample>( selectedItems ));
-			System.out.println( filteredItems );
 
 			this.returnValue = new ReturnValue( returnCode,
 				new ExperimentSet( this.samples.getName( ), filteredItems ));
