@@ -335,6 +335,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		this.chooseSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Choose Sample Groups" ) + "...", 
 			               KeyEvent.VK_C );
+		this.setFoldChangeGroupsMenuItem = 
 			new JMenuItem( language.get( "Set Fold Change" )+"...", KeyEvent.VK_F );
 		
 		// color menu items
