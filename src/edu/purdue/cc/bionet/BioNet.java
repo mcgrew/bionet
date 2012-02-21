@@ -115,8 +115,11 @@ public class BioNet {
 			}
 		}
 		// try to make this blend in
+		String lookAndFeel = settings.get( "preferences.global.lookAndFeel" );
+		if ( lookAndFeel == null )
+			lookAndFeel = UIManager.getSystemLookAndFeelClassName();
 		try {
-			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName());
+			UIManager.setLookAndFeel( lookAndFeel );
 		} catch ( Exception e ) {
 			Logger logger = Logger.getLogger( BioNet.class );
 			logger.debug( 
@@ -124,7 +127,6 @@ public class BioNet {
 				+ ":" , e );
 			logger.info( language.get( "Unable to load system look and feel, switching to default" ));
 		}
-		
 		BioNet.newWindow( );
 	}
 

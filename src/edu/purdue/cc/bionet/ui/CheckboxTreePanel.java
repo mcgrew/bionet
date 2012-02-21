@@ -20,6 +20,7 @@ along with BioNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.bionet.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,6 +36,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.DefaultCheckboxTreeCellRenderer;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingEvent;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingListener;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
@@ -65,6 +67,7 @@ public abstract class CheckboxTreePanel extends JPanel {
 		this.treeSelectionListeners = new ArrayList<TreeSelectionListener>( );
 		this.treeCheckingListeners = new ArrayList<TreeCheckingListener>( );
 		this.tree = new CheckboxTree( rootNode );
+		this.tree.setCellRenderer( new CustomCheckboxTreeCellRenderer( ));
 		this.tree.setSelectsByChecking( false );
 		this.tree.getCheckingModel( ).setCheckingMode( 
 			TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK );
@@ -328,6 +331,18 @@ public abstract class CheckboxTreePanel extends JPanel {
 	 */
 	public boolean removeTreeCheckingListener( TreeCheckingListener l ) {
 		return this.treeCheckingListeners.remove( l );
+	}
+
+	/**
+	 * Subclass of DefaultCheckboxTreeCellRenderer to fix a background color issue
+	 * around the checkboxes on Windows.
+	 */
+	private class CustomCheckboxTreeCellRenderer extends DefaultCheckboxTreeCellRenderer {
+
+		public CustomCheckboxTreeCellRenderer( ) {
+			super( );
+			this.checkBox.setBackground( new Color( 0, 0, 0, 0 ));
+		}
 	}
 }
 

@@ -143,8 +143,11 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 	 *	ignored.
 	 */
 	private void makeClosable( int index, boolean closable ) {
+		Color transparent = new Color( 0, 0, 0, 0 );
 		JPanel tabComponent = new JPanel( new BorderLayout( ));
+		tabComponent.setBackground( transparent );
 		JLabel tabLabel = new JLabel( this.getTitleAt( index ));
+		tabLabel.setBackground( transparent );
 		tabComponent.add( tabLabel, BorderLayout.CENTER );
 		TabCloseButton button = new TabCloseButton( );
 		tabComponent.add( button, BorderLayout.EAST );
@@ -307,6 +310,8 @@ public class ClosableTabbedPane extends JTabbedPane implements ActionListener,Mo
 			this.setFocusable( false );
 			this.setBorder( BorderFactory.createEtchedBorder( ));
 			this.setBorderPainted( false );
+			// transparent background
+			this.setBackground( new Color( 0, 0, 0, 0 ));
 		}
 		
 		/**
