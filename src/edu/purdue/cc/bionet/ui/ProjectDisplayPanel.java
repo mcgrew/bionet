@@ -352,7 +352,6 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 		Object source = e.getSource( );
 	}
 
-	@Deprecated
 	public boolean updateProject( ) {
 		return this.updateProject( this.project );
 	}
@@ -385,6 +384,7 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 			this.setProjectModified( true );
 		}
 
+		this.updateSamples( );
 		return this.isProjectModified( );
 	}
 
@@ -469,7 +469,6 @@ public class ProjectDisplayPanel extends AbstractDisplayPanel
 	public boolean saveProject( Project project ) {
 		Logger logger = Logger.getLogger( getClass( ));
 		this.updateProject( project );
-		this.updateSamples( );
 		try {
 			new ProjectInfoWriter( project ) .write( );
 			this.setProjectModified( false );
