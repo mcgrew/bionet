@@ -50,6 +50,7 @@ public class SpectrumLegend extends JPanel {
 		this.spectrum = spectrum;
 		this.range = range;
 		this.setForeground( Color.BLACK );
+		this.setBackground( new Color( 0, 0, 0, 0 ));
 	}
 
 	protected void paintComponent( Graphics g ) {
@@ -128,10 +129,6 @@ public class SpectrumLegend extends JPanel {
 
 	public void setBounds( Rectangle rect ) {
 		Graphics g = this.getGraphics( );
-		if ( g != null ) {
-			g.setColor( this.getParent( ).getBackground( ));
-			g.fillRect( 0, 0, this.getWidth( ), this.getHeight( ));
-		}
 		super.setBounds( rect );
 	}
 }
