@@ -315,6 +315,7 @@ public class ExperimentSelectionDialog extends JDialog
 	private class AttributePanel extends JPanel {
 		private Collection<Sample> samples;
 		private Map<String,Collection<JCheckBox>> checkboxes;
+		private static final String EMPTY = "[empty]";
 
 		public AttributePanel( Collection<Sample> samples ) {
 			super( new GridLayout( ));
@@ -341,7 +342,13 @@ public class ExperimentSelectionDialog extends JDialog
 				int index = 0;
 				// create a checkbox for each value
 				for ( String value : entry.getValue( )) {
-					JCheckBox cb = new JCheckBox( value, true );
+					JCheckBox cb; 
+					// replace empty values with EMPTY
+					if ( value.equals( "" )) {
+						cb = new JCheckBox( EMPTY, true );
+					} else {
+						cb = new JCheckBox( value, true );
+					}
 					this.checkboxes.get( entry.getKey( )).add( cb );
 					this.add( cb );
 					index++;
@@ -364,8 +371,12 @@ public class ExperimentSelectionDialog extends JDialog
 					new AttributesFilterList( AttributesFilterList.OR );
 				for( JCheckBox cb : entry.getValue( )) {
 					if ( cb.isSelected( )) {
+						String value = cb.getText( );
+						// replace the blank value
+						if ( EMPTY.equals( value ))
+							value = "";
 						Criterion criterion = new Criterion<Sample>( entry.getKey( ),
-						              cb.getText( ), Criterion.EQUAL );
+						              value, Criterion.EQUAL );
 						logger.debug( criterion.toString( ) + " -> " + criterion.filter( samples ));
 						orFilter.add( criterion );
 					}
