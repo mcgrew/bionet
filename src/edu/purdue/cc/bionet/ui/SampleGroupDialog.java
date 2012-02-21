@@ -286,7 +286,7 @@ public class SampleGroupDialog extends JDialog
 				filter.add( cp.getCriterion( ));
 			}
 			return new SampleGroup( 
-				String.format( "%s (%s)", this.title, filter.toString( )),
+				String.format( "%s %s", this.title, filter.toString( )),
 				filter.filter( all ));
 		}
 

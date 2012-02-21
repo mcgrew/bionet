@@ -206,6 +206,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	private JMenu groupsMenu;
 	private JMenuItem resetSampleGroupsMenuItem;
 	private JMenuItem chooseSampleGroupsMenuItem;
+	private JMenuItem setFoldChangeGroupsMenuItem;
 
 	
 	// color menu items
@@ -333,6 +334,8 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			new JMenuItem( language.get( "Reset Sample Groups" ), KeyEvent.VK_R );
 		this.chooseSampleGroupsMenuItem = 
 			new JMenuItem( language.get( "Choose Sample Groups" ), KeyEvent.VK_C );
+		this.setFoldChangeGroupsMenuItem =
+			new JMenuItem( language.get( "Set Fold Change" )+"...", KeyEvent.VK_F );
 		
 		// color menu items
 		this.colorMenu = new JMenu( language.get( "Color" ));
@@ -425,6 +428,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		this.viewMenu.add( this.saveImageAction );
 		this.resetSampleGroupsMenuItem.addActionListener( this );
 		this.chooseSampleGroupsMenuItem.addActionListener( this );
+		this.setFoldChangeGroupsMenuItem.addActionListener( this );
 		this.zoomOutViewMenuItem.addActionListener( this );
 		this.zoomInViewMenuItem.addActionListener( this );
 		this.fitToWindowViewMenuItem.addActionListener( this );
@@ -446,6 +450,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		this.groupsMenu.setMnemonic( KeyEvent.VK_G );
 		this.groupsMenu.add( this.resetSampleGroupsMenuItem );
 		this.groupsMenu.add( this.chooseSampleGroupsMenuItem );
+		this.groupsMenu.add( this.setFoldChangeGroupsMenuItem );
 
 		this.zoomOutViewMenuItem.setAccelerator( 
 			KeyStroke.getKeyStroke( KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK ));
@@ -761,6 +766,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	 */
 	public void actionPerformed( ActionEvent event ) {
 		Component item = ( Component )event.getSource( );
+		Language language = Settings.getLanguage( );
 			PickedState <Molecule> pickedVertexState = this.graph.getPickedVertexState( );
 			PickedState <Correlation> pickedEdgeState = this.graph.getPickedEdgeState( );
 			Collection <Molecule> vertices = new Vector( this.graph.getVertices( ));
@@ -832,7 +838,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				frame = frame.getParent( );
 			}
 			this.setSampleGroups( SampleGroupDialog.showInputDialog( 
-					(Frame)frame, Settings.getLanguage( ).get( "Choose groups" ), 
+					(Frame)frame, language.get( "Choose groups" ), 
 					this.samples));
 			if ( this.getSampleGroups( ).size( ) > 1 ) {
 				this.infoPanel.repaint( );
@@ -852,9 +858,30 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		} else if ( item == this.resetSampleGroupsMenuItem ) {
 			Collection<SampleGroup> sampleGroups = new ArrayList<SampleGroup>( );
 			sampleGroups.add( new SampleGroup( 
-				Settings.getLanguage( ).get( "All samples" ), this.samples ));
+				language.get( "All samples" ), this.samples ));
 			this.setSampleGroups( sampleGroups );
 			this.infoPanel.repaint( );
+		} else if ( item == this.setFoldChangeGroupsMenuItem ) {
+			Settings settings = Settings.getSettings( );
+			double newFold = 0.0;
+			String newFoldEntry = 
+				JOptionPane.showInputDialog( this, 
+					language.get( "Enter new fold change value" ),
+					settings.get( "preferences.correlation.foldChange", "2.0" ));
+			if ( newFoldEntry != null ) {
+				try {
+					newFold = Double.parseDouble( newFoldEntry );
+				} catch ( NumberFormatException e ) { }
+				if ( newFold < 1.0 ) {
+					Logger.getLogger( getClass( )).error( 
+						"You entered an invalid number. The fold change parameter should " +
+						"be a number greater than or equal to 1.0" );
+				} else {
+					settings.setDouble( "preferences.correlation.foldChange", newFold );
+					this.repaint( );
+				}
+			}
+
 		}
 	}
 
@@ -1598,42 +1625,6 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				text = String.format( language.get( "Correlation Method" ) + ": %s",
 					Correlation.NAME[ correlationMethod.intValue( )]);
 				g.drawString( text, 20, 50 );
-//				if ( sampleGroups.size( ) > 1 ) {
-//
-//					int leftMargin = 300;
-//					// list the samples in group 1.
-//					Iterator<SampleGroup> groupIterator = sampleGroups.iterator( );
-//					SampleGroup group1 = groupIterator.next( );
-//					text = group1.toString( );
-//					g.drawString( text, leftMargin, 50 );
-//					g.drawLine( leftMargin, 52, leftMargin + f.stringWidth( text ), 52 );
-//					int verticalPos = 70;
-//					for ( Sample s : group1 ) {
-//						g.drawString( s.toString( ), leftMargin, verticalPos );
-//						verticalPos += 20;
-//					}
-//					
-//					// list the samples in group 2.
-//					SampleGroup group2 = groupIterator.next( );
-//					text = group2.toString( );
-//					int col2Margin = leftMargin + 230;
-//					int stringWidth = f.stringWidth( text );
-//					int rightMargin = col2Margin + stringWidth;
-//					g.drawString( text, col2Margin, 50 );
-//					g.drawLine( col2Margin, 52, col2Margin + stringWidth, 52 );
-//					verticalPos = 70;
-//					for ( Sample s : group2 ) {
-//						g.drawString( s.toString( ), col2Margin, verticalPos );
-//						verticalPos += 20;
-//					}
-//
-//					// create a heading
-//					int center = leftMargin + ( rightMargin - leftMargin ) / 2;
-//					text = language.get( "Sample Groups" );
-//					stringWidth = f.stringWidth( text );
-//					g.drawString( text, center - stringWidth/2, 30 );
-//					g.drawLine( center - stringWidth/2, 32, center + stringWidth/2, 32 );
-//			}
 			}
 
 			/**
@@ -2620,6 +2611,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 					this.downRegulationOutline, null ));
 			if ( sg.size( ) > 1 ) {
 				resetSampleGroupsMenuItem.setEnabled( true );
+				setFoldChangeGroupsMenuItem.setEnabled( true );
 				this.add( this.regulationLegend );
 				this.componentMoved( new ComponentEvent( this, -1 ));
 				multipleCirclesLayoutMenuItem.setEnabled( true );
@@ -2628,6 +2620,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 					this.remove( this.regulationLegend );
 				}
 				resetSampleGroupsMenuItem.setEnabled( false );
+				setFoldChangeGroupsMenuItem.setEnabled( false );
 			}
 			this.repaint( );
 		}
