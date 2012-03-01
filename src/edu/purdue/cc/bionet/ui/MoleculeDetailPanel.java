@@ -27,6 +27,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,11 +42,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.table.TableModel;
 
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.cc.bionet.io.SaveImageAction;
+import edu.purdue.cc.bionet.thirdparty.BareBonesBrowserLaunch;
 import edu.purdue.cc.bionet.util.Correlation;
 import edu.purdue.cc.bionet.util.CorrelationSet;
 import edu.purdue.cc.bionet.util.Molecule;
@@ -91,8 +95,62 @@ public class MoleculeDetailPanel extends JPanel implements ActionListener {
 		this.detailWindow = detailWindow;
 
 		Language language = Settings.getLanguage( );
-		this.moleculeDetailTable = 
+		this.moleculeDetailTable =
 			DataTable.getMoleculeTable( this.correlations, this.molecule );
+		// add a listener to listen for clicks on particular cells and
+		// open a web browser if appropriate.
+		this.moleculeDetailTable.addMouseListener( new MouseAdapter( ) {
+
+				private final String keggURL = 
+					"http://www.genome.jp/dbget-bin/www_bget?cpd:%s";
+				private final String lipidMapsURL = 
+					"http://www.lipidmaps.org/data/LMSDRecord.php?LMID=%s";
+				private final String hmdbURL = "http://www.hmdb.ca/metabolites/%s";
+
+				public void mouseClicked( MouseEvent e ){ 
+					JTable table = (JTable)e.getSource( );
+					// determine the columns for attribute and value.
+					// there are only 2 columns.
+					int attributeColumn = 
+						"Attribute".equals( table.getColumnName( 0 )) ? 0 : 1;
+					int valueColumn = 1 - attributeColumn;
+
+					TableModel model = table.getModel( );
+					int clickedColumn = table.columnAtPoint( e.getPoint( ));
+					int clickedRow = table.rowAtPoint( e.getPoint( ));
+					String attribute = 
+						model.getValueAt( clickedRow, attributeColumn ).toString( );
+					if ( clickedColumn == valueColumn ) {
+						String[] values = model.getValueAt( clickedRow, clickedColumn ).
+							toString( ).split( "[;,]" );
+						if ( "keg_id".equals( attribute )) {
+							for ( String value : values ) {
+								if ( !value.toLowerCase( ).equals( "unknown" )) {
+									BareBonesBrowserLaunch.openURL( 
+										String.format( keggURL, value ));
+								}
+							}
+						}
+						if ( "lm_id".equals( attribute )) {
+							for ( String value : values ) {
+								if ( !value.toLowerCase( ).equals( "unknown" )) {
+									BareBonesBrowserLaunch.openURL( 
+										String.format( lipidMapsURL, value ));
+								}
+							}
+						}
+						if ( "hm_id".equals( attribute )) {
+							for ( String value : values ) {
+								if ( !value.toLowerCase( ).equals( "unknown" )) {
+									BareBonesBrowserLaunch.openURL( 
+										String.format( hmdbURL, value ));
+								}
+							}
+						}
+					}
+				}
+			});
+
 		this.correlationsTable = 
 			DataTable.getCorrelatedTable( this.correlations, this.molecule,
 			                              this.correlationRange,

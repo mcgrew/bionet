@@ -123,6 +123,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
@@ -1533,6 +1534,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			this.conditionPanel.groupStateChanged( event );
 		}
 
+		// ====================== LinkListener ==================================
 		// ====================== PickedColumnRenderer ==========================
 		/**
 		 * A class for highlighting the selected correlation in the InfoTable
