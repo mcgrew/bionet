@@ -263,7 +263,12 @@ public class ExperimentSet extends SampleGroup {
 		SortedSet<SampleGroup> returnValue = new TreeSet( );
 		// place the samples in separate groups based on time.
 		for ( Sample sample : this ) {
-			String id = sample.getAttribute( "time" ) + " " + this.getTimeUnit( );
+			String id;
+			if ( this.getTimeUnit( ) != null )
+				id = sample.getAttribute( "time" ) + " " + this.getTimeUnit( );
+			else
+				id = "Time " + sample.getAttribute( "time" );
+
 			SampleGroup group = null;
 			// find the right group for this sample.
 			for ( SampleGroup g : returnValue ) {

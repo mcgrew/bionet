@@ -226,8 +226,13 @@ public class ExperimentSelectionDialog extends JDialog
 				this.frequencyFilterPanel.getFilter( ).filter( 
 					new TreeSet<Sample>( selectedItems ));
 
-			this.returnValue = new ReturnValue( returnCode,
-				new ExperimentSet( this.samples.getName( ), filteredItems ));
+			ExperimentSet returnedSet = 
+				new ExperimentSet( this.samples.getName( ), filteredItems );
+			if ( this.samples instanceof ExperimentSet ) {
+				returnedSet.setTimeUnit(
+					((ExperimentSet)this.samples).getTimeUnit( ));
+			}
+			this.returnValue = new ReturnValue( returnCode, returnedSet );
 			this.setVisible( false );
 		}
 

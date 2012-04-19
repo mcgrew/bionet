@@ -163,6 +163,8 @@ public class MetsignDataReader extends DataReader {
 						dir.getName( ), new File( this.resource ));
 					if ( project.hasAttribute( "time unit" )) {
 						set.setTimeUnit( project.getAttribute( "time unit" ));
+					} else {
+						logger.debug( "No time unit specified in the project metadata." );
 					}
 					project.add( set );
 				}

@@ -2,7 +2,7 @@
 "Analytical Platform","GCxGC-MS",,,
 "Description","This is my description",,,
 "GC Method",,,,
-"Time Unit",,,,
+"Time Unit","Weeks",,,
 ,,,,
 "Sample File","Time","Group","F/M","Age"
 "BLANK_1.csv",0,,,
