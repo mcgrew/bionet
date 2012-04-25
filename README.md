@@ -1,60 +1,60 @@
 
-JSysNet
+BioNet
 =======
 
-JSysNet is a visualization tool for experimental data. It allows interactive data mining of experimental data. 
-JSysNet currently has 3 views:
+BioNet is a visualization tool for experimental data. It allows interactive data mining of experimental data. 
+BioNet currently has 3 views:
 
 * Correlation
 * Comparartive Analysis
 * Time Course Study
 
-JSysNet is still alpha level software, and so some things will not work properly at this time. The Correlation
+BioNet is still alpha level software, and so some things will not work properly at this time. The Correlation
 veiw is mostly complete, and initial work on Comparative Analysis has been done, but it is currently not very 
 functional. Time course study is not yet implemented.
 
 
-Getting and Running JSysNet
+Getting and Running BioNet
 ---------------------------
 
-As JSysNet is currently alpha level software, there are no releases as of yet. To obtain a copy of JSysNet, you must
+As BioNet is currently alpha level software, there are no releases as of yet. To obtain a copy of BioNet, you must
 obtain and compile a copy of the code from github. You may check out the code with svn or git. To check out the code 
 with git from the command line, navigate to the directory you wish to keep the code in, and type:
 
-`git clone git://github.com/MetPP/jsysnet.git`
+`git clone git://github.com/MetPP/bionet.git`
 
 or
 
-`git clone http://github.com/MetPP/jsysnet.git`
+`git clone http://github.com/MetPP/bionet.git`
 
 __Or__, if you prefer subversion:
 
-`svn checkout http://svn.github.com/MetPP/jsysnet.git`
+`svn checkout http://svn.github.com/MetPP/bionet.git`
 
-You may also obtain a compressed archive of the code by visiting <http://github.com/MetPP/jsysnet> and clicking on the
-_Downloads_ button. In order to compile and run JSysNet you will need the 
+You may also obtain a compressed archive of the code by visiting <http://github.com/MetPP/bionet> and clicking on the
+_Downloads_ button. In order to compile and run BioNet you will need the 
 [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) from Oracle, along with 
 [Apache Ant](http://ant.apache.org/). The OpenJDK is not currently recommended, as the 2D graphics performance is
 significantly slower than the official Oracle release. 
 
-To compile JSysNet, first change to the root directory of the repository. To compile a distributable jar file which 
+To compile BioNet, first change to the root directory of the repository. To compile a distributable jar file which 
 contains all necessary libraries, simply run the command
 
 `ant dist`
 
-After this, you should have a file called `JSysNet.jar` in your current directory. You may then run JSysNet by typing:
+After this, you should have a file called `BioNet.jar` in your current directory. You may then run BioNet by typing:
 
-`java -jar JSysNet.jar`
+`java -jar BioNet.jar`
 
 There are a few other commands which may be helpful, such as `ant jar` to compile a version without the included 
-libraries.  In this case you will need the _lib_ folder from the repository in order to run JSysNet. `ant run` will 
-simply run JSysNet without creating a _jar_ file.
+libraries.  In this case you will need the _lib_ folder from the repository in order to run BioNet. `ant run` will 
+simply run BioNet without creating a _jar_ file.
 
 ### Development
 
-If you wish to contribute to JSysNet or just make some changes to the code, you will find the API documentation in
+If you wish to contribute to BioNet or just make some changes to the code, you will find the API documentation in
 docs/api/index.html from the root of the repository. This is normally kept up to date, but you may wish to run 
-`ant docs` to regenerate the documentation to be sure. As JSysNet is still under heavy development, we are not
+`ant docs` to regenerate the documentation to be sure. As BioNet is still under heavy development, we are not
 soliciting any bug reports at this time, but you are welcome to submit patches via a github pull request, or by
 contacting [the developer](http://github.com/mcgrew) on github.
 
@@ -62,8 +62,8 @@ contacting [the developer](http://github.com/mcgrew) on github.
 Getting Started
 ---------------
 
-Once you have JSysNet running, you are presented with an empty window. By going to the _File_ menu and selecting
-_Open_, you will be presented with a file dialog which will allow you to open a JSysNet project folder. There is
+Once you have BioNet running, you are presented with an empty window. By going to the _File_ menu and selecting
+_Open_, you will be presented with a file dialog which will allow you to open a BioNet project folder. There is
 a set of example data in the _sampleData/text_ directory in the repository. This should get you started. Select this
 folder and click _Open_, after which you will be presented another dialog to choose which view you would like to
 see. Select the proper view on the right, and Choose the experiment(s) you would like to view. _Correlation View_
@@ -74,7 +74,7 @@ experiments to be selected.
 Correlation View
 ----------------
 
-The correlation view for JSysNet allows you to see Correlations between molecules measured in an experiment. Correlation
+The correlation view for BioNet allows you to see Correlations between molecules measured in an experiment. Correlation
 View will create a network view of the data and allow you to filter connections by correlation value. The network graph
 will consist of a number of nodes, each of which will denote a molecule in the experimental data, each with multiple
 sample values. For any 2 molecules, the sample values are used to determin their correlation value, denoted by the
@@ -118,7 +118,7 @@ the selection.
 	contains the id of the node at each end of the edge, along with the Pearson, Spearman Rank, and Kendall Tau-b rank 
 	values of the correlations. The currently displayed correlation value is highlighted in yellow.
 * __Diplay Conditions Tab__: This tab merely shows the currently selected layout along with the current selected 
-	correlation calculation method.
+	correlation calculation method and selected groups.
 * __Topological Information Tab__: This tab contains information about the network topology:
 	* the number of nodes 
 	* the number of edges 
@@ -141,20 +141,21 @@ the selection.
 There are several automatic layouts available in correlation view. When the view is loaded, the network will be in
 multiple circle layout.
 
-* __Multiple Circle Layout__: Multiple Circle Layout organizes the nodes based on their `group_name` attribute. Each 
-	group will be a circle on the network graph, and these circles will be arranged in a larger circle pattern.
+* __Multiple Circle Layout__: Multiple Circle Layout organizes the nodes into 3 groups, one for up-regulated molecules,
+	one for down-regulated molecules, and one for neutral molecules. Each group will be a circle on the network graph. The
+	grouping is based on the sample groups you have chosen and the fold change parameter you have set.
 * __Single Circle Layout__: Single Circle Layout is just that, all nodes are laid out in one large circle.
 * __Random__: Nodes are placed randomly on the graph.
 * __Kamada-Kawai__: Nodes are laid out according to the Kamada-Kawai Algorithm implementation in 
 	[JUNG](http://jung.sourceforge.net). This is an iterative layout, and therefore the network may still be in a state 
 	of flux when it is first loaded. This may cause some nodes to move around after the initial layout.
+* __Spring Layout__: This layout starts with all nodes in the `Single Circle` layout. It
+	uses a slightly modified version of the Fruchterman-Reingold algorithm to refine the placement of the nodes in the 
+	network. The modification to the algorithm is that the optimal node placement is weighted by the correlation value. 
+	This layout method is iterative and animated.
 * __Heat Map__: The heat map view is different from the other layouts in that is not a network graph, but instead shows 
 	all of the possible correlations in a heat map, with colors to denote their value. You may click any of these colored 
 	blocks to view more detail about the correlation.
-* __Fruchterman-Reingold Spring Embedding__: Instead of a layout of its own, this option modifies an existing layout. It
-	uses a slightly modified version of the Fruchterman-Reingold algorithm to refine the placement of the nodes in the 
-	network. The modification to the algorithm is that the optimal node placement is weighted by the correlation value. 
-	This layout method is iterative and animated, and it may be started or stopped by clicking on the menu item.
 
 ### The View Menu
 
@@ -164,7 +165,7 @@ multiple circle layout.
 * __Selection Control__: This second section allows you to manipulate the graph selection.
 	* __Select All__: Selects all nodes and edges in the graph.
 	* __Clear Selection__: De-selects all nodes and edges in the graph.
-	* __Invert Selectsion__: Selects all nodes and edges which are not selected and de-selects those that are.
+	* __Invert Selection__: Selects all nodes and edges which are not selected and de-selects those that are.
 	* __Select Correlated to Selection__: Examines the current selected nodes and selects all nodes which are connected to
 		the selected nodes by an edge, also selecting that edge.
 * __Visibility Control__: This third section allows you to control which molecules are visible on the graph. The 
@@ -176,6 +177,8 @@ multiple circle layout.
 		graph.
 	* __Show All Correlated to Visible__: Brings back nodes which are currently hidden, but would be connected to a currently
 		visible node on the graph if they were not hidden.
+	* __Save Main Graph Image__: This will display a save dialog allowing you to save the network graph (or heat map) currently
+		displayed to an image file. The file will have the same dimensions as the currently displayed graph.
 
 
 Development Team
