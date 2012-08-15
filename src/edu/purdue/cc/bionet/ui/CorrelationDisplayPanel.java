@@ -21,6 +21,7 @@ package edu.purdue.cc.bionet.ui;
 
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.MutableNumber;
+import edu.purdue.bbc.util.NumberList;
 import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
@@ -2824,7 +2825,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			 * @param neutralPaint The Paint to be used for outlining Molecules which
 			 *  are neither up or downregulated.
 			 */
-			private RegulationTransformer ( Pair<SampleGroup> sg, 
+			public RegulationTransformer ( Pair<SampleGroup> sg, 
 																		 Paint upPaint,
 																		 Paint downPaint, 
 																		 Paint neutralPaint ) {
@@ -2846,7 +2847,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			 * @param neutralPaint The Paint to be used for outlining Molecules which
 			 *  are neither up or downregulated.
 			 */
-			private RegulationTransformer ( Collection<SampleGroup> sg, 
+			public RegulationTransformer ( Collection<SampleGroup> sg, 
 																		 Paint upPaint,
 																		 Paint downPaint, 
 																		 Paint neutralPaint ) {
@@ -2876,8 +2877,13 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 							 this.sampleGroups.getSecond( ).size( ) == 0 ) {
 						return this.neutralPaint;
 					}
-					double mean1 = m.getValues( sampleGroups.getFirst( )).getMean( );
-					double mean2 = m.getValues( sampleGroups.getSecond( )).getMean( );
+					NumberList group1 = m.getValues( sampleGroups.getFirst( ));
+					NumberList group2 = m.getValues( sampleGroups.getSecond( ));
+          filterZeros( group1 );
+          filterZeros( group2 );
+          double mean1 = group1.getMean( );
+          double mean2 = group2.getMean( );
+
 					double foldChange = Settings.getSettings( ).getDouble( 
 						"preferences.correlation.foldChange", 2.0 );
 					if ( mean2 / mean1 > foldChange ) {
@@ -2890,6 +2896,24 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				return this.neutralPaint;
 			}
 		}
+
+    /**
+     * Removes an element from a list when the element in either is equal to 
+     * 0. Double.compare( ) is used to determine this. This operation is 
+     * destructive and therefore you should pass a copy of the List if you do not 
+     * want the original to be modified.
+     * 
+     * @param list The list to be filtered.
+     */
+    private void filterZeros ( List<Number> list ) {
+      int size = list.size( );
+      for ( int i=size - 1; i >= 0;  i-- ) {
+        if ( Double.compare( list.get( i ).doubleValue( ), 0.0 ) == 0 ) {
+          list.remove( i );
+        }
+      }
+    }
+    
 	}
 
 	// ====================== RegulationLegend =================================

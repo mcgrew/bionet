@@ -786,10 +786,10 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 
 			if ( choice.getKey( ).intValue( ) == 
 				   ExperimentSelectionDialog.CORRELATION_VIEW ) {
-				if ( this.experiments.getSamples( ).size( ) <= 2 ) {
+				if ( this.experiments.getSamples( ).size( ) <= 3 ) {
 					Logger.getLogger( getClass( )).error(
-						"This experiment appears to contain less than 2 valid samples.\n" +
-						"Correlation calculations require at least 2 samples." );
+						"This experiment appears to contain less than 3 valid samples.\n" +
+						"Correlation calculations require at least 3 samples." );
 					return;
 				}
 				CorrelationDisplayPanel cdp = new CorrelationDisplayPanel( );
