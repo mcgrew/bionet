@@ -56,15 +56,12 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 
 	private double radius;
 	Pair<SampleGroup> sampleGroups;
-	private double foldChange;
 	
 	/**
 	 * Creates an instance for the specified graph.
 	 */
 	public MultipleCirclesLayout(Graph<V,E> g) {
 		super(g);
-		this.foldChange = Settings.getSettings( ).getDouble( 
-			"preferences.correlation.foldChange", 2.0 );
 	}
 
 	/**
@@ -144,14 +141,14 @@ public class MultipleCirclesLayout<V,E> extends AbstractLayout<V,E> {
 
 	private boolean isUpRegulated( Pair<SampleGroup> pair, V v ) {
 		Molecule m = (Molecule)v;
-		return m.getValues( pair.getFirst( )).getMean( ) /
-			m.getValues( pair.getSecond( )).getMean( ) > this.foldChange;
+    return CorrelationDisplayPanel.getRegulation( 
+      m, pair ) > 0;
 	}
 
 	private boolean isDownRegulated( Pair<SampleGroup> pair, V v ) {
 		Molecule m = (Molecule)v;
-		return m.getValues( pair.getSecond( )).getMean( ) /
-			m.getValues( pair.getFirst( )).getMean( ) > this.foldChange;
+    return CorrelationDisplayPanel.getRegulation( 
+      m, pair ) < 0;
 	}
 }
 

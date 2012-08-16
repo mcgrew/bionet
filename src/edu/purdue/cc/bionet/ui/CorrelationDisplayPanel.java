@@ -892,6 +892,47 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		return this.graph;
 	}
 
+  public static int getRegulation( Molecule m, Pair<SampleGroup> sampleGroups ){
+    if ( sampleGroups == null ) {
+      return 0;
+    }
+    NumberList group1 = m.getValues( sampleGroups.getFirst( ));
+    NumberList group2 = m.getValues( sampleGroups.getSecond( ));
+    filterZeros( group1 );
+    filterZeros( group2 );
+    if ( group1.size( ) == 0 || group2.size( ) == 0 ) {
+      return  0;
+    }
+    double mean1 = group1.getMean( );
+    double mean2 = group2.getMean( );
+    double foldChange = Settings.getSettings( ).getDouble( 
+      "preferences.correlation.foldChange", 2.0 );
+    if ( mean2 / mean1 > foldChange ) {
+      return 1;
+    }
+    if ( mean1 / mean2  > foldChange ) {
+      return -1;
+    }
+    return 0;
+  }
+
+  /**
+   * Removes an element from a list when the element in either is equal to 
+   * 0. Double.compare( ) is used to determine this. This operation is 
+   * destructive and therefore you should pass a copy of the List if you do not 
+   * want the original to be modified.
+   * 
+   * @param list The list to be filtered.
+   */
+  private static void filterZeros ( List<Number> list ) {
+    int size = list.size( );
+    for ( int i=size - 1; i >= 0;  i-- ) {
+      if ( Double.compare( list.get( i ).doubleValue( ), 0.0 ) == 0 ) {
+        list.remove( i );
+      }
+    }
+  }
+
 	// =================== PRIVATE/PROTECTED CLASSES ==========================
 	// ====================== MoleculeFilterPanel =============================
 
@@ -2872,47 +2913,18 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			 * @return The Paint to use.
 			 */
 			public Paint transform( Molecule m ) {
-				if ( this.sampleGroups != null ) {
-					if ( this.sampleGroups.getFirst( ).size( ) == 0  || 
-							 this.sampleGroups.getSecond( ).size( ) == 0 ) {
-						return this.neutralPaint;
-					}
-					NumberList group1 = m.getValues( sampleGroups.getFirst( ));
-					NumberList group2 = m.getValues( sampleGroups.getSecond( ));
-          filterZeros( group1 );
-          filterZeros( group2 );
-          double mean1 = group1.getMean( );
-          double mean2 = group2.getMean( );
-
-					double foldChange = Settings.getSettings( ).getDouble( 
-						"preferences.correlation.foldChange", 2.0 );
-					if ( mean2 / mean1 > foldChange ) {
-						return this.upPaint;
-					}
-					if ( mean1 / mean2  > foldChange ) {
-						return this.downPaint;
-					}
-				}
+        int regulation = 
+          CorrelationDisplayPanel.getRegulation( m, this.sampleGroups );
+        if ( regulation > 0 ) {
+          return this.upPaint;
+        }
+        if ( regulation < 0 ) {
+          return this.downPaint;
+        }
 				return this.neutralPaint;
 			}
 		}
 
-    /**
-     * Removes an element from a list when the element in either is equal to 
-     * 0. Double.compare( ) is used to determine this. This operation is 
-     * destructive and therefore you should pass a copy of the List if you do not 
-     * want the original to be modified.
-     * 
-     * @param list The list to be filtered.
-     */
-    private void filterZeros ( List<Number> list ) {
-      int size = list.size( );
-      for ( int i=size - 1; i >= 0;  i-- ) {
-        if ( Double.compare( list.get( i ).doubleValue( ), 0.0 ) == 0 ) {
-          list.remove( i );
-        }
-      }
-    }
     
 	}
 
