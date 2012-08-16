@@ -61,13 +61,8 @@ public class FastEdgeRenderer<V,E> extends BasicEdgeRenderer<V,E> {
 			g.setPaint( rc.getEdgeDrawPaintTransformer( ).transform( e ));
 			Point2D p1 = layout.transform(v1);
 			Point2D p2 = layout.transform(v2);
-			p1 = rc.getMultiLayerTransformer().transform(Layer.LAYOUT, p1);
-			p2 = rc.getMultiLayerTransformer().transform(Layer.LAYOUT, p2);
-			int x1 = (int) p1.getX();
-			int y1 = (int) p1.getY();
-			int x2 = (int) p2.getX();
-			int y2 = (int) p2.getY();
-			g.drawLine( x1, y1, x2, y2 );
+			g.drawLine( (int)p1.getX( ), (int)p1.getY( ), 
+                  (int)p2.getX( ), (int)p2.getY( ));
 		}
 		g.setPaint( oldPaint );
 	}

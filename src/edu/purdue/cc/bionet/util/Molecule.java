@@ -45,7 +45,10 @@ public class Molecule implements Comparable<Molecule> {
 	protected SortedMap <Sample,Number> samples;
 	protected Experiment experiment;
 	protected double molecularWeight;
-	protected String id;
+	public String id;
+  // optimization: only create one instance of each id to speed
+  // up comparison of molecules for equality.
+  private static List<String> ids = new ArrayList( );
 
 	/**
 	 * Constructs a new Molecule with the given id.
@@ -56,7 +59,12 @@ public class Molecule implements Comparable<Molecule> {
 		Logger.getLogger( getClass( )).debug( "Creating Molecule " + id );
 		this.attributes = new HashMap <String,String>( );
 		this.molecularWeight = Double.NaN;
-		this.id = id;
+    if ( ids.contains( id )) {
+      this.id = ids.get( ids.indexOf( id ));
+    } else {
+      ids.add( id ); 
+      this.id = id;
+    }
 	}
 
 	/**
@@ -242,7 +250,7 @@ public class Molecule implements Comparable<Molecule> {
 	 *	in a sorted list.
 	 */
 	public int compareTo( Molecule m ) {
-		int returnValue = this.getId( ).compareTo( m.getId( ));
+		int returnValue = this.id.compareTo( m.id );
 		return returnValue;
 	}
 
@@ -253,8 +261,13 @@ public class Molecule implements Comparable<Molecule> {
 	 * @return A boolean indicating if the 2 Objects are equal.
 	 */
 	public boolean equals( Object m ) {
-		if ( m instanceof Molecule )
-			return ( this.compareTo((Molecule)m ) == 0 );
+    if ( m == this )
+      return true;
+		if ( m instanceof Molecule ) {
+      if ( ((Molecule)m).id == this.id )
+        return true;
+      return false;
+    }
 		return this.toString( ).equals( m.toString( ));
 	}
 }

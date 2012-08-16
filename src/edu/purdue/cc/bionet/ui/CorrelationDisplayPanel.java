@@ -545,6 +545,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 
 		this.heatMapPanel = new HeatMap( this.getTitle( ), 
 		                                 this.correlations,
+                                     this.molecules,
 		                                 this.getCorrelationRange( ),
 		                                 this.correlationMethod );
 		this.graph.addVertexChangeListener( this.heatMapPanel );
@@ -668,6 +669,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		});
 
 	}
+  
 
 	private void setVisibleGraph( Scalable graph ) {
 		this.visibleGraph = graph;
@@ -2595,6 +2597,14 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 					}
 				});
 		}
+
+    // optimization
+    @Override
+    public edu.uci.ics.jung.graph.util.Pair<Molecule> getEndpoints( 
+      Correlation c ) {
+      return new edu.uci.ics.jung.graph.util.Pair<Molecule> (
+        c.getFirst( ), c.getSecond( ));
+    }
 
 		@Override
 		public void setBackground( Color color ) {

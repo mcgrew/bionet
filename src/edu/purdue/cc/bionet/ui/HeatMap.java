@@ -47,7 +47,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Vector;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
@@ -86,9 +85,10 @@ public class HeatMap extends JPanel implements MouseListener,
 	private CorrelationSet correlations;
 	private Number correlationMethod;
 
-	public HeatMap ( CorrelationSet correlations, 
+	public HeatMap ( CorrelationSet correlations, Collection<Molecule> molecules,
 	                 Number correlationMethod ) {
-		this( "", correlations, new MonitorableRange( 0.0, 1.0 ), correlationMethod );
+		this( "", correlations, molecules, new MonitorableRange( 0.0, 1.0 ), 
+          correlationMethod );
 	}
 
 	/**
@@ -103,7 +103,8 @@ public class HeatMap extends JPanel implements MouseListener,
 	 *	the correlation value.
 	 */
 	public HeatMap ( String title, CorrelationSet correlations,
-	                 MonitorableRange range, Number correlationMethod ) {
+                   Collection<Molecule> molecules, MonitorableRange range, 
+                   Number correlationMethod ) {
 		super( );
 		// add a context menu for saving the graph to an image
 		new ContextMenu( this ).add( new SaveImageAction( this ));
@@ -117,15 +118,7 @@ public class HeatMap extends JPanel implements MouseListener,
 		this.addMouseWheelListener( this );
 		this.addGraphMouseListener( this );
 		this.addComponentListener( this );
-		this.moleculeList = new Vector( );
-		for ( Correlation correlation : correlations ) {
-			if ( !this.moleculeList.contains( correlation.getFirst( ))) {
-				moleculeList.add( correlation.getFirst( ));
-			}
-			if ( !this.moleculeList.contains( correlation.getSecond( ))) {
-				moleculeList.add( correlation.getSecond( ));
-			}
-		}
+		this.moleculeList = new ArrayList( molecules );
 		this.spectrum = new SplitSpectrum( range, this.getBackground( ));
 		this.spectrum.setOutOfRangePaint( this.getBackground( ));
 		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
