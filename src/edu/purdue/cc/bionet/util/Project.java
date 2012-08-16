@@ -124,6 +124,21 @@ public class Project extends TreeSet<ExperimentSet>
 	}
 
 	/**
+	 * Gets an attribute for this object.
+	 * 
+	 * @param attribute The attribute to retrieve.
+	 * @param defaultValue The value to return if the attribute does not exist.
+	 * @return The value of the requested attribute, or defaultValue if it does 
+   *  not exist.
+	 */
+	public String getAttribute( String attribute, String defaultValue ) {
+		attribute = attribute.toLowerCase( );
+		String returnValue = this.attributes.get( attribute );
+    return ( returnValue == null ) ? defaultValue : returnValue;
+	}
+
+
+	/**
 	 * Gets the attributes of this object as a Map.
 	 * 
 	 * @return A Map containing the attributes of this object.

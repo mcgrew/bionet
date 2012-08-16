@@ -42,6 +42,17 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	}
 
 	/**
+	 * Creates a new CorrelationSet based on the passed in CorrelationSet.
+	 * 
+	 * @param c The CorrelationSet to base this new CorrelationSet on.
+	 */
+	public CorrelationSet( CorrelationSet c ) {
+		super( c );
+		this.samples = c.getSamples( );
+		this.molecules = new TreeSet<Molecule>( );
+	}
+
+	/**
 	 * Creates a new CorrelationSet based on the passed in CorrelationSet, but
 	 * using the newly passed in samples.
 	 * 

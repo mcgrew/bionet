@@ -20,6 +20,8 @@ along with BioNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.bionet.ui;
 
 import edu.purdue.cc.bionet.ui.layout.*;
+import edu.purdue.bbc.util.DaemonListener;
+import edu.purdue.bbc.util.UpdateDaemon;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -103,6 +105,8 @@ import org.apache.log4j.Logger;
 	protected boolean commonNeighborIndicator;
 	protected NeighborCollection<V,E> commonNeighbors;
 	private static final long repaintDelay = 1000L;
+  protected UpdateDaemon updateDaemon = 
+    UpdateDaemon.create( 100 );
 
 	/**
 	 * Constructs a GraphVisualizer object.
@@ -273,6 +277,7 @@ import org.apache.log4j.Logger;
 		this.getRenderContext( ).setEdgeDrawPaintTransformer( e );
 		this.setPickedLabelColor( this.pickedLabelColor );
 		this.commonNeighbors = new NeighborCollection<V,E>( this );
+    this.updateDaemon.start( );
 	}
 
 	/**
@@ -1235,7 +1240,7 @@ import org.apache.log4j.Logger;
 	}
 
 	private class NeighborCollection<V,E> extends LinkedList<V> implements 
-		PickedStateChangeListener<V>,GraphItemChangeListener<E> {
+		PickedStateChangeListener<V>,GraphItemChangeListener<E>,DaemonListener {
 		GraphVisualizer graph;
 		
 		public NeighborCollection( GraphVisualizer graph ) {
@@ -1272,6 +1277,10 @@ import org.apache.log4j.Logger;
 		}
 
 		private void update( ) {
+      updateDaemon.update( this );
+    }
+
+    public void daemonUpdate( ) {
 			Collection<V> selected = new Vector<V>( this.graph.getPickedVertexState( ).getPicked( ));
 			// if nothing is selected, this Collection should also contain nothing.
 			if ( selected.size( ) == 0 ) {

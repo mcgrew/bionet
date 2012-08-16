@@ -19,6 +19,7 @@ along with BioNet.  If not, see <http://www.gnu.org/licenses/>.
 
 package edu.purdue.cc.bionet.ui;
 
+import edu.purdue.bbc.util.DaemonListener;
 import edu.purdue.bbc.util.Language;
 import edu.purdue.bbc.util.MutableNumber;
 import edu.purdue.bbc.util.NumberList;
@@ -237,7 +238,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	/**
 	 * Creates a new CorrelationDisplayPanel. 
 	 */
-	public CorrelationDisplayPanel ( ) {
+	public CorrelationDisplayPanel( ) {
 		super( new BorderLayout( ) );
 		this.menuBar = new JMenuBar( );
 		this.graphSplitPane = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
@@ -760,7 +761,6 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 					correlationMethod.setValue( Correlation.KENDALL );
 			}
 			graph.filterEdges( );
-			graph.repaint( );
 		}
 	}
 
@@ -775,7 +775,10 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			PickedState <Molecule> pickedVertexState = this.graph.getPickedVertexState( );
 			PickedState <Correlation> pickedEdgeState = this.graph.getPickedEdgeState( );
 			Collection <Molecule> vertices = new Vector( this.graph.getVertices( ));
-			Collection <Correlation> edges = new Vector( this.graph.getEdges( ));
+      Collection <Correlation> edges;
+      synchronized( this.graph ) {
+        edges = new Vector( this.graph.getEdges( ));
+      }
 		if ( item == this.selectAllViewMenuItem ) {
 			this.graph.selectAll( );
 		} else if ( item == this.clearSelectionViewMenuItem ) {
@@ -1078,24 +1081,24 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		 * @param event the event which triggered this action.
 		 */
 		public void itemStateChanged( ItemEvent event ) {
-			synchronized( graph.getGraph( )) {
-				Molecule molecule = 
-					((MoleculeCheckBox)event.getSource( )).getMolecule( );
-				if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
-					graph.addVertex( molecule );
-					for( Correlation correlation : correlations ){
-						if ( graph.isValidEdge( correlation )) {
-							graph.addEdge( correlation,
-								new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
-									correlation.toArray( new Molecule[ 2 ])),
-									EdgeType.UNDIRECTED );
-						}
-					}
-				} else {
-					graph.getPickedVertexState( ).pick( molecule, false );
-					graph.removeVertex( molecule );
-				}
-			}
+      Molecule molecule = 
+        ((MoleculeCheckBox)event.getSource( )).getMolecule( );
+      if ( event.getStateChange( ) == ItemEvent.SELECTED ) {
+        graph.addVertex( molecule );
+        synchronized( graph ) {
+          for( Correlation correlation : correlations ){
+            if ( graph.isValidEdge( correlation )) {
+              graph.addEdge( correlation,
+                new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
+                  correlation.getFirst( ), correlation.getSecond( )),
+                  EdgeType.UNDIRECTED );
+            }
+          }
+        }
+      } else {
+        graph.getPickedVertexState( ).pick( molecule, false );
+        graph.removeVertex( molecule );
+      }
 			graph.repaint( );
 		}
 
@@ -1191,7 +1194,6 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				}
 			}
 			graph.filterEdges( );
-			graph.setIgnoreRepaint( false );
 		}
 
 		/**
@@ -1215,7 +1217,6 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				}
 			}
 			graph.filterEdges( );
-			graph.setIgnoreRepaint( false );
 		}
 
 		/**
@@ -1741,8 +1742,10 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				Language language = Settings.getLanguage( );
 				Vector <Molecule> molecules = 
 					new Vector<Molecule>( graph.getVertices( ));
-				Vector <Correlation> correlations = 
-					new Vector<Correlation>( graph.getEdges( ));
+        synchronized( graph ) {
+          Vector <Correlation> correlations = 
+            new Vector<Correlation>( graph.getEdges( ));
+        }
 //				g.setFont( new Font( "Sans Serif", Font.BOLD, 18 ));
 				String text;
 				
@@ -2633,11 +2636,13 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			// remove all edges and vertices.
 			for ( Molecule v : this.getVertices( ))
 				 this.removeVertex( v );
-			for ( Correlation e : this.getEdges( ))
-				 this.removeEdge( e );
-			// add the new data.
-			this.correlations = correlations;
-			this.molecules = correlations.getMolecules( );
+      synchronized( this ) {
+        for ( Correlation e : this.getEdges( ))
+           this.removeEdge( e );
+      }
+      // add the new data.
+      this.correlations = correlations;
+      this.molecules = correlations.getMolecules( );
 			this.addVertices( );
 			this.addEdges( );
 		}
@@ -2709,24 +2714,26 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		 * Adds the Vertices (Molecules) to the Graph
 		 */
 		protected void addVertices( ) {
-			for( Molecule molecule : this.correlations.getMolecules( )) {
-				this.graph.addVertex( molecule );
-			}
+      for( Molecule molecule : this.correlations.getMolecules( )) {
+        this.graph.addVertex( molecule );
+      }
 		}
 
 		/**
 		 * Adds the Edges (Correlations) to the Graph.
 		 */
 		protected void addEdges( ) {
-			for( Correlation correlation : this.correlations ) {
-				if ( this.isValidEdge( correlation )) {
-					this.graph.addEdge( 
-						correlation, 
-						new edu.uci.ics.jung.graph.util.Pair <Molecule> ( 
-							correlation.toArray( new Molecule[ 2 ])),
-						EdgeType.UNDIRECTED );
-				}
-			}
+        synchronized( graph ) { 
+          for( Correlation correlation : this.correlations ) {
+            if ( this.isValidEdge( correlation )) {
+              this.graph.addEdge( 
+                correlation, 
+                new edu.uci.ics.jung.graph.util.Pair <Molecule> ( 
+                  correlation.toArray( new Molecule[ 2 ])),
+                EdgeType.UNDIRECTED );
+            }
+          }
+        }
 		}
 
 		/**
@@ -2735,36 +2742,38 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		 * 
 		 * @return The new number of edges contained in the graph.
 		 */
-		public int filterEdges( ) {
-			
-			int returnValue = 0;
-			for( Correlation correlation : this.correlations ) {
-				if ( this.isValidEdge( correlation )) {
-					returnValue++;
-					// this Correlation belongs on the graph, make sure it is there.
-					if ( !this.containsEdge( correlation )) {
-						this.addEdge( correlation, 
-													new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
-														correlation.toArray( new Molecule[ 2 ])),
-													EdgeType.UNDIRECTED );
-					}
-				} else {
-					// this Correlation does not belong on the graph, make sure it is 
-					// not there.
-					if ( this.containsEdge( correlation )) {
-						this.getPickedEdgeState( ).pick( correlation, false );
-						try {
-							this.removeEdge( correlation );
-						} catch ( NullPointerException e ) {
-							Logger.getLogger( getClass( )).debug( "Removal of edge " + 
-								correlation + " failed!", e );
-						}
-					}
-				}
-			}
-			this.repaint( );
-			return returnValue;
-		}
+		public void filterEdges( ) {
+//      this.updateDaemon.update( new DaemonListener( ) {
+//        public void daemonUpdate( ) {
+          synchronized( graph ) { 
+            for( Correlation correlation : correlations ) {
+              if ( isValidEdge( correlation )) {
+                // this Correlation belongs on the graph, make sure it is there.
+                if ( !containsEdge( correlation )) {
+                  addEdge( correlation, 
+                           new edu.uci.ics.jung.graph.util.Pair<Molecule>( 
+                           correlation.getFirst( ), correlation.getSecond( )),
+                           EdgeType.UNDIRECTED );
+                }
+              } else {
+                // this Correlation does not belong on the graph, make sure it is 
+                // not there.
+                if ( containsEdge( correlation )) {
+                  getPickedEdgeState( ).pick( correlation, false );
+                  try {
+                    removeEdge( correlation );
+                  } catch ( NullPointerException e ) {
+                    Logger.getLogger( getClass( )).debug( "Removal of edge " + 
+                      correlation + " failed!", e );
+                  }
+                }
+              }
+            }
+          }
+          repaint( );
+//        }
+//      });
+    }
 
 		/**
 		 * Checks to see if an edge is valid and belongs in the graph.
