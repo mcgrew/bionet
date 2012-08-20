@@ -872,24 +872,22 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		} else if ( item == this.setFoldChangeGroupsMenuItem ) {
 			Settings settings = Settings.getSettings( );
 			double newFold = 0.0;
-			String newFoldEntry = 
-				JOptionPane.showInputDialog( this, 
+      Component owner = this;
+      while(!( owner instanceof Frame )) {
+        owner = owner.getParent( );
+      }
+			FoldChangeDialog newFoldEntry = 
+				FoldChangeDialog.showInputDialog( (Frame)owner, 
 					language.get( "Enter new fold change value" ),
-					settings.get( "preferences.correlation.foldChange", "2.0" ));
+					settings.getDouble( "preferences.correlation.foldChange", 2.0 ),
+					settings.getBoolean( "preferences.correlation.logData", false ));
 			if ( newFoldEntry != null ) {
-				try {
-					newFold = Double.parseDouble( newFoldEntry );
-				} catch ( NumberFormatException e ) { }
-				if ( newFold < 1.0 ) {
-					Logger.getLogger( getClass( )).error( 
-						"You entered an invalid number. The fold change parameter should " +
-						"be a number greater than or equal to 1.0" );
-				} else {
-					settings.setDouble( "preferences.correlation.foldChange", newFold );
+					settings.setDouble( "preferences.correlation.foldChange", 
+                              newFoldEntry.getFoldChange( ));
+					settings.setBoolean( "preferences.correlation.logData", 
+                               newFoldEntry.isLogData( ));
 					this.repaint( );
-				}
 			}
-
 		}
 	}
 
@@ -903,6 +901,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
     }
     NumberList group1 = m.getValues( sampleGroups.getFirst( ));
     NumberList group2 = m.getValues( sampleGroups.getSecond( ));
+    Settings settings = Settings.getSettings( );
     filterZeros( group1 );
     filterZeros( group2 );
     if ( group1.size( ) == 0 || group2.size( ) == 0 ) {
@@ -910,8 +909,18 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
     }
     double mean1 = group1.getMean( );
     double mean2 = group2.getMean( );
-    double foldChange = Settings.getSettings( ).getDouble( 
+    double foldChange = settings.getDouble( 
       "preferences.correlation.foldChange", 2.0 );
+    boolean logData = settings.getBoolean( 
+      "preferences.correlation.logData", false );
+    if ( logData ) {
+      if ( mean2 - mean1 > Math.log( foldChange )) {
+        return 1;
+      }
+      if ( mean1 - mean2  > Math.log( foldChange )) {
+        return -1;
+      }
+    }
     if ( mean2 / mean1 > foldChange ) {
       return 1;
     }
@@ -2426,7 +2435,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		 * (0.6-1.0) a step of 0.5, min of 0.0 and max of 1.0
 		 */
 		public CorrelationFilterPanel( ) {
-			this( 0.8, 1.0 );
+			this( 0.95, 1.0 );
 		}
 
 		/**
