@@ -60,8 +60,6 @@ import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.AxisSpace;
 import org.jfree.chart.axis.AxisState;
 import org.jfree.data.general.DefaultHeatMapDataset;
-import org.jfree.data.general.HeatMapDataset;
-import org.jfree.data.general.HeatMapUtilities;
 import org.jfree.ui.RectangleEdge;
 
 import edu.uci.ics.jung.visualization.control.GraphMouseListener;
@@ -304,32 +302,40 @@ public class HeatMap extends JPanel implements MouseListener,
 
   public void daemonUpdate( ) {
     this.setCursor( Cursor.getPredefinedCursor( Cursor.WAIT_CURSOR ));
-    this.drawGrid( );
-//    this.mapColors = HeatMapUtilities.createHeatMapImage( 
-//      this.getDataset( ), this.spectrum );
-    if ( this.mapColors == null ) {
-      int size = moleculeList.size( );
-      if ( size <= 0 )
-        return;
-      this.mapColors = new BufferedImage( size, 
-                                          size,  
-                                          BufferedImage.TYPE_4BYTE_ABGR );
-      Graphics g2d = (Graphics2D)this.mapColors.getGraphics( );
-      for( int i=0; i < size; i++ ){
-        for( int j=0; j < size; j++ ) {
-          if ( i != j ) {
-            g2d.setColor( (Color)this.spectrum.getPaint( 
-              this.correlations.getCorrelation( moleculeList.get( i ), 
-                moleculeList.get( j )).getValue( correlationMethod )));
+    try {
+      this.drawGrid( );
+      if ( this.mapColors == null ) {
+        int size = moleculeList.size( );
+        if ( size <= 0 )
+          return;
+        this.mapColors = new BufferedImage( size, 
+                                            size,  
+                                            BufferedImage.TYPE_4BYTE_ABGR );
+        Graphics g2d = (Graphics2D)this.mapColors.getGraphics( );
+        for( int i=0; i < size; i++ ){
+          for( int j=0; j < size; j++ ) {
+            if ( i != j ) {
+              g2d.setColor( (Color)this.spectrum.getPaint( 
+                this.correlations.getCorrelation( moleculeList.get( i ), 
+                  moleculeList.get( j )).getValue( correlationMethod )));
+            } else { 
+              g2d.setColor( Color.BLACK );
+            }
             g2d.fillRect( i, size-j-1, 1, 1  );
           }
+          // if a new update is scheduled, stop this one.
+          if ( this.mapColors == null ) {
+            return;
+          }
+          this.repaint( );
         }
-        // if a new update is scheduled, stop this one.
-        if ( this.mapColors == null ) {
-          return;
-        }
-        this.repaint( );
       }
+    } catch( RuntimeException e ){
+      // Something went wrong. Wait a moment and try updating again.
+      try {
+        Thread.sleep( 1000 );
+      } catch( InterruptedException i ) { }
+      updateDaemon.update( this );
     }
     this.setCursor( Cursor.getPredefinedCursor( Cursor.DEFAULT_CURSOR ));
   }

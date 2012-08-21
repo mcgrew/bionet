@@ -27,6 +27,7 @@ import edu.purdue.bbc.util.Pair;
 import edu.purdue.bbc.util.Range;
 import edu.purdue.bbc.util.Settings;
 import edu.purdue.bbc.util.SimplePair;
+import edu.purdue.bbc.util.UpdateDaemon;
 import edu.purdue.cc.bionet.io.DataReader;
 import edu.purdue.cc.bionet.io.SaveImageAction;
 import edu.purdue.cc.bionet.ui.layout.LayoutAnimator;
@@ -51,6 +52,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -1729,7 +1731,11 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 		 * A UI class for displaying the graph Topology.
 		 */
 		private class TopologyPanel extends JPanel 
-		                            implements GraphItemChangeListener {
+		                         implements GraphItemChangeListener,DaemonListener {
+      private double averageNeighbors;
+      private int networkDiameter;
+      private double characteristicPathLength;
+      private UpdateDaemon updateDaemon = UpdateDaemon.create( 500 );
 
 			/**
 			 * Creates a new TopologyPanel.
@@ -1738,6 +1744,8 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 				super( );
 				graph.addVertexChangeListener( this );
 				graph.addEdgeChangeListener( this );
+        updateDaemon.update( this );
+        updateDaemon.start( );
 			}
 
 			/**
@@ -1770,23 +1778,48 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 					": %d", getCorrelatedCount( molecules ));
 				g.drawString( text, 20, 52 );
 
-				text = String.format( 
-					language.get( "Average number of neighbors" ) + ": %.2f", 
-					getAverageNeighbors( molecules ));
-
+				text = language.get( "Average number of neighbors" ) + 
+          (( this.averageNeighbors >= 0 ) ?
+            String.format( ": %.2f", this.averageNeighbors ) : 
+            ": Calculating..." );
 				g.drawString( text, 20, 70 );
 
-				text = String.format( language.get( "Network diameter" ) + ": %d",
-					getNetworkDiameter( molecules ));
+				text = language.get( "Network diameter" ) + 
+          (( this.networkDiameter >= 0 ) ? 
+            String.format( ": %d", this.networkDiameter ) : ": Calculating..." );
 				g.drawString( text, 20, 86 );
 
-				text = String.format( 
-					language.get( "Characteristic path length" ) + ": %.2f", 
-					getCharacteristicPathLength( molecules ));
+				text = language.get( "Characteristic path length" ) + 
+          (( this.characteristicPathLength >= 0 ) ? 
+            String.format( ": %.2f", this.characteristicPathLength ) : 
+            ": Calculating..." );
 				g.drawString( text, 20, 102 );
 
 
 			}
+
+      public void daemonUpdate( ) {
+        this.setCursor( Cursor.getPredefinedCursor( Cursor.WAIT_CURSOR ));
+          this.averageNeighbors = -1;
+          this.networkDiameter = -1;
+          this.characteristicPathLength = -1;
+          this.repaint( );
+        try {
+          this.averageNeighbors = getAverageNeighbors( molecules );
+          this.repaint( );
+          this.networkDiameter = getNetworkDiameter( molecules );
+          this.repaint( );
+          this.characteristicPathLength = getCharacteristicPathLength( molecules );
+          this.repaint( );
+        } catch( RuntimeException e ){
+          // Something went wrong. Wait a moment and try updating again.
+          try {
+            Thread.sleep( 1000 );
+          } catch( InterruptedException i ) { }
+          updateDaemon.update( this );
+        }
+        this.setCursor( Cursor.getPredefinedCursor( Cursor.DEFAULT_CURSOR ));
+      }
 
 			/**
 			 * Returns the number of nodes which are connected to at least one other 
@@ -1874,6 +1907,7 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			 * @param event The event which triggered this action.
 			 */
 			public void stateChanged( GraphItemChangeEvent event ) {
+        updateDaemon.update( this );
 				if ( this.isVisible( ))
 					this.repaint( );
 			}
