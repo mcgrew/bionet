@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
@@ -37,6 +38,7 @@ import org.apache.log4j.Logger;
 public class Sample  extends StringAttributes implements Comparable<Sample>,Cloneable {
 	protected String name;
 	protected Map<Molecule,Number> valueMap;
+  private static List<String> names = new ArrayList( );
 
 	/**
 	 * Constructor. Creates a new sample with the given name.
@@ -45,7 +47,12 @@ public class Sample  extends StringAttributes implements Comparable<Sample>,Clon
 	 */
 	public Sample( String name ) {
 		super( false );
-		this.name = name;
+    if ( !names.contains( name )) {
+      names.add( name );
+      this.name = name;
+    } else {
+      this.name = names.get( names.indexOf( name ));
+    }
 		Logger.getLogger( getClass( )).debug( "Creating Sample: " + name );
 		this.attributes = new HashMap<String,String>( );
 		this.valueMap = new HashMap<Molecule,Number>( );
@@ -82,33 +89,30 @@ public class Sample  extends StringAttributes implements Comparable<Sample>,Clon
 	 */
 	public int compareTo( Sample o ) {
 		int returnValue = 0;
+    if ( this.name != o.toString( )) {
+			return this.name.compareTo( o.toString( ));
+    }
 		if ( this.hasAttribute( "time" ) && o.hasAttribute( "time" )) {
 			try {	
 				double s1Time = Double.parseDouble( this.getAttribute( "time" ));
 				double s2Time = Double.parseDouble( o.getAttribute( "time" ));
-				if ( s1Time < s2Time )
-					returnValue = -1;
-				else if ( s2Time < s1Time )
-					returnValue = 1;
+				return Double.compare( s1Time, s2Time );
 			} catch ( NumberFormatException e ) { }
 		}
-		if ( returnValue == 0 ) {
-			returnValue = this.name.compareTo( o.toString( ));
-		}
-		if ( returnValue == 0 ) {
-			Iterator<Molecule> myMolecules = this.getMolecules( ).iterator( );
-			Iterator<Molecule> hisMolecules = o.getMolecules( ).iterator( );
-			while ( returnValue == 0 ) {
-				if ( myMolecules.hasNext( ) && !hisMolecules.hasNext( ))
-					return 1;
-				if ( !myMolecules.hasNext( ) && hisMolecules.hasNext( ))
-					return -1;
-				if ( !myMolecules.hasNext( ) && !hisMolecules.hasNext( ))
-					return 0;
-				returnValue = myMolecules.next( ).compareTo( hisMolecules.next( ));
-			}
-		}
-		return returnValue;
+//		if ( returnValue == 0 ) {
+//			Iterator<Molecule> myMolecules = this.getMolecules( ).iterator( );
+//			Iterator<Molecule> hisMolecules = o.getMolecules( ).iterator( );
+//			while ( returnValue == 0 ) {
+//				if ( myMolecules.hasNext( ) && !hisMolecules.hasNext( ))
+//					return 1;
+//				if ( !myMolecules.hasNext( ) && hisMolecules.hasNext( ))
+//					return -1;
+//				if ( !myMolecules.hasNext( ) && !hisMolecules.hasNext( ))
+//					return 0;
+//				returnValue = myMolecules.next( ).compareTo( hisMolecules.next( ));
+//			}
+//		}
+		return 1;
 		
 	}
 
@@ -119,7 +123,7 @@ public class Sample  extends StringAttributes implements Comparable<Sample>,Clon
 	 * @return True if they are equal.
 	 */
 	public boolean equals( Sample o ) {
-		return ( this.compareTo( o ) == 0 );
+    return ( this.name == o.toString( ) );
 	}
 
 	/**

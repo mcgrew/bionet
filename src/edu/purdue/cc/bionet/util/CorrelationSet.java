@@ -23,12 +23,15 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
 public class CorrelationSet extends TreeSet<Correlation> {
 	Collection<Molecule> molecules;
 	Collection<Sample> samples;
+  HashMap<Molecule,Collection<Correlation>> correlationMap;
 
 	/**
 	 * Creates a new CorrelationSet with the specified samples.
@@ -38,7 +41,8 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	public CorrelationSet( Collection<Sample> samples ) {
 		super( );
 		this.samples = samples;
-		this.molecules = new TreeSet<Molecule>( );
+		this.molecules = new TreeSet( );
+    this.correlationMap = new HashMap( );
 	}
 
 	/**
@@ -49,7 +53,8 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	public CorrelationSet( CorrelationSet c ) {
 		super( c );
 		this.samples = c.getSamples( );
-		this.molecules = new TreeSet<Molecule>( );
+		this.molecules = new TreeSet( );
+    this.correlationMap = new HashMap( );
 	}
 
 	/**
@@ -63,7 +68,8 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	                       Collection<Sample> samples ) {
 		super( c );
 		this.samples = samples;
-		this.molecules = new TreeSet<Molecule>( );
+		this.molecules = new TreeSet( );
+    this.correlationMap = new HashMap( );
 	}
 
 	/**
@@ -76,7 +82,8 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	                       Collection<Sample> samples ) {
 		super( c );
 		this.samples = samples;
-		this.molecules = new TreeSet<Molecule>( );
+		this.molecules = new TreeSet( );
+    this.correlationMap = new HashMap( );
 	}
 
 	/**
@@ -89,7 +96,8 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	                       Collection<Sample> samples ) {
 		super( s );
 		this.samples = samples;
-		this.molecules = new TreeSet<Molecule>( );
+		this.molecules = new TreeSet( );
+    this.correlationMap = new HashMap( );
 	}
 
 	/**
@@ -103,6 +111,7 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	                       Collection<Sample> samples ) {
 		super( );
 		this.molecules = new TreeSet<Molecule>( );
+    this.correlationMap = new HashMap( );
 		this.samples = samples;
 		for ( Molecule molecule : molecules ) {
 			this.add( molecule );
@@ -117,8 +126,12 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	 */
 	public boolean add( Molecule molecule ){
 		if ( !this.molecules.contains( molecule )) {
+      this.correlationMap.put( molecule, new TreeSet( ));
 			for ( Molecule m : this.molecules ) {
-				super.add( new Correlation( m, molecule, this.samples ));
+        Correlation c = new Correlation( m, molecule, this.samples );
+				super.add( c );
+        this.correlationMap.get( m ).add( c );
+        this.correlationMap.get( molecule ).add( c );
 			}
 			this.molecules.add( molecule );
 		} else {
@@ -165,9 +178,10 @@ public class CorrelationSet extends TreeSet<Correlation> {
 	 * @return The requested correlation.
 	 */
 	public Correlation getCorrelation( Molecule molecule1, Molecule molecule2 ) {
-		for ( Correlation correlation : this ) {
-			if ( correlation.contains( molecule1 ) && 
-			     correlation.contains( molecule2 ))
+    Collection<Correlation> set1 = this.correlationMap.get( molecule1 );
+    Collection<Correlation> set2 = this.correlationMap.get( molecule2 );
+		for ( Correlation correlation : set1 ) {
+			if ( set2.contains( correlation ))
 				return correlation;
 		}
 		return null;

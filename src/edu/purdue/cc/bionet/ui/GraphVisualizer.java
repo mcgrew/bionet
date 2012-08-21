@@ -105,8 +105,7 @@ import org.apache.log4j.Logger;
 	protected boolean commonNeighborIndicator;
 	protected NeighborCollection<V,E> commonNeighbors;
 	private static final long repaintDelay = 1000L;
-  protected UpdateDaemon updateDaemon = 
-    UpdateDaemon.create( 100 );
+  protected UpdateDaemon updateDaemon = UpdateDaemon.create( 100 );
 
 	/**
 	 * Constructs a GraphVisualizer object.

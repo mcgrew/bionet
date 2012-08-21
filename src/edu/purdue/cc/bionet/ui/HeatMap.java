@@ -27,8 +27,11 @@ import edu.purdue.cc.bionet.util.Molecule;
 import edu.purdue.cc.bionet.util.MonitorableRange;
 import edu.purdue.cc.bionet.util.Spectrum;
 import edu.purdue.cc.bionet.util.SplitSpectrum;
+import edu.purdue.bbc.util.DaemonListener;
+import edu.purdue.bbc.util.UpdateDaemon;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Graphics;
@@ -69,7 +72,7 @@ import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 public class HeatMap extends JPanel implements MouseListener, 
 		GraphMouseListener<Correlation>, ChangeListener, 
 		GraphItemChangeListener<Molecule>, Scalable, MouseWheelListener, 
-		ComponentListener {
+		ComponentListener,DaemonListener {
 
 	private List <Molecule> moleculeList;
 	private int tickSize = 0;
@@ -84,6 +87,9 @@ public class HeatMap extends JPanel implements MouseListener,
 	private SpectrumLegend spectrumLegend;
 	private CorrelationSet correlations;
 	private Number correlationMethod;
+  private BufferedImage mapColors;
+  private BufferedImage gridLines;
+  private UpdateDaemon updateDaemon = UpdateDaemon.create( 100 );
 
 	public HeatMap ( CorrelationSet correlations, Collection<Molecule> molecules,
 	                 Number correlationMethod ) {
@@ -124,6 +130,8 @@ public class HeatMap extends JPanel implements MouseListener,
 		this.spectrumLegend = new SpectrumLegend( this.spectrum, new Range( -1.0, 1.0 ));
 		this.setLayout( null );
 		this.add( this.spectrumLegend );
+    this.updateDaemon.update( this );
+    this.updateDaemon.start( );
 	}
 
 	/**
@@ -250,6 +258,10 @@ public class HeatMap extends JPanel implements MouseListener,
 		viewPortMouseY = centerY - viewPortMouseY;
 		vp.setViewPosition( new Point( (int)viewPortMouseX, (int)viewPortMouseY ));
 
+    if ( oldZoom != this.currentZoom ) {
+      this.gridLines = null;
+    }
+    this.updateDaemon.update( this );
 		return this.currentZoom;
 	}
 
@@ -271,29 +283,84 @@ public class HeatMap extends JPanel implements MouseListener,
 	 */
 	public void paintComponent( Graphics g ) {
 		super.paintComponent( g );
+    int leftEdge = this.getWidth( ) / 8;
+    int topEdge = this.getHeight( ) / 32;
+    int bottomEdge = this.getHeight( ) * 7 / 8;
+    int rightEdge = this.getWidth( ) * 31 / 32;
+	  this.mapPosition = new Rectangle( leftEdge, topEdge, rightEdge - leftEdge, 
+                                      bottomEdge - topEdge );
 		
-		if ( moleculeList.size( ) > 0 ) {
+    if ( this.mapColors != null ) {
+      g.drawImage( this.mapColors, leftEdge, topEdge, rightEdge - leftEdge, 
+                   bottomEdge - topEdge, this.getBackground( ), this );
+      if ( this.gridLines != null ) {
+        g.drawImage( this.gridLines, 0, 0, this.getWidth( ), this.getHeight( ), 
+                     null, this );
+      } else {
+        this.updateDaemon.update( this );
+      }
+    }
+	}
+
+  public void daemonUpdate( ) {
+    this.setCursor( Cursor.getPredefinedCursor( Cursor.WAIT_CURSOR ));
+    this.drawGrid( );
+//    this.mapColors = HeatMapUtilities.createHeatMapImage( 
+//      this.getDataset( ), this.spectrum );
+    if ( this.mapColors == null ) {
+      int size = moleculeList.size( );
+      if ( size <= 0 )
+        return;
+      this.mapColors = new BufferedImage( size, 
+                                          size,  
+                                          BufferedImage.TYPE_4BYTE_ABGR );
+      Graphics g2d = (Graphics2D)this.mapColors.getGraphics( );
+      for( int i=0; i < size; i++ ){
+        for( int j=0; j < size; j++ ) {
+          if ( i != j ) {
+            g2d.setColor( (Color)this.spectrum.getPaint( 
+              this.correlations.getCorrelation( moleculeList.get( i ), 
+                moleculeList.get( j )).getValue( correlationMethod )));
+            g2d.fillRect( i, size-j-1, 1, 1  );
+          }
+        }
+        // if a new update is scheduled, stop this one.
+        if ( this.mapColors == null ) {
+          return;
+        }
+        this.repaint( );
+      }
+    }
+    this.setCursor( Cursor.getPredefinedCursor( Cursor.DEFAULT_CURSOR ));
+  }
+
+  public void drawGrid( ) {
+    if ( this.gridLines == null && this.getWidth( ) > 0 && 
+         this.getHeight( ) > 0 && this.moleculeList.size( ) > 0 ) {
 			float tickStep;
-			BufferedImage drawing = HeatMapUtilities.createHeatMapImage( 
-				this.getDataset( ), this.spectrum );
 			int leftEdge = this.getWidth( ) / 8;
 			int topEdge = this.getHeight( ) / 32;
 			int bottomEdge = this.getHeight( ) * 7 / 8;
 			int rightEdge = this.getWidth( ) * 31 / 32;
-			mapPosition = new Rectangle( leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge );
-			g.drawImage( drawing, leftEdge, topEdge, rightEdge - leftEdge, bottomEdge - topEdge, this.getBackground( ), this );
+      this.gridLines = new BufferedImage( this.getWidth( ), this.getHeight( ), 
+                                          BufferedImage.TYPE_4BYTE_ABGR );
+      Graphics g = this.gridLines.getGraphics( );
+      g.setColor( this.getForeground( ));
 			// y-axis
 			int yAxisPos = leftEdge - 1;
 	//		g.drawLine( yAxisPos, topEdge, yAxisPos, bottomEdge );
 			tickStep = ( bottomEdge - topEdge ) / (float)moleculeList.size( );
 			for ( int i=0; i <= moleculeList.size( ); i++ ) {
 				int tickY = Math.round( topEdge + i * tickStep );
-				g.drawLine( rightEdge, tickY, yAxisPos - tickSize, tickY );
+				g.drawLine( rightEdge, tickY, yAxisPos - tickSize + 1, tickY );
 				if ( i < moleculeList.size( )) {
 					String name = this.moleculeList.get( this.moleculeList.size( ) - 1 - i ).toString( );
 					g.drawString( name,
 						yAxisPos - 4 - g.getFontMetrics( ).stringWidth( name ),
 						(int)( tickY + tickStep ));
+          if ( this.gridLines == null ) {
+            return;
+          }
 				}
 			}
 					
@@ -318,8 +385,9 @@ public class HeatMap extends JPanel implements MouseListener,
 					(int)( tickX + tickStep )
 				);
 			}
-		}
-	}
+    }
+    this.repaint( );
+  }
 
 	/**
 	 * Adds a GraphMouseListener to this HeatMap.
@@ -431,7 +499,8 @@ public class HeatMap extends JPanel implements MouseListener,
 	 */
 	// ChangeListener interface method
 	public void stateChanged( ChangeEvent event ) {
-		this.repaint( );
+    this.mapColors = null;
+    this.updateDaemon.update( this );
 	}
 
 	/**
@@ -446,7 +515,9 @@ public class HeatMap extends JPanel implements MouseListener,
 			moleculeList.remove( molecule );
 		else if ( change == GraphItemChangeEvent.ADDED && !moleculeList.contains( molecule ))
 			moleculeList.add( molecule );
-		this.repaint( );
+    this.mapColors = null;
+    this.gridLines = null;
+    this.updateDaemon.update( this );
 	}
 
 	/**

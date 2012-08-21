@@ -145,6 +145,20 @@ public class Correlation extends SimplePair<Molecule>
 		return returnValue;
 	}
 
+  public boolean contains( Molecule m ) {
+    return m.equals( this.first ) || m.equals( this.second );
+  }
+
+  public boolean containsAll( Correlation c ) {
+    if ( this.first.equals( c.getFirst( ))) {
+      return this.second.equals( c.getSecond( ));
+    }
+    if ( this.first.equals( c.getSecond( ))) {
+      return this.second.equals( c.getFirst( ));
+    }
+    return false;
+  }
+
 	/**
 	 * Retrieves the samples being used by this Correlation for calculation.
 	 * 

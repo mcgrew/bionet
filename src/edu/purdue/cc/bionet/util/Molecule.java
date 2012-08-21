@@ -250,8 +250,9 @@ public class Molecule implements Comparable<Molecule> {
 	 *	in a sorted list.
 	 */
 	public int compareTo( Molecule m ) {
-		int returnValue = this.id.compareTo( m.id );
-		return returnValue;
+    if ( this.id == m.id )
+      return 0;
+		return this.id.compareTo( m.id );
 	}
 
 	/**
