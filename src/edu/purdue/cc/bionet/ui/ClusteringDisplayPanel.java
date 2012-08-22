@@ -756,7 +756,8 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 		public boolean setMeanGraph( DefaultMutableTreeNode node ) {
 			Language language = Settings.getLanguage( );
 			Object userObject = node.getUserObject( );
-			SampleGroup samples = new SampleGroup( this.samples );
+			SampleGroup samples = new SampleGroup( this.samples, 
+                                             new SampleComparator( ));
 			samples.retainAll( this.sampleTree.getSamples( ));
 			if ( samples.size( ) < 1 ) {
 				this.chart = null;
@@ -856,7 +857,8 @@ public class ClusteringDisplayPanel extends AbstractDisplayPanel
 		public boolean setGraph( DefaultMutableTreeNode node ) {
 			Object userObject = node.getUserObject( );
 			Language language = Settings.getLanguage( );
-			SampleGroup samples = new SampleGroup( this.samples );
+			SampleGroup samples = new SampleGroup( this.samples, 
+                                             new SampleComparator( ));
 			samples.retainAll( this.sampleTree.getSamples( ));
 			if ( samples.size( ) < 1 ) {
 				this.chart = null;

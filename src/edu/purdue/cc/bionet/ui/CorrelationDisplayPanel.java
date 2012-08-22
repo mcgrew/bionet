@@ -898,23 +898,33 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 	}
 
   public static int getRegulation( Molecule m, Pair<SampleGroup> sampleGroups ){
+    Settings settings = Settings.getSettings( );
+    return CorrelationDisplayPanel.getRegulation( m, sampleGroups,
+            settings.getDouble( "preferences.correlation.foldChange", 2.0 ),
+            settings.getBoolean( "preferences.correlation.logData", false ));
+  }
+
+  public static int getRegulation( Molecule m, Pair<SampleGroup> sampleGroups,
+                                   double foldChange, boolean logData ) {
     if ( sampleGroups == null ) {
       return 0;
     }
     NumberList group1 = m.getValues( sampleGroups.getFirst( ));
     NumberList group2 = m.getValues( sampleGroups.getSecond( ));
-    Settings settings = Settings.getSettings( );
     filterZeros( group1 );
     filterZeros( group2 );
-    if ( group1.size( ) == 0 || group2.size( ) == 0 ) {
-      return  0;
-    }
-    double mean1 = group1.getMean( );
-    double mean2 = group2.getMean( );
-    double foldChange = settings.getDouble( 
-      "preferences.correlation.foldChange", 2.0 );
-    boolean logData = settings.getBoolean( 
-      "preferences.correlation.logData", false );
+    double mean1;
+    double mean2;
+    if ( group1.size( ) == 0 )
+      mean1 = 0.0;
+    else
+      mean1 = group1.getMean( );
+
+    if ( group2.size( ) == 0 )
+      mean2 = 0.0;
+    else
+      mean2 = group2.getMean( );
+
     if ( logData ) {
       if ( mean2 - mean1 > Math.log( foldChange )) {
         return 1;
@@ -2975,8 +2985,11 @@ public class CorrelationDisplayPanel extends AbstractDisplayPanel
 			 * @return The Paint to use.
 			 */
 			public Paint transform( Molecule m ) {
+        Settings settings = Settings.getSettings( );
         int regulation = 
-          CorrelationDisplayPanel.getRegulation( m, this.sampleGroups );
+          CorrelationDisplayPanel.getRegulation( m, this.sampleGroups,
+            settings.getDouble( "preferences.correlation.foldChange", 2.0 ),
+            settings.getBoolean( "preferences.correlation.logData", false ));
         if ( regulation > 0 ) {
           return this.upPaint;
         }

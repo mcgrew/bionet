@@ -135,5 +135,34 @@
 	<target name="clean-build" depends="clean,dist"/>
 	<!-- ============ TARGET: DEFAULT ================== -->
 	<target name="default" depends="clean,dist"/>
+
+	<target name="test" depends="compile">
+		<mkdir dir="${build_dir}/tests"/>
+		<javac srcdir="tests" target="1.5" destdir="${build_dir}/tests" debug="on" 
+			debuglevel="lines,vars,source" deprecation="true"
+			includeantruntime="false">
+			<classpath>
+        <pathelement location="tests/junit-4.10.jar"/>
+        <pathelement path="${class_dir}"/>
+        <fileset dir="${lib_dir}">
+          <include name="**/*.jar"/>
+        </fileset>
+			</classpath>
+		</javac>
+		<junit>
+      <classpath>
+        <pathelement path="${build_dir}/tests"/>
+        <pathelement location="tests/junit-4.10.jar"/>
+        <pathelement path="${class_dir}"/>
+        <fileset dir="${lib_dir}">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+      <formatter type="brief" usefile="false" />
+      <batchtest todir="tests">
+        <fileset dir="tests" includes="**/*.java" excludes="Tests.java"/>
+      </batchtest>
+		</junit>
+  </target>
 </project>
 

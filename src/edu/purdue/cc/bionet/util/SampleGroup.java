@@ -20,6 +20,7 @@ along with BioNet.  If not, see <http://www.gnu.org/licenses/>.
 package edu.purdue.cc.bionet.util;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,19 @@ public class SampleGroup extends TreeSet<Sample>
 	}
 
 	/**
+	 * Constructor.
+	 * 
+	 * @param name The name of this SampleGroup.
+	 * @param comparator the comparator that will be used to order this set. If 
+   *   null, the natural ordering of the elements will be used.
+	 */
+	public SampleGroup( String namle, Comparator<? super Sample> comparator ) {
+		super( comparator );
+		this.name = name;
+	}
+
+
+	/**
 	 * Creates a new SampleGroup
 	 * 
 	 * @param name The name of this SamplGroup.
@@ -58,12 +72,41 @@ public class SampleGroup extends TreeSet<Sample>
 	}
 
 	/**
+	 * Creates a new SampleGroup
+	 * 
+	 * @param name The name of this SamplGroup.
+	 * @param samples A collection of samples to add to this group.
+	 * @param comparator the comparator that will be used to order this set. If 
+   *   null, the natural ordering of the elements will be used.
+	 */
+	public SampleGroup( String name, Collection<Sample> samples, 
+                      Comparator<? super Sample> comparator ) {
+		super( comparator );
+    super.addAll( samples );
+		this.name = name;
+	}
+
+	/**
 	 * Creates a shallow copy of the passed in SampleGroup
 	 * 
 	 * @param group The group to create a copy of.
 	 */
 	public SampleGroup( SampleGroup group ) {
 		super( group );
+		this.name = group.getName( );
+	}
+
+	/**
+	 * Creates a shallow copy of the passed in SampleGroup
+	 * 
+	 * @param group The group to create a copy of.
+	 * @param comparator the comparator that will be used to order this set. If 
+   *   null, the natural ordering of the elements will be used.
+	 */
+	public SampleGroup( SampleGroup group, 
+                      Comparator<? super Sample> comparator ) {
+    super( comparator );
+		super.addAll( group );
 		this.name = group.getName( );
 	}
 
