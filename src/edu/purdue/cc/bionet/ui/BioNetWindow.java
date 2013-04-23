@@ -340,9 +340,9 @@ public class BioNetWindow extends JFrame implements ActionListener,TabbedWindow 
 			DataReader data = null;
 			FileFilter fileFilter = fc.getFileFilter( );
 			File selected = fc.getSelectedFile( );
-			if ( fileFilter instanceof MetsignFileFilter ) {
+//			if ( fileFilter instanceof MetsignFileFilter ) {
 				data = new MetsignDataReader( selected.getAbsolutePath( ) );
-			}
+//			}
 			Settings.getSettings( ).setProperty( "history.open.last", 
 				selected.getAbsolutePath( ));
 			data.load( );
